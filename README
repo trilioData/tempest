@@ -6,7 +6,7 @@ Prerequisites
 
 ## pythonworkloadmgr-client installed in /opt/stack
 ## requests library installed 
-   if using tox virtual environment then make sure dependecy library installed
+   if using tox virtual environment then make sure dependency library installed
    in respective virtual environment
 
 
