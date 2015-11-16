@@ -1,0 +1,26 @@
+Tempest binding with WorkloadMgr API
+=====================================
+
+Prerequisites
+==============
+
+## pythonworkloadmgr-client installed in /opt/stack
+## requests library installed 
+   if using tox virtual environment then make sure dependecy library installed
+   in respective virtual environment
+
+
+Configure tempest to test WorkloadMgr API
+==========================================
+
+## checkout & configure tempest 
+## configure tempest.conf file according to openstack setup
+## copy & paste attached folder to tempest folder to override files
+## run test cases either all or for workloadmgr module
+   For example
+   nosetests -v tempest.api.workloadmgr.test_workloads:WorkloadsTest.test_workloads_list (To run single test case with nose)
+   tox -e api (To run all api tests)
+   ./run_tempest.sh to run single or specified test cases
+
+   
+
