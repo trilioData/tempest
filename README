@@ -21,6 +21,3 @@ Configure tempest to test WorkloadMgr API
    nosetests -v tempest.api.workloadmgr.test_workloads:WorkloadsTest.test_workloads_list (To run single test case with nose)
    tox -e api (To run all api tests)
    ./run_tempest.sh to run single or specified test cases
-
-   
-
