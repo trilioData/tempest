@@ -1,8 +1,8 @@
-.coveragerc
-.mailmap
-.testr.conf
+AUTHORS
+ChangeLog
 HACKING.rst
 LICENSE
+README
 README.rst
 REVIEWING.rst
 openstack-common.conf
@@ -11,6 +11,7 @@ run_tempest.sh
 run_tests.sh
 setup.cfg
 setup.py
+test
 test-requirements.txt
 tox.ini
 doc/source/HACKING.rst
@@ -35,6 +36,7 @@ etc/accounts.yaml.sample
 etc/config-generator.tempest.conf
 etc/javelin-resources.yaml.sample
 etc/logging.conf.sample
+etc/tempest.conf
 etc/whitelist.yaml
 tempest/README.rst
 tempest/__init__.py
@@ -43,6 +45,7 @@ tempest/config.py
 tempest/exceptions.py
 tempest/manager.py
 tempest/test.py
+tempest/tvaultconf.py
 tempest.egg-info/PKG-INFO
 tempest.egg-info/SOURCES.txt
 tempest.egg-info/dependency_links.txt

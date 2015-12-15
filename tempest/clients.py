@@ -150,7 +150,7 @@ from tempest.services.volume.v2.json.snapshots_client import \
 from tempest.services.volume.v2.json.volumes_client import VolumesV2Client
 
 import sys
-sys.path.append("/opt/stack/python-workloadmgrclient/")
+sys.path.append("/usr/lib/python2.7/site-packages/python_workloadmgrclient-1.0.160-py2.7.egg/workloadmgrclient/")
 
 from workloadmgrclient import client
 

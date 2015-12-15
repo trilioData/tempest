@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+rm -f tempest.log
+
 function usage {
   echo "Usage: $0 [OPTION]..."
   echo "Run Tempest test suite"
@@ -94,6 +96,7 @@ function testr_init {
 function run_tests {
   testr_init
   ${wrapper} find . -type f -name "*.pyc" -delete
+  export OS_TEST_TIMEOUT=1000
   export OS_TEST_PATH=./tempest/test_discover
   if [ $debug -eq 1 ]; then
       if [ "$testrargs" = "" ]; then

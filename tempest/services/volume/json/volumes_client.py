@@ -28,6 +28,7 @@ class BaseVolumesClient(service_client.ServiceClient):
     """
 
     create_resp = 200
+    volume_create_resp=202
 
     def __init__(self, auth_provider, service, region,
                  default_volume_size=1, **kwargs):
@@ -92,7 +93,7 @@ class BaseVolumesClient(service_client.ServiceClient):
         post_body = json.dumps({'volume': post_body})
         resp, body = self.post('volumes', post_body)
         body = json.loads(body)
-        self.expected_success(self.create_resp, resp.status)
+        self.expected_success(self.volume_create_resp, resp.status)
         return service_client.ResponseBody(resp, body)
 
     def update_volume(self, volume_id, **kwargs):
