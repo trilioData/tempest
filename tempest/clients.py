@@ -488,7 +488,7 @@ class Manager(manager.Manager):
         self.wlm_client = client.Client(1,
                                         CONF.auth.admin_username,
                                         CONF.auth.admin_password,
-                                        CONF.auth.admin_tenant_name,
+                                        CONF.identity.tenant_name,
                                         CONF.identity.uri,
                                         insecure,
                                         region_name=CONF.identity.region,

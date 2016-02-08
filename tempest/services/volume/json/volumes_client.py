@@ -110,6 +110,7 @@ class BaseVolumesClient(service_client.ServiceClient):
         self.expected_success(202, resp.status)
         return service_client.ResponseBody(resp, body)
 
+
     def upload_volume(self, volume_id, image_name, disk_format):
         """Uploads a volume in Glance."""
         post_body = {

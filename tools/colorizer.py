@@ -45,6 +45,8 @@ import heapq
 import sys
 import unittest
 
+sys.path.append("/usr/lib/python2.7")
+
 import subunit
 import testtools
 
