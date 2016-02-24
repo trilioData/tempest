@@ -29,6 +29,7 @@ from string import ascii_lowercase
 import unittest
 from tempest_lib import exceptions as lib_exc
 import datetime
+from tempest import tvaultconf
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -144,7 +145,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         #self.servers_client.stop_server(server_id)
         #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
-        #self.addCleanup(self.delete_vm, server_id)
+        if(tvaultconf.cleanup):
+           self.addCleanup(self.delete_vm, server_id)
         return server_id
 
     def create_vms(self, totalVms):
@@ -153,7 +155,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
             instances.append(server['server']['id'])
             waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
-        self.addCleanup(self.delete_vms, instances)    
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.delete_vms, instances)    
         return instances
 
 
@@ -183,7 +186,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         volume_id= volume['volume']['id']
         waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
-        #self.addCleanup(self.delete_volume, volume_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.delete_volume, volume_id)
         return volume_id
 
     @classmethod
@@ -217,7 +221,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #waiters.wait_for_volume_status(self.volumes_client,
         #                               volume_id, 'in-use')
         self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
-        #self.addCleanup(self.detach_volume, server_id, volume_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.detach_volume, server_id, volume_id)
 
     @classmethod
     def detach_volume(cls, server_id, volume_id):
@@ -261,7 +266,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         LOG.debug('WorkloadCreated: %s' % workload_id)
-        #self.addCleanup(self.workload_delete, workload_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.workload_delete, workload_id)
         return workload_id
 
 
@@ -284,7 +290,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:"+ str(resp.content))
         #self.wait_for_workload_tobe_available(workload_id)
-        #self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
         return snapshot_id
 
     @classmethod
@@ -332,6 +339,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def snapshot_restore(self, workload_id, snapshot_id):
         LOG.debug("At the start of snapshot_restore method")
         payload={"restore": {"options": {"description": "Tempest test restore",
+                                           "oneclickrestore": True,
+                                           "vmware": {},
+                                           "openstack": {"instances": [], "zone": ""},
+                                           "type": "openstack",
+                                           "restore_options": {},
+                                           "name": "Tempest test restore"},
+                "name": "Tempest test restore",
+                "description": "Tempest test restore"}}
+        LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        LOG.debug("After returning from waitfor snapshot")
+        resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
+        restore_id = body['restore']['id']
+        LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
+        #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+          self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
+        return restore_id
+
+
+    def snapshot_selective_restore(self, workload_id, snapshot_id):
+        LOG.debug("At the start of snapshot_selective_restore method")
+        payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": False,
                                            "vmware": {},
                                            "openstack": {"instances": [], "zone": ""},
@@ -351,9 +386,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        #self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-        self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
+        if(tvaultconf.cleanup):
+          self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+          self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
+   
+
 
     @classmethod
     def delete_restored_vms(cls, workload_id, snapshot_id, restore_id):
