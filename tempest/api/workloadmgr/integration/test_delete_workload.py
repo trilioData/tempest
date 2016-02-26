@@ -39,7 +39,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_workload(self):
         self.total_workloads=1
-        self.vms_per_workload=2
+        self.vms_per_workload=1
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
@@ -58,4 +58,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              self.attach_volume(volume_id, vm_id)
 
         self.workload_id=self.workload_create(workload_instances,tvaultconf.parallel)
-        self.workload_delete(self.workload_id)
+        resp, body = self.wlm_client.client.delete("/workloads/"+self.workload_id)
+        LOG.debug("#### workloadid: %s , operation: workload_delete" % self.workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        LOG.debug('WorkloadDeleted: %s' % self.workload_id)
+
