@@ -211,9 +211,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
        
 
 
-    def attach_volume(self, volume_id, server_id):
+    def attach_volume(self, volume_id, server_id, device="/dev/vdb"):
         #device = "/dev/"+''.join(choice(ascii_lowercase) for i in range(10))
-        device = "/dev/vdb"
+        #device = "/dev/vdb"
         #self.volumes_client.attach_volume(volume_id,
         #                          server_id,
         #                          device)

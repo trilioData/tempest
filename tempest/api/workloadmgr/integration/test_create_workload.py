@@ -47,15 +47,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.full_snapshots = []
         self.incr_snapshots = []
         self.restores = []
-        workload_instances = []
-        workload_volumes = []
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
-             workload_instances.append(vm_id)
              self.workload_instances.append(vm_id)
              volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             workload_volumes.append(volume_id)
+             self.workload_volumes.append(volume_id)
              self.attach_volume(volume_id, vm_id)
 
-        self.workload_id=self.workload_create(workload_instances,tvaultconf.parallel)
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.assertEqual(self.getWorkloadStatus(self.workload_id),"available","Workload creation failed")

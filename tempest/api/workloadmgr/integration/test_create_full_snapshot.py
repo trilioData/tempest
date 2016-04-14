@@ -47,17 +47,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.full_snapshots = []
         self.incr_snapshots = []
         self.restores = []
-        workload_instances = []
-        workload_volumes = []
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
-             workload_instances.append(vm_id)
              self.workload_instances.append(vm_id)
-             volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             workload_volumes.append(volume_id)
-             self.attach_volume(volume_id, vm_id)
+             volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+             volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+             self.workload_volumes.append(volume_id1)
+             self.workload_volumes.append(volume_id2)
+             self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
+             self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
 
-        self.workload_id=self.workload_create(workload_instances,tvaultconf.parallel)
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
