@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 rm -f tempest.log
 
 function usage {
@@ -13,6 +12,8 @@ function usage {
   echo "  -u, --update             Update the virtual environment with any newer package versions"
   echo "  -s, --smoke              Only run smoke tests"
   echo "  -t, --serial             Run testr serially"
+  echo "  -i, --list-failing       List failed cases from last testrun"
+  echo "  -F, --run-failing        Run failed cases from last testrun"
   echo "  -C, --config             Config file location"
   echo "  -h, --help               Print this usage message"
   echo "  -d, --debug              Run tests with testtools instead of testr. This allows you to use PDB"
@@ -20,6 +21,11 @@ function usage {
   echo "  -L, --logging-config     Logging config file location.  Default is etc/logging.conf"
   echo "  -- [TESTROPTIONS]        After the first '--' you can pass arbitrary arguments to testr "
 }
+
+function list-failing-cases {
+    ${wrapper} testr failing
+}
+
 
 testrargs=""
 venv=${VENV:-.venv}
@@ -36,13 +42,12 @@ update=0
 logging=0
 logging_config=etc/logging.conf
 
-if ! options=$(getopt -o VNnfusthdC:lL: -l virtual-env,no-virtual-env,no-site-packages,force,update,smoke,serial,help,debug,config:,logging,logging-config: -- "$@")
+if ! options=$(getopt -o VNnfusthdFiC:lL: -l virtual-env,no-virtual-env,no-site-packages,force,update,smoke,serial,help,debug,run-failing,list-failing,config:,logging,logging-config: -- "$@")
 then
     # parse error
     usage
     exit 1
 fi
-
 eval set -- $options
 first_uu=yes
 while [ $# -gt 0 ]; do
@@ -59,6 +64,8 @@ while [ $# -gt 0 ]; do
     -t|--serial) serial=1;;
     -l|--logging) logging=1;;
     -L|--logging-config) logging_config=$2; shift;;
+    -i|--list-failing) list-failing-cases; exit;;
+    -F|--run-failing) testrargs="--failing"; $#=0;;
     --) [ "yes" == "$first_uu" ] || testrargs="$testrargs $1"; first_uu=no  ;;
     *) testrargs="$testrargs $1";;
   esac
