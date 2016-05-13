@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
+
+BASE_DIR="$(pwd)"
+
+if [ -f $BASE_DIR/vms_file ]; then
+   /bin/cp -f $BASE_DIR/vms_file $BASE_DIR/tempest/api/workloadmgr/
+fi
+
+if [ -f $BASE_DIR/volumes_file ]; then
+   /bin/cp -f $BASE_DIR/volumes_file $BASE_DIR/tempest/api/workloadmgr/
+fi
+
+if [ -f $BASE_DIR/workloads_file ]; then
+   /bin/cp -f $BASE_DIR/workloads_file $BASE_DIR/tempest/api/workloadmgr/
+fi
+
 rm -f tempest.log
+
+
 
 function usage {
   echo "Usage: $0 [OPTION]..."

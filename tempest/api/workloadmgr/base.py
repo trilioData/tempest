@@ -30,6 +30,7 @@ import unittest
 from tempest_lib import exceptions as lib_exc
 import datetime
 from tempest import tvaultconf
+import os
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     _api_version = 2
     force_tenant_isolation = False
     credentials = ['primary']
+    
 
     @classmethod
     def setup_clients(cls):
@@ -140,11 +142,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 
     def create_vm(self):
-        server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-        server_id= server['server']['id']
-        waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
-        #self.servers_client.stop_server(server_id)
-        #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
+        if(tvaultconf.vms_from_file):
+           flag=0
+           flag=self.is_vm_available()
+           if(flag != 0):
+              server_id=self.read_vm_id()
+           else:
+              server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+              server_id= server['server']['id']
+              waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
+        else:
+           server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+           server_id= server['server']['id']
+           waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
+           #self.servers_client.stop_server(server_id)
+           #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
         if(tvaultconf.cleanup):
            self.addCleanup(self.delete_vm, server_id)
         return server_id
@@ -152,9 +164,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def create_vms(self, totalVms):
         instances = []
         for vm in range(0,totalVms):
-            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-            instances.append(server['server']['id'])
-            waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
+           if(tvaultconf.vms_from_file):
+               flag=0
+               flag=self.is_vm_available()
+               if(flag != 0):
+                  server_id=self.read_vm_id()
+               else:
+                  server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                  server_id=server['server']['id']
+                  waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
+           else:
+              server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+              #instances.append(server['server']['id'])
+              server_id=server['server']['id']
+              waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
+           instances.append(server_id)
         if(tvaultconf.cleanup):
           self.addCleanup(self.delete_vms, instances)    
         return instances
@@ -182,9 +206,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 
     def create_volume(self, size, volume_type_id):
-        volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
-        volume_id= volume['volume']['id']
-        waiters.wait_for_volume_status(self.volumes_client,
+        if(tvaultconf.volumes_from_file):
+            flag=0
+            flag=self.is_volume_available()
+            if(flag != 0):
+                volume_id=self.read_volume_id()
+            else:
+                volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
+                volume_id= volume['volume']['id']
+                waiters.wait_for_volume_status(self.volumes_client,
+                                       volume_id, 'available')
+
+        else:
+            volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
+            volume_id= volume['volume']['id']
+            waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         if(tvaultconf.cleanup):
           self.addCleanup(self.delete_volume, volume_id)
@@ -217,10 +253,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #self.volumes_client.attach_volume(volume_id,
         #                          server_id,
         #                          device)
-        self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
-        #waiters.wait_for_volume_status(self.volumes_client,
-        #                               volume_id, 'in-use')
-        self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
+        if( not tvaultconf.workloads_from_file):
+           if(tvaultconf.volumes_from_file):  
+             try:
+                 LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
+                 self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
+                 self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
+             except Exception as e:
+                  pass
+           else:
+                 LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
+                 self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
+                 self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
         if(tvaultconf.cleanup):
           self.addCleanup(self.detach_volume, server_id, volume_id)
 
@@ -247,24 +291,49 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 
     def workload_create(self, instances, workload_type):
-        in_list = []
-        ts=str(datetime.datetime.now())
-        workload_name = "tempest"+ ts
-        for id in instances:
-            in_list.append({'instance-id':id})
-        payload={'workload': {'name': workload_name,
+        if(tvaultconf.workloads_from_file):
+           flag=0
+           flag=self.is_workload_available()
+           if(flag != 0):
+              workload_id=self.read_workload_id()
+           else:
+             in_list = []
+             ts=str(datetime.datetime.now())
+             workload_name = "tempest"+ ts
+             for id in instances:
+               in_list.append({'instance-id':id})
+             payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
                               'jobschedule': {},
                               'metadata': {},
                               'description': 'test'}}
-        resp, body = self.wlm_client.client.post("/workloads", json=payload)
-        workload_id = body['workload']['id']
-        LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 202):
-            resp.raise_for_status()
+             resp, body = self.wlm_client.client.post("/workloads", json=payload)
+             workload_id = body['workload']['id']
+             LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+             LOG.debug("Response:"+ str(resp.content))
+             if(resp.status_code != 202):
+               resp.raise_for_status()
+        else:
+           in_list = []
+           ts=str(datetime.datetime.now())
+           workload_name = "tempest"+ ts
+           for id in instances:
+             in_list.append({'instance-id':id})
+           payload={'workload': {'name': workload_name,
+                              'workload_type_id': workload_type,
+                              'source_platform': 'openstack',
+                              'instances': in_list,
+                              'jobschedule': {},
+                              'metadata': {},
+                              'description': 'test'}}
+           resp, body = self.wlm_client.client.post("/workloads", json=payload)
+           workload_id = body['workload']['id']
+           LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+           LOG.debug("Response:"+ str(resp.content))
+           if(resp.status_code != 202):
+               resp.raise_for_status()
         LOG.debug('WorkloadCreated: %s' % workload_id)
         if(tvaultconf.cleanup):
           self.addCleanup(self.workload_delete, workload_id)
@@ -449,3 +518,88 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         cls.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         LOG.debug('SnapshotDeleted: %s' % workload_id)
+
+    @classmethod
+    def is_vm_available(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/vms_file"
+        LOG.debug("vms_file_path:%s" % filename)
+        with open(filename) as f:
+          content = f.read().splitlines()
+          if not content:
+              return False
+          else:
+              LOG.debug ("vm_from_file: %s" % content[0])
+              return True
+
+    @classmethod
+    def read_vm_id(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/vms_file"
+        LOG.debug("vms_file_path:%s" % filename)
+        with open(filename, "r+") as f:
+            vms = f.read().splitlines()
+            vm_id=vms[0]
+            f.seek(0)
+            for vm in vms:
+                if vm !=vm_id:
+                   f.write(vm)
+            f.truncate()
+            return vm_id
+
+    @classmethod
+    def is_volume_available(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/volumes_file"
+        LOG.debug("volumes_file_path:%s" % filename)
+        with open(filename) as f:
+          content = f.read().splitlines()
+          if not content:
+              return False
+          else:
+              LOG.debug ("volume_from_file: %s" % content[0])
+              return True
+
+    @classmethod
+    def read_volume_id(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/volumes_file"
+        LOG.debug("volumes_file_path:%s" % filename)
+        with open(filename, "r+") as f:
+            volumes = f.read().splitlines()
+            volume_id=volumes[0]
+            f.seek(0)
+            for volume in volumes:
+                if volume !=volume_id:
+                   f.write(volume)
+            f.truncate()
+            return volume_id
+
+
+    @classmethod
+    def is_workload_available(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/workloads_file"
+        LOG.debug("workloads_file_path:%s" % filename)
+        with open(filename) as f:
+          content = f.read().splitlines()
+          if not content:
+              return False
+          else:
+              LOG.debug ("workload_from_file: %s" % content[0])
+              return True
+
+    @classmethod
+    def read_workload_id(cls):
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/workloads_file"
+        LOG.debug("workloads_file_path:%s" % filename)
+        with open(filename, "r+") as f:
+            workloads = f.read().splitlines()
+            workload_id=workloads[0]
+            f.seek(0)
+            for workload in workloads:
+                if workload !=workload_id:
+                   f.write(workload)
+            f.truncate()
+            return workload_id 
