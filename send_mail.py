@@ -17,14 +17,18 @@ test_result_file = "test_results"
 with open(test_result_file, "r") as f:
     for line in f:
         row=line.split()
+        test_name=str(row[0])
+        logs_dir=test_name.replace(".","/")
+        logs_dir+="/tempest.log"
+        logs_dir="logs/" + logs_dir
         if (row[1] == "FAILED") :
             text_color = "red"
         else :
             text_color = "green"
         result_table+="""<tr>
           <td><font color="%s">%s</font></td>
-          <td><font color="%s">%s</font></td>
-          </tr> """ % (text_color, row[0], text_color, row[1])
+          <td><a href=%s><font color="%s">%s</font></a></td>
+          </tr> """ % (text_color, row[0], logs_dir, text_color, row[1])
 result_table+="""</table>"""
 
 print result_table
@@ -39,6 +43,11 @@ Subject: Tempest Testrun Report - 2.1.110
 <dev> %s </dev>
 
 """ % result_table
+
+html_report_file="results.html"
+html_file= open(html_report_file,"w")
+html_file.write(result_table)
+html_file.close()
 
 username = 'shyam.biradar@afourtech.com'
 password = 'ink!1234'

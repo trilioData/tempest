@@ -34,3 +34,4 @@ do
 done < "$TEST_LIST_FILE"
 
 echo "Test results are written in $TEST_RESULTS_FILE"
+$BASE_DIR/send_mail.py
