@@ -1,11 +1,21 @@
 import unittest
 import sys
-sys.path.append("/root/cli_automation")
-from cli_automation.config import configuration,command_argument_string
-from cli_automation.utils import cli_parser,query_data
+sys.path.append("/opt/stack/tempest")
+from tempest.api.workloadmgr.cli_automation.config import configuration,command_argument_string
+from tempest.api.workloadmgr.cli_automation.utils import cli_parser,query_data
 
 
 class workload_create_command_test(unittest.TestCase):
+    def setUp(self):
+        self.vm_list = []
+        command_test = "nova list | awk -F '|' '{print $2}' | grep -v ID"
+        out = cli_parser.cli_output(command_test)
+        print out
+        for a in out.splitlines():
+            if str(a) != "":
+                self.vm_list.append(str(a).strip(" "))
+        print self.vm_list
+
     def runTest(self):
         rc = cli_parser.cli_returncode(command_argument_string.workload_create)
         print rc

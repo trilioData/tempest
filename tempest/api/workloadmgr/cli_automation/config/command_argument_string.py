@@ -12,3 +12,6 @@ workload_delete = "workloadmgr workload-delete "+configuration.workload_name
 delete_vm = "nova delete "
 oneclick_restore = "workloadmgr snapshot-oneclick-restore --display-name " +configuration.restore_name
 selective_restore = "workloadmgr snapshot-selective-restore --display-name " +configuration.selective_restore_name
+list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
+workload_modify_name = "workloadmgr workload-modify --display_name "
+workload_modify_description = "workloadmgr workload-modify --display_description "

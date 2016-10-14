@@ -172,3 +172,37 @@ def get_snapshot_restore_status(restore_name,snapshot_id):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_workload_display_name(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_display_name = ("select display_name from workloads where id='"+workload_id+"'")
+        cursor.execute(get_workload_display_name)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_workload_display_description(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_display_description = ("select display_description from workloads where id='"+workload_id+"'")
+        cursor.execute(get_workload_display_description)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
