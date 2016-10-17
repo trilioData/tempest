@@ -206,3 +206,20 @@ def get_workload_display_description(workload_id):
         conn.close()
 
 
+def get_vmids():
+    try:
+        vmlist = []
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_vmids = ("select vm_id from workload_vms where status=\"available\"")
+        cursor.execute(get_vmids)
+        rows = cursor.fetchall()
+        for row in rows:
+            vmlist.append(str(row[0]))
+        return vmlist
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
