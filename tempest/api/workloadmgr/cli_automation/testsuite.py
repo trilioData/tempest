@@ -28,7 +28,7 @@ def pyTestSuite():
 
     objSuite.addTest(verify_oneclickrestore_command.restore_oneclick_command_test(runType))
     objSuite.addTest(verify_restore_list_command.restore_list_command_test(runType))
-    objSuite.addTest(verify_selectiverestore_command.restore_selective_command_test(runType))
+    #objSuite.addTest(verify_selectiverestore_command.restore_selective_command_test(runType))
 
     objSuite.addTest(verify_snapshot_delete_command.snapshot_delete_command_test(runType))
     objSuite.addTest(verify_workload_delete_command.workload_delete_command_test(runType))

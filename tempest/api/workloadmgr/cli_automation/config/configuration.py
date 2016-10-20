@@ -4,7 +4,6 @@ projectDir = os.getcwd()
 
 workload_type_id="f82ce76f-17fe-438b-aa37-7a023058e50d"
 workload_name="test2"
-instance_id=""
 source_platform="openstack"
 snapshot_name = "test2-snapshot"
 snapshot_type_full = "full"

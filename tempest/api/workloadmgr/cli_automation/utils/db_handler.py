@@ -5,7 +5,7 @@ import mysql.connector
 
 def dbHandler():
     try:
-        from tempest.api.workloadmgr.cli_automation.config import configuration
+        from config import configuration
         conn = mysql.connector.connect(user=configuration.tvault_username,password=configuration.tvault_password
                                        ,host=configuration.tvault_ip,database=configuration.tvault_dbname)
         print conn
