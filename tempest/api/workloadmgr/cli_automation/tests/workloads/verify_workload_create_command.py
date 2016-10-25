@@ -1,8 +1,9 @@
 import unittest
 import sys
-sys.path.append("/opt/stack/tempest")
-from tempest.api.workloadmgr.cli_automation.config import configuration
-from tempest.api.workloadmgr.cli_automation.utils import cli_parser,query_data
+from time import sleep
+sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
+from config import configuration
+from utils import cli_parser,query_data
 
 
 class workload_create_command_test(unittest.TestCase):
@@ -22,24 +23,37 @@ class workload_create_command_test(unittest.TestCase):
                     self.available_vms.append(vm)
         print self.available_vms
         if len(self.available_vms) > 0:
-            configuration.instance_id = self.available_vms[0]
+            #configuration.instance_id = self.available_vms[0]
+	    pass
         else:
             raise Exception ("No available instance for creating new workload")
 
 
     def runTest(self):
-        from tempest.api.workloadmgr.cli_automation.config import command_argument_string
-        rc = cli_parser.cli_returncode(command_argument_string.workload_create)
+
+        from config import command_argument_string
+	workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.available_vms[0])
+	self.created = False
+	rc = cli_parser.cli_returncode(workload_create)
         print rc
         if rc != 0:
             raise Exception("Command did not execute correctly!!!")
         else:
             print ("Command executed correctly!!!")
-        wc = query_data.get_workload_count(configuration.workload_name)
-        if (int(wc)>0):
-            print "Workload has been created successfully"
-        else:
-            raise Exception ("Workload not present!!!")
+	wc = query_data.get_workload_status(configuration.workload_name)
+        while (str(wc) != "available" or str(wc)!= "error"):
+            sleep (5)
+            wc = query_data.get_workload_status(configuration.workload_name)
+            if (str(wc) == "available"):
+                print "Workload successfully created"
+                self.created = True
+                break
+            else:
+                if (str(wc) == "error"):
+                    break
+        if (self.created == False):
+            raise Exception ("Workload did not get created!!!")
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -48,11 +48,11 @@ def get_deleted_workload(workload_name):
         conn.close()
 
 
-def get_available_snapshots():
+def get_available_snapshots(snapshot_name):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_snapshots = ("select count(*) from snapshots where status=\"available\"")
+        get_available_snapshots = ("select count(*) from snapshots where display_name='"+snapshot_name+"' and deleted=0 order by created_at desc limit 1")
         cursor.execute(get_available_snapshots)
         rows = cursor.fetchall()
         for row in rows:
@@ -62,7 +62,6 @@ def get_available_snapshots():
     finally:
         cursor.close()
         conn.close()
-
 
 def get_available_workloads():
     try:
@@ -114,7 +113,7 @@ def get_workload_snapshot_delete_status(snapshot_name,snapshot_type):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_workload_snapshot_delete_status = ("select status from snapshots where display_name='"+snapshot_name+"' and snapshot_type='"+snapshot_type+"' order by updated_at desc limit 1")
+        get_workload_snapshot_delete_status = ("select deleted from snapshots where display_name='"+snapshot_name+"' and snapshot_type='"+snapshot_type+"' order by deleted_at desc limit 1")
         cursor.execute(get_workload_snapshot_delete_status)
         rows = cursor.fetchall()
         for row in rows:
@@ -146,7 +145,7 @@ def get_workload_snapshot_id(workload_id):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_workload_vmid = ("select id from snapshots where workload_id='"+workload_id+"' snd status=\"available\" order by updated_at desc limit 1")
+        get_workload_vmid = ("select id from snapshots where workload_id='"+workload_id+"' and status=\"available\" order by updated_at desc limit 1")
         cursor.execute(get_workload_vmid)
         rows = cursor.fetchall()
         for row in rows:
@@ -223,3 +222,18 @@ def get_vmids():
         cursor.close()
         conn.close()
 
+
+def get_workload_status(workload_name):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_snapshot = ("select status from workloads where display_name='"+workload_name+"' order by created_at desc limit 1")
+        cursor.execute(get_workload_snapshot)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()

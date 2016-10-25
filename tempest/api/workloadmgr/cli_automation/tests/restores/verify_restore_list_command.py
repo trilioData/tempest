@@ -1,8 +1,8 @@
 import unittest
 import sys
-sys.path.append("/opt/stack/tempest")
-from tempest.api.workloadmgr.cli_automation.config import command_argument_string
-from tempest.api.workloadmgr.cli_automation.utils import cli_parser,query_data
+sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
+from config import command_argument_string
+from utils import cli_parser,query_data
 
 class restore_list_command_test(unittest.TestCase):
     def runTest(self):
