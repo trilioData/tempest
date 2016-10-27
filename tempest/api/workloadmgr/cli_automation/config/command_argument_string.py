@@ -10,6 +10,7 @@ workload_create = "workloadmgr workload-create --workload-type-id "+configuratio
 snapshot_create = "workloadmgr workload-snapshot " +configuration.workload_name+ " --full --display-name " +configuration.snapshot_name
 snapshot_delete = "workloadmgr snapshot-delete " +configuration.snapshot_name
 workload_delete = "workloadmgr workload-delete "+configuration.workload_name
+restore_delete = "workloadmgr restore-delete " +configuration.restore_name
 delete_vm = "nova delete "
 oneclick_restore = "workloadmgr snapshot-oneclick-restore --display-name " +configuration.restore_name
 selective_restore = "workloadmgr snapshot-selective-restore --display-name " +configuration.selective_restore_name+ " --filename " +configuration.restore_filename
