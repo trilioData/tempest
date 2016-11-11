@@ -16,7 +16,7 @@ restore_type = "restore"
 
 
 tvault_ip = "192.168.1.116"
-tvault_username = "root"
-tvault_password = "52T8FVYZJse"
+tvault_dbusername = "root"
+tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
 

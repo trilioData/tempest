@@ -6,7 +6,7 @@ import mysql.connector
 def dbHandler():
     try:
         from config import configuration
-        conn = mysql.connector.connect(user=configuration.tvault_username,password=configuration.tvault_password
+        conn = mysql.connector.connect(user=configuration.tvault_dbusername,password=configuration.tvault_dbpassword
                                        ,host=configuration.tvault_ip,database=configuration.tvault_dbname)
         print conn
         return conn
