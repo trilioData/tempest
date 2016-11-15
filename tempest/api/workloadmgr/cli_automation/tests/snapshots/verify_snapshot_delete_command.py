@@ -2,7 +2,7 @@ import unittest
 import sys
 from time import sleep
 sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
-from config import configuration,command_argument_string
+from cliconfig import configuration,command_argument_string
 from utils import cli_parser,query_data
 
 

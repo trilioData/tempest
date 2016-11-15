@@ -9,5 +9,5 @@
 # creating servers with an account
 
 - username: 'demo'
-  tenant_name: 'engineering'
-  password: 'password'
+  tenant_name: 'demo'
+  password: 'passwd'

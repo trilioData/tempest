@@ -29,7 +29,7 @@ from string import ascii_lowercase
 import unittest
 from tempest_lib import exceptions as lib_exc
 import datetime
-import tvaultconf
+from tempest import tvaultconf
 import os
 
 CONF = config.CONF
