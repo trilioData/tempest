@@ -2,7 +2,7 @@ import unittest
 import sys
 from time import sleep
 sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
-from config import configuration
+from cliconfig import configuration
 from utils import cli_parser,query_data
 
 
@@ -31,7 +31,7 @@ class workload_create_command_test(unittest.TestCase):
 
     def runTest(self):
 
-        from config import command_argument_string
+        from cliconfig import command_argument_string
 	workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.available_vms[0])
 	self.created = False
 	rc = cli_parser.cli_returncode(workload_create)

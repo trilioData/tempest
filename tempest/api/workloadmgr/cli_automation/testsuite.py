@@ -6,7 +6,7 @@ sys.path.append(os.getcwd())
 
 from utils import HTMLTestRunner
 from tests.snapshots import verify_snapshot_list_command,verify_snapshot_create_command,verify_snapshot_delete_command
-from tests.restores import verify_restore_list_command,verify_oneclickrestore_command,verify_selectiverestore_command
+from tests.restores import verify_restore_list_command,verify_oneclickrestore_command,verify_selectiverestore_command,verify_restore_delete_command
 from tests.workloads import verify_workload_list_command,verify_workload_create_command,verify_workload_delete_command,verify_workload_modify_command
 
 runType = "run" + "Test"
@@ -30,6 +30,7 @@ def pyTestSuite():
     objSuite.addTest(verify_restore_list_command.restore_list_command_test(runType))
     objSuite.addTest(verify_selectiverestore_command.restore_selective_command_test(runType))
 
+    objSuite.addTest(verify_restore_delete_command.restore_delete_command_test(runType))
     objSuite.addTest(verify_snapshot_delete_command.snapshot_delete_command_test(runType))
     objSuite.addTest(verify_workload_delete_command.workload_delete_command_test(runType))
 

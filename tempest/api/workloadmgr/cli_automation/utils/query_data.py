@@ -237,3 +237,20 @@ def get_workload_status(workload_name):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_snapshot_restore_delete_status(restore_name,restore_type):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_snapshot_restore_delete_status = ("select deleted from restores where display_name='"+restore_name+"' and restore_type='"+restore_type+"' order by deleted_at desc limit 1")
+        cursor.execute(get_snapshot_restore_delete_status)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+

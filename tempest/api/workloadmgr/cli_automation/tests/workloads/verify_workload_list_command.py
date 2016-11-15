@@ -1,7 +1,7 @@
 import unittest
 import sys
-sys.path.append("/opt/stack/tempest/tenpest/api/workloadmgr/cli_automation")
-from config import configuration,command_argument_string
+sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
+from cliconfig import configuration,command_argument_string
 from utils import cli_parser,query_data
 
 class workload_list_command_test(unittest.TestCase):
@@ -15,9 +15,9 @@ class workload_list_command_test(unittest.TestCase):
         wc = query_data.get_available_workloads()
         out = cli_parser.cli_output(command_argument_string.workload_list)
         if (int(wc) == int(out)):
-            print "Workload list command listed available restores correctly"
+            print "Workload list command listed available workloads correctly"
         else:
-            raise Exception ("Workload list command did not list available restores correctly!!!")
+            raise Exception ("Workload list command did not list available workloads correctly!!!")
 
 
 
