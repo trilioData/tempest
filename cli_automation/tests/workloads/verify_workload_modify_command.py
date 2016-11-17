@@ -1,6 +1,6 @@
 import unittest
 import sys
-sys.path.append("/opt/stack/tempest/tempest/api/workloadmgr/cli_automation")
+sys.path.append("/opt/stack/tempest/cli_automation")
 from cliconfig import configuration,command_argument_string
 from utils import cli_parser,query_data
 
