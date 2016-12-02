@@ -129,6 +129,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
            resp.raise_for_status()
         return restore_status
+    
+    @classmethod
+    def getSchedulerStatus(cls, workload_id):
+        resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
+        schedule_status = body['workload']['jobschedule']['enabled']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return schedule_status
 
     @classmethod
     def assertSnapshotSuccessful(cls, workload_id, snapshot_id):
@@ -139,7 +149,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def assertRestoreSuccessful(cls, workload_id, snapshot_id, restore_id):
         restore_status = cls.getRestoreStatus(workload_id, snapshot_id, restore_id)
         cls.assertEqual(restore_status, "available")
-
+    
+    @classmethod
+    def assertSchedulerEnabled(cls, workload_id):
+        scheduler_status = cls.getSchedulerStatus(workload_id)
+        cls.assertEqual(scheduler_status, "true")
 
     def create_vm(self):
         if(tvaultconf.vms_from_file):
@@ -290,7 +304,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                        volumes[volume], 'available')
 
 
-    def workload_create(self, instances, workload_type):
+    def workload_create(self, instances, workload_type ,jobschedule={}):
         if(tvaultconf.workloads_from_file):
            flag=0
            flag=self.is_workload_available()
@@ -302,11 +316,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
              workload_name = "tempest"+ ts
              for id in instances:
                in_list.append({'instance-id':id})
-             payload={'workload': {'name': workload_name,
+	     payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
-                              'jobschedule': {},
+                              'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
              resp, body = self.wlm_client.client.post("/workloads", json=payload)
@@ -325,12 +339,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
-                              'jobschedule': {},
+                              'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
            resp, body = self.wlm_client.client.post("/workloads", json=payload)
            workload_id = body['workload']['id']
            LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+           time.sleep(60)
+           while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
+              LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
+              time.sleep(60)
+
            LOG.debug("Response:"+ str(resp.content))
            if(resp.status_code != 202):
                resp.raise_for_status()
@@ -392,6 +411,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot successful: %s' % snapshot_id)
             is_successful = "True"
         return is_successful
+
+    @classmethod
+    def is_scheduler_enabled(cls, workload_id):
+        is_enabled= False
+        if(cls.getSchedulerStatus(workload_id) == True):
+            LOG.debug('snapshot successful: %s' % snapshot_id)
+            is_enabled = True
+        return is_enabled
 
 
     @classmethod
@@ -477,6 +504,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("restored volume list:"+ str(restore_volumes))
         cls.delete_vms(restore_vms)
         cls.delete_volumes(restore_volumes)
+
 
     @classmethod
     def get_attached_volumes(cls, server_id):
@@ -602,4 +630,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if workload !=workload_id:
                    f.write(workload)
             f.truncate()
-            return workload_id 
+            return workload_id
