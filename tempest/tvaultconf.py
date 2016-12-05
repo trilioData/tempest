@@ -4,13 +4,21 @@ cleanup = False
 
 
 #Volume type to use by tempest
-volume_type="0db411bb-1c21-4e22-8ab8-9ad181ac451c"
+volume_type="62d6e6ef-c11f-4890-9a27-ee8c0ee05291"
 
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
 
 #Resources to use from file 
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
-vms_from_file=True
-volumes_from_file=True
+vms_from_file=False
+volumes_from_file=False
 workloads_from_file=False
+
+
+
+# Scheduler parameter
+interval="1 hrs"
+enabled='false'
+retention_policy_type=""Number of Snapshots to Keep"
+retention_policy_value="3"
