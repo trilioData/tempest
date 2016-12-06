@@ -304,83 +304,90 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                        volumes[volume], 'available')
 
 
-    def workload_create(self, instances, workload_type ,jobschedule={}):
+    def workload_create(self, instances, workload_type ,jobschedule={}, workload_name=""):
         if(tvaultconf.workloads_from_file):
-           flag=0
-           flag=self.is_workload_available()
-           if(flag != 0):
-              workload_id=self.read_workload_id()
-           else:
-             in_list = []
-             ts=str(datetime.datetime.now())
-             workload_name = "tempest"+ ts
-             for id in instances:
-               in_list.append({'instance-id':id})
-	     payload={'workload': {'name': workload_name,
+            flag=0
+            flag=self.is_workload_available()
+            if(flag != 0):
+                workload_id=self.read_workload_id()
+            else:
+                in_list = []
+                ts=str(datetime.datetime.now())
+                workload_name = "tempest"+ ts
+                for id in instances:
+                    in_list.append({'instance-id':id})
+	            payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
-             resp, body = self.wlm_client.client.post("/workloads", json=payload)
-             workload_id = body['workload']['id']
-             LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-             LOG.debug("Response:"+ str(resp.content))
-             if(resp.status_code != 202):
-               resp.raise_for_status()
+                resp, body = self.wlm_client.client.post("/workloads", json=payload)
+                workload_id = body['workload']['id']
+                LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+                LOG.debug("Response:"+ str(resp.content))
+                if(resp.status_code != 202):
+                    resp.raise_for_status()
         else:
-           in_list = []
-           ts=str(datetime.datetime.now())
-           workload_name = "tempest"+ ts
-           for id in instances:
-             in_list.append({'instance-id':id})
-           payload={'workload': {'name': workload_name,
+            in_list = []
+            if(workload_name == ""):
+                ts=str(datetime.datetime.now())
+                workload_name = "tempest"+ ts
+            for id in instances:
+                in_list.append({'instance-id':id})
+            payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
-           resp, body = self.wlm_client.client.post("/workloads", json=payload)
-           workload_id = body['workload']['id']
-           LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-           time.sleep(60)
-           while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
-              LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
-              time.sleep(60)
+            resp, body = self.wlm_client.client.post("/workloads", json=payload)
+            workload_id = body['workload']['id']
+            LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+            time.sleep(60)
+            while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
+                LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
+                time.sleep(60)
 
-           LOG.debug("Response:"+ str(resp.content))
-           if(resp.status_code != 202):
-               resp.raise_for_status()
+            LOG.debug("Response:"+ str(resp.content))
+            if(resp.status_code != 202):
+                resp.raise_for_status()
         LOG.debug('WorkloadCreated: %s' % workload_id)
         if(tvaultconf.cleanup):
-          self.addCleanup(self.workload_delete, workload_id)
+            self.addCleanup(self.workload_delete, workload_id)
         return workload_id
-
 
     @classmethod
     def workload_delete(cls, workload_id):
         try:
-           resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id)
-           LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
-           LOG.debug("Response:"+ str(resp.content))
+            resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id)
+            LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
+            LOG.debug("Response:"+ str(resp.content))
         except Exception as e:
-           pass
+            pass
         LOG.debug('WorkloadDeleted: %s' % workload_id)
 
-    def workload_snapshot(self, workload_id, is_full):
-        payload={'snapshot': { 'name': 'Tempest-test-snapshot',
+    def workload_snapshot(self, workload_id, is_full, snapshot_name=""):
+        if (snapshot_name == ""):
+            snapshot_name = 'Tempest-test-snapshot'
+        LOG.debug("Snapshot Name: " + str(snapshot_name))
+        payload={'snapshot': { 'name': snapshot_name,
                                'description': 'Test',
                                'full': 'True'}}
+        LOG.debug("Snapshot Payload: " + str(payload))
         self.wait_for_workload_tobe_available(workload_id)
-        resp, body = self.wlm_client.client.post("/workloads/"+workload_id,json=payload)
+        if(is_full):
+            resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"?full=1",json=payload)
+        else:
+            resp, body = self.wlm_client.client.post("/workloads/"+workload_id,json=payload)
         snapshot_id = body['snapshot']['id']
         LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:"+ str(resp.content))
         #self.wait_for_workload_tobe_available(workload_id)
         if(tvaultconf.cleanup):
-          self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+            self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
         return snapshot_id
 
     @classmethod
@@ -390,10 +397,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s, operation: workload-reset " % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         LOG.debug("Response code:"+ str(resp.status_code))
-        if ( resp.status_code != 202):
-             resp.raise_for_status()
+        if (resp.status_code != 202):
+            resp.raise_for_status()
   
-
     @classmethod
     def wait_for_workload_tobe_available(cls, workload_id):
         status = "available"
@@ -401,7 +407,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('Checking workload status')
         while ( status != cls.getWorkloadStatus(workload_id)):
             LOG.debug('workload status is: %s , sleeping for a minute' % cls.getWorkloadStatus(workload_id))
-            time.sleep(180)
+            time.sleep(60)
         LOG.debug('workload status of workload %s: %s' % (workload_id, cls.getWorkloadStatus(workload_id)))
 
     @classmethod
@@ -424,7 +430,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def snapshot_delete(cls, workload_id, snapshot_id):
         cls.wait_for_workload_tobe_available(workload_id)
-        resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id+"/snapshots/"+snapshot_id)
+        resp, body = cls.wlm_client.client.delete("/snapshots/"+str(snapshot_id))
         LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
@@ -433,16 +439,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('SnapshotDeleted: %s' % workload_id)
 
 
-    def snapshot_restore(self, workload_id, snapshot_id):
+    def snapshot_restore(self, workload_id, snapshot_id, restore_name=""):
         LOG.debug("At the start of snapshot_restore method")
+        if(restore_name == ""):
+            restore_name = "Tempest test restore"
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": True,
                                            "vmware": {},
                                            "openstack": {"instances": [], "zone": ""},
                                            "type": "openstack",
                                            "restore_options": {},
-                                           "name": "Tempest test restore"},
-                "name": "Tempest test restore",
+                                           "name": restore_name},
+                "name": restore_name,
                 "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -456,8 +464,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         if(tvaultconf.cleanup):
-          self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-          self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
 
 
