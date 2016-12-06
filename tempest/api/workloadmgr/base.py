@@ -642,7 +642,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def verifyTest(cls,workload_id):
         #print "My Test"
-        f = open("SnapshotReport.txt", "a")
+        f = open(tvaultconf.schedule_report_file, "a")
         if (cls.is_schedule_running(workload_id)):
             date = time.strftime("%c")
             f.write('Snapshot is running' +str(date)+ '\n')

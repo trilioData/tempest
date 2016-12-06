@@ -20,5 +20,6 @@ workloads_from_file=False
 # Scheduler parameter
 interval="1 hrs"
 enabled='false'
-retention_policy_type=""Number of Snapshots to Keep"
+retention_policy_type="Number of Snapshots to Keep"
 retention_policy_value="3"
+schedule_report_file="SnapshotReport.txt"
