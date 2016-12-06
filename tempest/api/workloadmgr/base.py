@@ -543,6 +543,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             is_successful = "True"
         return is_successful
 
+    @classmethod
+    def is_schedule_running(cls, workload_id):
+        is_running= False
+        if(cls.getWorkloadStatus(workload_id) == 'locked'):
+            is_running = True
+        return is_running
+
         
     @classmethod
     def restore_delete(cls, workload_id, snapshot_id, restore_id):
@@ -639,3 +646,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                    f.write(workload)
             f.truncate()
             return workload_id
+
+    @classmethod
+    def verifyTest(cls,workload_id):
+        #print "My Test"
+        f = open(tvaultconf.schedule_report_file, "a")
+        if (cls.is_schedule_running(workload_id)):
+            date = time.strftime("%c")
+            f.write('Snapshot is running' +str(date)+ '\n')
+        else :
+            date=time.strftime("%c")
+            f.write('Snapshot Not running' +str(date)+ '\n')
