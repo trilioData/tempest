@@ -6,8 +6,7 @@ from tempest import config
 from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
-import time
-from tempest.api.workloadmgr.cli.config import command_argument_string, configuration
+from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("VM ID: " + str(self.vm_id))
 
         #Create volume
-        self.volume_id = self.create_volume(configuration.volume_size,tvaultconf.volume_type)
+        self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
         LOG.debug("Volume ID: " + str(self.volume_id))
         
         #Attach volume to the instance
@@ -42,7 +41,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         #Create workload
         self.workload_instances.append(self.vm_id)
-        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=configuration.workload_name)
+        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
         
         #List available workloads using CLI command
@@ -58,16 +57,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload list command listed available workloads correctly")
         else:
             raise Exception ("Workload list command did not list available workloads correctly")
-        
-        #Cleanup
-        #Delete workload
-        self.workload_delete(self.wid)
-        LOG.debug("Workload deleted successfully")
-        
-        #Delete instance
-        self.delete_vm(self.vm_id)
-        LOG.debug("Instance deleted successfully")
-        
-        #Delete corresponding volume
-        self.delete_volume(self.volume_id)
-        LOG.debug("Volume deleted successfully")

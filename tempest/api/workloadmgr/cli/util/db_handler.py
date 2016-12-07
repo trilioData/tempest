@@ -1,11 +1,11 @@
 from mysql.connector import errorcode
 import mysql.connector
-from tempest.api.workloadmgr.cli.config import configuration
+from tempest import tvaultconf
 
 def dbHandler():
     try:        
-        conn = mysql.connector.connect(user=configuration.tvault_dbusername,password=configuration.tvault_dbpassword
-                                       ,host=configuration.tvault_ip,database=configuration.tvault_dbname)
+        conn = mysql.connector.connect(user=tvaultconf.tvault_dbusername,password=tvaultconf.tvault_dbpassword
+                                       ,host=tvaultconf.tvault_ip,database=tvaultconf.tvault_dbname)
         print conn
         return conn
     except mysql.connector.Error as err:

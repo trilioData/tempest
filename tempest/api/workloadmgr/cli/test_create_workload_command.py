@@ -7,7 +7,7 @@ from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
 import time
-from tempest.api.workloadmgr.cli.config import command_argument_string, configuration
+from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("VM ID: " + str(self.vm_id))
 
         #Create volume
-        self.volume_id = self.create_volume(configuration.volume_size,tvaultconf.volume_type)
+        self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
         LOG.debug("Volume ID: " + str(self.volume_id))
         
         #Attach volume to the instance
@@ -47,11 +47,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         else:
             LOG.debug("Command executed correctly")
         
-        wc = query_data.get_workload_status(configuration.workload_name)
+        wc = query_data.get_workload_status(tvaultconf.workload_name)
         LOG.debug("Workload status: " + str(wc))
         while (str(wc) != "available" or str(wc)!= "error"):
             time.sleep(10)
-            wc = query_data.get_workload_status(configuration.workload_name)
+            wc = query_data.get_workload_status(tvaultconf.workload_name)
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "available"):
                 LOG.debug("Workload successfully created")
@@ -63,18 +63,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         if (self.created == False):
             raise Exception ("Workload did not get created!!!")
         
-        self.wid = query_data.get_workload_id(configuration.workload_name)
+        self.wid = query_data.get_workload_id(tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
         
         #Cleanup
         #Delete workload
         self.workload_delete(self.wid)
         LOG.debug("Workload deleted successfully")
-        
-        #Delete instance
-        self.delete_vm(self.vm_id)
-        LOG.debug("Instance deleted successfully")
-        
-        #Delete corresponding volume
-        self.delete_volume(self.volume_id)
-        LOG.debug("Volume deleted successfully")

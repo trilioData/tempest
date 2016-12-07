@@ -6,8 +6,7 @@ from tempest import config
 from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
-import time
-from tempest.api.workloadmgr.cli.config import command_argument_string, configuration
+from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
@@ -28,12 +27,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Prerequisites
         self.created = False
         self.workload_instances = []
+        
         #Launch instance
         self.vm_id = self.create_vm()
         LOG.debug("VM ID: " + str(self.vm_id))
 
         #Create volume
-        self.volume_id = self.create_volume(configuration.volume_size,tvaultconf.volume_type)
+        self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
         LOG.debug("Volume ID: " + str(self.volume_id))
         
         #Attach volume to the instance
@@ -42,44 +42,32 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         #Create workload
         self.workload_instances.append(self.vm_id)
-        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=configuration.workload_name)
+        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
         
-        #Modify workload name using CLI command        
-        workload_modify_name_command = command_argument_string.workload_modify_name + configuration.workload_modify_name + " " +str(self.wid)
-        rc = cli_parser.cli_returncode(workload_modify_name_command)
+        #Launch second instance
+        self.vm_id2 = self.create_vm()
+        LOG.debug("VM ID2: " + str(self.vm_id2))
+
+        #Create volume
+        self.volume_id2 = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+        LOG.debug("Volume ID2: " + str(self.volume_id2))
+        
+        #Attach volume to the instance
+        self.attach_volume(self.volume_id2, self.vm_id2)
+        LOG.debug("Volume2 attached")
+        
+        #Modify workload to add new instance using CLI command        
+        workload_modify_command = command_argument_string.workload_modify + str(self.vm_id2) + " " + str(self.wid)
+        rc = cli_parser.cli_returncode(workload_modify_command)
         if rc != 0:
             raise Exception("Command did not execute correctly")
         else:
             LOG.debug("Command executed correctly")
-        workload_name = query_data.get_workload_display_name(self.wid)
-        if (workload_name) == configuration.workload_modify_name:
-            LOG.debug("Workload name has been changed successfully")
+            
+        self.wait_for_workload_tobe_available(self.wid)        
+        workload_vm_count = query_data.get_available_vms_of_workload(self.wid)
+        if (workload_vm_count == 2):
+            LOG.debug("Workload has been updated successfully")
         else:
-            raise Exception ("Workload name has not been changed!!!")
-
-        #Modify workload description using CLI command
-        workload_modify_description_command = command_argument_string.workload_modify_description + configuration.workload_modify_description + " " + str(self.wid)
-        cli_parser.cli_returncode(workload_modify_description_command)
-        if rc != 0:
-            raise Exception("Command did not execute correctly")
-        else:
-            LOG.debug("Command executed correctly")            
-        workload_description = query_data.get_workload_display_description(self.wid)
-        if (workload_description) == configuration.workload_modify_description:
-            LOG.debug("Workload description has been changed successfully")
-        else:
-            raise Exception("Workload description has not been changed")
-        
-        #Cleanup
-        #Delete workload
-        self.workload_delete(self.wid)
-        LOG.debug("Workload deleted successfully")
-        
-        #Delete instance
-        self.delete_vm(self.vm_id)
-        LOG.debug("Instance deleted successfully")
-        
-        #Delete corresponding volume
-        self.delete_volume(self.volume_id)
-        LOG.debug("Volume deleted successfully")
+            raise Exception ("Workload has not been updated")

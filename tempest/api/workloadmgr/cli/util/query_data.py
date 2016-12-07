@@ -200,7 +200,6 @@ def get_snapshot_restore_status(restore_name,snapshot_id):
         cursor.close()
         conn.close()
 
-
 def get_workload_display_name(workload_id):
     try:
         conn = db_handler.dbHandler()
@@ -215,7 +214,6 @@ def get_workload_display_name(workload_id):
     finally:
         cursor.close()
         conn.close()
-
 
 def get_workload_display_description(workload_id):
     try:
@@ -288,6 +286,21 @@ def get_snapshot_restore_id(snapshot_id):
         cursor = conn.cursor()
         get_snapshot_restore_id = ("select id from restores where snapshot_id='"+snapshot_id+"' order by deleted_at desc limit 1")
         cursor.execute(get_snapshot_restore_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+        
+def get_available_vms_of_workload(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = ("select count(*) from workload_vms where workload_id='" + str(workload_id) + "' and status <> 'deleted';")
+        cursor.execute(get_count)
         rows = cursor.fetchall()
         for row in rows:
             return row[0]

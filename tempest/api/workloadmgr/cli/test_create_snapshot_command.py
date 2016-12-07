@@ -7,7 +7,7 @@ from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
 import time
-from tempest.api.workloadmgr.cli.config import command_argument_string, configuration
+from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("VM ID: " + str(self.vm_id))
 
         #Create volume
-        self.volume_id = self.create_volume(configuration.volume_size,tvaultconf.volume_type)
+        self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
         LOG.debug("Volume ID: " + str(self.volume_id))
         
         #Attach volume to the instance
@@ -43,7 +43,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         #Create workload
         self.workload_instances.append(self.vm_id)
-        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=configuration.workload_name)
+        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
         time.sleep(5)
                 
@@ -59,19 +59,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.snapshot_id = query_data.get_inprogress_snapshot_id(self.wid)
         LOG.debug("Snapshot ID: " + str(self.snapshot_id))
                
-        wc = query_data.get_workload_snapshot_status(configuration.snapshot_name,configuration.snapshot_type_full, self.snapshot_id)
-        LOG.debug("Workload snapshot status: " + str(wc))
-        while (str(wc) != "available" or str(wc)!= "error"):
-            time.sleep(5)
-            wc = query_data.get_workload_snapshot_status(configuration.snapshot_name, configuration.snapshot_type_full, self.snapshot_id)
-            LOG.debug("Workload snapshot status: " + str(wc))
-            if (str(wc) == "available"):
-                LOG.debug("Workload snapshot successfully completed")
-                self.created = True
-                break
-            else:
-                if (str(wc) == "error"):
-                    break
+        wc = self.wait_for_snapshot_tobe_available(self.wid,self.snapshot_id)
+        if (str(wc) == "available"):
+            LOG.debug("Workload snapshot successfully completed")
+            self.created = True
+        else:
+            if (str(wc) == "error"):
+                pass
         if (self.created == False):
             raise Exception ("Workload snapshot did not get created")
         
@@ -79,15 +73,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Delete snapshot
         self.snapshot_delete(self.wid, self.snapshot_id)
         LOG.debug("Snapshot deleted successfully")
-        
-        #Delete workload
-        self.workload_delete(self.wid)
-        LOG.debug("Workload deleted successfully")
-        
-        #Delete instance
-        self.delete_vm(self.vm_id)
-        LOG.debug("Instance deleted successfully")
-        
-        #Delete corresponding volume
-        self.delete_volume(self.volume_id)
-        LOG.debug("Volume deleted successfully")
