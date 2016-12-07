@@ -150,6 +150,45 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return schedule_status
+
+    '''
+    Method returns the Retention Policy Type status of a given workload
+    '''
+    @classmethod
+    def getRetentionPolicyTypeStatus(cls, workload_id):
+        resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
+        retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return retention_policy_type
+
+    '''
+    Method returns the Retention Policy Value of a given workload
+    '''
+    @classmethod
+    def getRetentionPolicyValueStatus(cls, workload_id):
+        resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
+        retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return retention_policy_value
+
+    '''
+    Method returns the Full Backup Interval status of a given workload
+    '''
+    @classmethod
+    def getFullBackupIntervalStatus(cls, workload_id):
+        resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
+        Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return Full_Backup_Interval_Value
     
     '''
     Method raises exception if snapshot is not successful
@@ -396,7 +435,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a workload and returns Workload id
     '''
-    def workload_create(self, instances, workload_type ,jobschedule={}, workload_name="", workload_cleanup=True):
+    def workload_create(self, instances, workload_type ,jobschedule={}, workload_name="", workload_cleanup=True, description='test'):
         if(tvaultconf.workloads_from_file):
             flag=0
             flag=self.is_workload_available()
@@ -414,7 +453,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
-                              'description': 'test'}}
+                              'description': description}}
                 resp, body = self.wlm_client.client.post("/workloads", json=payload)
                 workload_id = body['workload']['id']
                 LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
@@ -434,7 +473,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
-                              'description': 'test'}}
+                              'description': description}}
             resp, body = self.wlm_client.client.post("/workloads", json=payload)
             workload_id = body['workload']['id']
             LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
@@ -510,6 +549,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         start_time = int(time.time())
         LOG.debug('Checking workload status')
         while ( status != cls.getWorkloadStatus(workload_id)):
+            if ( cls.getWorkloadStatus(workload_id) == 'error'):
+                LOG.debug('workload status is: %s , workload create failed' % cls.getWorkloadStatus(workload_id))
+                raise Exception("Workload creation failed")
             LOG.debug('workload status is: %s , sleeping for a minute' % cls.getWorkloadStatus(workload_id))
             time.sleep(60)
         LOG.debug('workload status of workload %s: %s' % (workload_id, cls.getWorkloadStatus(workload_id)))
@@ -524,6 +566,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot successful: %s' % snapshot_id)
             is_successful = "True"
         return is_successful
+
 
     '''
     Method deletes a given snapshot
@@ -787,9 +830,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.truncate()
             return workload_id
     
+    '''
+    Method to write scheduler details in file
+    '''
     @classmethod
     def verifyTest(cls,workload_id):
-        #print "My Test"
         f = open(tvaultconf.schedule_report_file, "a")
         if (cls.is_schedule_running(workload_id)):
             date = time.strftime("%c")
