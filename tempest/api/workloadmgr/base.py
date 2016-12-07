@@ -17,16 +17,16 @@ from oslo_log import log as logging
 
 from tempest import config
 import tempest.test
-from testtools import testcase
-from tempest import api
-import sys
-from tempest.common import compute
+#from testtools import testcase
+#from tempest import api
+#import sys
+#from tempest.common import compute
 import time
 from tempest.common import waiters
 from oslo_config import cfg
-from random import choice
-from string import ascii_lowercase
-import unittest
+#from random import choice
+#from string import ascii_lowercase
+#import unittest
 from tempest_lib import exceptions as lib_exc
 import datetime
 from tempest import tvaultconf
@@ -42,7 +42,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     force_tenant_isolation = False
     credentials = ['primary']
     
-
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
@@ -100,6 +99,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def resource_cleanup(cls):
         super(BaseWorkloadmgrTest, cls).resource_cleanup()
 
+    '''
+    Method returns the current status of a given workload
+    '''
     @classmethod
     def getWorkloadStatus(cls, workload_id):
         resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
@@ -107,9 +109,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return workload_status
 
+    '''
+    Method returns the current status of a given snapshot
+    '''
     @classmethod
     def getSnapshotStatus(cls, workload_id, snapshot_id):
         resp, body = cls.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id)
@@ -117,9 +122,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return snapshot_status
 
+    '''
+    Method returns the current status of a given restore
+    '''
     @classmethod
     def getRestoreStatus(cls, workload_id, snapshot_id, restore_id):
         resp, body = cls.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores/"+restore_id)
@@ -127,9 +135,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" % (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return restore_status
     
+    '''
+    Method returns the schedule status of a given workload 
+    '''
     @classmethod
     def getSchedulerStatus(cls, workload_id):
         resp, body =cls.wlm_client.client.get("/workloads/"+workload_id)
@@ -137,67 +148,84 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return schedule_status
-
+    
+    '''
+    Method raises exception if snapshot is not successful
+    '''
     @classmethod
     def assertSnapshotSuccessful(cls, workload_id, snapshot_id):
         snapshot_status = cls.getSnapshotStatus(workload_id, snapshot_id)
         cls.assertEqual(snapshot_status, "available")
-
+    
+    '''
+    Method raises exception if restore is not successful
+    '''
     @classmethod
     def assertRestoreSuccessful(cls, workload_id, snapshot_id, restore_id):
         restore_status = cls.getRestoreStatus(workload_id, snapshot_id, restore_id)
         cls.assertEqual(restore_status, "available")
     
+    '''
+    Method raises exception if scheduler is not enabled for a given workload
+    '''
     @classmethod
     def assertSchedulerEnabled(cls, workload_id):
         scheduler_status = cls.getSchedulerStatus(workload_id)
         cls.assertEqual(scheduler_status, "true")
 
-    def create_vm(self):
+    '''
+    Method returns the Instance ID of a new VM instance created
+    '''
+    def create_vm(self, vm_cleanup=True):
         if(tvaultconf.vms_from_file):
-           flag=0
-           flag=self.is_vm_available()
-           if(flag != 0):
-              server_id=self.read_vm_id()
-           else:
-              server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-              server_id= server['server']['id']
-              waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
+            flag=0
+            flag=self.is_vm_available()
+            if(flag != 0):
+                server_id=self.read_vm_id()
+            else:
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                server_id= server['server']['id']
+                waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
-           server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-           server_id= server['server']['id']
-           waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
-           #self.servers_client.stop_server(server_id)
-           #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
-        if(tvaultconf.cleanup):
-           self.addCleanup(self.delete_vm, server_id)
+            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+            server_id= server['server']['id']
+            waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
+            #self.servers_client.stop_server(server_id)
+            #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
+        if(tvaultconf.cleanup == True and vm_cleanup == True):
+            self.addCleanup(self.delete_vm, server_id)
         return server_id
 
+    '''
+    Method returns the Instance IDs of the new VM instances created
+    '''
     def create_vms(self, totalVms):
         instances = []
         for vm in range(0,totalVms):
-           if(tvaultconf.vms_from_file):
-               flag=0
-               flag=self.is_vm_available()
-               if(flag != 0):
-                  server_id=self.read_vm_id()
-               else:
-                  server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-                  server_id=server['server']['id']
-                  waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
-           else:
-              server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
-              #instances.append(server['server']['id'])
-              server_id=server['server']['id']
-              waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
-           instances.append(server_id)
+            if(tvaultconf.vms_from_file):
+                flag=0
+                flag=self.is_vm_available()
+                if(flag != 0):
+                    server_id=self.read_vm_id()
+                else:
+                    server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                    server_id=server['server']['id']
+                    waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
+            else:
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                #instances.append(server['server']['id'])
+                server_id=server['server']['id']
+                waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
+            instances.append(server_id)
         if(tvaultconf.cleanup):
-          self.addCleanup(self.delete_vms, instances)    
+            self.addCleanup(self.delete_vms, instances)    
         return instances
 
-
+    '''
+    Method deletes the given VM instance
+    '''
     @classmethod
     def delete_vm(cls, server_id):
         try:
@@ -206,20 +234,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             waiters.wait_for_server_termination(cls.servers_client, server_id)
         except lib_exc.NotFound:
             return
-
+    
+    '''
+    Method deletes the given VM instances list
+    '''
     @classmethod
     def delete_vms(cls, instances):
         totalVms = len(instances)
         for vm in range(0,totalVms):
             try:
-               cls.servers_client.delete_server(instances[vm])
-               waiters.wait_for_server_termination(cls.servers_client, instances[vm])
+                cls.servers_client.delete_server(instances[vm])
+                waiters.wait_for_server_termination(cls.servers_client, instances[vm])
             except Exception as e:
-               pass
+                pass
         LOG.debug('DeletedVms: %s' % instances)
 
-
-    def create_volume(self, size, volume_type_id):
+    '''
+    Method creates a new volume and returns Volume ID
+    '''
+    def create_volume(self, size, volume_type_id, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -230,58 +263,112 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
-
         else:
             volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.delete_volume, volume_id)
+        if(tvaultconf.cleanup == True and volume_cleanup == True):
+            self.addCleanup(self.delete_volume, volume_id)
         return volume_id
 
+    '''
+    Method deletes a given volume
+    '''
     @classmethod
     def delete_volume(cls, volume_id):
         try:
-           cls.volumes_client.delete_volume(volume_id)
+            cls.volumes_client.delete_volume(volume_id)
         except Exception as e:
-           return
+            return
     
-
-
+    '''
+    Method deletes a given volume snapshot
+    '''
+    @classmethod
+    def delete_volume_snapshot(cls, volume_snapshot_id):
+        try:
+            cls.snapshots_extensions_client.delete_snapshot(volume_snapshot_id)
+        except Exception as e:
+            return
+        
+    '''
+    Method deletes a list of volume snapshots
+    '''
+    @classmethod
+    def delete_volume_snapshots(cls, volume_snapshots):
+        for snapshot in range(0, len(volume_snapshots)):
+            try:
+                cls.volumes_client.delete_volume(volume_snapshots[snapshot])
+                LOG.debug('Snapshot delete operation completed %s' % volume_snapshots[snapshot])
+            except Exception as e:
+                pass
+        
+    '''
+    Method to return list of available volume snapshots
+    '''
+    @classmethod
+    def get_available_volume_snapshots(cls):
+        volume_snapshots = []
+        resp = cls.snapshots_extensions_client.list_snapshots()
+        LOG.debug("Volume Snapshots list response: " + str(resp))
+        for i in range(0,len(resp['snapshots'])):
+            volume_snapshots.append(resp['snapshots'][i]['id'])
+        return volume_snapshots
+    
+    '''
+    Method returns the list of attached volumes to a given VM instance
+    '''
+    @classmethod
+    def get_attached_volumes(cls, server_id):
+        server = cls.servers_client.show_server(server_id)['server']
+        volumes=server['os-extended-volumes:volumes_attached']
+        volume_list = []
+        for volume in volumes:
+            volume_list.append(volume['id']);
+        LOG.debug("Attached volumes: "+ str(volume_list))
+        return volume_list
+        
+    '''
+    Method deletes the given volumes list
+    '''
     @classmethod
     def delete_volumes(cls, volumes):
         total_volumes = len(volumes)
         for volume in range(0, total_volumes):
-           try:
-              cls.volumes_client.delete_volume(volumes[volume])
-              LOG.debug('Volume delete operation completed %s' % volume)
-           except Exception as e:
-              pass
-       
-
-
-    def attach_volume(self, volume_id, server_id, device="/dev/vdb"):
+            try:
+                cls.volumes_client.delete_volume(volumes[volume])
+                LOG.debug('Volume delete operation completed %s' % volume)
+            except Exception as e:
+                pass
+    
+    '''
+    Method attaches given volume to given VM instance
+    '''
+    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=True):
         #device = "/dev/"+''.join(choice(ascii_lowercase) for i in range(10))
         #device = "/dev/vdb"
         #self.volumes_client.attach_volume(volume_id,
         #                          server_id,
         #                          device)
         if( not tvaultconf.workloads_from_file):
-           if(tvaultconf.volumes_from_file):  
-             try:
-                 LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
-                 self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
-                 self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
-             except Exception as e:
-                  pass
-           else:
-                 LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
-                 self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
-                 self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.detach_volume, server_id, volume_id)
+            if(tvaultconf.volumes_from_file):  
+                try:
+                    LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
+                    self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
+                    self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
+                except Exception as e:
+                    pass
+            else:
+                LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
+                self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
+                self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
+        if(tvaultconf.cleanup == True and attach_cleanup == True):
+            self.addCleanup(self.detach_volume, server_id, volume_id)
 
+    '''
+    Method to detach given volume from given VM instance
+    '''
     @classmethod
     def detach_volume(cls, server_id, volume_id):
         #cls.volumes_client.detach_volume(volume_id)
@@ -293,96 +380,117 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.volumes_client.wait_for_volume_status(volume_id, 'available')
         except lib_exc.NotFound:
             return
-
+    
+    '''
+    Method to detach given list of volumes
+    '''
     @classmethod
     def detach_volumes(cls, volumes):
         total_volumes = len(volumes)
         for volume in range(0, total_volumes):
-           cls.volumes_client.detach_volume(volumes[volume])
-           LOG.debug('Volume detach operation completed %s' % volume)
-           waiters.wait_for_volume_status(cls.volumes_client,
+            cls.volumes_client.detach_volume(volumes[volume])
+            LOG.debug('Volume detach operation completed %s' % volume)
+            waiters.wait_for_volume_status(cls.volumes_client,
                                        volumes[volume], 'available')
 
-
-    def workload_create(self, instances, workload_type ,jobschedule={}):
+    '''
+    Method creates a workload and returns Workload id
+    '''
+    def workload_create(self, instances, workload_type ,jobschedule={}, workload_name="", workload_cleanup=True):
         if(tvaultconf.workloads_from_file):
-           flag=0
-           flag=self.is_workload_available()
-           if(flag != 0):
-              workload_id=self.read_workload_id()
-           else:
-             in_list = []
-             ts=str(datetime.datetime.now())
-             workload_name = "tempest"+ ts
-             for id in instances:
-               in_list.append({'instance-id':id})
-	     payload={'workload': {'name': workload_name,
+            flag=0
+            flag=self.is_workload_available()
+            if(flag != 0):
+                workload_id=self.read_workload_id()
+            else:
+                in_list = []
+                ts=str(datetime.datetime.now())
+                workload_name = "tempest"+ ts
+                for id in instances:
+                    in_list.append({'instance-id':id})
+                payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
-             resp, body = self.wlm_client.client.post("/workloads", json=payload)
-             workload_id = body['workload']['id']
-             LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-             LOG.debug("Response:"+ str(resp.content))
-             if(resp.status_code != 202):
-               resp.raise_for_status()
+                resp, body = self.wlm_client.client.post("/workloads", json=payload)
+                workload_id = body['workload']['id']
+                LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+                LOG.debug("Response:"+ str(resp.content))
+                if(resp.status_code != 202):
+                    resp.raise_for_status()
         else:
-           in_list = []
-           ts=str(datetime.datetime.now())
-           workload_name = "tempest"+ ts
-           for id in instances:
-             in_list.append({'instance-id':id})
-           payload={'workload': {'name': workload_name,
+            in_list = []
+            if(workload_name == ""):
+                ts=str(datetime.datetime.now())
+                workload_name = "tempest"+ ts
+            for id in instances:
+                in_list.append({'instance-id':id})
+            payload={'workload': {'name': workload_name,
                               'workload_type_id': workload_type,
                               'source_platform': 'openstack',
                               'instances': in_list,
                               'jobschedule': jobschedule,
                               'metadata': {},
                               'description': 'test'}}
-           resp, body = self.wlm_client.client.post("/workloads", json=payload)
-           workload_id = body['workload']['id']
-           LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-           time.sleep(60)
-           while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
-              LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
-              time.sleep(60)
+            resp, body = self.wlm_client.client.post("/workloads", json=payload)
+            workload_id = body['workload']['id']
+            LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
+            time.sleep(60)
+            while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
+                LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
+                time.sleep(60)
 
-           LOG.debug("Response:"+ str(resp.content))
-           if(resp.status_code != 202):
-               resp.raise_for_status()
+            LOG.debug("Response:"+ str(resp.content))
+            if(resp.status_code != 202):
+                resp.raise_for_status()
         LOG.debug('WorkloadCreated: %s' % workload_id)
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.workload_delete, workload_id)
+        if(tvaultconf.cleanup == True and workload_cleanup == True):
+            self.addCleanup(self.workload_delete, workload_id)
         return workload_id
 
-
+    '''
+    Method deletes a given workload
+    '''
     @classmethod
     def workload_delete(cls, workload_id):
         try:
-           resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id)
-           LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
-           LOG.debug("Response:"+ str(resp.content))
+            resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id)
+            LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
+            LOG.debug("Response:"+ str(resp.content))
         except Exception as e:
-           pass
+            pass
         LOG.debug('WorkloadDeleted: %s' % workload_id)
 
-    def workload_snapshot(self, workload_id, is_full):
-        payload={'snapshot': { 'name': 'Tempest-test-snapshot',
+    '''
+    Method creates oneclick snapshot for a given workload and returns snapshot id 
+    '''
+    def workload_snapshot(self, workload_id, is_full, snapshot_name="", snapshot_cleanup=True):
+        if (snapshot_name == ""):
+            snapshot_name = 'Tempest-test-snapshot'
+        LOG.debug("Snapshot Name: " + str(snapshot_name))
+        payload={'snapshot': { 'name': snapshot_name,
                                'description': 'Test',
                                'full': 'True'}}
+        LOG.debug("Snapshot Payload: " + str(payload))
         self.wait_for_workload_tobe_available(workload_id)
-        resp, body = self.wlm_client.client.post("/workloads/"+workload_id,json=payload)
+        if(is_full):
+            resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"?full=1",json=payload)
+        else:
+            resp, body = self.wlm_client.client.post("/workloads/"+workload_id,json=payload)
         snapshot_id = body['snapshot']['id']
         LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:"+ str(resp.content))
         #self.wait_for_workload_tobe_available(workload_id)
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+        if(tvaultconf.cleanup == True and snapshot_cleanup == True):
+            self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
         return snapshot_id
 
+    '''
+    Method resets the given workload
+    '''
     @classmethod
     def workload_reset(cls, workload_id):
         cls.wait_for_workload_tobe_available(workload_id)
@@ -390,10 +498,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s, operation: workload-reset " % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         LOG.debug("Response code:"+ str(resp.status_code))
-        if ( resp.status_code != 202):
-             resp.raise_for_status()
-  
+        if (resp.status_code != 202):
+            resp.raise_for_status()
 
+    '''
+    Method to wait until the workload is available
+    '''
     @classmethod
     def wait_for_workload_tobe_available(cls, workload_id):
         status = "available"
@@ -401,9 +511,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('Checking workload status')
         while ( status != cls.getWorkloadStatus(workload_id)):
             LOG.debug('workload status is: %s , sleeping for a minute' % cls.getWorkloadStatus(workload_id))
-            time.sleep(180)
+            time.sleep(60)
         LOG.debug('workload status of workload %s: %s' % (workload_id, cls.getWorkloadStatus(workload_id)))
 
+    '''
+    Method to check if snapshot is successful
+    '''
     @classmethod
     def is_snapshot_successful(cls, workload_id, snapshot_id):
         is_successful= "False"
@@ -412,19 +525,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             is_successful = "True"
         return is_successful
 
-    @classmethod
-    def is_scheduler_enabled(cls, workload_id):
-        is_enabled= False
-        if(cls.getSchedulerStatus(workload_id) == True):
-            LOG.debug('snapshot successful: %s' % snapshot_id)
-            is_enabled = True
-        return is_enabled
-
-
+    '''
+    Method deletes a given snapshot
+    '''
     @classmethod
     def snapshot_delete(cls, workload_id, snapshot_id):
         cls.wait_for_workload_tobe_available(workload_id)
-        resp, body = cls.wlm_client.client.delete("/workloads/"+workload_id+"/snapshots/"+snapshot_id)
+        resp, body = cls.wlm_client.client.delete("/snapshots/"+str(snapshot_id))
         LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
@@ -432,17 +539,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.wait_for_workload_tobe_available(workload_id)
         LOG.debug('SnapshotDeleted: %s' % workload_id)
 
-
-    def snapshot_restore(self, workload_id, snapshot_id):
+    '''
+    Method creates one click restore for a given snapshot and returns the restore id
+    '''
+    def snapshot_restore(self, workload_id, snapshot_id, restore_name=""):
         LOG.debug("At the start of snapshot_restore method")
+        if(restore_name == ""):
+            restore_name = "Tempest test restore"
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": True,
                                            "vmware": {},
                                            "openstack": {"instances": [], "zone": ""},
                                            "type": "openstack",
                                            "restore_options": {},
-                                           "name": "Tempest test restore"},
-                "name": "Tempest test restore",
+                                           "name": restore_name},
+                "name": restore_name,
                 "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -455,22 +566,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-          self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
 
-
-    def snapshot_selective_restore(self, workload_id, snapshot_id):
+    '''
+    Method creates selective restore for a given snapshot and returns the restore id
+    '''
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name=""):
         LOG.debug("At the start of snapshot_selective_restore method")
+        if(restore_name ==""):
+            restore_name =  "Tempest test restore"
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": False,
                                            "vmware": {},
                                            "openstack": {"instances": [], "zone": ""},
                                            "type": "openstack",
                                            "restore_options": {},
-                                           "name": "Tempest test restore"},
-                "name": "Tempest test restore",
+                                           "name": restore_name},
+                "name": restore_name,
                 "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -483,40 +595,51 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        if(tvaultconf.cleanup):
-          self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-          self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
    
-
-
+    '''
+    Method returns the list of restored VMs
+    '''
     @classmethod
-    def delete_restored_vms(cls, workload_id, snapshot_id, restore_id):
-        resp, body = cls.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores/"+restore_id)
+    def get_restored_vm_list(cls, restore_id):
+        resp, body = cls.wlm_client.client.get("/restores/"+restore_id)
+        LOG.debug("Body: " + str(body))
+        LOG.debug("Response: " + str(resp))
         instances= body['restore']['instances']
         restore_vms = []
+        for instance in instances:
+            LOG.debug("instance:"+ instance['id'])
+            restore_vms.append(instance['id'])        
+        LOG.debug("Restored vms list:"+ str(restore_vms))
+        return restore_vms
+    
+    '''
+    Method returns the list of restored volumes
+    '''
+    @classmethod
+    def get_restored_volume_list(cls, restore_id):
+        resp, body = cls.wlm_client.client.get("/restores/"+restore_id)
+        LOG.debug("Body: " + str(body))
+        LOG.debug("Response: " + str(resp))
+        instances= body['restore']['instances']
         restore_volumes = []
         for instance in instances:
-             LOG.debug("instance:"+ instance['id'])
-             restore_vms.append(instance['id'])
-             restore_volumes.extend(cls.get_attached_volumes(instance['id']))
-        LOG.debug("Restored vms list:"+ str(restore_vms))
+            LOG.debug("instance:"+ instance['id'])
+            restore_volumes.extend(cls.get_attached_volumes(instance['id']))
         LOG.debug("restored volume list:"+ str(restore_volumes))
+        return restore_volumes
+
+    '''
+    Method deletes the given restored VMs and volumes
+    '''
+    @classmethod
+    def delete_restored_vms(cls, restore_vms, restore_volumes):        
         cls.delete_vms(restore_vms)
         cls.delete_volumes(restore_volumes)
 
-
-    @classmethod
-    def get_attached_volumes(cls, server_id):
-        server = cls.servers_client.show_server(server_id)['server']
-        volumes=server['os-extended-volumes:volumes_attached']
-        volume_list = []
-        for volume in volumes:
-            volume_list.append(volume['id']);
-        return volume_list
-          
-        #LOG.debug("volumes:"+ str(volumes))
-
+    '''
+    Method to wait until the snapshot is available
+    '''
     @classmethod
     def wait_for_snapshot_tobe_available(cls, workload_id, snapshot_id):
         status = "available"
@@ -526,8 +649,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(60)
         LOG.debug('Status of snapshot %s : %s' % (snapshot_id, cls.getSnapshotStatus(workload_id, snapshot_id)))
+        return status
 
-
+    '''
+    Method to check if restore is successful
+    '''
     @classmethod
     def is_restore_successful(cls, workload_id, snapshot_id, restore_id):
         is_successful= "False"
@@ -535,14 +661,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             is_successful = "True"
         return is_successful
 
+    '''
+    Method returns if scheduler is running for a given workload
+    '''
     @classmethod
     def is_schedule_running(cls, workload_id):
         is_running= False
         if(cls.getWorkloadStatus(workload_id) == 'locked'):
             is_running = True
         return is_running
-
         
+    '''
+    Method to delete a given restore
+    '''
     @classmethod
     def restore_delete(cls, workload_id, snapshot_id, restore_id):
         cls.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -554,19 +685,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         LOG.debug('SnapshotDeleted: %s' % workload_id)
 
+    '''
+    Method to check if VM details are available in file
+    '''
     @classmethod
     def is_vm_available(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
         filename=dir+"/vms_file"
         LOG.debug("vms_file_path:%s" % filename)
         with open(filename) as f:
-          content = f.read().splitlines()
-          if not content:
-              return False
-          else:
-              LOG.debug ("vm_from_file: %s" % content[0])
-              return True
+            content = f.read().splitlines()
+            if not content:
+                return False
+            else:
+                LOG.debug ("vm_from_file: %s" % content[0])
+                return True
 
+    '''
+    Method to return the VM id from file
+    '''
     @classmethod
     def read_vm_id(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
@@ -582,19 +719,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.truncate()
             return vm_id
 
+    '''
+    Method to check if volume details are available in file
+    '''
     @classmethod
     def is_volume_available(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
         filename=dir+"/volumes_file"
         LOG.debug("volumes_file_path:%s" % filename)
         with open(filename) as f:
-          content = f.read().splitlines()
-          if not content:
-              return False
-          else:
-              LOG.debug ("volume_from_file: %s" % content[0])
-              return True
+            content = f.read().splitlines()
+            if not content:
+                return False
+            else:
+                LOG.debug ("volume_from_file: %s" % content[0])
+                return True
 
+    '''
+    Method to return the volume id from file
+    '''
     @classmethod
     def read_volume_id(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
@@ -606,24 +749,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.seek(0)
             for volume in volumes:
                 if volume !=volume_id:
-                   f.write(volume)
+                    f.write(volume)
             f.truncate()
             return volume_id
 
-
+    '''
+    Method to check if workload details are available in file
+    '''
     @classmethod
     def is_workload_available(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
         filename=dir+"/workloads_file"
         LOG.debug("workloads_file_path:%s" % filename)
         with open(filename) as f:
-          content = f.read().splitlines()
-          if not content:
-              return False
-          else:
-              LOG.debug ("workload_from_file: %s" % content[0])
-              return True
+            content = f.read().splitlines()
+            if not content:
+                return False
+            else:
+                LOG.debug ("workload_from_file: %s" % content[0])
+                return True
 
+    '''
+    Method to return the workload id from file
+    '''
     @classmethod
     def read_workload_id(cls):
         dir=os.path.dirname(os.path.abspath(__file__))
@@ -635,10 +783,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.seek(0)
             for workload in workloads:
                 if workload !=workload_id:
-                   f.write(workload)
+                    f.write(workload)
             f.truncate()
             return workload_id
-
+    
     @classmethod
     def verifyTest(cls,workload_id):
         #print "My Test"
