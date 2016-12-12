@@ -19,7 +19,6 @@ from tempest import config
 import tempest.test
 #from testtools import testcase
 #from tempest import api
-#import sys
 #from tempest.common import compute
 import time
 from tempest.common import waiters
@@ -62,6 +61,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.limits_client = cls.os.limits_client
         cls.volumes_extensions_client = cls.os.volumes_extensions_client
         cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
+        cls.network_client = cls.os.network_client
         cls.interfaces_client = cls.os.interfaces_client
         cls.fixed_ips_client = cls.os.fixed_ips_client
         cls.availability_zone_client = cls.os.availability_zone_client
@@ -150,7 +150,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return schedule_status
-
+    
     '''
     Method returns the Retention Policy Type status of a given workload
     '''
@@ -161,9 +161,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return retention_policy_type
-
+        
     '''
     Method returns the Retention Policy Value of a given workload
     '''
@@ -174,7 +174,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return retention_policy_value
 
     '''
@@ -187,7 +187,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
-           resp.raise_for_status()
+            resp.raise_for_status()
         return Full_Backup_Interval_Value
     
     '''
@@ -341,7 +341,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 cls.volumes_client.delete_volume(volume_snapshots[snapshot])
                 LOG.debug('Snapshot delete operation completed %s' % volume_snapshots[snapshot])
             except Exception as e:
-                pass
+                LOG.error("Exception: " + str(e))
         
     '''
     Method to return list of available volume snapshots
@@ -350,9 +350,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_available_volume_snapshots(cls):
         volume_snapshots = []
         resp = cls.snapshots_extensions_client.list_snapshots()
-        LOG.debug("Volume Snapshots list response: " + str(resp))
         for i in range(0,len(resp['snapshots'])):
             volume_snapshots.append(resp['snapshots'][i]['id'])
+        LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
     
     '''
@@ -477,10 +477,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.post("/workloads", json=payload)
             workload_id = body['workload']['id']
             LOG.debug("#### workloadid: %s , operation:workload_create" % workload_id)
-            time.sleep(60)
-            while ( self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
-                LOG.debug('workload status is: %s , sleeping for a minute' % self.getWorkloadStatus(workload_id))
-                time.sleep(60)
+            time.sleep(30)
+            while (self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
+                LOG.debug('workload status is: %s , sleeping for 30 sec' % self.getWorkloadStatus(workload_id))
+                time.sleep(30)
 
             LOG.debug("Response:"+ str(resp.content))
             if(resp.status_code != 202):
@@ -552,8 +552,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if ( cls.getWorkloadStatus(workload_id) == 'error'):
                 LOG.debug('workload status is: %s , workload create failed' % cls.getWorkloadStatus(workload_id))
                 raise Exception("Workload creation failed")
-            LOG.debug('workload status is: %s , sleeping for a minute' % cls.getWorkloadStatus(workload_id))
-            time.sleep(60)
+            LOG.debug('workload status is: %s , sleeping for 30 sec' % cls.getWorkloadStatus(workload_id))
+            time.sleep(30)
         LOG.debug('workload status of workload %s: %s' % (workload_id, cls.getWorkloadStatus(workload_id)))
 
     '''
@@ -566,7 +566,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot successful: %s' % snapshot_id)
             is_successful = "True"
         return is_successful
-
 
     '''
     Method deletes a given snapshot
@@ -585,7 +584,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates one click restore for a given snapshot and returns the restore id
     '''
-    def snapshot_restore(self, workload_id, snapshot_id, restore_name=""):
+    def snapshot_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if(restore_name == ""):
             restore_name = "Tempest test restore"
@@ -600,7 +599,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        LOG.debug("After returning from waitfor snapshot")
+        LOG.debug("After returning from wait for snapshot")
         resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
         restore_id = body['restore']['id']
         LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
@@ -609,12 +608,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        if(tvaultconf.cleanup == True and restore_cleanup == True):
+            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
 
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name=""):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
@@ -638,6 +640,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        if(tvaultconf.cleanup == True and restore_cleanup == True):
+            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
         return restore_id
    
     '''
@@ -686,14 +691,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def wait_for_snapshot_tobe_available(cls, workload_id, snapshot_id):
         status = "available"
-        start_time = int(time.time())
         LOG.debug('Checking snapshot status')
-        while ( status != cls.getSnapshotStatus(workload_id, snapshot_id)):
+        while (status != cls.getSnapshotStatus(workload_id, snapshot_id)):
+            if(cls.getSnapshotStatus(workload_id, snapshot_id) == 'error'):
+                LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
+                raise Exception("Snapshot creation failed")            
             LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
-            time.sleep(60)
-        LOG.debug('Status of snapshot %s : %s' % (snapshot_id, cls.getSnapshotStatus(workload_id, snapshot_id)))
+            time.sleep(10)           
+        LOG.debug('Final Status of snapshot %s : %s' % (cls.getSnapshotStatus(workload_id, snapshot_id)))
         return status
-
+    
     '''
     Method to check if restore is successful
     '''
@@ -842,3 +849,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else :
             date=time.strftime("%c")
             f.write('Snapshot Not running' +str(date)+ '\n')
+            
+    '''
+    Method to fetch the list of network ports
+    '''
+    @classmethod
+    def get_port_list(cls):
+        port_list = cls.network_client.list_ports()
+        LOG.debug("Port List: " + str(port_list))
+        return port_list
+    
+    '''
+    Method to delete list of ports
+    '''
+    @classmethod
+    def delete_ports(cls, port_list):
+        for i in range(0,len(port_list)):
+            port_delete = cls.network_client.delete_port(port_list[i])
+            LOG.debug("Port %s status %s" % (port_list[i], port_delete))
