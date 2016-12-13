@@ -24,7 +24,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_create_snapshot_command(self):
+    def test_tvault1036_list_snapshot(self):
         #Prerequisites
         self.created = False
         self.workload_instances = []
@@ -46,19 +46,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
         time.sleep(5)
-                
-        #Create snapshot with CLI command
-        create_snapshot = command_argument_string.snapshot_create + self.wid
-        LOG.debug("Create snapshot command: " + str(create_snapshot))
-        rc = cli_parser.cli_returncode(create_snapshot)
-        if rc != 0:
-            raise Exception("Command did not execute correctly")
-        else:
-            LOG.debug("Command executed correctly")
-               
-        self.snapshot_id = query_data.get_inprogress_snapshot_id(self.wid)
+        
+        #Create snapshot
+        self.snapshot_id = self.workload_snapshot(self.wid, True, tvaultconf.snapshot_name)
         LOG.debug("Snapshot ID: " + str(self.snapshot_id))
-               
+        
         wc = self.wait_for_snapshot_tobe_available(self.wid,self.snapshot_id)
         if (str(wc) == "available"):
             LOG.debug("Workload snapshot successfully completed")
@@ -69,7 +61,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         if (self.created == False):
             raise Exception ("Workload snapshot did not get created")
         
-        #Cleanup
-        #Delete snapshot
-        self.snapshot_delete(self.wid, self.snapshot_id)
-        LOG.debug("Snapshot deleted successfully")
+        #List snapshots using CLI command
+        rc = cli_parser.cli_returncode(command_argument_string.snapshot_list)        
+        if rc != 0:
+            raise Exception("Command did not execute correctly")
+        else:
+            LOG.debug("Command executed correctly")
+        
+        wc = query_data.get_available_snapshots()
+        out = cli_parser.cli_output(command_argument_string.snapshot_list)
+        if(int(wc) == int(out)):
+            LOG.debug("Snapshot list command listed available snapshots correctly")
+        else:
+            raise Exception ("Snapshot list command did not list available snapshots correctly")
