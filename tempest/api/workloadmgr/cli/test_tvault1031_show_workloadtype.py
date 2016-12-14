@@ -36,7 +36,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         cmd_resp = cli_parser.cli_output(command_argument_string.workload_type_show)
         LOG.debug("Response from CLI: " + str(cmd_resp))
         
-        if(db_resp[8] == 'Serial'):
+        if(db_resp[5] == tvaultconf.workload_type_id):
             LOG.debug("Workload type response from CLI and DB match")
         else:
             raise Exception("Workload type response from CLI and DB do not match")
