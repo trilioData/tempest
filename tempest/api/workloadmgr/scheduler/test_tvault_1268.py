@@ -65,7 +65,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id)
              self.attach_volume(volume_id, vm_id)
-	print self.schedule
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule,self.description)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of days to retain Snapshots')

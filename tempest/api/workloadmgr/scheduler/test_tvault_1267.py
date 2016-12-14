@@ -22,6 +22,7 @@ from tempest import test
 import json
 import datetime
 import time
+from datetime import datetime, timedelta
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
@@ -29,8 +30,7 @@ from tempest import tvaultconf
 import os
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
-#logging.basicConfig()
-#sched = BlockingScheduler()
+
 
 
 class WorkloadsTest(base.BaseWorkloadmgrTest):
@@ -53,11 +53,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.workloads = []
         self.full_snapshots = []
         self.incr_snapshots = []
+        self.snap_list = []
         self.restores = []
         self.start_date = time.strftime("%x")
         self.start_time = time.strftime("%X")
         self.enabled = True
-	self.schedule = {"retention_policy_type": "Number of Snapshots to Keep", "enabled": self.enabled, "start_date": self.start_date, "start_time": self.start_time, "retention_policy_value": 3}
+	self.schedule = {"retention_policy_type": "Number of Snapshots to Keep", "enabled": self.enabled, "start_date": self.start_date, "start_time": self.start_time,"interval": tvaultconf.interval,"retention_policy_value": 1}
         self.description = "Test Number of Snapshots to Keep"
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
@@ -65,12 +66,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id)
              self.attach_volume(volume_id, vm_id)
-	print self.schedule
-        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule,self.description)
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule,'Workload-1',True,self.description)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of Snapshots to Keep')
-        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 3)
-       
+        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 1)
+        self.date=time.strftime("%Y-%m-%d %H:%M:%S")
+        self.end_date = datetime.strptime(self.date,"%Y-%m-%d %H:%M:%S")+timedelta(minutes=250)
+        tvaultconf.sched.add_job(self.verifyScheduleTest,'interval',args=[self.workload_id],seconds=3558,id='my_job_id')
+        tvaultconf.sched.start()
+        self.snap_list = self.getSnapshotList(self.workload_id)
+        if (len(self.snap_list)==1):
+            LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
+            LOG.debug('At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
+        else :
+            LOG.debug('Retention Policy No. of snapshot to keep is not working properly')
+            raise Exception("Retention Policy No. of snapshot to keep Failed")
+           
+
 
    
        
