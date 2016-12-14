@@ -96,4 +96,4 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
                     LOG.debug('Retention Policy Full backup interval Number of Days Failed')
                     raise Exception("Retention Policy Full backup interval Never Failed")
-           LOG.debug('Retention Policy Full backup interval Number of Days Successful')
+            LOG.debug('Retention Policy Full backup interval Number of Days Successful')
