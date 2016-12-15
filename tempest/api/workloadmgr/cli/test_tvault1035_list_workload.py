@@ -23,7 +23,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_list_workload_command(self):
+    def test_tvault1035_list_workload(self):
         #Prerequisites
         self.created = False
         self.workload_instances = []

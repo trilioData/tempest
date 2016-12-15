@@ -24,10 +24,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_delete_workload_command(self):
+    def test_tvault1033_create_workload(self):
         #Prerequisites
-        self.deleted = False
-        self.workload_instances = []
+        self.created = False
         #Launch instance
         self.vm_id = self.create_vm()
         LOG.debug("VM ID: " + str(self.vm_id))
@@ -40,28 +39,34 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.attach_volume(self.volume_id, self.vm_id)
         LOG.debug("Volume attached")
 
-        #Create workload
-        self.workload_instances.append(self.vm_id)
-        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=False)
-        LOG.debug("Workload ID: " + str(self.wid))
-        time.sleep(5)
-        
-        #Delete workload from CLI command
-        rc = cli_parser.cli_returncode(command_argument_string.workload_delete)
+        #Create workload with CLI command
+        workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)
+        rc = cli_parser.cli_returncode(workload_create)
         if rc != 0:
             raise Exception("Command did not execute correctly")
         else:
             LOG.debug("Command executed correctly")
         
-        wc = query_data.get_deleted_workload(tvaultconf.workload_name)
+        wc = query_data.get_workload_status(tvaultconf.workload_name)
         LOG.debug("Workload status: " + str(wc))
-        while (str(wc) != "deleted"):
-            time.sleep(5)
-            wc = query_data.get_deleted_workload(tvaultconf.workload_name)
+        while (str(wc) != "available" or str(wc)!= "error"):
+            time.sleep(10)
+            wc = query_data.get_workload_status(tvaultconf.workload_name)
             LOG.debug("Workload status: " + str(wc))
-            if (str(wc) == "deleted"):
-                LOG.debug("Workload successfully deleted")
-                self.deleted = True
+            if (str(wc) == "available"):
+                LOG.debug("Workload successfully created")
+                self.created = True
                 break
-        if (self.deleted == False):
-            raise Exception ("Workload did not get deleted")
+            else:
+                if (str(wc) == "error"):
+                    break
+        if (self.created == False):
+            raise Exception ("Workload did not get created!!!")
+        
+        self.wid = query_data.get_workload_id(tvaultconf.workload_name)
+        LOG.debug("Workload ID: " + str(self.wid))
+        
+        #Cleanup
+        #Delete workload
+        self.workload_delete(self.wid)
+        LOG.debug("Workload deleted successfully")

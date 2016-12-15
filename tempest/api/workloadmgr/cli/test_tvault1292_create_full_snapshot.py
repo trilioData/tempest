@@ -24,9 +24,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_create_workload_command(self):
+    def test_tvault1292_create_full_snapshot(self):
         #Prerequisites
         self.created = False
+        self.workload_instances = []
+        
         #Launch instance
         self.vm_id = self.create_vm()
         LOG.debug("VM ID: " + str(self.vm_id))
@@ -39,34 +41,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.attach_volume(self.volume_id, self.vm_id)
         LOG.debug("Volume attached")
 
-        #Create workload with CLI command
-        workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)
-        rc = cli_parser.cli_returncode(workload_create)
+        #Create workload
+        self.workload_instances.append(self.vm_id)
+        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+        LOG.debug("Workload ID: " + str(self.wid))
+        time.sleep(5)
+                
+        #Create snapshot with CLI command
+        create_snapshot = command_argument_string.snapshot_create + self.wid
+        LOG.debug("Create snapshot command: " + str(create_snapshot))
+        rc = cli_parser.cli_returncode(create_snapshot)
         if rc != 0:
             raise Exception("Command did not execute correctly")
         else:
             LOG.debug("Command executed correctly")
-        
-        wc = query_data.get_workload_status(tvaultconf.workload_name)
-        LOG.debug("Workload status: " + str(wc))
-        while (str(wc) != "available" or str(wc)!= "error"):
-            time.sleep(10)
-            wc = query_data.get_workload_status(tvaultconf.workload_name)
-            LOG.debug("Workload status: " + str(wc))
-            if (str(wc) == "available"):
-                LOG.debug("Workload successfully created")
-                self.created = True
-                break
-            else:
-                if (str(wc) == "error"):
-                    break
+               
+        self.snapshot_id = query_data.get_inprogress_snapshot_id(self.wid)
+        LOG.debug("Snapshot ID: " + str(self.snapshot_id))
+               
+        wc = self.wait_for_snapshot_tobe_available(self.wid,self.snapshot_id)
+        if (str(wc) == "available"):
+            LOG.debug("Workload snapshot successfully completed")
+            self.created = True
+        else:
+            if (str(wc) == "error"):
+                pass
         if (self.created == False):
-            raise Exception ("Workload did not get created!!!")
-        
-        self.wid = query_data.get_workload_id(tvaultconf.workload_name)
-        LOG.debug("Workload ID: " + str(self.wid))
+            raise Exception ("Workload snapshot did not get created")
         
         #Cleanup
-        #Delete workload
-        self.workload_delete(self.wid)
-        LOG.debug("Workload deleted successfully")
+        #Delete snapshot
+        self.snapshot_delete(self.wid, self.snapshot_id)
+        LOG.debug("Snapshot deleted successfully")

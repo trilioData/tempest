@@ -24,7 +24,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_selective_restore_command(self):
+    def test_tvault1291_selective_restore(self):
         #Prerequisites
         self.created = False
         self.workload_instances = []
