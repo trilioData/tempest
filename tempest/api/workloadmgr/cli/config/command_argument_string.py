@@ -16,3 +16,7 @@ oneclick_restore = "workloadmgr snapshot-oneclick-restore --display-name " +tvau
 selective_restore = "workloadmgr snapshot-selective-restore --display-name " +tvaultconf.selective_restore_name+ " --filename " +tvaultconf.restore_filename
 list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
 workload_modify = "workloadmgr workload-modify --instance instance-id="
+workload_unlock = "workloadmgr workload-unlock "
+incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tvaultconf.snapshot_name + " "
+workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
+workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)

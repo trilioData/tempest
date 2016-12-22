@@ -1,4 +1,8 @@
 import db_handler
+from oslo_log import log as logging
+from tempest import config
+LOG = logging.getLogger(__name__)
+CONF = config.CONF
 
 def get_workload_count(workload_name):
     try:
@@ -306,6 +310,66 @@ def get_available_vms_of_workload(workload_id):
             return row[0]
     except Exception as e:
         print (str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_workload_status_by_id(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_snapshot = ("select status from workloads where id='"+workload_id+"' order by created_at desc limit 1")
+        cursor.execute(get_workload_snapshot)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+        
+def get_workload_schedule(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_schedule = ("select jobschedule from workloads where id='"+workload_id+"' order by created_at desc limit 1")
+        cursor.execute(get_workload_schedule)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_available_workload_types():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_types = ("select count(*) from workload_types where deleted <> 1")
+        cursor.execute(get_workload_types)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+        
+def get_workload_type_data(workload_type_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_types = ("select * from workload_types where deleted <> 1 and ID='" + str(workload_type_id) + "'")
+        cursor.execute(get_workload_types)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(str(e))
     finally:
         cursor.close()
         conn.close()

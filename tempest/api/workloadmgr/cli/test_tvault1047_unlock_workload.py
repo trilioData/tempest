@@ -6,6 +6,7 @@ from tempest import config
 from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
+import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
@@ -23,7 +24,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_modify_workload_command(self):
+    def test_tvault1047_unlock_workload(self):
         #Prerequisites
         self.created = False
         self.workload_instances = []
@@ -44,30 +45,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.workload_instances.append(self.vm_id)
         self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
         LOG.debug("Workload ID: " + str(self.wid))
+        time.sleep(5)
         
-        #Launch second instance
-        self.vm_id2 = self.create_vm()
-        LOG.debug("VM ID2: " + str(self.vm_id2))
-
-        #Create volume
-        self.volume_id2 = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
-        LOG.debug("Volume ID2: " + str(self.volume_id2))
+        #Create snapshot
+        self.snapshot_id = self.workload_snapshot(self.wid, True, tvaultconf.snapshot_name)
+        LOG.debug("Snapshot ID: " + str(self.snapshot_id))
         
-        #Attach volume to the instance
-        self.attach_volume(self.volume_id2, self.vm_id2)
-        LOG.debug("Volume2 attached")
+        wc = query_data.get_workload_status_by_id(self.wid)
+        LOG.debug("Workload status: " + str(wc))
         
-        #Modify workload to add new instance using CLI command        
-        workload_modify_command = command_argument_string.workload_modify + str(self.vm_id2) + " --instance instance-id=" + str(self.vm_id) + " " + str(self.wid)
-        rc = cli_parser.cli_returncode(workload_modify_command)
+        #Unlock workload using CLI command
+        rc = cli_parser.cli_returncode(command_argument_string.workload_unlock + self.wid)       
         if rc != 0:
             raise Exception("Command did not execute correctly")
         else:
             LOG.debug("Command executed correctly")
-            
-        self.wait_for_workload_tobe_available(self.wid)        
-        workload_vm_count = query_data.get_available_vms_of_workload(self.wid)
-        if (workload_vm_count == 2):
-            LOG.debug("Workload has been updated successfully")
-        else:
-            raise Exception ("Workload has not been updated")
+        
+        #Get workload status
+        wc = query_data.get_workload_status_by_id(self.wid)
+        LOG.debug("Workload status: " + str(wc))
+        
+        self.assertIsNot('available', str(wc), "Workload not unlocked")
+        LOG.debug("Workload unlocked")
+        
+        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+        LOG.debug("Snapshot is available")

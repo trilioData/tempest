@@ -698,7 +698,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 raise Exception("Snapshot creation failed")            
             LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(10)           
-        LOG.debug('Final Status of snapshot %s : %s' % (cls.getSnapshotStatus(workload_id, snapshot_id)))
+        LOG.debug('Final Status of snapshot: %s' % (cls.getSnapshotStatus(workload_id, snapshot_id)))
         return status
     
     '''

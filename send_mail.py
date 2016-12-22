@@ -6,7 +6,7 @@ import sys
 build_version = sys.argv[0]
 
 fromaddr = 'shyam.biradar@afourtech.com'
-toaddrs  = 'shyam.biradar@triliodata.com'
+toaddrs  = sys.argv[1]
 
 
 result_table = """ <table style="width:100%" border="1">
@@ -36,6 +36,7 @@ result_table+="""</table>"""
 
 print result_table
 
+'''
 message = """From: Tempest <shyam.biradar@afourtech.com>
 To: Shyam <shyam.biradar@triliodata.com>
 MIME-Version: 1.0
@@ -47,7 +48,7 @@ Subject: Tempest Testrun Report - %s
 
 """ % (build_version, result_table)
 
-html_report_file="results.html"
+html_report_file="Report/results.html"
 html_file= open(html_report_file,"w")
 html_file.write(result_table)
 html_file.close()
@@ -65,3 +66,4 @@ try:
   print "Sent Email"
 except smtplib.SMTPException:
    print "Error: unable to send email"
+'''
