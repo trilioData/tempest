@@ -28,6 +28,7 @@ from oslo_config import cfg
 #import unittest
 from tempest_lib import exceptions as lib_exc
 import datetime
+from datetime import datetime, timedelta
 from tempest import tvaultconf
 import os
 
@@ -328,6 +329,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def delete_volume_snapshot(cls, volume_snapshot_id):
         try:
             cls.snapshots_extensions_client.delete_snapshot(volume_snapshot_id)
+            LOG.debug('Snapshot delete operation completed %s' % volume_snapshot_id)
+            time.sleep(60)
         except Exception as e:
             return
         
@@ -352,6 +355,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = cls.snapshots_extensions_client.list_snapshots()
         for i in range(0,len(resp['snapshots'])):
             volume_snapshots.append(resp['snapshots'][i]['id'])
+        LOG.debug("Volume snapshots: " + str(volume_snapshots))
+        return volume_snapshots
+
+    '''
+    Method to return list of available volume snapshots for given volume
+    '''
+    @classmethod
+    def get_volume_snapshots(cls, volume_id):
+        volume_snapshots = []
+        resp = cls.snapshots_extensions_client.list_snapshots()
+        for i in range(0,len(resp['snapshots'])):
+            volume_snapshot_id = resp['snapshots'][i]['volumeId']
+            if ( volume_id == volume_snapshot_id ):
+                volume_snapshots.append(resp['snapshots'][i]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
     
@@ -728,7 +745,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     is_running = True
                     LOG.debug('snapshot is running: %s' % snapshot_list[i])
                     cls.wait_for_workload_tobe_available(workload_id)
-                    cls.assertEqual(cls.getSnapshotStatus(workload_id, snapshot_list[i]), "available")
                 else:
                     LOG.debug('snapshot is not running: %s' % snapshot_list[i])
                     is_running = False
@@ -742,7 +758,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     is_running = True
                     LOG.debug('snapshot is running: %s' %str(tdelta))
                     cls.wait_for_workload_tobe_available(workload_id)
-                    cls.assertEqual(cls.getSnapshotStatus(workload_id, snapshot_list[i]), "available")
                 else:
                     LOG.debug('snapshot is not running: %s' % snapshot_list[i])
                     is_running = False
