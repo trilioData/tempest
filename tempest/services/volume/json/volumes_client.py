@@ -17,10 +17,8 @@ from oslo_serialization import jsonutils as json
 import six
 from six.moves.urllib import parse as urllib
 from tempest_lib import exceptions as lib_exc
-
 from tempest.common import service_client
 from tempest.common import waiters
-
 
 class BaseVolumesClient(service_client.ServiceClient):
     """
@@ -74,7 +72,7 @@ class BaseVolumesClient(service_client.ServiceClient):
         self.expected_success(200, resp.status)
         return service_client.ResponseBody(resp, body)
 
-    def create_volume(self, size=None, **kwargs):
+    def create_volume(self, size=None, expected_resp=volume_create_resp, **kwargs):
         """
         Creates a new Volume.
         size: Size of volume in GB.
@@ -93,7 +91,7 @@ class BaseVolumesClient(service_client.ServiceClient):
         post_body = json.dumps({'volume': post_body})
         resp, body = self.post('volumes', post_body)
         body = json.loads(body)
-        self.expected_success(self.volume_create_resp, resp.status)
+        self.expected_success(expected_resp, resp.status)
         return service_client.ResponseBody(resp, body)
 
     def update_volume(self, volume_id, **kwargs):

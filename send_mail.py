@@ -36,6 +36,11 @@ result_table+="""</table>"""
 
 print result_table
 
+html_report_file="Report/results.html"
+html_file= open(html_report_file,"w")
+html_file.write(result_table)
+html_file.close()
+
 '''
 message = """From: Tempest <shyam.biradar@afourtech.com>
 To: Shyam <shyam.biradar@triliodata.com>
@@ -47,11 +52,6 @@ Subject: Tempest Testrun Report - %s
 <dev> %s </dev>
 
 """ % (build_version, result_table)
-
-html_report_file="Report/results.html"
-html_file= open(html_report_file,"w")
-html_file.write(result_table)
-html_file.close()
 
 username = 'shyam.biradar@afourtech.com'
 password = 'ink!1234'

@@ -3,7 +3,7 @@
 cleanup = True
 
 #Volume type to use by tempest
-volume_type="a5214dfb-eb06-4e41-b2c2-5d89302e6e89"
+volume_type="c2dd3908-6389-41e5-bcb0-696d12b713cf"
 
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
@@ -13,8 +13,6 @@ parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
 vms_from_file=False
 volumes_from_file=False
 workloads_from_file=False
-
-
 
 # Scheduler parameter
 interval="1 hrs"
@@ -41,4 +39,6 @@ tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
-
+compute_ip = "192.168.1.77"
+compute_username = "root"
+compute_passwd = "Password1!"
