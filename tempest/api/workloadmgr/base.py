@@ -13,26 +13,29 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_log import log as logging
+import time
+import paramiko
+import datetime
+import os
 
+from oslo_log import log as logging
 from tempest import config
 import tempest.test
-#from testtools import testcase
-#from tempest import api
-#from tempest.common import compute
-import time
 from tempest.common import waiters
 from oslo_config import cfg
-#from random import choice
-#from string import ascii_lowercase
-#import unittest
 from tempest_lib import exceptions as lib_exc
-import datetime
 from tempest import tvaultconf
-import os
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
+
+#Unused imports
+#import unittest
+#from testtools import testcase
+#from tempest import api
+#from tempest.common import compute
+#from random import choice
+#from string import ascii_lowercase
 
 
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
@@ -292,18 +295,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a new volume and returns Volume ID
     '''
     def create_volume(self, size, volume_type_id, volume_cleanup=True):
+        conn = self.SshRemoteMachineConnection(tvaultconf.compute_ip, tvaultconf.compute_username, tvaultconf.compute_passwd)
+        _, out, err = conn.exec_command('nova --version')
+        nova_version = err.readlines()[0]
+        LOG.debug("Nova Version: " + str(nova_version))
+        if(nova_version >= '2.31.0'):
+            self.expected_resp = 200
+        else:
+            self.expected_resp = 202            
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
             if(flag != 0):
                 volume_id=self.read_volume_id()
             else:
-                volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
+                volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
-            volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id)
+            volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -867,3 +878,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for i in range(0,len(port_list)):
             port_delete = cls.network_client.delete_port(port_list[i])
             LOG.debug("Port %s status %s" % (port_list[i], port_delete))
+            
+    '''
+    Method to connect to remote linux machine
+    '''
+    def SshRemoteMachineConnection(self, ipAddress, userName, password):
+        ssh=paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ipAddress, username=userName ,password=password)
+        return ssh
