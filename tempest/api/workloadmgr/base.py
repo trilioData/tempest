@@ -24,6 +24,8 @@ import tempest.test
 from tempest.common import waiters
 from oslo_config import cfg
 from tempest_lib import exceptions as lib_exc
+import datetime
+from datetime import datetime, timedelta
 from tempest import tvaultconf
 
 CONF = config.CONF
@@ -339,6 +341,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def delete_volume_snapshot(cls, volume_snapshot_id):
         try:
             cls.snapshots_extensions_client.delete_snapshot(volume_snapshot_id)
+            LOG.debug('Snapshot delete operation completed %s' % volume_snapshot_id)
+            time.sleep(60)
         except Exception as e:
             return
         
@@ -363,6 +367,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = cls.snapshots_extensions_client.list_snapshots()
         for i in range(0,len(resp['snapshots'])):
             volume_snapshots.append(resp['snapshots'][i]['id'])
+        LOG.debug("Volume snapshots: " + str(volume_snapshots))
+        return volume_snapshots
+
+    '''
+    Method to return list of available volume snapshots for given volume
+    '''
+    @classmethod
+    def get_volume_snapshots(cls, volume_id):
+        volume_snapshots = []
+        resp = cls.snapshots_extensions_client.list_snapshots()
+        for i in range(0,len(resp['snapshots'])):
+            volume_snapshot_id = resp['snapshots'][i]['volumeId']
+            if ( volume_id == volume_snapshot_id ):
+                volume_snapshots.append(resp['snapshots'][i]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
     
@@ -726,11 +744,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns if scheduler is running for a given workload
     '''
     @classmethod
-    def is_schedule_running(cls, workload_id):
+    def is_schedule_running(cls,workload_id):
         is_running= False
-        if(cls.getWorkloadStatus(workload_id) == 'locked'):
-            is_running = True
+        snapshot_list=cls.getSnapshotList(workload_id)
+        for i in range (0,(len(snapshot_list))):
+            FMT = "%Y-%m-%dT%H:%M:%S.000000"
+            if (i==0):
+                SnapshotCreateTime = cls.getSnapshotCreateTimeInfo(snapshot_list[i])
+                LOG.debug('snapshot create time is: %s' % SnapshotCreateTime)
+                SnapshotNameInfo = cls.getSnapshotNameInfo(snapshot_list[i])
+                if(SnapshotNameInfo == 'jobscheduler'):
+                    is_running = True
+                    LOG.debug('snapshot is running: %s' % snapshot_list[i])
+                    cls.wait_for_workload_tobe_available(workload_id)
+                else:
+                    LOG.debug('snapshot is not running: %s' % snapshot_list[i])
+                    is_running = False
+            else:
+                SnapshotCreateTime = cls.getSnapshotCreateTimeInfo(snapshot_list[i])
+                SnapshotCreateTime1 = cls.getSnapshotCreateTimeInfo(snapshot_list[i-1])
+                tdelta = datetime.strptime(SnapshotCreateTime, FMT) - datetime.strptime(SnapshotCreateTime1, FMT)
+                LOG.debug('Time Interval Between Two snapshot is: %s' % str(tdelta))
+                SnapshotNameInfo = cls.getSnapshotNameInfo(snapshot_list[i])
+                if(SnapshotNameInfo == 'jobscheduler' and (str(tdelta)=="1:00:00")):
+                    is_running = True
+                    LOG.debug('snapshot is running: %s' %str(tdelta))
+                    cls.wait_for_workload_tobe_available(workload_id)
+                else:
+                    LOG.debug('snapshot is not running: %s' % snapshot_list[i])
+                    is_running = False
         return is_running
+
         
     '''
     Method to delete a given restore
@@ -852,14 +896,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to write scheduler details in file
     '''
     @classmethod
-    def verifyTest(cls,workload_id):
+    def verifyScheduleTest(cls,workload_id):
+        tvaultconf.count = tvaultconf.count + 1
+        LOG.debug("tvaultconf.count value is:%s" % tvaultconf.count)
         f = open(tvaultconf.schedule_report_file, "a")
         if (cls.is_schedule_running(workload_id)):
             date = time.strftime("%c")
-            f.write('Snapshot is running' +str(date)+ '\n')
+            f.write('Snapshot is running : ' +str(date)+ '\n')
         else :
             date=time.strftime("%c")
-            f.write('Snapshot Not running' +str(date)+ '\n')
+            f.write('Snapshot Not running : ' +str(date)+ '\n')
+            tvaultconf.sched.remove_job('my_job_id')
+            tvaultconf.sched.shutdown(wait=False)
+        if (tvaultconf.count == tvaultconf.No_of_Backup):
+            tvaultconf.sched.remove_job('my_job_id')
+            tvaultconf.sched.shutdown(wait=False)
             
     '''
     Method to fetch the list of network ports
@@ -878,6 +929,62 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for i in range(0,len(port_list)):
             port_delete = cls.network_client.delete_port(port_list[i])
             LOG.debug("Port %s status %s" % (port_list[i], port_delete))
+
+    '''
+    Method returns the snapshot list information
+    '''
+    @classmethod
+    def getSnapshotList(cls,workload_id='none'):
+        resp, body = cls.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+        snapshot_list = []
+        for i in range(0,len(body['snapshots'])):
+            snapshot_list.append(body['snapshots'][i]['id'])
+            LOG.debug('snapshot id is: %s' % snapshot_list[i])
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return snapshot_list
+
+
+    '''
+    Method returns the snapshot create time information
+    '''
+    @classmethod
+    def getSnapshotCreateTimeInfo(cls,snapshot_id='none'):
+        resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_create_time_info = body['snapshot']['created_at']
+        LOG.debug('snapshot create time is: %s' % snapshot_create_time_info)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return snapshot_create_time_info
+
+
+    '''
+    Method returns the snapshot name information
+    '''
+    @classmethod
+    def getSnapshotNameInfo(cls,snapshot_id='none'):
+        resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_name_info = body['snapshot']['name']
+        LOG.debug('snapshot name is: %s' % snapshot_name_info)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return snapshot_name_info
+
+    '''
+    Method returns the snapshot type information
+    '''
+    @classmethod
+    def getSnapshotTypeInfo(cls,snapshot_id='none'):
+        resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_type_info = body['snapshot']['snapshot_type']
+        LOG.debug('snapshot type is : %s' % snapshot_type_info)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return snapshot_type_info
             
     '''
     Method to connect to remote linux machine

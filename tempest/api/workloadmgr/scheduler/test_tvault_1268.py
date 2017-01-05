@@ -13,15 +13,13 @@
 #    under the License.
 
 import sys
-sys.path.append("/opt/stack/tempest")
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 import json
 import datetime
 import time
+from datetime import datetime, timedelta
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
@@ -29,8 +27,7 @@ from tempest import tvaultconf
 import os
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
-#logging.basicConfig()
-#sched = BlockingScheduler()
+sys.path.append(os.getcwd())
 
 
 class WorkloadsTest(base.BaseWorkloadmgrTest):
@@ -51,26 +48,31 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.workload_instances = []
         self.workload_volumes = []
         self.workloads = []
-        self.full_snapshots = []
-        self.incr_snapshots = []
-        self.restores = []
-        self.start_date = time.strftime("%x")
-        self.start_time = time.strftime("%X")
+        self.date = time.strftime("%Y-%m-%d %H:%M:%S")
+
+        # Scheduler start time will be 10 min after the workload create
+        self.workload_start_date = datetime.strptime(self.date,"%Y-%m-%d %H:%M:%S")+timedelta(minutes=10)
+        self.start_date = self.workload_start_date.strftime("%Y-%m-%d")
+        self.start_time = self.workload_start_date.strftime("%H:%M:%S")
         self.enabled = True
-	self.schedule = {"retention_policy_type": "Number of days to retain Snapshots", "enabled": self.enabled, "start_date": self.start_date, "start_time": self.start_time, "retention_policy_value": 3}
+        file = open("Tvault-1268.txt", "a")
+	self.schedule = {"retention_policy_type": "Number of days to retain Snapshots", "enabled": self.enabled, "start_date": self.start_date, "start_time": self.start_time, "retention_policy_value": 1}
         self.description = "Test Number of days to retain Snapshots"
         for vm in range(0,self.vms_per_workload):
-             vm_id = self.create_vm()
-             self.workload_instances.append(vm_id)
-             volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             self.workload_volumes.append(volume_id)
-             self.attach_volume(volume_id, vm_id)
-	print self.schedule
-        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule,self.description)
+             self.vm_id = self.create_vm(False)
+             self.workload_instances.append(self.vm_id)
+             self.volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type,False)
+             self.workload_volumes.append(self.volume_id)
+             self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule,'Workload-1',False,self.description)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of days to retain Snapshots')
-        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 3)
-       
+        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 1)
+        
+        # Write data in file
+        file.write(self.workload_id+ '\n')
+        file.write(self.volume_id+ '\n')
+        file.write(self.vm_id+ '\n')
 
    
        
