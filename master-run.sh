@@ -30,7 +30,7 @@ do
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
-        ./run_tempest.sh $line
+        ./run_tempest.sh -V $line
         if [ $? -eq 0 ]; then
 	       echo "$line PASSED" >> $TEST_RESULTS_FILE
         else

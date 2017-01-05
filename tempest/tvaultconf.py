@@ -5,7 +5,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 # following cleanup parameter value to True otherwise False
 cleanup = True
 
-
 #Volume type to use by tempest
 volume_type="62d6e6ef-c11f-4890-9a27-ee8c0ee05291"
 
@@ -18,8 +17,7 @@ vms_from_file=False
 volumes_from_file=False
 workloads_from_file=False
 
-
-CLI configuration parameters
+#CLI configuration parameters
 workload_type_id="f82ce76f-17fe-438b-aa37-7a023058e50d"
 workload_name="clitest"
 source_platform="openstack"
@@ -37,8 +35,9 @@ tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
-
-
+compute_ip = "192.168.1.77"
+compute_username = "root"
+compute_passwd = "Password1!"
 
 # Scheduler parameter
 interval="1 hrs"
