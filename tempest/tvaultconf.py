@@ -47,4 +47,4 @@ retention_policy_value="3"
 schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
-No_of_Backup=3
+No_of_Backup=1

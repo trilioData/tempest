@@ -46,7 +46,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.expected_type = ['full','incremental','full']
         self.snap_list = []
         self.snapshot_type = []
-        file = open("Tvault-1266.txt", "r")
+        #file = open("Tvault-1266.txt", "r")
+        for line in open("Tvault-1264.txt", "r"):
+            if 'workload_id' in line:
+                self.workload_info = line.split('=')
+                self.workload_id = self.workload_info[1].strip()
+            if 'volume_id' in line:
+                self.volume_info = line.split('=')
+                self.volume_id = self.volume_info[1].strip()
+            if 'vm_id' in line:
+                self.vm_info = line.split('=')
+                self.server_id = self.vm_info[1].strip()
+
         self.workload = file.read().splitlines()
         self.workload_id = self.workload[0]
         self.volume_id = self.workload[1]
@@ -55,20 +66,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertEqual(self.getFullBackupIntervalStatus(self.workload_id), '1')
         if(self.is_schedule_running(self.workload_id)):
             self.snap_list = self.getSnapshotList(self.workload_id)
-            if (len(self.snap_list) == 3):
-                for i in range(0,len(self.snap_list)):
-                    self.snapshot_type.append(self.getSnapshotTypeInfo(self.snap_list[i]))
-                    if (self.snapshot_type[i] == self.expected_type[i]):
-                        LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                    else :
-                        LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                        LOG.debug('Retention Policy Full backup interval Number of Days Failed')
-                        raise Exception("Retention Policy Full backup interval Number of Days Failed")
-                LOG.debug('Retention Policy Full backup interval Number of Days Successful')
-            else :
-                LOG.debug('Retention Policy Full backup interval Number of Days Failed')
+            for i in range(0,len(self.snap_list),2):
+                self.snapshot_info = getSnapshotInfo(self.snap_list[i])
+                self.snapshot_type.append(self.snapshot_info[2])
+                if (self.snapshot_type[i] == 'full'):
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                else :
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                    LOG.debug('Retention Policy Full backup interval Number of Days Failed')
+                    raise Exception("Retention Policy Full backup interval Number of Days Failed")
+            for i in range(1,len(self.snap_list),2):
+                self.snapshot_info = getSnapshotInfo(self.snap_list[i])
+                self.snapshot_type.append(self.snapshot_info[2])
+                if (self.snapshot_type[i] == 'incremental'):
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                else :
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                    LOG.debug('Retention Policy Full backup interval Number of Days Failed')
+                    raise Exception("Retention Policy Full backup interval Number of Days Failed")
         else :
             LOG.debug('Retention Policy Full backup interval Number of Days Failed')
        

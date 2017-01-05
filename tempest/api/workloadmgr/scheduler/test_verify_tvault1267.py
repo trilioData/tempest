@@ -50,9 +50,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.volume_id = self.workload[1]
         self.server_id = self.workload[2]
         self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of Snapshots to Keep')
-        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 1)
+        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 2)
         self.snap_list = self.getSnapshotList(self.workload_id)
-        if (len(self.snap_list)==1):
+        if (len(self.snap_list)==2):
             LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
             LOG.debug('At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
         else :
