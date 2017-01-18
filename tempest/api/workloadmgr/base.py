@@ -749,10 +749,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_list=cls.getSnapshotList(workload_id)
         for i in range (0,(len(snapshot_list))):
             FMT = "%Y-%m-%dT%H:%M:%S.000000"
+            snapshot_info = []
+            snapshot_info = cls.getSnapshotInfo(snapshot_list[i])
+            SnapshotCreateTime = snapshot_info[0]
+            LOG.debug('snapshot create time is: %s' % SnapshotCreateTime)
+            SnapshotNameInfo = snapshot_info[1]
             if (i==0):
-                SnapshotCreateTime = cls.getSnapshotCreateTimeInfo(snapshot_list[i])
-                LOG.debug('snapshot create time is: %s' % SnapshotCreateTime)
-                SnapshotNameInfo = cls.getSnapshotNameInfo(snapshot_list[i])
                 if(SnapshotNameInfo == 'jobscheduler'):
                     is_running = True
                     LOG.debug('snapshot is running: %s' % snapshot_list[i])
@@ -761,11 +763,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug('snapshot is not running: %s' % snapshot_list[i])
                     is_running = False
             else:
-                SnapshotCreateTime = cls.getSnapshotCreateTimeInfo(snapshot_list[i])
-                SnapshotCreateTime1 = cls.getSnapshotCreateTimeInfo(snapshot_list[i-1])
+                previous_snapshot_info = cls.getSnapshotInfo(snapshot_list[i-1])
+                SnapshotCreateTime1 = previous_snapshot_info[0]
                 tdelta = datetime.strptime(SnapshotCreateTime, FMT) - datetime.strptime(SnapshotCreateTime1, FMT)
                 LOG.debug('Time Interval Between Two snapshot is: %s' % str(tdelta))
-                SnapshotNameInfo = cls.getSnapshotNameInfo(snapshot_list[i])
                 if(SnapshotNameInfo == 'jobscheduler' and (str(tdelta)=="1:00:00")):
                     is_running = True
                     LOG.debug('snapshot is running: %s' %str(tdelta))
@@ -774,6 +775,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug('snapshot is not running: %s' % snapshot_list[i])
                     is_running = False
         return is_running
+
 
         
     '''
@@ -947,45 +949,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 
     '''
-    Method returns the snapshot create time information
+    Method returns the snapshot information . It return array with create time,name and type information for given snapshot
     '''
     @classmethod
-    def getSnapshotCreateTimeInfo(cls,snapshot_id='none'):
+    def getSnapshotInfo(cls,snapshot_id='none'):
         resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_info = []
         snapshot_create_time_info = body['snapshot']['created_at']
-        LOG.debug('snapshot create time is: %s' % snapshot_create_time_info)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()
-        return snapshot_create_time_info
-
-
-    '''
-    Method returns the snapshot name information
-    '''
-    @classmethod
-    def getSnapshotNameInfo(cls,snapshot_id='none'):
-        resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_info.append(snapshot_create_time_info)
+        LOG.debug('snapshot create time is: %s' % snapshot_info[0])
         snapshot_name_info = body['snapshot']['name']
-        LOG.debug('snapshot name is: %s' % snapshot_name_info)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()
-        return snapshot_name_info
-
-    '''
-    Method returns the snapshot type information
-    '''
-    @classmethod
-    def getSnapshotTypeInfo(cls,snapshot_id='none'):
-        resp, body = cls.wlm_client.client.get("/snapshots/"+snapshot_id)
+        snapshot_info.append(snapshot_name_info)
+        LOG.debug('snapshot name is: %s' % snapshot_info[1])
         snapshot_type_info = body['snapshot']['snapshot_type']
-        LOG.debug('snapshot type is : %s' % snapshot_type_info)
+        snapshot_info.append(snapshot_type_info)
+        LOG.debug('snapshot type is : %s' % snapshot_info[2])
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()
-        return snapshot_type_info
-            
+        return snapshot_info
+   
     '''
     Method to connect to remote linux machine
     '''

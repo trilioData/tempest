@@ -13,7 +13,6 @@
 #    under the License.
 
 import sys
-sys.path.append("/opt/stack/tempest")
 import apscheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 from tempest.api.workloadmgr import base
@@ -22,13 +21,13 @@ from tempest import test
 import json
 import sys
 import time
+import os
 from datetime import datetime, timedelta
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
+sys.path.append(os.getcwd())
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 

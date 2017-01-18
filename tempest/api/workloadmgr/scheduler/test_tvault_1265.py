@@ -69,9 +69,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertEqual(self.getFullBackupIntervalStatus(self.workload_id), '0')
         
         # Write data in file
-        file.write(self.workload_id+ '\n')
-        file.write(self.volume_id+ '\n')
-        file.write(self.vm_id+ '\n')
+        file.write('workload_id = ' +self.workload_id+ '\n')
+        file.write('volume_id = ' +self.volume_id+ '\n')
+        file.write('vm_id = ' +self.vm_id+ '\n')
        
 
    
