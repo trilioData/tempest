@@ -1,12 +1,12 @@
 #!/bin/bash -x
 
 BASE_DIR="$(pwd)"
-source test.properties
-source /root/engg-openrc-v2.sh
+source build.properties
+source automation/openstack-build-scripts/openstack-auth.sh
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
-SUITE_LIST=("tempest.api.workloadmgr.integration" "tempest.api.workloadmgr.cli")
+SUITE_LIST=("tempest.api.workloadmgr.cli" "tempest.api.workloadmgr.integration")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files

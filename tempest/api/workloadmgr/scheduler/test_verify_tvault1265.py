@@ -64,19 +64,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for i in range(0,len(self.snap_list)):
                 self.snapshot_info = self.getSnapshotInfo(self.snap_list[i])
                 self.snapshot_type.append(self.snapshot_info[2])
-                    if (self.snapshot_type[i]=='full'):
-                        LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                    else :
-                        LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                        LOG.debug('Retention Policy Full backup interval Always is Failed')
-                        raise Exception("Retention Policy Full backup interval Always is Failed")   
-            else :
-                LOG.debug('Retention Policy Full backup interval Always is Successful')
-                raise Exception("Retention Policy Full backup interval Always Failed")
-                   
-       
+                if (self.snapshot_type[i]=='full'):
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                else :
+                    LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                    LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
+                    LOG.debug('Retention Policy Full backup interval Always is Failed')
+                    raise Exception("Retention Policy Full backup interval Always is Failed")   
+        else :
+            LOG.debug('Retention Policy Full backup interval Always is Successful')
+            raise Exception("Retention Policy Full backup interval Always Failed")
+      
         for i in range (0,len(self.snap_list)):
            self.snapshot_delete(self.workload_id , self.snap_list[i])
         self.workload_delete(self.workload_id)
@@ -88,6 +87,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.delete_vm(self.server_id)
         self.delete_volume(self.volume_id)
         os.remove('Tvault-1265.txt')
-       
-    
-   
