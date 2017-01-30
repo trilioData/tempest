@@ -229,11 +229,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(flag != 0):
                 server_id=self.read_vm_id()
             else:
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+		networkid=[{'uuid':tvaultconf.internal_network_id}]
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
-            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+	    networkid=[{'uuid':tvaultconf.internal_network_id}]
+            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
@@ -302,9 +304,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         nova_version = err.readlines()[0]
         LOG.debug("Nova Version: " + str(nova_version))
         if(nova_version >= '2.31.0'):
-            self.expected_resp = 200
+            self.expected_resp = 202
         else:
-            self.expected_resp = 202            
+            self.expected_resp = 200
+	LOG.debug("Expected Response Code: " + str(self.expected_resp))            
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()

@@ -30,6 +30,7 @@ workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
 volume_size = 1
+internal_network_id = "485a3095-05bf-4dbc-9383-fed4f4eedbbd"
  
 tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"

@@ -5,7 +5,7 @@ import sys
 
 build_version = sys.argv[0]
 
-fromaddr = 'shyam.biradar@afourtech.com'
+fromaddr = 'trilio.build@gmail.com'
 toaddrs  = sys.argv[1]
 
 
@@ -41,9 +41,10 @@ html_file= open(html_report_file,"w")
 html_file.write(result_table)
 html_file.close()
 
+
 '''
-message = """From: Tempest <shyam.biradar@afourtech.com>
-To: Shyam <shyam.biradar@triliodata.com>
+message = """From: Tempest <trilio.build@gmail.com>
+To: Savita <savita.peri@triliodata.com>
 MIME-Version: 1.0
 Content-type: text/html
 Subject: Tempest Testrun Report - %s
@@ -53,8 +54,8 @@ Subject: Tempest Testrun Report - %s
 
 """ % (build_version, result_table)
 
-username = 'shyam.biradar@afourtech.com'
-password = 'ink!1234'
+username = 'trilio.build@gmail.com'
+password = '52T8FVYZJse'
 
 try:
   server = smtplib.SMTP('smtp.gmail.com:587')
