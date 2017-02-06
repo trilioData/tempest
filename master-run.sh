@@ -1,7 +1,7 @@
 #!/bin/bash -x
 
 BASE_DIR="$(pwd)"
-source build.properties
+source automation/openstack-build-scripts/build.properties
 source automation/openstack-build-scripts/openstack-auth.sh
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
