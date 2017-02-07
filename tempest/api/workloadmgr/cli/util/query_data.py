@@ -34,12 +34,11 @@ def get_workload_id(workload_name):
         cursor.close()
         conn.close()
 
-
-def get_deleted_workload(workload_name):
+def get_deleted_workload(workload_id):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_deleted_workload = ("select status from workloads where display_name='"+workload_name+"' order by updated_at desc limit 1")
+        get_deleted_workload = ("select status from workloads where id='"+str(workload_id)+"' order by updated_at desc limit 1")
         cursor.execute(get_deleted_workload)
         rows = cursor.fetchall()
         for row in rows:
@@ -49,7 +48,6 @@ def get_deleted_workload(workload_name):
     finally:
         cursor.close()
         conn.close()
-
 
 def get_available_snapshots_for_workload(snapshot_name, workload_id):
     try:
@@ -70,7 +68,7 @@ def get_available_snapshots():
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_snapshots = ("select count(*) from snapshots where deleted=0 order by created_at desc limit 1")
+        get_available_snapshots = ("select count(*) from snapshots where deleted=0 and status = 'available' order by created_at desc limit 1")
         cursor.execute(get_available_snapshots)
         rows = cursor.fetchall()
         for row in rows:
@@ -370,6 +368,23 @@ def get_workload_type_data(workload_type_id):
             return row
     except Exception as e:
         LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_workload_vmids(workload_id):
+    try:
+        vm_ids = []
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_vmid = ("select vm_id from workload_vms where workload_id='"+workload_id+"'")
+        cursor.execute(get_workload_vmid)
+        rows = cursor.fetchall()
+        for row in rows:
+            vm_ids.append(row[0])
+        return vm_ids 
+    except Exception as e:
+        print (str(e))
     finally:
         cursor.close()
         conn.close()

@@ -86,7 +86,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             
         wc = query_data.get_snapshot_restore_status(tvaultconf.selective_restore_name,self.snapshot_id)
         LOG.debug("Snapshot restore status: " + str(wc))
-        while (str(wc) != "available" or str(wc)!= "error"):
+        while (str(wc) != "available" or str(wc) != "error" or str(wc) != "None"):
             time.sleep(5)
             wc = query_data.get_snapshot_restore_status(tvaultconf.selective_restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
@@ -95,7 +95,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 self.created = True
                 break
             else:
-                if (str(wc) == "error"):
+                if (str(wc) == "error" or str(wc) == "None"):
                     break
         if (self.created == False):
             raise Exception ("Snapshot Restore did not get created")

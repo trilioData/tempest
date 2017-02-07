@@ -9,7 +9,7 @@ workload_create = "workloadmgr workload-create --workload-type-id "+tvaultconf.w
                   " --source-platform "+tvaultconf.source_platform
 snapshot_create = "workloadmgr workload-snapshot " + " --full --display-name " +tvaultconf.snapshot_name + " "
 snapshot_delete = "workloadmgr snapshot-delete "
-workload_delete = "workloadmgr workload-delete "+tvaultconf.workload_name
+workload_delete = "workloadmgr workload-delete "
 restore_delete = "workloadmgr restore-delete "
 delete_vm = "nova delete "
 oneclick_restore = "workloadmgr snapshot-oneclick-restore --display-name " +tvaultconf.restore_name
@@ -20,3 +20,4 @@ workload_unlock = "workloadmgr workload-unlock "
 incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tvaultconf.snapshot_name + " "
 workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
+workload_show = "workloadmgr workload-show "

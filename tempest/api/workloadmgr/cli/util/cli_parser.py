@@ -15,10 +15,13 @@ def cli_output(argument_string):
     p.wait()
     return out
 
-
-
-
-
-
-
-
+def cli_response_parser(cli_resp, key_attr):
+    arrResp = cli_resp.splitlines()
+    for j in range(0, len(arrResp)):
+        arrL = arrResp[j].split("|")
+        for i in range(0, len(arrL)):
+            arrL[i] = arrL[i].rstrip()
+            arrL[i] = arrL[i].lstrip()
+        if(len(arrL) > 1):
+            if(arrL[1] == key_attr):
+                return arrL[2]

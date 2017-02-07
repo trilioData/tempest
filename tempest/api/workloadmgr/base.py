@@ -15,7 +15,6 @@
 
 import time
 import paramiko
-import datetime
 import os
 
 from oslo_log import log as logging
@@ -24,7 +23,6 @@ import tempest.test
 from tempest.common import waiters
 from oslo_config import cfg
 from tempest_lib import exceptions as lib_exc
-import datetime
 from datetime import datetime, timedelta
 from tempest import tvaultconf
 
@@ -304,7 +302,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         nova_version = err.readlines()[0]
         LOG.debug("Nova Version: " + str(nova_version))
         if(nova_version >= '2.31.0'):
-            self.expected_resp = 202
+            self.expected_resp = 200
         else:
             self.expected_resp = 200
 	LOG.debug("Expected Response Code: " + str(self.expected_resp))            
@@ -475,7 +473,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 workload_id=self.read_workload_id()
             else:
                 in_list = []
-                ts=str(datetime.datetime.now())
+                ts=str(datetime.now())
                 workload_name = "tempest"+ ts
                 for id in instances:
                     in_list.append({'instance-id':id})
@@ -495,7 +493,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             in_list = []
             if(workload_name == ""):
-                ts=str(datetime.datetime.now())
+                ts=str(datetime.now())
                 workload_name = "tempest"+ ts
             for id in instances:
                 in_list.append({'instance-id':id})
@@ -554,7 +552,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_id = body['snapshot']['id']
         LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:"+ str(resp.content))
-        #self.wait_for_workload_tobe_available(workload_id)
+        self.wait_for_workload_tobe_available(workload_id)
         if(tvaultconf.cleanup == True and snapshot_cleanup == True):
             self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
         return snapshot_id

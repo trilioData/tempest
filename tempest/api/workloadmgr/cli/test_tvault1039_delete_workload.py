@@ -47,17 +47,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         time.sleep(5)
         
         #Delete workload from CLI command
-        rc = cli_parser.cli_returncode(command_argument_string.workload_delete)
+        rc = cli_parser.cli_returncode(command_argument_string.workload_delete + str(self.wid))
         if rc != 0:
             raise Exception("Command did not execute correctly")
         else:
             LOG.debug("Command executed correctly")
         
-        wc = query_data.get_deleted_workload(tvaultconf.workload_name)
+        wc = query_data.get_deleted_workload(self.wid)
         LOG.debug("Workload status: " + str(wc))
         while (str(wc) != "deleted"):
             time.sleep(5)
-            wc = query_data.get_deleted_workload(tvaultconf.workload_name)
+            wc = query_data.get_deleted_workload(self.wid)
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "deleted"):
                 LOG.debug("Workload successfully deleted")
