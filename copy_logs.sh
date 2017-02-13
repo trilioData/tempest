@@ -10,7 +10,7 @@ while {1} {
 
     eof                          {break}
     "Are you sure you want to continue connecting"   {send "yes\r"}
-    "password:"                  {send "Password1!\r"}
+    "password:"                  {send "TrilioPassword1!\r"}
     "*\]"                        {send "exit\r"}
   }
 }

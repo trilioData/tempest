@@ -70,6 +70,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         else:
             LOG.debug("Command executed correctly")
         
+        self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)
+        LOG.debug("Restore ID: " + str(self.restore_id))
+
         wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name,self.snapshot_id)
         LOG.debug("Snapshot restore status: " + str(wc))
         while (str(wc) != "available" or str(wc)!= "error"):
@@ -82,13 +85,12 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 break
             else:
                 if (str(wc) == "error"):
+		    restore_resp = command_argument_string.restore_show + str(self.restore_id)
+		    LOG.debug("Restore response: " + str(restore_resp))
                     break
     
         if (self.created == False):
             raise Exception ("Snapshot Restore did not get created")
-        
-        self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)
-        LOG.debug("Restore ID: " + str(self.restore_id))
         
         self.restore_vm_id = self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restore VM ID: " + str(self.restore_vm_id))
