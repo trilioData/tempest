@@ -414,7 +414,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method attaches given volume to given VM instance
     '''
-    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=True):
+    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=False):
         #device = "/dev/"+''.join(choice(ascii_lowercase) for i in range(10))
         #device = "/dev/vdb"
         #self.volumes_client.attach_volume(volume_id,
@@ -640,7 +640,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-            self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, restore_id)
         return restore_id
 
     '''
@@ -672,7 +672,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-            self.addCleanup(self.delete_restored_vms, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, restore_id)
         return restore_id
    
     '''
@@ -711,7 +711,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given restored VMs and volumes
     '''
     @classmethod
-    def delete_restored_vms(cls, restore_vms, restore_volumes):        
+    def delete_restored_vms(cls, restore_id):
+	restore_vms = cls.get_restored_vm_list(restore_id)
+	restore_volumes = cls.get_restored_volume_list(restore_id)
         cls.delete_vms(restore_vms)
         cls.delete_volumes(restore_volumes)
 

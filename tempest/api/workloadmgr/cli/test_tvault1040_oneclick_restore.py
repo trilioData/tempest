@@ -70,9 +70,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         else:
             LOG.debug("Command executed correctly")
         
-        self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)
-        LOG.debug("Restore ID: " + str(self.restore_id))
-
         wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name,self.snapshot_id)
         LOG.debug("Snapshot restore status: " + str(wc))
         while (str(wc) != "available" or str(wc)!= "error"):
@@ -85,27 +82,22 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 break
             else:
                 if (str(wc) == "error"):
-		    restore_resp = command_argument_string.restore_show + str(self.restore_id)
-		    LOG.debug("Restore response: " + str(restore_resp))
                     break
     
         if (self.created == False):
             raise Exception ("Snapshot Restore did not get created")
         
-        self.restore_vm_id = self.get_restored_vm_list(self.restore_id)
-        LOG.debug("Restore VM ID: " + str(self.restore_vm_id))
-        
-        self.restore_volume_id = self.get_restored_volume_list(self.restore_id)
-        LOG.debug("Restore Volume ID: " + str(self.restore_volume_id))
+        self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)
+        LOG.debug("Restore ID: " + str(self.restore_id))
         
         #Cleanup
-        self.volume_snapshots = self.get_available_volume_snapshots()
-        self.delete_volume_snapshots(self.volume_snapshots)
+        #self.volume_snapshots = self.get_available_volume_snapshots()
+        #self.delete_volume_snapshots(self.volume_snapshots)
         
         #Delete restore for snapshot
         self.restore_delete(self.wid, self.snapshot_id, self.restore_id)
         LOG.debug("Snapshot Restore deleted successfully")
                
         #Delete restored VM instance and volume
-        self.delete_restored_vms(self.restore_vm_id, self.restore_volume_id)
-        LOG.debug("Restored VM and volume deleted successfully")
+        #self.delete_restored_vms(self.restore_id)
+        #LOG.debug("Restored VM and volume deleted successfully")
