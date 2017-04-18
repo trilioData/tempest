@@ -1,0 +1,4 @@
+[console_scripts]
+check-uuid = tempest_lib.cmd.check_uuid:run
+skip-tracker = tempest_lib.cmd.skip_tracker:main
+

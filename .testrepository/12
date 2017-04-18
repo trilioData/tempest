@@ -1,0 +1,1153 @@
+time: 2017-04-11 09:08:21.105428Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.cmd.test_javelin
+time: 2017-04-11 09:08:21.105592Z
+failure: unittest2.loader._FailedTest.tempest.tests.cmd.test_javelin [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+24C
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.cmd.test_javelin
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/cmd/test_javelin.py", line 17, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.106038Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.cmd.test_tempest_init
+time: 2017-04-11 09:08:21.106141Z
+failure: unittest2.loader._FailedTest.tempest.tests.cmd.test_tempest_init [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+29D
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.cmd.test_tempest_init
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/cmd/test_tempest_init.py", line 20, in <module>
+    from tempest.cmd import init
+  File "tempest/cmd/init.py", line 21, in <module>
+    from oslo_log import log as logging
+ImportError: No module named oslo_log
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.106472Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.cmd.test_verify_tempest_config
+time: 2017-04-11 09:08:21.106573Z
+failure: unittest2.loader._FailedTest.tempest.tests.cmd.test_verify_tempest_config [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+323
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.cmd.test_verify_tempest_config
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/cmd/test_verify_tempest_config.py", line 20, in <module>
+    from tempest.cmd import verify_tempest_config
+  File "tempest/cmd/verify_tempest_config.py", line 26, in <module>
+    from tempest import clients
+  File "tempest/clients.py", line 18, in <module>
+    from oslo_log import log as logging
+ImportError: No module named oslo_log
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.106920Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_admin_available
+time: 2017-04-11 09:08:21.107020Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_admin_available [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+250
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_admin_available
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_admin_available.py", line 15, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.107343Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_cred_provider
+time: 2017-04-11 09:08:21.107455Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_cred_provider [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+24C
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_cred_provider
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_cred_provider.py", line 15, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.107825Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_custom_matchers
+time: 2017-04-11 09:08:21.107940Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_custom_matchers [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2E6
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_custom_matchers
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_custom_matchers.py", line 19, in <module>
+    from testtools.tests.matchers import helpers
+  File "/root/tempest/.venv/lib/python2.7/site-packages/testtools/tests/__init__.py", line 7, in <module>
+    import testscenarios
+ImportError: No module named testscenarios
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.108262Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_preprov_creds
+time: 2017-04-11 09:08:21.108361Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_preprov_creds [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+282
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_preprov_creds
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_preprov_creds.py", line 19, in <module>
+    from oslo_concurrency.fixture import lockutils as lockutils_fixtures
+ImportError: No module named oslo_concurrency.fixture
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.108681Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_service_clients
+time: 2017-04-11 09:08:21.108779Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_service_clients [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+3E0
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_service_clients
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_service_clients.py", line 19, in <module>
+    from tempest.services.baremetal.v1.json import baremetal_client
+  File "tempest/services/baremetal/v1/json/baremetal_client.py", line 13, in <module>
+    from tempest.services.baremetal import base
+  File "tempest/services/baremetal/base.py", line 19, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.109115Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.test_waiters
+time: 2017-04-11 09:08:21.109214Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.test_waiters [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2A5
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.test_waiters
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/test_waiters.py", line 19, in <module>
+    from tempest.common import waiters
+  File "tempest/common/waiters.py", line 16, in <module>
+    from oslo_log import log as logging
+ImportError: No module named oslo_log
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.109540Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.utils.linux.test_remote_client
+time: 2017-04-11 09:08:21.109640Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.utils.linux.test_remote_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+264
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.utils.linux.test_remote_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/utils/linux/test_remote_client.py", line 17, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.109974Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.common.utils.test_file_utils
+time: 2017-04-11 09:08:21.110074Z
+failure: unittest2.loader._FailedTest.tempest.tests.common.utils.test_file_utils [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+312
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.common.utils.test_file_utils
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/common/utils/test_file_utils.py", line 18, in <module>
+    from tempest.common.utils import file_utils
+  File "tempest/common/utils/__init__.py", line 17, in <module>
+    from tempest import config
+  File "tempest/config.py", line 21, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.110404Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.negative.test_negative_auto_test
+time: 2017-04-11 09:08:21.110529Z
+failure: unittest2.loader._FailedTest.tempest.tests.negative.test_negative_auto_test [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2AA
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.negative.test_negative_auto_test
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/negative/test_negative_auto_test.py", line 16, in <module>
+    from tempest import config
+  File "tempest/config.py", line 21, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.110861Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.negative.test_negative_generators
+time: 2017-04-11 09:08:21.110963Z
+failure: unittest2.loader._FailedTest.tempest.tests.negative.test_negative_generators [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2E3
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.negative.test_negative_generators
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/negative/test_negative_generators.py", line 22, in <module>
+    from tempest.common.generator import base_generator
+  File "tempest/common/generator/base_generator.py", line 20, in <module>
+    from oslo_log import log as logging
+ImportError: No module named oslo_log
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.111295Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_fixedIPs_client
+time: 2017-04-11 09:08:21.111394Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_fixedIPs_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27F
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_fixedIPs_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_fixedIPs_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.111781Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_flavors_client
+time: 2017-04-11 09:08:21.111892Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_flavors_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+372
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_flavors_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_flavors_client.py", line 21, in <module>
+    from tempest.services.compute.json import flavors_client
+  File "tempest/services/compute/json/flavors_client.py", line 24, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.112216Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ip_pools_client
+time: 2017-04-11 09:08:21.112314Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ip_pools_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+291
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_floating_ip_pools_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_floating_ip_pools_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.112633Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ips_bulk_client
+time: 2017-04-11 09:08:21.112731Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ips_bulk_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+291
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_floating_ips_bulk_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_floating_ips_bulk_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.113062Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ips_client
+time: 2017-04-11 09:08:21.113178Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_floating_ips_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27E
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_floating_ips_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_floating_ips_client.py", line 16, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.113531Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_hosts_client
+time: 2017-04-11 09:08:21.113630Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_hosts_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+36A
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_hosts_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_hosts_client.py", line 15, in <module>
+    from tempest.services.compute.json import hosts_client
+  File "tempest/services/compute/json/hosts_client.py", line 19, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.113965Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_hypervisor_client
+time: 2017-04-11 09:08:21.114063Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_hypervisor_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+37E
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_hypervisor_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_hypervisor_client.py", line 15, in <module>
+    from tempest.services.compute.json import hypervisor_client
+  File "tempest/services/compute/json/hypervisor_client.py", line 19, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.114382Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_images_client
+time: 2017-04-11 09:08:21.114480Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_images_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+272
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_images_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_images_client.py", line 18, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.114795Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_instance_usage_audit_log_client
+time: 2017-04-11 09:08:21.157916Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_instance_usage_audit_log_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+29F
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_instance_usage_audit_log_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_instance_usage_audit_log_client.py", line 17, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.158342Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_interfaces_client
+time: 2017-04-11 09:08:21.158473Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_interfaces_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+37E
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_interfaces_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_interfaces_client.py", line 15, in <module>
+    from tempest.services.compute.json import interfaces_client
+  File "tempest/services/compute/json/interfaces_client.py", line 19, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.158848Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_keypairs_client
+time: 2017-04-11 09:08:21.158959Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_keypairs_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27F
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_keypairs_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_keypairs_client.py", line 17, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.159290Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_limits_client
+time: 2017-04-11 09:08:21.159391Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_limits_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27B
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_limits_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_limits_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.159722Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_migrations_client
+time: 2017-04-11 09:08:21.159823Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_migrations_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+283
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_migrations_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_migrations_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.160365Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_networks_client
+time: 2017-04-11 09:08:21.160467Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_networks_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27F
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_networks_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_networks_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.160793Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_quota_classes_client
+time: 2017-04-11 09:08:21.160907Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_quota_classes_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+289
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_quota_classes_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_quota_classes_client.py", line 17, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.161234Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_quotas_client
+time: 2017-04-11 09:08:21.161334Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_quotas_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27B
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_quotas_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_quotas_client.py", line 17, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.161657Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_group_default_rules_client
+time: 2017-04-11 09:08:21.161757Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_group_default_rules_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2A7
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_security_group_default_rules_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_security_group_default_rules_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.162093Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_group_rules_client
+time: 2017-04-11 09:08:21.162230Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_group_rules_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+3A6
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_security_group_rules_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_security_group_rules_client.py", line 15, in <module>
+    from tempest.services.compute.json import security_group_rules_client
+  File "tempest/services/compute/json/security_group_rules_client.py", line 19, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.162592Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_groups_client
+time: 2017-04-11 09:08:21.162693Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_security_groups_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+284
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_security_groups_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_security_groups_client.py", line 16, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.163030Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_server_groups_client
+time: 2017-04-11 09:08:21.163129Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_server_groups_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+289
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_server_groups_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_server_groups_client.py", line 18, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.163467Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_servers_client
+time: 2017-04-11 09:08:21.163566Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_servers_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+372
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_servers_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_servers_client.py", line 15, in <module>
+    from tempest.services.compute.json import servers_client
+  File "tempest/services/compute/json/servers_client.py", line 23, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.163903Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_services_client
+time: 2017-04-11 09:08:21.164003Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_services_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27F
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_services_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_services_client.py", line 17, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.164324Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_snapshots_client
+time: 2017-04-11 09:08:21.164423Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_snapshots_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+278
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_snapshots_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_snapshots_client.py", line 16, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.164836Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_tenant_networks_client
+time: 2017-04-11 09:08:21.164966Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_tenant_networks_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+28D
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_tenant_networks_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_tenant_networks_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.165291Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_tenant_usages_client
+time: 2017-04-11 09:08:21.165391Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_tenant_usages_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+289
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_tenant_usages_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_tenant_usages_client.py", line 15, in <module>
+    from tempest_lib.tests import fake_auth_provider
+ImportError: No module named tempest_lib.tests
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.165710Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.services.compute.test_volumes_client
+time: 2017-04-11 09:08:21.165809Z
+failure: unittest2.loader._FailedTest.tempest.tests.services.compute.test_volumes_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+274
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.services.compute.test_volumes_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/services/compute/test_volumes_client.py", line 18, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.166147Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.stress.test_stress
+time: 2017-04-11 09:08:21.166248Z
+failure: unittest2.loader._FailedTest.tempest.tests.stress.test_stress [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+245
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.stress.test_stress
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/stress/test_stress.py", line 19, in <module>
+    from tempest_lib import exceptions
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.166567Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.stress.test_stressaction
+time: 2017-04-11 09:08:21.166665Z
+failure: unittest2.loader._FailedTest.tempest.tests.stress.test_stressaction [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2C4
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.stress.test_stressaction
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/stress/test_stressaction.py", line 16, in <module>
+    import tempest.stress.stressaction as stressaction
+  File "tempest/stress/stressaction.py", line 21, in <module>
+    from oslo_log import log as logging
+ImportError: No module named oslo_log
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.167000Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_decorators
+time: 2017-04-11 09:08:21.167099Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_decorators [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+238
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_decorators
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_decorators.py", line 18, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.167414Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_dynamic_creds
+time: 2017-04-11 09:08:21.167513Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_dynamic_creds [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+23E
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_dynamic_creds
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_dynamic_creds.py", line 16, in <module>
+    from oslo_config import cfg
+ImportError: No module named oslo_config
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.218950Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_glance_http
+time: 2017-04-11 09:08:21.219148Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_glance_http [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+24C
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_glance_http
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_glance_http.py", line 23, in <module>
+    from tempest_lib import exceptions as lib_exc
+ImportError: No module named tempest_lib
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.219564Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_hacking
+time: 2017-04-11 09:08:21.219671Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_hacking [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+27B
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_hacking
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_hacking.py", line 15, in <module>
+    from tempest.hacking import checks
+  File "tempest/hacking/checks.py", line 18, in <module>
+    import pep8
+ImportError: No module named pep8
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.220123Z
+tags: worker-0
+test: tempest.tests.test_list_tests.TestTestList.test_testr_list_tests_no_errors
+time: 2017-04-11 09:08:21.953646Z
+failure: tempest.tests.test_list_tests.TestTestList.test_testr_list_tests_no_errors [ multipart
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+0
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+611
+Traceback (most recent call last):
+  File "tempest/tests/test_list_tests.py", line 35, in test_testr_list_tests_no_errors
+    "error on import %s" % ids)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/testtools/testcase.py", line 411, in assertEqual
+    self.assertThat(observed, matcher, message)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/testtools/testcase.py", line 498, in assertThat
+    raise mismatch_error
+testtools.matchers._impl.MismatchError: 0 != 3: test discovery failed, one or more files cause an error on import running=OS_STDOUT_CAPTURE=${OS_STDOUT_CAPTURE:-1} \
+OS_STDERR_CAPTURE=${OS_STDERR_CAPTURE:-1} \
+OS_TEST_TIMEOUT=${OS_TEST_TIMEOUT:-500} \
+OS_TEST_LOCK_PATH=${OS_TEST_LOCK_PATH:-${TMPDIR:-'/tmp'}} \
+${PYTHON:-python} -m subunit.run discover -t ${OS_TOP_LEVEL:-./} ${OS_TEST_PATH:-./tempest/test_discover} --list 
+--- import errors ---
+Failed to import test module: tempest.test_discover.test_discover
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/test_discover/test_discover.py", line 18, in <module>
+    from tempest.test_discover import plugins
+  File "tempest/test_discover/plugins.py", line 20, in <module>
+    from tempest_lib.common.utils import misc
+ImportError: No module named tempest_lib.common.utils
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.954504Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_negative_rest_client
+time: 2017-04-11 09:08:21.954709Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_negative_rest_client [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+34A
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_negative_rest_client
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_negative_rest_client.py", line 21, in <module>
+    from tempest.common import negative_rest_client
+  File "tempest/common/negative_rest_client.py", line 18, in <module>
+    from tempest.common import service_client
+  File "tempest/common/service_client.py", line 15, in <module>
+    from tempest_lib.common import rest_client
+ImportError: No module named tempest_lib.common
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.955117Z
+tags: worker-0
+test: unittest2.loader._FailedTest.tempest.tests.test_tempest_plugin
+time: 2017-04-11 09:08:21.955224Z
+failure: unittest2.loader._FailedTest.tempest.tests.test_tempest_plugin [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+2C9
+Traceback (most recent call last):
+ImportError: Failed to import test module: tempest.tests.test_tempest_plugin
+Traceback (most recent call last):
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 456, in _find_test_path
+    module = self._get_module_from_name(name)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/unittest2/loader.py", line 395, in _get_module_from_name
+    __import__(name)
+  File "tempest/tests/test_tempest_plugin.py", line 16, in <module>
+    from tempest.test_discover import plugins
+  File "tempest/test_discover/plugins.py", line 20, in <module>
+    from tempest_lib.common.utils import misc
+ImportError: No module named tempest_lib.common.utils
+
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:21.955605Z
+tags: worker-0
+test: tempest.tests.test_wrappers.TestWrappers.test_pretty_tox
+time: 2017-04-11 09:08:23.863726Z
+successful: tempest.tests.test_wrappers.TestWrappers.test_pretty_tox [ multipart
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+0
+]
+tags: -worker-0
+time: 2017-04-11 09:08:23.864222Z
+tags: worker-0
+test: tempest.tests.test_wrappers.TestWrappers.test_pretty_tox_fails
+failure: tempest.tests.test_wrappers.TestWrappers.test_pretty_tox_fails [ multipart
+]
+tags: -worker-0

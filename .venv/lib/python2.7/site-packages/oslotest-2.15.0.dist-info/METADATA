@@ -1,0 +1,52 @@
+Metadata-Version: 2.0
+Name: oslotest
+Version: 2.15.0
+Summary: Oslo test framework
+Home-page: http://docs.openstack.org/developer/oslotest
+Author: OpenStack
+Author-email: openstack-dev@lists.openstack.org
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Requires-Dist: debtcollector (>=1.2.0)
+Requires-Dist: fixtures (>=3.0.0)
+Requires-Dist: mock (>=2.0)
+Requires-Dist: mox3 (!=0.19.0,>=0.7.0)
+Requires-Dist: os-client-config (>=1.22.0)
+Requires-Dist: python-subunit (>=0.0.18)
+Requires-Dist: six (>=1.9.0)
+Requires-Dist: testrepository (>=0.0.18)
+Requires-Dist: testtools (>=1.4.0)
+
+========================
+Team and repository tags
+========================
+
+.. image:: http://governance.openstack.org/badges/oslotest.svg
+    :target: http://governance.openstack.org/reference/tags/index.html
+
+.. Change things from this point on
+
+=======================================================
+ oslotest -- OpenStack Testing Framework and Utilities
+=======================================================
+
+The Oslo Test framework provides common fixtures, support for debugging, and
+better support for mocking results.
+
+* Free software: Apache license
+* Documentation: http://docs.openstack.org/developer/oslotest
+* Source: http://git.openstack.org/cgit/openstack/oslotest
+* Bugs: http://bugs.launchpad.net/oslotest
+
+
+

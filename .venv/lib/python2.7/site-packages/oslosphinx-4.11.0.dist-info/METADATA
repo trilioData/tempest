@@ -1,0 +1,62 @@
+Metadata-Version: 2.0
+Name: oslosphinx
+Version: 4.11.0
+Summary: OpenStack Sphinx Extensions and Theme
+Home-page: http://docs.openstack.org/developer/oslosphinx
+Author: OpenStack
+Author-email: openstack-dev@lists.openstack.org
+License: UNKNOWN
+Platform: UNKNOWN
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Topic :: Documentation
+Requires-Dist: pbr (>=2.0.0)
+Requires-Dist: requests (>=2.10.0,!=2.12.2,!=2.13.0)
+Requires-Dist: six (>=1.9.0)
+
+========================
+Team and repository tags
+========================
+
+.. image:: http://governance.openstack.org/badges/oslosphinx.svg
+    :target: http://governance.openstack.org/reference/tags/index.html
+
+.. Change things from this point on
+
+=============================
+ OpenStack Sphinx Extensions
+=============================
+
+.. image:: https://img.shields.io/pypi/v/oslosphinx.svg
+    :target: https://pypi.python.org/pypi/oslosphinx/
+    :alt: Latest Version
+
+.. image:: https://img.shields.io/pypi/dm/oslosphinx.svg
+    :target: https://pypi.python.org/pypi/oslosphinx/
+    :alt: Downloads
+
+Theme and extension support for Sphinx documentation from the
+OpenStack project.
+
+Using the Theme
+===============
+
+Prior to using this theme, ensure your project can use the OpenStack
+brand by referring to the brand guidelines at
+http://www.openstack.org/brand.
+
+* Free software: Apache License, Version 2.0
+* Documentation: http://docs.openstack.org/developer/oslosphinx
+* Source: http://git.openstack.org/cgit/openstack/oslosphinx
+* Bugs: http://bugs.launchpad.net/oslosphinx
+
+
+

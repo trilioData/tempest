@@ -1,0 +1,11 @@
+time: 2017-04-11 07:40:16.227463Z
+tags: worker-0
+test: process-returncode
+time: 2017-04-11 07:40:16.227463Z
+failure: process-returncode [ multipart
+Content-Type: text/plain;charset=utf8
+traceback
+C
+returncode 10
+]
+tags: -worker-0

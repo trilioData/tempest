@@ -1,0 +1,66 @@
+Metadata-Version: 2.0
+Name: tempest-lib
+Version: 1.0.0
+Summary: OpenStack Functional Testing Library
+Home-page: http://www.openstack.org/
+Author: OpenStack
+Author-email: openstack-dev@lists.openstack.org
+License: Apache License, Version 2.0
+Platform: UNKNOWN
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Requires-Dist: pbr (>=1.6)
+Requires-Dist: Babel (>=1.3)
+Requires-Dist: fixtures (>=1.3.1)
+Requires-Dist: iso8601 (>=0.1.9)
+Requires-Dist: jsonschema (!=2.5.0,<3.0.0,>=2.0.0)
+Requires-Dist: httplib2 (>=0.7.5)
+Requires-Dist: paramiko (>=1.16.0)
+Requires-Dist: six (>=1.9.0)
+Requires-Dist: oslo.log (>=1.14.0)
+Requires-Dist: os-testr (>=0.4.1)
+
+===========
+tempest-lib
+===========
+
+OpenStack Functional Testing Library
+
+* Free software: Apache license
+* Documentation: http://docs.openstack.org/developer/tempest-lib
+* Source: http://git.openstack.org/cgit/openstack/tempest-lib
+* Bugs: http://bugs.launchpad.net/tempest
+
+tempest-lib is a library of common functionality that was originally in tempest
+(or similar in scope to tempest)
+
+**As of the 1.0.0 release tempest-lib as a separate repository and project is
+deprecated. The library now exists as part of the tempest project, all future
+development will occur there. To use the library for future releases update
+your imports from tempest_lib to tempest.lib, and add tempest>=10 to your
+project requirements**
+
+Features
+--------
+
+Some of the current functionality exposed from the library includes:
+
+* OpenStack python-* client CLI testing framework
+* subunit-trace: A output filter for subunit streams. Useful in conjunction
+                 with calling a test runner that emits subunit
+* A unified REST Client
+* Utility functions:
+  * skip_because: Skip a test because of a bug
+  * find_test_caller: Perform stack introspection to find the test caller.
+                      common methods
+
+
+

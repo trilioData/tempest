@@ -1,0 +1,24 @@
+time: 2017-04-13 10:10:06.416666Z
+tags: worker-0
+test: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke]
+time: 2017-04-13 10:10:06.417632Z
+failure: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
+Content-Type: text/plain;charset=utf8
+pythonlogging:''
+0
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+0
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+D6
+Traceback (most recent call last):
+  File "tempest/api/workloadmgr/integration/test_data_integrity.py", line 59, in test_data_integrity
+    self.set_floating_ip(vm_id)
+NameError: global name 'vm_id' is not defined
+0
+]
+tags: -worker-0
