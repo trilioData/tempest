@@ -1191,7 +1191,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(10)
+            time.sleep(20)
             for line in  stdout.readlines():
                 local_md5sum += str(line.split(" ")[0])
             return local_md5sum

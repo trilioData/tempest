@@ -70,13 +70,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.execute_command_disk_create(floating_ips_list[i])
             self.execute_command_disk_mount(floating_ips_list[i])
 
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",12,1048576, 100)
             self.md5sums +=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
 
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",12,1048576, 100)
             self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
 
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",12,1048576, 100)
             self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
 
             self.md5sums_dir_before[str(floating_ips_list[i])] = self.md5sums
@@ -126,13 +126,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         # incremental change
         for i in range(len(self.workload_instances)):
             self.md5sums = ""
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",15,1048576, 100)
             self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
 
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",15,1048576, 100)
             self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
 
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",2,1048576, 100)
+            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",15,1048576, 100)
             self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
 
             self.md5sums_dir_before[str(floating_ips_list[i])] = self.md5sums
