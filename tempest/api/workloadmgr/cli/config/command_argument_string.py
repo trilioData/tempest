@@ -21,3 +21,4 @@ incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tv
 workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
+restore_show = "workloadmgr restore-show "
