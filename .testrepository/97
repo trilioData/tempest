@@ -1,0 +1,6 @@
+time: 2017-04-19 12:17:24.785593Z
+tags: worker-0
+test: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke]
+failure: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
+]
+tags: -worker-0

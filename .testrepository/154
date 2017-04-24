@@ -5,7 +5,7 @@ time: 2017-04-24 07:47:10.918421Z
 failure: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
 Content-Type: text/plain;charset=utf8
 pythonlogging:''
-14A02
+10000
 2017-04-24 13:16:17,868 644 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:5000/v2.0/tokens
 2017-04-24 13:16:17,869 644 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}
         Body: <omitted>
@@ -191,7 +191,8 @@ pythonlogging:''
 2017-04-24 13:16:56,235 644 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
         Body: None
     Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/1b553591-fc45-43f3-9b95-ac7fb5ac3f2b', 'x-compute-request-id': 'req-d29977be-39e2-446d-ade7-4ae03af0a860', 'connection': 'close', 'date': 'Mon, 24 Apr 2017 07:46:56 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-d29977be-39e2-446d-ade7-4ae03af0a860'}
-        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-24T07:46:54.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "1b553591-fc45-43f3-9b95-ac7fb5ac3f2b", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-24T07:46:54.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:4A02
+host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "1b553591-fc45-43f3-9b95-ac7fb5ac3f2b", "os-vol-mig-status-attr:migstat": null, "size": 2}}
 2017-04-24 13:16:56,245 644 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
 2017-04-24 13:16:56,416 644 INFO     [paramiko.transport] Authentication (password) successful!
 2017-04-24 13:16:58,098 644 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
@@ -276,7 +277,7 @@ stderr
 Content-Type: text/plain;charset=utf8
 stdout
 0
-Content-Type: text/x-traceback;charset=utf8
+Content-Type: text/x-traceback;charset=utf8,language=python
 traceback
 20B
 Traceback (most recent call last):

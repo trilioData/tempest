@@ -1,0 +1,18 @@
+time: 2017-04-20 12:37:40.460478Z
+tags: worker-0
+test: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke]
+time: 2017-04-20 12:37:40.461480Z
+successful: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
+Content-Type: text/plain;charset=utf8
+pythonlogging:''
+72
+2017-04-20 18:07:40,461 9405 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] after md5sum : {}
+0
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+0
+]
+tags: -worker-0

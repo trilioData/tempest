@@ -1003,27 +1003,212 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def set_floating_ip(cls, floating_ip, server_id):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
-        time.sleep(15)
+        # time.sleep(15)
+        vc = 0
+        while (vc<30):
+            try:
+                cls.SshRemoteMachineConnectionWithRSAKey(floating_ip)
+                LOG.debug("ssh connection timeout... retrying ")
+            except paramiko.ssh_exception.NoValidConnectionsError as e:
+                pass
+            vc += 1
+            time.sleep(2)
         return set_response
 
     '''
     SSH using RSA Private key
     '''
-    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress):
+    @classmethod
+    def SshRemoteMachineConnectionWithRSAKey(cls, ipAddress):
         username = "ubuntu"
         key_file = "/root/tempest/etc/mykeypair.pem"
         ssh=paramiko.SSHClient()
         k = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        ssh.connect(hostname=ipAddress, username=username ,pkey=k)
+        flag = True
+        while (flag):
+            try:
+                flag = False
+                ssh.connect(hostname=ipAddress, username=username ,pkey=k)
+                LOG.debug("ssh connection timeout... retrying ")
+            except paramiko.ssh_exception.NoValidConnectionsError as e:
+                flag = True
+            time.sleep(2)
+
+            if not flag:
+                flag = False
         return ssh
 
     '''
-    Command execution on vm
+    layout creation and formatting the disks
     '''
-    def execute_command_disk_create(self, ipAddress):
-        ssh_con = self.SshRemoteMachineConnectionWithRSAKey(ipAddress)
-        stdin, stdout, stderr = ssh_con.exec_command("sudo sfdisk -d /dev/vda > my.layout")
-        stdin, stdout, stderr = ssh_con.exec_command("sudo cat my.layout")
+    @classmethod
+    def execute_command_disk_create(cls, ipAddress):
+        ssh = cls.SshRemoteMachineConnectionWithRSAKey(ipAddress)
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
         LOG.debug("disk create my.layout output" + str(stdout.read()))
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdb < my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdc < my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
+        LOG.debug("fdisk output after partitioning " + str(stdout.read()))
+        # vdb1
+        buildCommand = "sudo mkfs -t ext3 /dev/vdb1"
+        sleeptime = 0.5
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        LOG.debug("sudo mkfs -t ext3 /dev/vdb1 executed")
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output waiting..")
+        retcode = chan.recv_exit_status()
+        stdin, stdout, stderr = ssh.exec_command("df -h")
+        LOG.debug("df -h after mkfs -t ext3  /dev/vdb1" + str(stdout.read()))
+        # if "/dev/vdb1" not in str(stdout.read()):
+        #     raise ValueError("/dev/vdb1 not mounted")
+        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdb1 " + str(stdout.read()))
+        # vdc1
+        buildCommand = "sudo mkfs -t ext3 /dev/vdc1"
+        sleeptime = 0.5
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        LOG.debug("sudo mkfs -t ext3 /dev/vdc1 executed")
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mkfs -t ext3 /dev/vdc1 output waiting..")
+        retcode = chan.recv_exit_status()
+        stdin, stdout, stderr = ssh.exec_command("df -h")
+        LOG.debug("df -h after mkfs -t ext3  /dev/vdc1" + str(stdout.read()))
+        # if "/dev/vdc1" not in str(stdout.read()):
+        #     raise ValueError("/dev/vdc1 not mounted")
+        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdc1 " + str(stdout.read()))
+        #  dir create
+        stdin, stdout, stderr = ssh.exec_command("sudo mkdir \mount_data_b \mount_data_c")
+
+    '''
+    disks mounting
+    '''
+    @classmethod
+    def execute_command_disk_mount(cls, ipAddress):
+        ssh = cls.SshRemoteMachineConnectionWithRSAKey(ipAddress)
+        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
+        buildCommand = "sudo mount /dev/vdb1 mount_data_b"
+        sleeptime = 1
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mount /dev/vdb1 mount_data_b output waiting..")
+        retcode = chan.recv_exit_status()
+        # LOG.debug("sudo mount /dev/vdb1 mount_data_b output " + str(stdout.read()))
+        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdc1 mount_data_c")
+        buildCommand = "sudo mount /dev/vdc1 mount_data_c"
+        sleeptime = 1
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mount /dev/vdc1 mount_data_c output waiting..")
+        retcode = chan.recv_exit_status()
+        # LOG.debug("sudo mount /dev/vdc1 mount_data_c output " + str(stdout.read()))
+        #stdin, stdout, stderr = ssh_con.exec_command("sudo reboot")
+        LOG.debug("mounting completed for " + str(ipAddress))
+
+    '''
+    add custom sied files on linux
+    '''
+    @classmethod
+    def addCustomSizedfilesOnLinux(cls, clientIP, dirPath,fileCount, fileSize,sizeType):
+        #dd if=/dev/urandom of=mastertest.txt,mastertest1.txt bs=1M count=1
+        # import subprocess
+        try:
+            print "start"
+            for count in range(fileCount):
+                ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
+                buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
+                LOG.debug("build command data population" + buildCommand)
+                stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                time.sleep(20)
+                stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
+                LOG.debug("file change output:" + str(stdout.read()))
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+    '''
+    calculate md5 checksum
+    '''
+    @classmethod
+    def calculatemmd5checksum(cls, clientIP, dirPath):
+        try:
+            local_md5sum = ""
+            ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
+            buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(10)
+            for line in  stdout.readlines():
+                local_md5sum += str(line.split(" ")[0])
+            return local_md5sum
+        except Exception as e:
+            print("Exception: " + str(e))
+
+
+    '''
+    Method returns the list of details of restored VMs
+    '''
+    @classmethod
+    def get_restored_vm_details(cls, restore_id):
+        resp, body = cls.wlm_client.client.get("/restores/"+restore_id)
+        LOG.debug("Body: " + str(body))
+        LOG.debug("Response: " + str(resp))
+        instances= body['restore']['instances']
+        restore_vms = []
+        for instance in instances:
+            LOG.debug("instance:"+ str(instance))
+            restore_vms.append(str(instance))
+        LOG.debug("Restored vms details list:"+ str(restore_vms))
+        return restore_vms

@@ -1,0 +1,30 @@
+time: 2017-04-19 12:28:53.332386Z
+tags: worker-0
+test: setUpClass (tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest)
+time: 2017-04-19 12:28:53.332386Z
+failure: setUpClass (tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest) [ multipart
+Content-Type: text/x-traceback;charset=utf8,language=python
+traceback
+435
+Traceback (most recent call last):
+  File "tempest/test.py", line 274, in setUpClass
+    six.reraise(etype, value, trace)
+  File "tempest/test.py", line 262, in setUpClass
+    cls.setup_credentials()
+  File "tempest/test.py", line 353, in setup_credentials
+    credential_type=credentials_type)
+  File "tempest/test.py", line 511, in get_client_manager
+    creds = getattr(cred_provider, credentials_method)()
+  File "tempest/common/preprov_creds.py", line 235, in get_primary_creds
+    net_creds = self._get_creds()
+  File "tempest/common/preprov_creds.py", line 194, in _get_creds
+    free_hash = self._get_free_hash(useable_hashes)
+  File "/root/tempest/.venv/lib/python2.7/site-packages/oslo_concurrency/lockutils.py", line 271, in inner
+    return f(*args, **kwargs)
+  File "tempest/common/preprov_creds.py", line 149, in _get_free_hash
+    raise exceptions.InvalidConfiguration(msg)
+tempest.exceptions.InvalidConfiguration: Invalid Configuration
+Details: Insufficient number of users provided. WorkloadsTest have allocated all the credentials for this allocation request
+0
+]
+tags: -worker-0

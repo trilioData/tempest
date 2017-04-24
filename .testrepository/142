@@ -1,0 +1,1477 @@
+time: 2017-04-21 10:56:46.819578Z
+tags: worker-0
+test: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke]
+time: 2017-04-21 11:43:46.191245Z
+successful: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
+Content-Type: text/plain;charset=utf8
+pythonlogging:''
+10000
+2017-04-21 16:26:46,969 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:5000/v2.0/tokens
+2017-04-21 16:26:46,970 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        Body: <omitted>
+    Response - Headers: {'status': '200', 'content-length': '4795', 'vary': 'X-Auth-Token,Accept-Encoding', 'server': 'Apache/2.4.6 (CentOS)', 'connection': 'close', '-content-encoding': 'gzip', 'date': 'Fri, 21 Apr 2017 10:56:46 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-fb004449-a65a-49c2-be7c-732dd4a112b3'}
+        Body: {"access": {"token": {"issued_at": "2017-04-21T10:56:46.964240Z", "expires": "2017-04-21T11:56:46Z", "id": "9566f9f134c44b119c0521fec1cc170f", "tenant": {"description": "engineering", "enabled": true, "id": "dfd590b482c64004874bf7860ca51dd2", "name": "engineering"}, "audit_ids": ["sf2nTxhOSRuU682A-GHywA"]}, "serviceCatalog": [{"endpoints": [{"adminURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2", "id": "3623b0d9585d4466adf1257bd61f78e8", "publicURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "compute", "name": "nova"}, {"endpoints": [{"adminURL": "http://192.168.1.21:9696", "region": "RegionOne", "internalURL": "http://192.168.1.21:9696", "id": "3aba0b619e6a48a1805ac8e7e3f92444", "publicURL": "http://192.168.1.21:9696"}], "endpoints_links": [], "type": "network", "name": "neutron"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2", "id": "7f378a69a1504139b24cf70a034a30e1", "publicURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volumev2", "name": "cinderv2"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8774/v3", "region": "RegionOne", "internalURL": "http://192.168.1.21:8774/v3", "id": "1626e50bb02b4b41aa72220b485b676f", "publicURL": "http://192.168.1.21:8774/v3"}], "endpoints_links": [], "type": "computev3", "name": "novav3"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8042", "region": "RegionOne", "internalURL": "http://192.168.1.21:8042", "id": "19c608b5e68a4c1b8ffdd860e4658948", "publicURL": "http://192.168.1.21:8042"}], "endpoints_links": [], "type": "alarming", "name": "aodh"}, {"endpoints": [{"adminURL": "http://192.168.1.21:9292", "region": "RegionOne", "internalURL": "http://192.168.1.21:9292", "id": "1957b0e6cc694e1594009b68826bb76d", "publicURL": "http://192.168.1.21:9292"}], "endpoints_links": [], "type": "image", "name": "Image Service"}, {"endpoints": [{"adminURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2", "id": "01b67484f6f44b5184b3ce3a91c1fa7c", "publicURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volumev3", "name": "cinderv3"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8777", "region": "RegionOne", "internalURL": "http://192.168.1.21:8777", "id": "04241e28e34544b7a6f6e75ebbccd026", "publicURL": "http://192.168.1.21:8777"}], "endpoints_links": [], "type": "metering", "name": "ceilometer"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2", "id": "2cbd4fdb821347f2abbf963d21ae4829", "publicURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volume", "name": "cinder"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2", "id": "55d98ce368d34b989649f7ad2556df4e", "publicURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "object-store", "name": "swift"}, {"endpoints": [{"adminURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2", "id": "1c1dd8d831d64e0084a7080a74b02a94", "publicURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "workloads", "name": "TrilioVaultWLM"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8041", "region": "RegionOne", "internalURL": "http://192.168.1.21:8041", "id": 
+2017-04-21 16:26:47,926 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers 0.956s
+2017-04-21 16:26:47,927 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"server": {"key_name": "mykeypair", "flavorRef": "2", "name": "tempest-test-vm", "imageRef": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "networks": [{"uuid": "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"}]}}
+    Response - Headers: {'status': '202', 'content-length': '440', 'x-compute-request-id': 'req-45ab6a2e-ead2-4ba7-a43c-d5cac0c160cd', 'connection': 'close', 'location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'date': 'Fri, 21 Apr 2017 10:56:47 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"security_groups": [{"name": "default"}], "OS-DCF:diskConfig": "MANUAL", "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "adminPass": "T823K9Kx4Lu5"}}
+2017-04-21 16:26:48,347 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.417s
+2017-04-21 16:26:48,347 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1437', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-0f40d40a-8e30-4c0b-a028-f540d1358f75', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:48 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "", "OS-EXT-SRV-ATTR:host": null, "addresses": {}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "scheduling", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": null, "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:49,817 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.461s
+2017-04-21 16:26:49,817 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-03e155cd-165b-4b2e-af67-75259d9e9ca0', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:49 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:49,825 11595 INFO     [tempest.common.waiters] State transition "BUILD/scheduling" ==> "BUILD/spawning" after 1 second wait
+2017-04-21 16:26:51,027 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.201s
+2017-04-21 16:26:51,028 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-89fb0bac-4b94-4eda-abf2-45cca782e9b6', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:51 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:52,217 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.181s
+2017-04-21 16:26:52,218 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-67037d08-031d-4221-b8c9-eccebf8e1d1f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:52 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:53,410 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.183s
+2017-04-21 16:26:53,410 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-d07ffc13-09e8-4ee9-a3b7-965e1ab14ea8', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:53 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:54,947 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.527s
+2017-04-21 16:26:54,947 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-5d328e40-4b6f-413e-a0f2-1af24b70f25b', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:54 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:56:48Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:56,460 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9 0.503s
+2017-04-21 16:26:56,461 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1709', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9', 'x-compute-request-id': 'req-06518038-3949-429f-9dea-4b3fbea8a7d0', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:56 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "ACTIVE", "updated": "2017-04-21T10:56:55Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:d5:c2:bd", "version": 4, "addr": "10.0.0.225", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": null, "OS-EXT-STS:vm_state": "active", "OS-EXT-SRV-ATTR:instance_name": "instance-00000111", "OS-SRV-USG:launched_at": "2017-04-21T10:56:55.000000", "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:56:47Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 1, "config_drive": "", "metadata": {}}}
+2017-04-21 16:26:56,473 11595 INFO     [tempest.common.waiters] State transition "BUILD/spawning" ==> "ACTIVE/None" after 8 second wait
+2017-04-21 16:26:56,484 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 16:26:56,647 11595 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 16:26:58,260 11595 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 16:26:58,261 11595 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 16:26:58,898 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.637s
+2017-04-21 16:26:58,899 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-f043980b-4902-4c10-862e-4f9f191110f4', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:58 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-f043980b-4902-4c10-862e-4f9f191110f4'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.502957", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "size": 2}}
+2017-04-21 16:26:59,060 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5 0.160s
+2017-04-21 16:26:59,060 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5', 'x-compute-request-id': 'req-b9a73b52-fe67-48dd-b883-818e08751454', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:56:59 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-b9a73b52-fe67-48dd-b883-818e08751454'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:00,243 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5 0.182s
+2017-04-21 16:27:00,243 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5', 'x-compute-request-id': 'req-616a4e82-e189-42b7-9e9f-7f9979463b53', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:00 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-616a4e82-e189-42b7-9e9f-7f9979463b53'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:00,271 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 16:27:00,429 11595 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 16:27:01,925 11595 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 16:27:01,926 11595 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 16:27:02,454 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.528s
+2017-04-21 16:27:02,455 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-4714d1d8-d0ce-4131-be64-34c1c7ec3202', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:02 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-4714d1d8-d0ce-4131-be64-34c1c7ec3202'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.186456", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "size": 2}}
+2017-04-21 16:27:02,616 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d 0.161s
+2017-04-21 16:27:02,617 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d', 'x-compute-request-id': 'req-4e651470-c0e9-439c-ba2e-5b9bbaa8724e', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:02 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-4e651470-c0e9-439c-ba2e-5b9bbaa8724e'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:04,000 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d 0.381s
+2017-04-21 16:27:04,000 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d', 'x-compute-request-id': 'req-40e3e363-7f6d-4cfb-8548-7d5f2d16962f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:04 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-40e3e363-7f6d-4cfb-8548-7d5f2d16962f'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:04,001 11595 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: d57a6d8e-be21-4485-ac13-607b9855f7d5, serverId: f2440f12-0729-4862-89ae-3de7cf2395e9
+2017-04-21 16:27:04,729 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9/os-volume_attachments 0.728s
+2017-04-21 16:27:04,730 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "volumeId": "d57a6d8e-be21-4485-ac13-607b9855f7d5"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-9f5b4d15-c4e5-4b8c-8eac-0e8dbd1ee979', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:04 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "serverId": "f2440f12-0729-4862-89ae-3de7cf2395e9", "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "volumeId": "d57a6d8e-be21-4485-ac13-607b9855f7d5"}}
+2017-04-21 16:27:04,884 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5 0.152s
+2017-04-21 16:27:04,884 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5', 'x-compute-request-id': 'req-bc991724-729e-430c-bedc-d3c3a4f79e4e', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:04 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-bc991724-729e-430c-bedc-d3c3a4f79e4e'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:06,312 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5 0.426s
+2017-04-21 16:27:06,312 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '614', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5', 'x-compute-request-id': 'req-adccc68c-2823-4a60-8373-0b79c311d519', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:06 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-adccc68c-2823-4a60-8373-0b79c311d519'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False"}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:07,774 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5 0.459s
+2017-04-21 16:27:07,774 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/d57a6d8e-be21-4485-ac13-607b9855f7d5', 'x-compute-request-id': 'req-c707caac-c40a-4eb4-a404-e51ee683983d', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:07 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-c707caac-c40a-4eb4-a404-e51ee683983d'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "attachment_id": "f1645abb-e506-4bf9-9499-5be5c9ee4b65", "host_name": null, "volume_id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "device": "/dev/vdb", "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:56:58.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "d57a6d8e-be21-4485-ac13-607b9855f7d5", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:07,774 11595 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: a11201e3-f2c2-432c-b2b0-da8b0a45940d, serverId: f2440f12-0729-4862-89ae-3de7cf2395e9
+2017-04-21 16:27:08,443 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9/os-volume_attachments 0.668s
+2017-04-21 16:27:08,443 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "volumeId": "a11201e3-f2c2-432c-b2b0-da8b0a45940d"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-5cdf468e-893f-4f77-b2c1-9778e50d87c7', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:08 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "serverId": "f2440f12-0729-4862-89ae-3de7cf2395e9", "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "volumeId": "a11201e3-f2c2-432c-b2b0-da8b0a45940d"}}
+2017-04-21 16:27:08,909 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d 0.464s
+2017-04-21 16:27:08,910 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d', 'x-compute-request-id': 'req-a5d3c457-d2bb-420a-9c03-98c5cefdf766', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:08 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-a5d3c457-d2bb-420a-9c03-98c5cefdf766'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:10,178 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d 0.266s
+2017-04-21 16:27:10,179 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '614', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d', 'x-compute-request-id': 'req-0c30b7c6-3133-48f3-8d44-3026bd583599', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:10 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-0c30b7c6-3133-48f3-8d44-3026bd583599'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False"}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:11,734 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d 0.554s
+2017-04-21 16:27:11,734 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/a11201e3-f2c2-432c-b2b0-da8b0a45940d', 'x-compute-request-id': 'req-e55b9bdf-ca28-4417-a51d-57f69995cc6e', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:11 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-e55b9bdf-ca28-4417-a51d-57f69995cc6e'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "f2440f12-0729-4862-89ae-3de7cf2395e9", "attachment_id": "0a394827-5e4d-4ece-b6ab-cbea28bc0d12", "host_name": null, "volume_id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "device": "/dev/vdc", "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:02.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "a11201e3-f2c2-432c-b2b0-da8b0a45940d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:12,804 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers 1.068s
+2017-04-21 16:27:12,804 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"server": {"key_name": "mykeypair", "flavorRef": "2", "name": "tempest-test-vm", "imageRef": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "networks": [{"uuid": "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"}]}}
+    Response - Headers: {'status': '202', 'content-length': '440', 'x-compute-request-id': 'req-6a9bbc37-6a4a-479d-bbba-6cd5b59ac7e0', 'connection': 'close', 'location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'date': 'Fri, 21 Apr 2017 10:57:12 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"security_groups": [{"name": "default"}], "OS-DCF:diskConfig": "MANUAL", "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "adminPass": "8kVVdJNE87BH"}}
+2017-04-21 16:27:13,104 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.297s
+2017-04-21 16:27:13,105 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1437', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-193bb00d-ed8b-43e6-a116-4467100796cf', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:13 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "", "OS-EXT-SRV-ATTR:host": null, "addresses": {}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "scheduling", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": null, "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:14,316 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.169s
+2017-04-21 16:27:14,316 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-c3a48411-9e6b-4b06-b79d-9aef8c2d7e08', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:14 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:14,324 11595 INFO     [tempest.common.waiters] State transition "BUILD/scheduling" ==> "BUILD/spawning" after 1 second wait
+2017-04-21 16:27:15,595 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.269s
+2017-04-21 16:27:15,596 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-863805ac-7c03-4c8c-943a-8c854f7a5d95', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:15 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:17,079 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.475s
+2017-04-21 16:27:17,080 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-c8a055f2-682d-4dcd-9850-40201a683958', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:17 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:18,489 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.400s
+2017-04-21 16:27:18,489 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-d8f20f7e-3124-4b5c-b62b-817f6380a3ab', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:18 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:19,695 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.196s
+2017-04-21 16:27:19,695 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-3fc5128f-a328-4253-88ea-039ba594c92a', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:19 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:57:13Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:20,865 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa 0.160s
+2017-04-21 16:27:20,865 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1709', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa', 'x-compute-request-id': 'req-1c353e5e-fa76-4ca2-83ae-c320ac6f6114', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:20 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "ACTIVE", "updated": "2017-04-21T10:57:19Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:de:4a:11", "version": 4, "addr": "10.0.0.226", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": null, "OS-EXT-STS:vm_state": "active", "OS-EXT-SRV-ATTR:instance_name": "instance-00000112", "OS-SRV-USG:launched_at": "2017-04-21T10:57:19.000000", "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:57:12Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 1, "config_drive": "", "metadata": {}}}
+2017-04-21 16:27:20,873 11595 INFO     [tempest.common.waiters] State transition "BUILD/spawning" ==> "ACTIVE/None" after 7 second wait
+2017-04-21 16:27:20,887 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 16:27:21,044 11595 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 16:27:22,567 11595 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 16:27:22,568 11595 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 16:27:23,213 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.645s
+2017-04-21 16:27:23,213 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-c64a9e1b-d138-46df-9103-443099ba5651', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:23 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-c64a9e1b-d138-46df-9103-443099ba5651'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.939375", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "size": 2}}
+2017-04-21 16:27:23,680 11595 INFO     [tempest_lib.common.rest_client] Request (Workloads10000
+Test:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241 0.466s
+2017-04-21 16:27:23,680 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '594', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241', 'x-compute-request-id': 'req-2d7ba7c1-329c-425f-9a03-dbc52ca5ed65', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:23 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-2d7ba7c1-329c-425f-9a03-dbc52ca5ed65'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:24,834 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241 0.152s
+2017-04-21 16:27:24,834 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241', 'x-compute-request-id': 'req-ca4f6eb5-14d6-415c-ac86-4d4406f602b8', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:24 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-ca4f6eb5-14d6-415c-ac86-4d4406f602b8'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:24,844 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 16:27:25,003 11595 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 16:27:26,467 11595 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 16:27:26,467 11595 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 16:27:26,905 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.437s
+2017-04-21 16:27:26,905 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-f0afdb2d-8751-457d-a6cd-7e7399db9c5a', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:26 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-f0afdb2d-8751-457d-a6cd-7e7399db9c5a'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.620596", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "size": 2}}
+2017-04-21 16:27:27,077 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826 0.171s
+2017-04-21 16:27:27,077 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826', 'x-compute-request-id': 'req-8177e37b-5376-4a44-85c0-5fa425908b83', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:27 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-8177e37b-5376-4a44-85c0-5fa425908b83'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:28,552 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826 0.473s
+2017-04-21 16:27:28,553 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826', 'x-compute-request-id': 'req-da3fd4c6-fcd0-4302-b74a-17740b20ab76', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:28 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-da3fd4c6-fcd0-4302-b74a-17740b20ab76'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:28,553 11595 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: 449bb58f-69ea-4a49-916b-d50b1c26c241, serverId: 3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa
+2017-04-21 16:27:29,303 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa/os-volume_attachments 0.749s
+2017-04-21 16:27:29,303 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "volumeId": "449bb58f-69ea-4a49-916b-d50b1c26c241"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-757d6e39-13de-4270-97a2-7845311452c1', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:29 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "serverId": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "volumeId": "449bb58f-69ea-4a49-916b-d50b1c26c241"}}
+2017-04-21 16:27:29,471 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241 0.165s
+2017-04-21 16:27:29,471 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241', 'x-compute-request-id': 'req-98c5be5d-73d1-423e-a005-9ee8f8abf227', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:29 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-98c5be5d-73d1-423e-a005-9ee8f8abf227'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:30,829 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241 0.356s
+2017-04-21 16:27:30,830 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241', 'x-compute-request-id': 'req-6873a427-6d6c-4bf1-8034-e767a94f700d', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:30 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-6873a427-6d6c-4bf1-8034-e767a94f700d'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:32,243 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241 0.412s
+2017-04-21 16:27:32,244 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/449bb58f-69ea-4a49-916b-d50b1c26c241', 'x-compute-request-id': 'req-ae110673-fd50-4023-b354-2959f17675a2', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:32 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-ae110673-fd50-4023-b354-2959f17675a2'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "attachment_id": "7b8640ee-2786-4a2d-aac4-dcbdb58651db", "host_name": null, "volume_id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "device": "/dev/vdb", "id": "449bb58f-69ea-4a49-916b-d50b1c26c241"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:22.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "449bb58f-69ea-4a49-916b-d50b1c26c241", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:32,244 11595 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: b1986e91-1799-41c3-b963-71f3653ce826, serverId: 3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa
+2017-04-21 16:27:32,950 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa/os-volume_attachments 0.705s
+2017-04-21 16:27:32,950 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "volumeId": "b1986e91-1799-41c3-b963-71f3653ce826"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-c5e08a65-bca3-42e8-a0dd-f9865db3b3ca', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:32 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "serverId": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "id": "b1986e91-1799-41c3-b963-71f3653ce826", "volumeId": "b1986e91-1799-41c3-b963-71f3653ce826"}}
+2017-04-21 16:27:33,120 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826 0.168s
+2017-04-21 16:27:33,120 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826', 'x-compute-request-id': 'req-6c265080-a39f-4e12-8aea-7b4a6bbe46a4', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:33 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-6c265080-a39f-4e12-8aea-7b4a6bbe46a4'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:34,286 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826 0.164s
+2017-04-21 16:27:34,286 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826', 'x-compute-request-id': 'req-5c0c7519-9ac4-4a33-bb88-98d7c201e63c', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:34 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-5c0c7519-9ac4-4a33-bb88-98d7c201e63c'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:35,734 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826 0.446s
+2017-04-21 16:27:35,734 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/b1986e91-1799-41c3-b963-71f3653ce826', 'x-compute-request-id': 'req-5fe0f923-aeaa-4d64-a6df-6d22e9cc369b', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:35 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-5fe0f923-aeaa-4d64-a6df-6d22e9cc369b'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa", "attachment_id": "cf067263-16d8-45be-b07c-b1c156990879", "host_name": null, "volume_id": "b1986e91-1799-41c3-b963-71f3653ce826", "device": "/dev/vdc", "id": "b1986e91-1799-41c3-b963-71f3653ce826"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:57:26.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "b1986e91-1799-41c3-b963-71f3653ce826", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 16:27:35,982 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/os-floating-ips 0.247s
+2017-04-21 16:27:35,982 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '292', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/os-floating-ips', 'x-compute-request-id': 'req-5edc746d-b156-4ff2-80cc-fbea41bf29f9', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:35 GMT', 'content-type': 'application/json'}
+        Body: {"floating_ips": [{"instance_id": null, "ip": "192.168.1.26", "fixed_ip": null, "id": "45ac3494-ef82-4d04-a216-8285a811282a", "pool": "external_network"}, {"instance_id": null, "ip": "192.168.1.23", "fixed_ip": null, "id": "edc4ab26-4384-476a-8c52-02b4902de854", "pool": "external_network"}]}
+2017-04-21 16:27:35,986 11595 DEBUG    [tempest.api.workloadmgr.base] floating_ips[u'192.168.1.26', u'192.168.1.23']
+2017-04-21 16:27:35,986 11595 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] setting floating ip192.168.1.26
+2017-04-21 16:27:36,850 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/f2440f12-0729-4862-89ae-3de7cf2395e9/action 0.864s
+2017-04-21 16:27:36,851 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"addFloatingIp": {"address": "192.168.1.26"}}
+    Response - Headers: {'status': '202', 'content-length': '0', 'x-compute-request-id': 'req-bd1fbdf1-2e48-4d2f-8cc5-b03e323f778f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:57:36 GMT', 'content-type': 'text/html; charset=UTF-8'}
+        Body: 
+2017-04-21 16:27:36,904 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:37,195 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:37,207 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:39,223 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:39,354 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:39,373 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:41,384 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:41,518 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:41,539 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:43,551 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:43,666 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:43,695 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:45,724 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:45,835 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:45,863 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:47,878 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:48,092 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:48,111 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:50,123 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:50,236 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:50,263 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:52,275 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:52,402 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:52,412 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:54,424 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:54,541 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:54,559 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:56,571 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:56,691 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:56,722 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:27:58,733 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:27:58,846 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:27:58,865 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:00,878 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:01,000 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:01,012 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:03,024 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:03,135 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:03,164 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:05,175 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:05,286 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:05,309 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:07,320 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:07,434 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:07,463 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:09,478 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:09,590 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:09,611 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:11,622 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:11,737 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:11,753 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:13,764 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:13,875 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:13,879 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:15,890 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:16,002 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:16,021 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:18,032 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:18,143 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:18,174 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:20,191 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:20,332 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:20,352 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:22,366 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:22,475 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:22,479 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:24,491 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:24,603 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:24,621 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:26,649 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:26,782 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:26,796 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:28,809 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:28,920 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:28,940 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:30,961 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:31,074 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:31,094 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:33,105 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:33,215 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:33,236 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:35,258 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:35,379 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:35,391 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:37,404 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:37,533 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:37,550 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:39,571 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:39,687 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:39,704 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:28:41,716 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:41,827 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:42,074 11595 DEBUG    [tempest.api.workloadmgr.base] disk create my.layout outputlabel: dos
+label-id: 0xa7f32259
+device: /dev/vda
+unit: sectors
+
+/dev/vda1 : start=        2048, size=    41940959, type=83, bootable
+
+2017-04-21 16:28:42,196 11595 DEBUG    [tempest.api.workloadmgr.base] fdisk output after partitioning Disk /dev/vda: 20 GiB, 21474836480 bytes, 41943040 sectors
+/dev/vda1  *     2048 41943006 41940959  20G 83 Linux
+Disk /dev/vdb: 2 GiB, 2147483648 bytes, 4194304 sectors
+Disk /dev/vdc: 2 GiB, 2147483648 bytes, 4194304 sectors
+
+2017-04-21 16:28:42,265 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 executed
+2017-04-21 16:28:42,766 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:43,267 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:43,768 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:44,268 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:44,769 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:45,270 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:45,771 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:46,272 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:46,773 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:47,274 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:47,775 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:28:47,805 11595 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdb1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 16:28:47,877 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 executed
+2017-04-21 16:28:48,379 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:48,880 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:49,381 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:49,882 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:50,383 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:50,884 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:51,385 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:28:51,399 11595 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdc1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 16:28:51,482 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:51,625 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:52,848 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdb1 mount_data_b output waiting..
+2017-04-21 16:28:53,863 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdc1 mount_data_c output waiting..
+2017-04-21 16:28:53,863 11595 DEBUG    [tempest.api.workloadmgr.base] mounting completed for 192.168.1.26
+2017-04-21 16:28:53,874 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:28:54,000 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:28:54,014 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_1.txt bs=1048576 count=100
+2017-04-21 16:29:24,230 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102520
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:29:24,263 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:29:24,379 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:29:24,398 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_2.txt bs=1048576 count=100
+2017-04-21 16:29:54,624 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 205024
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:29:54,646 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:29:54,775 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:29:54,797 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_3.txt bs=1048576 count=100
+2017-04-21 16:30:25,031 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307528
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:30:25,065 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:30:25,179 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:30:25,207 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_4.txt bs=1048576 count=100
+2017-04-21 16:30:55,417 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 410032
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:30:55,429 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:30:55,539 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:30:55,558 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_5.txt bs=1048576 count=100
+2017-04-21 16:31:25,778 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512536
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:31:25,791 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:31:25,927 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:31:25,945 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_6.txt bs=1048576 count=100
+2017-04-21 16:31:56,182 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 615040
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:31:56,194 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:31:56,328 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:31:56,344 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_7.txt bs=1048576 count=100
+2017-04-21 16:32:26,574 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 717544
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:32:26,586 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:32:26,702 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:32:26,705 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_8.txt bs=1048576 count=100
+2017-04-21 16:32:56,972 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 820048
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_8.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:32:56,984 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:32:57,104 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:32:57,136 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_9.txt bs=1048576 count=100
+2017-04-21 16:33:27,375 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 922552
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:33:27,388 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:33:27,541 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:33:27,558 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_10.txt bs=1048576 count=100
+2017-04-21 16:33:57,799 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1025056
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:33:57,811 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:33:57,937 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:33:57,946 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_11.txt bs=1048576 count=100
+2017-04-21 16:34:28,176 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1127560
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:04 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:34:28,189 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:34:28,327 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:34:28,348 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_12.txt bs=1048576 count=100
+2017-04-21 16:34:58,591 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1230064
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:04 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:04 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 10:59 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:00 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:01 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:02 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:03 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:34:58,603 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:34:58,733 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:35:38,787 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 16:35:38,815 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:35:38,933 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:35:38,947 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_1.txt bs=1048576 count=100
+2017-04-21 16:36:09,198 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102520
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:36:09,210 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:36:09,326 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:36:09,341 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_2.txt bs=1048576 count=100
+2017-04-21 16:36:39,594 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 205024
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:36:39,606 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:36:39,721 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:36:39,737 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_3.txt bs=1048576 count=100
+2017-04-21 16:37:09,987 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307528
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:37:10,000 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:37:10,117 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:37:10,144 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_4.txt bs=1048576 count=100
+2017-04-21 16:37:40,530 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 410032
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:37:40,619 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:37:40,747 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:37:40,751 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_5.txt bs=1048576 count=100
+2017-04-21 16:38:11,332 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512536
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:38:11,425 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:38:11,548 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:38:11,562 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_6.txt bs=1048576 count=100
+2017-04-21 16:38:41,948 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 615040
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:38:42,005 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:38:42,099 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:38:42,119 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_7.txt bs=1048576 count=100
+2017-04-21 16:39:12,415 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 717544
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:39:12,444 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:39:12,556 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:39:12,574 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_8.txt bs=1048576 count=100
+2017-04-21 16:39:42,855 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 820048
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_8.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:39:42,886 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:39:43,003 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:39:43,018 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_9.txt bs=1048576 count=100
+2017-04-21 16:40:13,253 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 922552
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:40:13,269 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:40:13,384 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:40:13,400 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_10.txt bs=1048576 count=100
+2017-04-21 16:40:43,660 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1025056
+-rw-r--r-- 1 root root 104857600 Apr 21 11:10 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:40:43,671 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:40:43,802 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:40:43,842 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_11.txt bs=1048576 count=100
+2017-04-21 16:41:13,998 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1127560
+-rw-r--r-- 1 root root 104857600 Apr 21 11:10 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:10 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:41:14,012 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:41:14,130 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:41:14,157 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_12.txt bs=1048576 count=100
+2017-04-21 16:41:44,437 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1230064
+-rw-r--r-- 1 root root 104857600 Apr 21 11:10 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:10 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:11 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:05 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:06 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:07 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:08 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:09 File_9.txt
+drwx------ 2 root root     16384 Apr 21 10:58 lost+found
+
+2017-04-21 16:41:44,478 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:41:44,601 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:42:24,649 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 16:42:24,680 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:42:24,793 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:42:24,810 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_1.txt bs=1048576 count=100
+2017-04-21 16:42:55,109 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+
+2017-04-21 16:42:55,123 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:42:55,236 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:42:55,253 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_2.txt bs=1048576 count=100
+2017-04-21 16:43:25,585 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 204800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+
+2017-04-21 16:43:25,648 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:43:25,740 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:43:25,766 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_3.txt bs=1048576 count=100
+2017-04-21 16:43:56,075 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307200
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+
+2017-04-21 16:43:56,094 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:43:56,219 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:43:56,224 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_4.txt bs=1048576 count=100
+2017-04-21 16:44:27,008 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 409600
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+
+2017-04-21 16:44:27,028 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:44:27,172 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:44:27,178 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_5.txt bs=1048576 count=100
+2017-04-21 16:44:57,514 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512000
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+
+2017-04-21 16:44:57,538 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:44:57,660 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:44:57,673 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_6.txt bs=1048576 count=100
+2017-04-21 16:45:52,940 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 614400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+
+2017-04-21 16:45:53,055 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:45:53,181 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:45:53,216 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_7.txt bs=1048576 count=100
+2017-04-21 16:46:48,457 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 716800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+
+2017-04-21 16:46:48,474 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:46:48,590 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:46:48,608 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_8.txt bs=1048576 count=100
+2017-04-21 16:47:43,950 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 819200
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:17 File_8.txt
+
+2017-04-21 16:47:43,979 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:47:44,094 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:47:44,109 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_9.txt bs=1048576 count=100
+2017-04-21 16:48:39,511 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 921600
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:17 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:18 File_9.txt
+
+2017-04-21 16:48:39,570 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:48:39,668 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:48:39,685 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_10.txt bs=1048576 count=100
+2017-04-21 16:49:35,194 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1024000
+-rw-r--r-- 1 root root 104857600 Apr 21 11:19 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:17 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:18 File_9.txC3C3
+t
+
+2017-04-21 16:49:35,213 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:49:35,329 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:49:35,345 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_11.txt bs=1048576 count=100
+2017-04-21 16:50:30,699 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1126400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:19 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:20 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:17 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:18 File_9.txt
+
+2017-04-21 16:50:30,723 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:50:30,838 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:50:30,852 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_12.txt bs=1048576 count=100
+2017-04-21 16:51:26,228 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1228800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:19 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:20 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:21 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:12 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:13 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:14 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:15 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:16 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:17 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:18 File_9.txt
+
+2017-04-21 16:51:26,338 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:51:26,435 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:06,471 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 16:52:06,471 11595 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum for 192.168.1.26 [None, None, None]
+2017-04-21 16:52:06,471 11595 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] setting floating ip192.168.1.23
+2017-04-21 16:52:07,750 11595 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/3415edf9-8bcd-4508-b3b0-c0dc0d60b1fa/action 1.278s
+2017-04-21 16:52:07,750 11595 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"addFloatingIp": {"address": "192.168.1.23"}}
+    Response - Headers: {'status': '202', 'content-length': '0', 'x-compute-request-id': 'req-33d4bb92-025d-40ed-bed0-df808c325041', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 11:22:07 GMT', 'content-type': 'text/html; charset=UTF-8'}
+        Body: 
+2017-04-21 16:52:07,844 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:07,981 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:08,002 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:10,034 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:10,156 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:10,166 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:12,541 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:12,629 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:12,659 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:14,671 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:14,780 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:14,784 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:16,798 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:16,912 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:16,929 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:18,951 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:19,084 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:19,097 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:21,131 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:21,250 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:21,267 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:23,292 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:23,426 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:23,462 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:25,484 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:25,599 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:25,616 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:27,629 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:27,746 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:27,763 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:29,779 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:29,911 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:29,926 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:31,963 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:32,082 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:32,099 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:34,130 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:34,275 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:34,291 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:36,313 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:36,429 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:36,446 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:38,461 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:38,574 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:38,611 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:40,628 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:40,740 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:40,759 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:42,805 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:42,938 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:42,972 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:44,986 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:45,126 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:45,147 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:47,160 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:47,277 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:47,291 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:49,310 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:49,422 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:49,445 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:51,460 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:51,581 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:51,594 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:53,615 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:53,733 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:53,748 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:55,780 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:55,898 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:55,923 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:52:57,947 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:52:58,065 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:52:58,077 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:00,090 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:00,214 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:00,225 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:02,238 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:02,362 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:02,373 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:04,387 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:04,503 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:04,520 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:06,599 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:06,718 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:06,721 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:08,742 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:08,859 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:08,874 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:10,909 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:11,034 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:11,066 11595 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 16:53:13,110 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:13,227 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:13,553 11595 DEBUG    [tempest.api.workloadmgr.base] disk create my.layout output
+2017-04-21 16:53:13,688 11595 DEBUG    [tempest.api.workloadmgr.base] fdisk output after partitioning Disk /dev/vda: 20 GiB, 21474836480 bytes, 41943040 sectors
+/dev/vda1  *     2048 41943006 41940959  20G 83 Linux
+Disk /dev/vdb: 2 GiB, 2147483648 bytes, 4194304 sectors
+/dev/vdb1  *     2048 4194303 4192256   2G 83 Linux
+Disk /dev/vdc: 2 GiB, 2147483648 bytes, 4194304 sectors
+
+2017-04-21 16:53:13,756 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 executed
+2017-04-21 16:53:14,257 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:14,758 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:15,259 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:15,760 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:16,261 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:16,762 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 16:53:16,795 11595 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdb1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  904M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 16:53:16,863 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 executed
+2017-04-21 16:53:17,364 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:17,864 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:18,365 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:18,866 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:19,366 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:19,867 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:20,368 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 16:53:20,386 11595 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdc1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  904M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 16:53:20,510 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:20,627 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:21,834 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdb1 mount_data_b output waiting..
+2017-04-21 16:53:22,861 11595 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdc1 mount_data_c output waiting..
+2017-04-21 16:53:22,861 11595 DEBUG    [tempest.api.workloadmgr.base] mounting completed for 192.168.1.23
+2017-04-21 16:53:22,910 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:23,014 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:23,033 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_1.txt bs=1048576 count=100
+2017-04-21 16:53:53,440 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102520
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:53:53,465 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:53:53,586 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:53:53,599 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_2.txt bs=1048576 count=100
+2017-04-21 16:54:23,982 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 205024
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:54:24,008 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:54:24,126 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:54:24,141 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_3.txt bs=1048576 count=100
+2017-04-21 16:54:54,532 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307528
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:54:54,575 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:54:54,695 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:54:54,708 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_4.txt bs=1048576 count=100
+2017-04-21 16:55:25,123 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 410032
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:55:25,149 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:55:25,268 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:55:25,281 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_5.txt bs=1048576 count=100
+2017-04-21 16:55:55,655 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512536
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:55:55,681 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:55:55,804 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:55:55,813 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_6.txt bs=1048576 count=100
+2017-04-21 16:56:26,123 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 602792
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root  92323840 Apr 21 11:26 File_6.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:56:26,148 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:56:26,284 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:56:26,298 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_7.txt bs=1048576 count=100
+2017-04-21 16:56:56,628 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 656096
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root  41992192 Apr 21 11:26 File_7.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:56:56,654 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:56:56,776 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:56:56,787 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_8.txt bs=1048576 count=100
+2017-04-21 16:57:27,538 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 658100
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root  42991616 Apr 21 11:26 File_7.txt
+-rw-r--r-- 1 root root   1048576 Apr 21 11:26 File_8.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:57:27,590 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:57:27,687 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:57:27,709 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_9.txt bs=1048576 count=100
+2017-04-21 16:57:58,524 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 867204
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:27 File_7.txt
+-rw-r--r-- 1 root root  79691776 Apr 21 11:27 File_8.txt
+-rw-r--r-- 1 root root  73400320 Apr 21 11:27 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:57:58,571 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:57:58,690 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:57:58,700 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_10.txt bs=1048576 count=100
+2017-04-21 16:58:29,673 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1021984
+-rw-r--r-- 1 root root 101711872 Apr 21 11:28 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:27 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:58:29,746 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:58:29,888 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:58:29,888 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_11.txt bs=1048576 count=100
+2017-04-21 16:59:00,373 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1127560
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:27 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:59:00,401 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:59:00,518 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 16:59:00,533 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_12.txt bs=1048576 count=100
+2017-04-21 16:59:30,862 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1230064
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:29 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:23 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:24 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:25 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:26 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:27 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:28 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 16:59:30,889 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 16:59:31,022 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:00:11,070 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 17:00:11,134 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:00:11,232 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:00:11,244 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_1.txt bs=1048576 count=100
+2017-04-21 17:00:41,581 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102520
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:00:41,607 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:00:41,730 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:00:41,737 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_2.txt bs=1048576 count=100
+2017-04-21 17:01:12,151 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 205024
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:01:12,179 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:01:12,301 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:01:12,332 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_3.txt bs=1048576 count=100
+2017-04-21 17:01:42,853 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307528
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:01:42,908 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:01:43,019 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:01:43,026 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_4.txt bs=1048576 count=100
+2017-04-21 17:02:13,637 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 410032
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:02:13,801 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:02:13,926 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:02:13,937 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_5.txt bs=1048576 count=100
+2017-04-21 17:02:44,539 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512536
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:02:44,612 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:02:44,702 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:02:44,719 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_6.txt bs=1048576 count=100
+2017-04-21 17:03:15,077 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 615040
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:03:15,106 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:03:15,222 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:03:15,236 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_7.txt bs=1048576 count=100
+2017-04-21 17:03:45,701 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 717544
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:03:45,746 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:03:45,884 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:03:45,898 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_8.txt bs=1048576 count=100
+2017-04-21 17:04:16,286 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 820048
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_8.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:04:16,324 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:04:16,443 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:04:16,457 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_9.txt bs=1048576 count=100
+2017-04-21 17:04:46,832 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 922552
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:04:46,861 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:04:47,000 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:04:47,004 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_10.txt bs=1048576 count=100
+2017-04-21 17:05:17,387 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1025056
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:05:17,431 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:05:17,548 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:05:17,561 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_11.txt bs=1048576 count=100
+2017-04-21 17:05:47,941 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1127560
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:35 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:05:47,968 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:05:48,114 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:05:48,134 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_12.txt bs=1048576 count=100
+2017-04-21 17:06:18,535 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1230064
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:35 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:35 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:30 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:31 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:32 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:33 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:34 File_9.txt
+drwx------ 2 root root     16384 Apr 21 11:23 lost+found
+
+2017-04-21 17:06:18,572 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:06:18,696 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:06:58,731 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 17:06:58,789 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:06:58,886 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:06:58,906 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_1.txt bs=1048576 count=100
+2017-04-21 17:07:29,232 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 102400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+
+2017-04-21 17:07:29,261 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:07:29,378 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:07:29,400 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_2.txt bs=1048576 count=100
+2017-04-21 17:07:59,907 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 204800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+
+2017-04-21 17:07:59,934 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:08:00,045 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:08:00,076 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_3.txt bs=1048576 count=100
+2017-04-21 17:08:30,603 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 307200
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+
+2017-04-21 17:08:30,683 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:08:30,780 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:08:30,793 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_4.txt bs=1048576 count=100
+2017-04-21 17:09:01,181 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 409600
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+
+2017-04-21 17:09:01,264 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:09:01,370 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:09:01,373 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_5.txt bs=1048576 count=100
+2017-04-21 17:09:31,797 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 512000
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+
+2017-04-21 17:09:31,854 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:09:31,972 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:09:31,986 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_6.txt bs=1048576 count=100
+2017-04-21 17:10:02,375 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 614400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+
+2017-04-21 17:10:02,448 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:10:02,549 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:10:02,555 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_7.txt bs=1048576 count=100
+2017-04-21 17:10:32,996 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 716800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+
+2017-04-21 17:10:33,065 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:10:33,162 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:10:33,188 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_8.txt bs=1048576 count=100
+2017-04-21 17:11:03,563 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 819200
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_8.txt
+
+2017-04-21 17:11:03,604 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:11:03,719 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:11:03,734 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_9.txt bs=1048576 count=100
+2017-04-21 17:11:34,109 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 921600
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_9.txt
+
+2017-04-21 17:11:34,173 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:11:34,310 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:11:34,326 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_10.txt bs=1048576 count=100
+2017-04-21 17:12:04,788 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1024000
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_9.txt
+
+2017-04-21 17:12:04,828 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:12:04,948 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:12:04,960 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_11.txt bs=1048576 count=100
+2017-04-21 17:12:35,401 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1126400
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:42 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_9.txt
+
+2017-04-21 17:12:35,463 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:12:35,579 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:12:35,594 11595 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_12.txt bs=1048576 count=100
+2017-04-21 17:13:05,938 11595 DEBUG    [tempest.api.workloadmgr.base] file change output:total 1228800
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_10.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:42 File_11.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:42 File_12.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_1.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:37 File_2.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_3.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:38 File_4.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_5.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:39 File_6.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_7.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:40 File_8.txt
+-rw-r--r-- 1 root root 104857600 Apr 21 11:41 File_9.txt
+
+2017-04-21 17:13:05,992 11595 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 17:13:06,149 11595 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 17:13:46,189 11595 DEBUG    [tempest.api.workloadmgr.base] Exception: global name 'stdout' is not defined
+2017-04-21 17:13:46,190 11595 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum for 192.168.1.23 [None, None, None]
+2017-04-21 17:13:46,190 11595 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum : {'192.168.1.26': [None, None, None], '192.168.1.23': [None, None, None]}
+0
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+23
+start
+start
+start
+start
+start
+start0
+]
+tags: -worker-0

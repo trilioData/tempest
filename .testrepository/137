@@ -1,0 +1,653 @@
+time: 2017-04-21 10:10:41.448523Z
+tags: worker-0
+test: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke]
+time: 2017-04-21 10:14:30.833166Z
+successful: tempest.api.workloadmgr.integration.test_data_integrity.WorkloadsTest.test_data_integrity[id-9fe07175-912e-49a5-a629-5f52eeada4c9,smoke] [ multipart
+Content-Type: text/plain;charset=utf8
+pythonlogging:''
+10000
+2017-04-21 15:40:41,615 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:5000/v2.0/tokens
+2017-04-21 15:40:41,616 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        Body: <omitted>
+    Response - Headers: {'status': '200', 'content-length': '4795', 'vary': 'X-Auth-Token,Accept-Encoding', 'server': 'Apache/2.4.6 (CentOS)', 'connection': 'close', '-content-encoding': 'gzip', 'date': 'Fri, 21 Apr 2017 10:10:41 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-eae1ad3f-d174-404d-bdd4-62c1df90bf3d'}
+        Body: {"access": {"token": {"issued_at": "2017-04-21T10:10:41.600788Z", "expires": "2017-04-21T11:10:41Z", "id": "fce3b1ffaa554016ae1626395b6c2fd3", "tenant": {"description": "engineering", "enabled": true, "id": "dfd590b482c64004874bf7860ca51dd2", "name": "engineering"}, "audit_ids": ["MxDcb3AnQJewJGrn6QlMUA"]}, "serviceCatalog": [{"endpoints": [{"adminURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2", "id": "3623b0d9585d4466adf1257bd61f78e8", "publicURL": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "compute", "name": "nova"}, {"endpoints": [{"adminURL": "http://192.168.1.21:9696", "region": "RegionOne", "internalURL": "http://192.168.1.21:9696", "id": "3aba0b619e6a48a1805ac8e7e3f92444", "publicURL": "http://192.168.1.21:9696"}], "endpoints_links": [], "type": "network", "name": "neutron"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2", "id": "7f378a69a1504139b24cf70a034a30e1", "publicURL": "http://192.168.1.21:8776/v2/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volumev2", "name": "cinderv2"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8774/v3", "region": "RegionOne", "internalURL": "http://192.168.1.21:8774/v3", "id": "1626e50bb02b4b41aa72220b485b676f", "publicURL": "http://192.168.1.21:8774/v3"}], "endpoints_links": [], "type": "computev3", "name": "novav3"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8042", "region": "RegionOne", "internalURL": "http://192.168.1.21:8042", "id": "19c608b5e68a4c1b8ffdd860e4658948", "publicURL": "http://192.168.1.21:8042"}], "endpoints_links": [], "type": "alarming", "name": "aodh"}, {"endpoints": [{"adminURL": "http://192.168.1.21:9292", "region": "RegionOne", "internalURL": "http://192.168.1.21:9292", "id": "1957b0e6cc694e1594009b68826bb76d", "publicURL": "http://192.168.1.21:9292"}], "endpoints_links": [], "type": "image", "name": "Image Service"}, {"endpoints": [{"adminURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2", "id": "01b67484f6f44b5184b3ce3a91c1fa7c", "publicURL": "http://127.0.0.1:8776/v3/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volumev3", "name": "cinderv3"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8777", "region": "RegionOne", "internalURL": "http://192.168.1.21:8777", "id": "04241e28e34544b7a6f6e75ebbccd026", "publicURL": "http://192.168.1.21:8777"}], "endpoints_links": [], "type": "metering", "name": "ceilometer"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2", "id": "2cbd4fdb821347f2abbf963d21ae4829", "publicURL": "http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "volume", "name": "cinder"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2", "id": "55d98ce368d34b989649f7ad2556df4e", "publicURL": "http://192.168.1.21:8080/v1/AUTH_dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "object-store", "name": "swift"}, {"endpoints": [{"adminURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2", "region": "RegionOne", "internalURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2", "id": "1c1dd8d831d64e0084a7080a74b02a94", "publicURL": "http://192.168.1.25:8780/v1/dfd590b482c64004874bf7860ca51dd2"}], "endpoints_links": [], "type": "workloads", "name": "TrilioVaultWLM"}, {"endpoints": [{"adminURL": "http://192.168.1.21:8041", "region": "RegionOne", "internalURL": "http://192.168.1.21:8041", "id": 
+2017-04-21 15:40:42,535 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers 0.919s
+2017-04-21 15:40:42,536 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"server": {"key_name": "mykeypair", "flavorRef": "2", "name": "tempest-test-vm", "imageRef": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "networks": [{"uuid": "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"}]}}
+    Response - Headers: {'status': '202', 'content-length': '440', 'x-compute-request-id': 'req-36bc1fc6-d928-416c-a033-a85603bda34a', 'connection': 'close', 'location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'date': 'Fri, 21 Apr 2017 10:10:42 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"security_groups": [{"name": "default"}], "OS-DCF:diskConfig": "MANUAL", "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "adminPass": "zx4k97mpDZmU"}}
+2017-04-21 15:40:43,036 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.498s
+2017-04-21 15:40:43,036 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1437', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-1c0a479e-553f-4a70-9b64-4e5bb8e3b88c', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:43 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:42Z", "hostId": "", "OS-EXT-SRV-ATTR:host": null, "addresses": {}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "scheduling", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": null, "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:44,524 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.479s
+2017-04-21 15:40:44,525 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-bc2fe8f7-48cd-44b5-81c9-cfabdb22d98a', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:44 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:43Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:44,533 9364 INFO     [tempest.common.waiters] State transition "BUILD/scheduling" ==> "BUILD/spawning" after 1 second wait
+2017-04-21 15:40:46,054 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.520s
+2017-04-21 15:40:46,054 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-22aff3c9-2ba9-44d7-b8b5-dc652cd12bce', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:46 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:43Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:47,520 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.457s
+2017-04-21 15:40:47,521 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-8351dfc2-678c-433a-bd06-021d7f630e02', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:47 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:43Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:48,971 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.441s
+2017-04-21 15:40:48,971 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-af4a8007-f758-421d-a0df-560f01e6f522', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:48 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:43Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:50,414 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.434s
+2017-04-21 15:40:50,414 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-a89d31e1-247e-40cb-9f0c-292a8a20dc01', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:50 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:10:43Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:51,772 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445 0.349s
+2017-04-21 15:40:51,773 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1709', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445', 'x-compute-request-id': 'req-836d3421-7415-47d1-b0e8-94bf6415ec58', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:51 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "ACTIVE", "updated": "2017-04-21T10:10:50Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:ba:aa:c5", "version": 4, "addr": "10.0.0.215", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": null, "OS-EXT-STS:vm_state": "active", "OS-EXT-SRV-ATTR:instance_name": "instance-00000107", "OS-SRV-USG:launched_at": "2017-04-21T10:10:50.000000", "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:10:42Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 1, "config_drive": "", "metadata": {}}}
+2017-04-21 15:40:51,781 9364 INFO     [tempest.common.waiters] State transition "BUILD/spawning" ==> "ACTIVE/None" after 8 second wait
+2017-04-21 15:40:51,801 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 15:40:51,999 9364 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 15:40:53,559 9364 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 15:40:53,560 9364 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 15:40:54,104 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.544s
+2017-04-21 15:40:54,104 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-8a3353ce-2d56-4caf-8cd4-f45c28fa4a94', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:54 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-8a3353ce-2d56-4caf-8cd4-f45c28fa4a94'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.833689", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "size": 2}}
+2017-04-21 15:40:54,420 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f 0.315s
+2017-04-21 15:40:54,420 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '594', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f', 'x-compute-request-id': 'req-d0b9193a-aab7-40a1-9b81-f6044aabf64c', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:54 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-d0b9193a-aab7-40a1-9b81-f6044aabf64c'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:40:55,575 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f 0.153s
+2017-04-21 15:40:55,576 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f', 'x-compute-request-id': 'req-a2b235d1-64d4-4f90-be68-89719b896bc8', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:55 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-a2b235d1-64d4-4f90-be68-89719b896bc8'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:40:55,586 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 15:40:55,744 9364 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 15:40:57,167 9364 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 15:40:57,167 9364 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 15:40:57,671 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.503s
+2017-04-21 15:40:57,672 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-3dbb3928-abfc-45d8-bc79-da2b37bb1dc0', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:57 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-3dbb3928-abfc-45d8-bc79-da2b37bb1dc0'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.399608", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "size": 2}}
+2017-04-21 15:40:57,930 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e 0.258s
+2017-04-21 15:40:57,931 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e', 'x-compute-request-id': 'req-d6e4cab8-f757-48b9-a420-babfb7c78ab3', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:57 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-d6e4cab8-f757-48b9-a420-babfb7c78ab3'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:40:59,219 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e 0.287s
+2017-04-21 15:40:59,220 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e', 'x-compute-request-id': 'req-5dfafc44-6994-41ce-8970-d25ac176b016', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:59 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-5dfafc44-6994-41ce-8970-d25ac176b016'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:40:59,220 9364 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: dec559ca-59ae-4061-b185-fbd3e360a73f, serverId: c1ea4d86-4c14-46fb-a4dc-e4d705030445
+2017-04-21 15:40:59,734 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445/os-volume_attachments 0.513s
+2017-04-21 15:40:59,735 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "volumeId": "dec559ca-59ae-4061-b185-fbd3e360a73f"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-9b16b3a1-62f3-4e3c-b6f4-2f745ff55c4a', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:10:59 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "serverId": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "volumeId": "dec559ca-59ae-4061-b185-fbd3e360a73f"}}
+2017-04-21 15:41:00,029 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f 0.292s
+2017-04-21 15:41:00,029 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f', 'x-compute-request-id': 'req-fa6da603-c775-4c53-8c07-ba52e912f0e4', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:00 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-fa6da603-c775-4c53-8c07-ba52e912f0e4'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:01,309 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f 0.278s
+2017-04-21 15:41:01,310 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '614', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f', 'x-compute-request-id': 'req-ff1f5150-94d6-466b-a332-6cc199327c87', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:01 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-ff1f5150-94d6-466b-a332-6cc199327c87'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False"}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:02,596 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f 0.285s
+2017-04-21 15:41:02,597 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/dec559ca-59ae-4061-b185-fbd3e360a73f', 'x-compute-request-id': 'req-588b9a7d-5775-494e-828c-ba84b9db7eff', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:02 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-588b9a7d-5775-494e-828c-ba84b9db7eff'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "attachment_id": "9abcf065-f3d7-4a4d-9976-66fcf9e6e431", "host_name": null, "volume_id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "device": "/dev/vdb", "id": "dec559ca-59ae-4061-b185-fbd3e360a73f"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:53.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "dec559ca-59ae-4061-b185-fbd3e360a73f", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:02,597 9364 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: 4a374de4-264a-4b98-82cf-77c7a59a980e, serverId: c1ea4d86-4c14-46fb-a4dc-e4d705030445
+2017-04-21 15:41:03,100 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445/os-volume_attachments 0.502s
+2017-04-21 15:41:03,100 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "volumeId": "4a374de4-264a-4b98-82cf-77c7a59a980e"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-e6e3b79a-d9b3-46fd-bd0d-5878a1a1d32e', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:03 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "serverId": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "volumeId": "4a374de4-264a-4b98-82cf-77c7a59a980e"}}
+2017-04-21 15:41:03,277 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e 0.174s
+2017-04-21 15:41:03,277 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e', 'x-compute-request-id': 'req-630a31a8-067f-47c3-a438-31bd3a11e1ad', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:03 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-630a31a8-067f-47c3-a438-31bd3a11e1ad'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:04,581 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e 0.302s
+2017-04-21 15:41:04,581 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '614', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e', 'x-compute-request-id': 'req-27add423-820a-4644-a75f-8c8ff916daa4', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:04 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-27add423-820a-4644-a75f-8c8ff916daa4'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False"}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:05,754 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e 0.171s
+2017-04-21 15:41:05,754 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/4a374de4-264a-4b98-82cf-77c7a59a980e', 'x-compute-request-id': 'req-fb7231fc-27c1-4948-be54-c7ee089b5554', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:05 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-fb7231fc-27c1-4948-be54-c7ee089b5554'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "c1ea4d86-4c14-46fb-a4dc-e4d705030445", "attachment_id": "477cfd33-38d3-4b42-9cd2-5ca2ec4236aa", "host_name": null, "volume_id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "device": "/dev/vdc", "id": "4a374de4-264a-4b98-82cf-77c7a59a980e"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:10:57.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "4a374de4-264a-4b98-82cf-77c7a59a980e", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:06,355 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers 0.599s
+2017-04-21 15:41:06,355 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"server": {"key_name": "mykeypair", "flavorRef": "2", "name": "tempest-test-vm", "imageRef": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "networks": [{"uuid": "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"}]}}
+    Response - Headers: {'status': '202', 'content-length': '440', 'x-compute-request-id': 'req-249ba28e-5793-4dc0-ae94-025a2532ad14', 'connection': 'close', 'location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'date': 'Fri, 21 Apr 2017 10:11:06 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"security_groups": [{"name": "default"}], "OS-DCF:diskConfig": "MANUAL", "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "adminPass": "uF3n9zg233oY"}}
+2017-04-21 15:41:06,785 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.427s
+2017-04-21 15:41:06,785 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1437', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-24f8cc77-8545-4518-98f7-8accd58a89a9', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:06 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:06Z", "hostId": "", "OS-EXT-SRV-ATTR:host": null, "addresses": {}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "scheduling", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": null, "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:08,113 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.320s
+2017-04-21 15:41:08,113 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-8d554bcb-47fc-4189-89b5-116f39a90091', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:08 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:08,121 9364 INFO     [tempest.common.waiters] State transition "BUILD/scheduling" ==> "BUILD/spawning" after 2 second wait
+2017-04-21 15:41:09,286 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.164s
+2017-04-21 15:41:09,287 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-5eaef29e-c01c-4ff9-a902-4c123982a80f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:09 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:10,454 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.159s
+2017-04-21 15:41:10,455 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-8689bf11-1278-47be-81b0-6f520733fcb7', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:10 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:11,624 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.161s
+2017-04-21 15:41:11,625 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-2bf105b8-15cb-49f5-b12f-e84ce382e011', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:11 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:12,798 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.165s
+2017-04-21 15:41:12,799 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-eaaec02f-9e67-46a5-9435-386fb97d01b7', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:12 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:13,984 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.171s
+2017-04-21 15:41:13,984 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1692', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-377748b1-3797-4f38-8d3b-9059800c36c4', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:13 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "BUILD", "updated": "2017-04-21T10:11:07Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": "spawning", "OS-EXT-STS:vm_state": "building", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": null, "OS-EXT-SRV-ATTR:hypervisor_hostname": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 0, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:15,187 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8 0.193s
+2017-04-21 15:41:15,187 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '1709', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8', 'x-compute-request-id': 'req-7c27e9d3-ae29-4305-8477-f79be712f3a8', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:15 GMT', 'content-type': 'application/json'}
+        Body: {"server": {"status": "ACTIVE", "updated": "2017-04-21T10:11:14Z", "hostId": "db78d7bab02e00b53683712a463af38599e7c3368bea66db19519894", "OS-EXT-SRV-ATTR:host": "mitaka-compute2", "addresses": {"int-net": [{"OS-EXT-IPS-MAC:mac_addr": "fa:16:3e:bf:f9:f4", "version": 4, "addr": "10.0.0.216", "OS-EXT-IPS:type": "fixed"}]}, "links": [{"href": "http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "self"}, {"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8", "rel": "bookmark"}], "key_name": "mykeypair", "image": {"id": "60253cbd-d9c4-4b0f-a026-822ab33ab445", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/images/60253cbd-d9c4-4b0f-a026-822ab33ab445", "rel": "bookmark"}]}, "OS-EXT-STS:task_state": null, "OS-EXT-STS:vm_state": "active", "OS-EXT-SRV-ATTR:instance_name": "instance-00000108", "OS-SRV-USG:launched_at": "2017-04-21T10:11:14.000000", "OS-EXT-SRV-ATTR:hypervisor_hostnameE67D
+": "mitaka-compute2", "flavor": {"id": "2", "links": [{"href": "http://192.168.1.21:8774/dfd590b482c64004874bf7860ca51dd2/flavors/2", "rel": "bookmark"}]}, "id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "security_groups": [{"name": "default"}], "OS-SRV-USG:terminated_at": null, "OS-EXT-AZ:availability_zone": "compute2", "user_id": "c69d36052960407b9796f3a9d31cb4fb", "name": "tempest-test-vm", "created": "2017-04-21T10:11:06Z", "tenant_id": "dfd590b482c64004874bf7860ca51dd2", "OS-DCF:diskConfig": "MANUAL", "os-extended-volumes:volumes_attached": [], "accessIPv4": "", "accessIPv6": "", "progress": 0, "OS-EXT-STS:power_state": 1, "config_drive": "", "metadata": {}}}
+2017-04-21 15:41:15,194 9364 INFO     [tempest.common.waiters] State transition "BUILD/spawning" ==> "ACTIVE/None" after 9 second wait
+2017-04-21 15:41:15,208 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 15:41:15,376 9364 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 15:41:17,040 9364 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 15:41:17,041 9364 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 15:41:17,469 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 0.428s
+2017-04-21 15:41:17,470 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-1db22564-1b23-449c-996c-df9ad91420ed', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:17 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-1db22564-1b23-449c-996c-df9ad91420ed'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.180551", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "size": 2}}
+2017-04-21 15:41:17,679 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d 0.209s
+2017-04-21 15:41:17,680 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d', 'x-compute-request-id': 'req-dc2d8851-3827-49bd-be70-409fb1069e6b', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:17 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-dc2d8851-3827-49bd-be70-409fb1069e6b'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:19,027 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d 0.345s
+2017-04-21 15:41:19,027 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d', 'x-compute-request-id': 'req-6c7eeead-71f4-46ac-97c4-419ded978fbc', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:19 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-6c7eeead-71f4-46ac-97c4-419ded978fbc'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:19,038 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_6.6.1)
+2017-04-21 15:41:19,195 9364 INFO     [paramiko.transport] Authentication (password) successful!
+2017-04-21 15:41:20,738 9364 DEBUG    [tempest.api.workloadmgr.base] Nova Version: 3.3.2
+
+2017-04-21 15:41:20,738 9364 DEBUG    [tempest.api.workloadmgr.base] Expected Response Code: 200
+2017-04-21 15:41:21,811 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes 1.072s
+2017-04-21 15:41:21,812 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volume": {"volume_type": "5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3", "size": 2}}
+    Response - Headers: {'status': '200', 'content-length': '381', 'x-compute-request-id': 'req-5025e8df-388a-4ebf-b8b1-f735c663d080', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:21 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-5025e8df-388a-4ebf-b8b1-f735c663d080'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.499770", "multiattach": "false", "display_description": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "metadata": {}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "size": 2}}
+2017-04-21 15:41:21,983 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae 0.171s
+2017-04-21 15:41:21,983 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '560', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae', 'x-compute-request-id': 'req-708eb8d8-ebaa-4f0b-a857-459ab9a4d1c3', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:21 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-708eb8d8-ebaa-4f0b-a857-459ab9a4d1c3'}
+        Body: {"volume": {"status": "creating", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": null, "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:23,276 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae 0.291s
+2017-04-21 15:41:23,276 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae', 'x-compute-request-id': 'req-e06dddae-c740-44db-bedf-3611db753a83', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:23 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-e06dddae-c740-44db-bedf-3611db753a83'}
+        Body: {"volume": {"status": "available", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:23,277 9364 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: 0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d, serverId: d3355500-d1e4-4019-b638-5fa8be4a83c8
+2017-04-21 15:41:23,950 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8/os-volume_attachments 0.673s
+2017-04-21 15:41:23,951 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "volumeId": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-b8046f25-d2bd-4e79-991b-5a1d29d52248', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:23 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdb", "serverId": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "volumeId": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d"}}
+2017-04-21 15:41:24,271 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d 0.318s
+2017-04-21 15:41:24,272 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d', 'x-compute-request-id': 'req-337f70ee-77bc-4369-9995-2575360bfa7f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:24 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-337f70ee-77bc-4369-9995-2575360bfa7f'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:25,504 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d 0.227s
+2017-04-21 15:41:25,504 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d', 'x-compute-request-id': 'req-90d756b4-1ee3-408c-aeed-9569b68a9baf', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:25 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-90d756b4-1ee3-408c-aeed-9569b68a9baf'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:26,804 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d 0.298s
+2017-04-21 15:41:26,805 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d', 'x-compute-request-id': 'req-471fbb49-2700-4574-a177-6bef0265c11f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:26 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-471fbb49-2700-4574-a177-6bef0265c11f'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "attachment_id": "b5cb5fd5-bc1b-4505-99e3-68cb98561d58", "host_name": null, "volume_id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "device": "/dev/vdb", "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:17.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "0e2ae7e7-eacf-4b6a-8d09-afef80d3d95d", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:26,805 9364 DEBUG    [tempest.api.workloadmgr.base] attach_volume: volumeId: 30324fdd-1162-4534-a4ec-9a3660e2f2ae, serverId: d3355500-d1e4-4019-b638-5fa8be4a83c8
+2017-04-21 15:41:27,460 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8/os-volume_attachments 0.654s
+2017-04-21 15:41:27,460 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "volumeId": "30324fdd-1162-4534-a4ec-9a3660e2f2ae"}}
+    Response - Headers: {'status': '200', 'content-length': '194', 'x-compute-request-id': 'req-c2d9f062-d41d-4596-8aea-ab38ca18a7f7', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:27 GMT', 'content-type': 'application/json'}
+        Body: {"volumeAttachment": {"device": "/dev/vdc", "serverId": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "volumeId": "30324fdd-1162-4534-a4ec-9a3660e2f2ae"}}
+2017-04-21 15:41:27,628 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae 0.166s
+2017-04-21 15:41:27,629 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '595', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae', 'x-compute-request-id': 'req-9b9c32bf-da79-4447-9256-abfcd2ab9a0f', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:27 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-9b9c32bf-da79-4447-9256-abfcd2ab9a0f'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:28,944 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae 0.314s
+2017-04-21 15:41:28,945 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '614', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae', 'x-compute-request-id': 'req-12c02671-8e42-4a4c-94dd-0dcb3d383c3d', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:28 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-12c02671-8e42-4a4c-94dd-0dcb3d383c3d'}
+        Body: {"volume": {"status": "attaching", "display_name": null, "attachments": [], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False"}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:30,130 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae 0.183s
+2017-04-21 15:41:30,130 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '884', 'content-location': 'http://192.168.1.21:8776/v1/dfd590b482c64004874bf7860ca51dd2/volumes/30324fdd-1162-4534-a4ec-9a3660e2f2ae', 'x-compute-request-id': 'req-de52ee7a-6826-458e-8cef-a5fca0bc438c', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:30 GMT', 'content-type': 'application/json', 'x-openstack-request-id': 'req-de52ee7a-6826-458e-8cef-a5fca0bc438c'}
+        Body: {"volume": {"status": "in-use", "display_name": null, "attachments": [{"server_id": "d3355500-d1e4-4019-b638-5fa8be4a83c8", "attachment_id": "7b3a1d2e-4268-4f34-ae9c-b09cfaf0827d", "host_name": null, "volume_id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "device": "/dev/vdc", "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae"}], "availability_zone": "nova", "bootable": "false", "encrypted": false, "created_at": "2017-04-21T10:11:21.000000", "multiattach": "false", "os-vol-tenant-attr:tenant_id": "dfd590b482c64004874bf7860ca51dd2", "display_description": null, "os-vol-host-attr:host": "mitaka-controller-compute1@ceph#ceph", "volume_type": "ceph", "snapshot_id": null, "source_volid": null, "os-vol-mig-status-attr:name_id": null, "metadata": {"readonly": "False", "attached_mode": "rw"}, "id": "30324fdd-1162-4534-a4ec-9a3660e2f2ae", "os-vol-mig-status-attr:migstat": null, "size": 2}}
+2017-04-21 15:41:30,252 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 200 GET http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/os-floating-ips 0.121s
+2017-04-21 15:41:30,253 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: None
+    Response - Headers: {'status': '200', 'content-length': '292', 'content-location': 'http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/os-floating-ips', 'x-compute-request-id': 'req-debc586e-03a0-4f66-ae80-17d5ef5180ad', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:30 GMT', 'content-type': 'application/json'}
+        Body: {"floating_ips": [{"instance_id": null, "ip": "192.168.1.26", "fixed_ip": null, "id": "45ac3494-ef82-4d04-a216-8285a811282a", "pool": "external_network"}, {"instance_id": null, "ip": "192.168.1.23", "fixed_ip": null, "id": "edc4ab26-4384-476a-8c52-02b4902de854", "pool": "external_network"}]}
+2017-04-21 15:41:30,257 9364 DEBUG    [tempest.api.workloadmgr.base] floating_ips[u'192.168.1.26', u'192.168.1.23']
+2017-04-21 15:41:30,257 9364 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] setting floating ip192.168.1.26
+2017-04-21 15:41:31,230 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/c1ea4d86-4c14-46fb-a4dc-e4d705030445/action 0.972s
+2017-04-21 15:41:31,230 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"addFloatingIp": {"address": "192.168.1.26"}}
+    Response - Headers: {'status': '202', 'content-length': '0', 'x-compute-request-id': 'req-d5cab7ec-8f85-4b26-b628-4c2214b72ccd', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:11:31 GMT', 'content-type': 'text/html; charset=UTF-8'}
+        Body: 
+2017-04-21 15:41:31,262 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:31,498 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:31,511 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:33,521 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:33,647 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:33,656 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:35,680 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:35,792 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:35,810 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:37,864 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:37,965 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:37,982 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:39,993 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:40,102 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:40,108 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:42,122 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:42,234 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:42,253 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:44,267 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:44,399 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:44,420 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:46,431 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:46,546 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:46,578 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:48,598 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:48,706 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:48,726 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:50,748 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:50,881 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:50,917 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:52,929 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:53,052 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:53,058 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:55,069 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:55,182 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:55,200 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:57,217 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:57,349 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:57,359 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:41:59,370 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:41:59,479 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:41:59,501 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:01,513 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:01,631 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:01,645 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:03,674 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:03,786 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:03,802 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:05,813 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:05,923 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:05,945 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:07,955 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:08,087 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:08,122 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:10,134 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:10,247 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:10,268 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:12,287 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:12,408 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:12,419 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:14,447 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:14,587 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:14,606 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:16,619 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:16,726 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:16,749 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:18,767 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:18,882 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:18,905 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:20,915 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:21,023 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:21,047 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:23,065 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:23,177 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:23,195 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:25,206 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:25,344 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:25,358 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:27,377 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:27,495 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:27,507 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:29,522 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:29,646 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:29,656 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:31,676 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:31,804 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:31,811 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:33,830 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:33,941 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:33,959 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:42:35,970 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:36,080 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:36,306 9364 DEBUG    [tempest.api.workloadmgr.base] disk create my.layout outputlabel: dos
+label-id: 0xa7f32259
+device: /dev/vda
+unit: sectors
+
+/dev/vda1 : start=        2048, size=    41940959, type=83, bootable
+
+2017-04-21 15:42:36,377 9364 DEBUG    [tempest.api.workloadmgr.base] fdisk output after partitioning Disk /dev/vda: 20 GiB, 21474836480 bytes, 41943040 sectors
+/dev/vda1  *     2048 41943006 41940959  20G 83 Linux
+Disk /dev/vdb: 2 GiB, 2147483648 bytes, 4194304 sectors
+Disk /dev/vdc: 2 GiB, 2147483648 bytes, 4194304 sectors
+
+2017-04-21 15:42:36,454 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 executed
+2017-04-21 15:42:36,955 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:37,456 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:37,957 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:38,459 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:38,960 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:39,461 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:39,962 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:40,473 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:40,974 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:42:41,020 9364 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdb1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 15:42:41,088 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 executed
+2017-04-21 15:42:41,589 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:42,090 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:42,591 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:43,092 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:43,593 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:44,094 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:42:44,102 9364 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdc1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 15:42:44,177 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:44,301 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:45,442 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdb1 mount_data_b output waiting..
+2017-04-21 15:42:46,453 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdc1 mount_data_c output waiting..
+2017-04-21 15:42:46,453 9364 DEBUG    [tempest.api.workloadmgr.base] mounting completed for 192.168.1.26
+2017-04-21 15:42:46,479 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:46,587 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:46,608 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_1.txt bs=100M count=1
+2017-04-21 15:42:47,727 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:48,728 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:49,730 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:50,731 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:50,732 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:42:50,740 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:50,870 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:51,095 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:42:51,104 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:51,215 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:51,245 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_1.txt bs=100M count=1
+2017-04-21 15:42:52,348 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:53,350 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:54,351 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:55,353 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:55,353 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:42:55,369 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:55,486 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:55,636 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:42:55,647 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:42:55,788 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:42:55,807 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_1.txt bs=100M count=1
+2017-04-21 15:42:56,910 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:57,912 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:58,913 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:59,915 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:42:59,915 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:42:59,924 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:00,035 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:00,164 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:43:00,164 9364 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum for 192.168.1.26 [None, None, None]
+2017-04-21 15:43:00,164 9364 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] setting floating ip192.168.1.23
+2017-04-21 15:43:01,212 9364 INFO     [tempest_lib.common.rest_client] Request (WorkloadsTest:test_data_integrity): 202 POST http://192.168.1.21:8774/v2/dfd590b482c64004874bf7860ca51dd2/servers/d3355500-d1e4-4019-b638-5fa8be4a83c8/action 1.047s
+2017-04-21 15:43:01,212 9364 DEBUG    [tempest_lib.common.rest_client] Request - Headers: {'Content-Type': 'application/json', 'Accept': 'application/json', 'X-Auth-Token': '<omitted>'}
+        Body: {"addFloatingIp": {"address": "192.168.1.23"}}
+    Response - Headers: {'status': '202', 'content-length': '0', 'x-compute-request-id': 'req-c26a87f1-2453-4b36-b7a9-b217820d0d88', 'connection': 'close', 'date': 'Fri, 21 Apr 2017 10:13:01 GMT', 'content-type': 'text/html; charset=UTF-8'}
+        Body: 
+2017-04-21 15:43:01,283 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:01,441 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:01,441 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:03,476 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:03,574 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:03,585 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:05,634 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:06,020 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:06,053 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:08,077 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:08,189 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:08,207 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:10,219 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:10,328 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:10,351 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:12,364 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:12,478 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:12,487 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:14,500 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:14,648 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:14,669 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:16,683 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:16,801 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:16,817 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:18,830 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:18,944 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:18,973 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:20,991 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:21,116 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:21,134 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:23,147 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:23,284 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:23,290 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:25,303 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:25,421 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:25,440 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:27,465 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:27,588 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:27,599 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:29,645 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:29,780 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:29,816 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:31,834 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:31,953 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:31,966 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:33,982 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:34,093 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:34,101 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:36,148 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:36,291 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:36,303 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:38,326 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:38,439 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:38,457 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:40,480 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:40,589 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:40,611 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:42,648 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:42,762 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:42,785 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:44,807 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:44,938 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:44,958 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:46,987 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:47,105 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:47,117 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:49,154 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:49,284 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:49,291 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:51,314 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:51,430 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:51,446 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:53,460 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:53,573 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:53,591 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:55,611 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:55,737 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:55,765 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:57,809 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:43:57,929 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:43:57,941 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:43:59,969 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:00,101 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:00,119 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:44:02,153 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:02,282 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:02,286 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:44:04,303 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:04,423 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:04,438 9364 DEBUG    [tempest.api.workloadmgr.base] ssh connection timeout... retrying 
+2017-04-21 15:44:06,458 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:06,585 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:06,834 9364 DEBUG    [tempest.api.workloadmgr.base] disk create my.layout output
+2017-04-21 15:44:06,944 9364 DEBUG    [tempest.api.workloadmgr.base] fdisk output after partitioning Disk /dev/vda: 20 GiB, 21474836480 bytes, 41943040 sectors
+/dev/vda1  *     2048 41943006 41940959  20G 83 Linux
+Disk /dev/vdb: 2 GiB, 2147483648 bytes, 4194304 sectors
+/dev/vdb1  *     2048 4194303 4192256   2G 83 Linux
+Disk /dev/vdc: 2 GiB, 2147483648 bytes, 4194304 sectors
+/dev/vdc1  *     2048 4194303 4192256   2G 83 Linux
+
+2017-04-21 15:44:07,012 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 executed
+2017-04-21 15:44:07,513 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:08,014 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:08,515 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:09,016 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:09,517 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:10,018 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:10,519 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdb1 output waiting..
+2017-04-21 15:44:10,552 9364 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdb1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 15:44:10,621 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 executed
+2017-04-21 15:44:11,122 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:11,622 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:12,123 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:12,624 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:13,125 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:13,626 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:14,127 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:14,628 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mkfs -t ext3 /dev/vdc1 output waiting..
+2017-04-21 15:44:14,662 9364 DEBUG    [tempest.api.workloadmgr.base] df -h after mkfs -t ext3  /dev/vdc1Filesystem      Size  Used Avail Use% Mounted on
+udev            995M     0  995M   0% /dev
+tmpfs           201M  6.5M  194M   4% /run
+/dev/vda1        20G  905M   19G   5% /
+tmpfs          1001M     0 1001M   0% /dev/shm
+tmpfs           5.0M     0  5.0M   0% /run/lock
+tmpfs          1001M     0 1001M   0% /sys/fs/cgroup
+tmpfs           201M     0  201M   0% /run/user/1000
+
+2017-04-21 15:44:14,773 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:14,906 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:16,124 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdb1 mount_data_b output waiting..
+2017-04-21 15:44:17,131 9364 DEBUG    [tempest.api.workloadmgr.base] sudo mount /dev/vdc1 mount_data_c output waiting..
+2017-04-21 15:44:17,131 9364 DEBUG    [tempest.api.workloadmgr.base] mounting completed for 192.168.1.23
+2017-04-21 15:44:17,144 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:17,261 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:17,278 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_b//File_1.txt bs=100M count=1
+2017-04-21 15:44:18,413 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:19,414 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:20,416 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:21,417 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:21,417 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:44:21,430 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:21,553 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:21,703 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:44:21,713 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:21,825 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:21,853 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=mount_data_c//File_1.txt bs=100M count=1
+2017-04-21 15:44:22,988 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:23,990 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:24,991 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:25,993 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:25,993 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:44:26,004 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:26,143 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:26,290 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:44:26,301 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:26,418 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:26,435 9364 DEBUG    [tempest.api.workloadmgr.base] build command data populationsudo dd if=/dev/urandom of=/root//File_1.txt bs=100M count=1
+2017-04-21 15:44:27,569 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:28,571 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:29,572 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:30,574 9364 DEBUG    [tempest.api.workloadmgr.base] file change output waiting..
+2017-04-21 15:44:30,574 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: Channel is not open
+2017-04-21 15:44:30,585 9364 INFO     [paramiko.transport] Connected (version 2.0, client OpenSSH_7.2p2)
+2017-04-21 15:44:30,698 9364 INFO     [paramiko.transport] Authentication (publickey) successful!
+2017-04-21 15:44:30,831 9364 DEBUG    [tempest.api.workloadmgr.base] Exception: 'NoneType' object is not iterable
+2017-04-21 15:44:30,832 9364 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum for 192.168.1.23 [None, None, None]
+2017-04-21 15:44:30,832 9364 DEBUG    [tempest.api.workloadmgr.integration.test_data_integrity] before backup md5sum : {'192.168.1.26': [None, None, None], '192.168.1.23': [None, None, None]}
+0
+Content-Type: text/plain;charset=utf8
+stderr
+0
+Content-Type: text/plain;charset=utf8
+stdout
+23
+start
+start
+start
+start
+start
+start0
+]
+tags: -worker-0
