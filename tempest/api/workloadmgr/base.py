@@ -1028,18 +1028,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         k = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        flag = True
-        while (flag):
+        vc = 0
+        while (vc<30):
             try:
-                flag = False
                 ssh.connect(hostname=ipAddress, username=username ,pkey=k)
                 LOG.debug("ssh connection timeout... retrying ")
             except paramiko.ssh_exception.NoValidConnectionsError as e:
-                flag = True
+                pass
+            vc += 1
             time.sleep(2)
-
-            if not flag:
-                flag = False
         return ssh
 
     '''
