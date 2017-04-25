@@ -617,7 +617,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def snapshot_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if(restore_name == ""):
-            restore_name = "Tempest test restore"
+            restore_name = tvaultconf.snapshot_restore_name
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": True,
                                            "vmware": {},
@@ -1165,7 +1165,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
                 LOG.debug("build command data population" + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                time.sleep(5)
+                time.sleep(3)
                 stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
                 LOG.debug("file change output:" + str(stdout.read()))
         except Exception as e:
@@ -1181,29 +1181,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(5)
+            time.sleep(3)
             for line in  stdout.readlines():
                 local_md5sum += str(line.split(" ")[0])
             return local_md5sum
         except Exception as e:
             print("Exception: " + str(e))
 
-
-    '''
-    Method returns the list of details of restored VMs
-    '''
-    @classmethod
-    def get_restored_vm_details(cls, restore_id):
-        resp, body = cls.wlm_client.client.get("/restores/"+restore_id)
-        LOG.debug("Body: " + str(body))
-        LOG.debug("Response: " + str(resp))
-        instances= body['restore']['instances']
-        restore_vms = []
-        for instance in instances:
-            LOG.debug("instance:"+ str(instance))
-            restore_vms.append(str(instance))
-        LOG.debug("Restored vms details list:"+ str(restore_vms))
-        return restore_vms
 
     '''method to populate data before full backup
     '''
@@ -1256,19 +1240,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     ''' method to create key pir'''
     @classmethod
-    def create_key_pair(cls):
-        KEYPAIR_NAME = tvaultconf.key_pair_name
+    def create_key_pair(cls, KEYPAIR_NAME):
+        foorprint = ""
         # keypair = cls.keypairs_client.find_keypair(KEYPAIR_NAME)
         # print("Create Key Pair:")
         key_pairs_list_response = cls.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
         for k in key_pairs:
-            if str(k['keypair']['name']) == tvaultconf.key_pair_name:
-                cls.keypairs_client.delete_keypair(tvaultconf.key_pair_name)
+            if str(k['keypair']['name']) == KEYPAIR_NAME:
+                cls.keypairs_client.delete_keypair(KEYPAIR_NAME)
 
         keypair_response = cls.keypairs_client.create_keypair(name=KEYPAIR_NAME)
         privatekey = keypair_response['keypair']['private_key']
+        fingerprint  = keypair_response['keypair']['fingerprint']
         with open("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", 'w+') as f:
             f.write(str(privatekey))
         os.chmod("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", stat.S_IRWXU)
-        # return keypair(keypair_name)
+        LOG.debug("keypair fingerprint : " + str(fingerprint))
+        return fingerprint

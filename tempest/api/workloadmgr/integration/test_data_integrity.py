@@ -40,7 +40,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_data_integrity(self):
         self.total_workloads=1
         self.vms_per_workload=2
-        self.volume_size=2
+        self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
         self.workloads = []
@@ -49,8 +49,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.md5sums_dir_after = {}
         self.incr_snapshots = []
         self.restores = []
+        self.fingerprint = ""
 
-        self.keypair = self.create_key_pair()
+        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
              self.workload_instances.append(vm_id)
@@ -64,13 +65,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         floating_ips_list = self.get_floating_ips()
 
         for i in range(len(self.workload_instances)):
-            self.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), workload_instances[i])
+            self.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), self.workload_instances[i])
             self.execute_command_disk_create(floating_ips_list[i])
             self.execute_command_disk_mount(floating_ips_list[i])
 
         # before restore
         # data change
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 10)
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 5)
 
         # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
@@ -87,9 +88,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         # after restore
         # verification
         # get restored vms list
-        self.get_restored_vm_details(self.restore_id)
+        # self.get_restored_vm_details(self.restore_id)
+        # self.restore_id = "b9af5b91-c8a8-4f4a-9b0c-1ecc3dfed35b"
+        self.vm_list = []
+        restored_vm_details = ""
+        self.vm_list  =  self.get_restored_vm_list(self.restore_id)
+        LOG.debug("Restored vms : " + str (self.vm_list))
+        for i in range(len(self.vm_list)):
+            restored_vm_details = self.get_restored_vm_details(self.vm_list[i])
 
-        self.md5sums_dir_after = self.calculate_md5_after_restore(workload_instances, floating_ips_list, 12)
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list, 5)
 
         # verification one-click restore
         for i in range(len(self.workload_instances)):
@@ -111,7 +119,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         # after selective restore_id and incremental change
         # after restore
-        self.md5sums_dir_after = self.calculate_md5_after_restore(workload_instances, floating_ips_list)
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list)
 
         # verification selective restore incremental change
         for i in range(len(self.workload_instances)):
