@@ -15,7 +15,7 @@
 
 import time
 import paramiko
-import os
+import os, stat
 
 from oslo_log import log as logging
 from tempest import config
@@ -228,12 +228,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 server_id=self.read_vm_id()
             else:
 		networkid=[{'uuid':tvaultconf.internal_network_id}]
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name="mykeypair")
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
 	    networkid=[{'uuid':tvaultconf.internal_network_id}]
-            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
+            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
@@ -254,11 +254,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if(flag != 0):
                     server_id=self.read_vm_id()
                 else:
-                    server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                    server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref,key_name=tvaultconf.key_pair_name)
                     server_id=server['server']['id']
                     waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
             else:
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref,key_name=tvaultconf.key_pair_name)
                 #instances.append(server['server']['id'])
                 server_id=server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
@@ -1023,20 +1023,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def SshRemoteMachineConnectionWithRSAKey(cls, ipAddress):
         username = "ubuntu"
-        key_file = "/root/tempest/etc/mykeypair.pem"
+        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
         k = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        vc = 0
-        while (vc<30):
-            try:
-                ssh.connect(hostname=ipAddress, username=username ,pkey=k)
-                LOG.debug("ssh connection timeout... retrying ")
-            except paramiko.ssh_exception.NoValidConnectionsError as e:
-                pass
-            vc += 1
-            time.sleep(2)
+        # time.sleep(20)
+        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
         return ssh
 
     '''
@@ -1172,7 +1165,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
                 LOG.debug("build command data population" + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                time.sleep(20)
+                time.sleep(5)
                 stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
                 LOG.debug("file change output:" + str(stdout.read()))
         except Exception as e:
@@ -1188,7 +1181,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(20)
+            time.sleep(5)
             for line in  stdout.readlines():
                 local_md5sum += str(line.split(" ")[0])
             return local_md5sum
@@ -1211,3 +1204,75 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             restore_vms.append(str(instance))
         LOG.debug("Restored vms details list:"+ str(restore_vms))
         return restore_vms
+
+    '''method to populate data before full backup
+    '''
+    @classmethod
+    def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size):
+        for i in range(len(workload_instances)):
+            cls.md5sums = ""
+            md5sums_dir_before = {}
+            LOG.debug("setting floating ip" + (floating_ips_list[i].encode('ascii','ignore')))
+
+            cls.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), workload_instances[i])
+            cls.execute_command_disk_create(floating_ips_list[i])
+            cls.execute_command_disk_mount(floating_ips_list[i])
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",5,"1M", backup_size)
+            cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
+
+            md5sums_dir_before[str(floating_ips_list[i])] = cls.md5sums
+
+            LOG.debug("before backup md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(cls.md5sums))
+
+        LOG.debug("before backup md5sum : " + str(md5sums_dir_before))
+        return md5sums_dir_before
+
+    '''method to populate data before full backup
+    '''
+    @classmethod
+    def calculate_md5_after_restore(cls, workload_instances, floating_ips_list):
+        for i in range(len(workload_instances)):
+            cls.md5sums = ""
+            md5sums_dir_after = {}
+
+            cls.execute_command_disk_mount(floating_ips_list[i])
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
+
+            md5sums_dir_after[str(floating_ips_list[i])] = cls.md5sums
+
+            LOG.debug("after md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(cls.md5sums))
+
+        LOG.debug("after md5sum : " + str(md5sums_dir_after))
+        return md5sums_dir_after
+
+
+    ''' method to create key pir'''
+    @classmethod
+    def create_key_pair(cls):
+        KEYPAIR_NAME = tvaultconf.key_pair_name
+        # keypair = cls.keypairs_client.find_keypair(KEYPAIR_NAME)
+        # print("Create Key Pair:")
+        key_pairs_list_response = cls.keypairs_client.list_keypairs()
+        key_pairs = key_pairs_list_response['keypairs']
+        for k in key_pairs:
+            if str(k['keypair']['name']) == tvaultconf.key_pair_name:
+                cls.keypairs_client.delete_keypair(tvaultconf.key_pair_name)
+
+        keypair_response = cls.keypairs_client.create_keypair(name=KEYPAIR_NAME)
+        privatekey = keypair_response['keypair']['private_key']
+        with open("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", 'w+') as f:
+            f.write(str(privatekey))
+        os.chmod("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", stat.S_IRWXU)
+        # return keypair(keypair_name)

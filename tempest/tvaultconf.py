@@ -1,17 +1,17 @@
 import apscheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
 
-#If you want to cleanup all test resources like vms, volumes, workloads then set 
+#If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
 cleanup = True
 
 #Volume type to use by tempest
-volume_type="62d6e6ef-c11f-4890-9a27-ee8c0ee05291"
+volume_type="5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3"
 
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
 
-#Resources to use from file 
+#Resources to use from file
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
 vms_from_file=False
 volumes_from_file=False
@@ -30,13 +30,13 @@ workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
 volume_size = 1
-internal_network_id = "485a3095-05bf-4dbc-9383-fed4f4eedbbd"
- 
+internal_network_id = "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"
+
 tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
-compute_ip = "192.168.1.77"
+compute_ip = "192.168.1.21"
 compute_username = "root"
 compute_passwd = "Password1!"
 
@@ -49,3 +49,6 @@ schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
 No_of_Backup=1
+
+#keypair_name
+key_pair_name  = "tempest_test_key_pair"

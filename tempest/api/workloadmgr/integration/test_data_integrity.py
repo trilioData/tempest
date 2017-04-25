@@ -49,6 +49,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.md5sums_dir_after = {}
         self.incr_snapshots = []
         self.restores = []
+
+        self.keypair = self.create_key_pair()
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
              self.workload_instances.append(vm_id)
@@ -62,30 +64,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         floating_ips_list = self.get_floating_ips()
 
         # before restore
-        for i in range(len(self.workload_instances)):
-            self.md5sums = ""
-            LOG.debug("setting floating ip" + (floating_ips_list[i].encode('ascii','ignore')))
+        # data change
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 10)
 
-            self.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), self.workload_instances[i])
-            self.execute_command_disk_create(floating_ips_list[i])
-            self.execute_command_disk_mount(floating_ips_list[i])
-
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",12,1048576, 100)
-            self.md5sums +=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
-
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",12,1048576, 100)
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
-
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",12,1048576, 100)
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
-
-            self.md5sums_dir_before[str(floating_ips_list[i])] = self.md5sums
-
-            LOG.debug("before backup md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(self.md5sums))
-
-        LOG.debug("before backup md5sum : " + str(self.md5sums_dir_before))
-
-
+        # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
@@ -102,44 +84,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         # get restored vms list
         self.get_restored_vm_details(self.restore_id)
 
-        for i in range(len(self.workload_instances)):
-            self.md5sums = ""
-
-            self.execute_command_disk_mount(floating_ips_list[i])
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
-
-            self.md5sums_dir_after[str(floating_ips_list[i])] = self.md5sums
-
-            LOG.debug("after md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(self.md5sums))
-
-        LOG.debug("after md5sum : " + str(self.md5sums_dir_after))
+        self.md5sums_dir_after = self.calculate_md5_after_restore(workload_instances, floating_ips_list, 12)
 
         # verification one-click restore
         for i in range(len(self.workload_instances)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[i])]==self.md5sums_dir_after[str(floating_ips_list[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list[i]))
 
         # incremental change
-        for i in range(len(self.workload_instances)):
-            self.md5sums = ""
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",15,1048576, 100)
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
-
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",15,1048576, 100)
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
-
-            self.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",15,1048576, 100)
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
-
-            self.md5sums_dir_before[str(floating_ips_list[i])] = self.md5sums
-
-            LOG.debug("before backup md5sum for incremental change" + floating_ips_list[i].encode('ascii','ignore') + " " +str(self.md5sums))
-
-        LOG.debug("before backup md5sum incremental change: " + str(self.md5sums_dir_before))
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, backup_size)
 
         # incremental snapshot backup
         self.snapshot_id=self.workload_snapshot(self.workload_id, False)
@@ -154,22 +106,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         # after selective restore_id and incremental change
         # after restore
-        for i in range(len(self.workload_instances)):
-            self.md5sums = ""
-
-            self.execute_command_disk_mount(floating_ips_list[i])
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
-
-            self.md5sums+=(self.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
-
-            self.md5sums_dir_after[str(floating_ips_list[i])] = self.md5sums
-
-            LOG.debug("after md5sum for incremental change" + floating_ips_list[i].encode('ascii','ignore') + " " +str(self.md5sums))
-
-        LOG.debug("after md5sum incremental change: " + str(self.md5sums_dir_after))
+        self.md5sums_dir_after = self.calculate_md5_after_restore(workload_instances, floating_ips_list)
 
         # verification selective restore incremental change
         for i in range(len(self.workload_instances)):
