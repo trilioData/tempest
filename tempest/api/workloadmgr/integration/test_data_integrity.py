@@ -63,6 +63,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         floating_ips_list = self.get_floating_ips()
 
+        for i in range(len(self.workload_instances)):
+            self.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), workload_instances[i])
+            self.execute_command_disk_create(floating_ips_list[i])
+            self.execute_command_disk_mount(floating_ips_list[i])
+
         # before restore
         # data change
         self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 10)

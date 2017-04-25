@@ -1214,10 +1214,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             md5sums_dir_before = {}
             LOG.debug("setting floating ip" + (floating_ips_list[i].encode('ascii','ignore')))
 
-            cls.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), workload_instances[i])
-            cls.execute_command_disk_create(floating_ips_list[i])
-            cls.execute_command_disk_mount(floating_ips_list[i])
-
             cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",5,"1M", backup_size)
             cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
 
