@@ -1189,6 +1189,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             print("Exception: " + str(e))
 
 
+    '''
+    Method returns the list of details of restored VMs
+    '''
+    @classmethod
+    def get_restored_vm_details(cls, server_id):
+        response = cls.servers_client.show_server(server_id)
+        LOG.debug("Restored vm details :"+ str(response))
+        return response
+
     '''method to populate data before full backup
     '''
     @classmethod
