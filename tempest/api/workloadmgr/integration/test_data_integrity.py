@@ -50,6 +50,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.incr_snapshots = []
         self.restores = []
         self.fingerprint = ""
+        self.vm_details_list = []
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         for vm in range(0,self.vms_per_workload):
@@ -70,7 +71,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.execute_command_disk_mount(floating_ips_list[i])
 
         # before restore
-        # data change
+        self.vm_details_list = []
+        for i in range(len(self.workload_instances)):
+            self.vm_details_list.append(self.get_restored_vm_details(self.workload_instances[i]))
+
+        LOG.debug("vm details list before backups" + str( self.vm_details_list))
         self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 5)
 
         # create workload, take backup
@@ -89,24 +94,29 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         # verification
         # get restored vms list
         # self.get_restored_vm_details(self.restore_id)
-        # self.restore_id = "b9af5b91-c8a8-4f4a-9b0c-1ecc3dfed35b"
         self.vm_list = []
-        restored_vm_details = ""
+        # restored_vm_details = ""
+        self.restored_vm_details_list = []
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
+        floating_ips_list_after_restore = []
         for i in range(len(self.vm_list)):
-            restored_vm_details = self.get_restored_vm_details(self.vm_list[i])
+            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[i]))
 
-        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list)
+        LOG.debug("vm details list after restore" + str( self.restored_vm_details_list))
+        for i in range(len(self.restored_vm_details_list)):
+            floating_ips_list_after_restore.append(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr'])
 
-        # verification one-click restore
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
+    #
+    #     # verification one-click restore
         for i in range(len(self.workload_instances)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[i])]==self.md5sums_dir_after[str(floating_ips_list[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list[i]))
-
-        # incremental change
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, backup_size)
-
-        # incremental snapshot backup
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[i])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[i]))
+    #
+    #     # incremental change
+        self.md5sums_dir_before = self.data_populate_before_backup(self.vm_list, floating_ips_list_after_restore, 7)
+    #
+    #     # incremental snapshot backup
         self.snapshot_id=self.workload_snapshot(self.workload_id, False)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
@@ -119,8 +129,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         # after selective restore_id and incremental change
         # after restore
-        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list)
+        self.vm_list = []
+        # restored_vm_details = ""
+        self.restored_vm_details_list = []
+        self.vm_list  =  self.get_restored_vm_list(self.restore_id)
+        LOG.debug("Restored vms : " + str (self.vm_list))
+        floating_ips_list_after_restore = []
+        for i in range(len(self.vm_list)):
+            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[i]))
+        LOG.debug("Restored vm detaild list after incremental change " + str(self.restored_vm_details_list))
+
+        for i in range(len(self.restored_vm_details_list)):
+            floating_ips_list_after_restore.append(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr'])
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
 
         # verification selective restore incremental change
         for i in range(len(self.workload_instances)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[i])]==self.md5sums_dir_after[str(floating_ips_list[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list[i]))
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[i])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[i]))

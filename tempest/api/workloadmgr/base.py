@@ -1006,15 +1006,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def set_floating_ip(cls, floating_ip, server_id):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         # time.sleep(15)
-        vc = 0
-        while (vc<30):
-            try:
-                cls.SshRemoteMachineConnectionWithRSAKey(floating_ip)
-                LOG.debug("ssh connection timeout... retrying ")
-            except paramiko.ssh_exception.NoValidConnectionsError as e:
-                pass
-            vc += 1
-            time.sleep(2)
+        username = tvaultconf.instance_username
+        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        k = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(floating_ip))
+                try:
+                    ssh.connect(hostname=floating_ip, username=username ,pkey=k, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception : " + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
         return set_response
 
     '''
@@ -1022,14 +1031,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def SshRemoteMachineConnectionWithRSAKey(cls, ipAddress):
-        username = "ubuntu"
+        username = tvaultconf.instance_username
         key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
         k = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        # time.sleep(20)
-        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+        # flag = True
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(ipAddress))
+                try:
+                    ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception.." + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
         return ssh
 
     '''
@@ -1037,7 +1057,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def execute_command_disk_create(cls, ipAddress):
-        ssh = cls.SshRemoteMachineConnectionWithRSAKey(ipAddress)
+        username = tvaultconf.instance_username
+        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        k = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
         stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
         stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
         LOG.debug("disk create my.layout output" + str(stdout.read()))
@@ -1105,7 +1131,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def execute_command_disk_mount(cls, ipAddress):
-        ssh = cls.SshRemoteMachineConnectionWithRSAKey(ipAddress)
+        username = tvaultconf.instance_username
+        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        k = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
         # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
         buildCommand = "sudo mount /dev/vdb1 mount_data_b"
         sleeptime = 1
@@ -1158,10 +1190,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def addCustomSizedfilesOnLinux(cls, clientIP, dirPath,fileCount, fileSize,sizeType):
         #dd if=/dev/urandom of=mastertest.txt,mastertest1.txt bs=1M count=1
         # import subprocess
+        username = tvaultconf.instance_username
+        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        k = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=clientIP, username=username ,pkey=k, timeout = 20)
         try:
-            print "start"
             for count in range(fileCount):
-                ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
                 buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
                 LOG.debug("build command data population" + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
@@ -1178,7 +1215,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def calculatemmd5checksum(cls, clientIP, dirPath):
         try:
             local_md5sum = ""
-            ssh = cls.SshRemoteMachineConnectionWithRSAKey(clientIP)
+            username = tvaultconf.instance_username
+            key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+            ssh=paramiko.SSHClient()
+            k = paramiko.RSAKey.from_private_key_file(key_file)
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.load_system_host_keys()
+            ssh.connect(hostname=clientIP, username=username ,pkey=k, timeout = 20)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
             time.sleep(3)
@@ -1186,7 +1229,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 local_md5sum += str(line.split(" ")[0])
             return local_md5sum
         except Exception as e:
-            print("Exception: " + str(e))
+            LOG.debug("Exception: " + str(e))
 
 
     '''
@@ -1202,9 +1245,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size):
+        md5sums_dir_before = {}
         for i in range(len(workload_instances)):
             cls.md5sums = ""
-            md5sums_dir_before = {}
             LOG.debug("setting floating ip" + (floating_ips_list[i].encode('ascii','ignore')))
 
             cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",5,"1M", backup_size)
@@ -1227,6 +1270,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def calculate_md5_after_restore(cls, workload_instances, floating_ips_list):
+        md5sums_dir_after = {}
         for i in range(len(workload_instances)):
             cls.md5sums = ""
             md5sums_dir_after = {}
