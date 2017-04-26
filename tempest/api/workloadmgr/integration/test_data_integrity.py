@@ -97,7 +97,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for i in range(len(self.vm_list)):
             restored_vm_details = self.get_restored_vm_details(self.vm_list[i])
 
-        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list, 5)
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.workload_instances, floating_ips_list)
 
         # verification one-click restore
         for i in range(len(self.workload_instances)):
