@@ -67,24 +67,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         floating_ips_list = self.get_floating_ips()
 
-        for i in range(len(self.workload_instances)):
-            self.set_floating_ip((floating_ips_list[i].encode('ascii','ignore')), self.workload_instances[i])
-            self.execute_command_disk_create(floating_ips_list[i])
-            self.execute_command_disk_mount(floating_ips_list[i])
+        for id in range(len(self.workload_instances)):
+            self.set_floating_ip((floating_ips_list[id].encode('ascii','ignore')), self.workload_instances[id])
+            self.execute_command_disk_create(floating_ips_list[id])
+            self.execute_command_disk_mount(floating_ips_list[id])
 
         # before restore
         self.vm_details_list = []
-        for i in range(len(self.workload_instances)):
-            self.vm_details_list.append(self.get_restored_vm_details(self.workload_instances[i]))
+        for id in range(len(self.workload_instances)):
+            self.vm_details_list.append(self.get_restored_vm_details(self.workload_instances[id]))
 
-        for i in range(len(self.workload_instances)):
-            self.vms_details.append(str(floating_ips_list[i]) + " security_group " + str(self.vm_details_list[i]['server']['security_groups'][0]['name']))
-            self.vms_details.append(str(floating_ips_list[i]) + " keys " + str(self.vm_details_list[i]['server']['key_name']))
-            self.vms_details.append(str(floating_ips_list[i]) + " floating_ip " + str(self.vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
-            self.vms_details.append(str(floating_ips_list[i]) + " vm_name " + str(self.vm_details_list[i]['server']['name']))
-            self.vms_details.append(str(floating_ips_list[i]) + " vm_status " + str(self.vm_details_list[i]['server']['status']))
-            self.vms_details.append(str(floating_ips_list[i]) + " vm_power_status " + str(self.vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
-            self.vms_details.append(str(floating_ips_list[i]) + " availability_zone " + str(self.vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+        for id in range(len(self.workload_instances)):
+            self.vms_details.append(str(floating_ips_list[id]) + " security_group " + str(self.vm_details_list[i]['server']['security_groups'][0]['name']))
+            self.vms_details.append(str(floating_ips_list[id]) + " keys " + str(self.vm_details_list[i]['server']['key_name']))
+            self.vms_details.append(str(floating_ips_list[id]) + " floating_ip " + str(self.vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
+            self.vms_details.append(str(floating_ips_list[id]) + " vm_name " + str(self.vm_details_list[i]['server']['name']))
+            self.vms_details.append(str(floating_ips_list[id]) + " vm_status " + str(self.vm_details_list[i]['server']['status']))
+            self.vms_details.append(str(floating_ips_list[id]) + " vm_power_status " + str(self.vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
+            self.vms_details.append(str(floating_ips_list[id]) + " availability_zone " + str(self.vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+            self.vms_details.append(str(floating_ips_list[id]) + " flavor " + str(self.vm_details_list[i]['server']['flavor']['id']))
 
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
@@ -111,22 +112,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
         floating_ips_list_after_restore = []
-        for i in range(len(self.vm_list)):
-            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[i]))
+        for id in range(len(self.vm_list)):
+            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[id]))
 
-        for i in range(len(self.restored_vm_details_list)):
-            floating_ips_list_after_restore.append(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr'])
+        for id in range(len(self.restored_vm_details_list)):
+            floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses']['int-net'][1]['addr'])
             LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
 
         self.vms_details_after_one_click_restore = []
-        for i in range(len(self.vm_list)):
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " security_group " + str(self.restored_vm_details_list[i]['server']['security_groups'][0]['name']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " keys " + str(self.restored_vm_details_list[i]['server']['key_name']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " floating_ip " + str(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " vm_name " + str(self.restored_vm_details_list[i]['server']['name']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " vm_status " + str(self.restored_vm_details_list[i]['server']['status']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " vm_power_status " + str(self.restored_vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
-            self.vms_details_after_one_click_restore.append(str(floating_ips_list[i]) + " availability_zone " + str(self.restored_vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+        for id in range(len(self.vm_list)):
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " security_group " + str(self.restored_vm_details_list[i]['server']['security_groups'][0]['name']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " keys " + str(self.restored_vm_details_list[i]['server']['key_name']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " floating_ip " + str(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " vm_name " + str(self.restored_vm_details_list[i]['server']['name']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " vm_status " + str(self.restored_vm_details_list[i]['server']['status']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " vm_power_status " + str(self.restored_vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " availability_zone " + str(self.restored_vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+            self.vms_details_after_one_click_restore.append(str(floating_ips_list[id]) + " flavor " + str(self.restored_vm_details_list[i]['server']['flavor']['id']))
 
 
         LOG.debug("vm details list after restore" + str( self.restored_vm_details_list))
@@ -139,8 +141,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
     #
     #     # verification one-click restore
-        for i in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[i])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[i]))
+        for id in range(len(self.vm_list)):
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
     #
     #     # incremental change
         self.md5sums_dir_before = self.data_populate_before_backup(self.vm_list, floating_ips_list_after_restore, 7)
@@ -155,8 +157,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         # no vm deletion for selective restore
 
         # diassociate floating ips#  deassociate floating ips from previous vms
-        for i in range(len(self.vm_list)):
-            self.diassociate_floating_ip(floating_ips_list_after_restore[i], self.vm_list[i])
+        for id in range(len(self.vm_list)):
+            self.diassociate_floating_ip(floating_ips_list_after_restore[id], self.vm_list[id])
 
 
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
@@ -173,26 +175,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
         floating_ips_list_after_restore = []
-        for i in range(len(self.vm_list)):
-            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[i]))
+        for id in range(len(self.vm_list)):
+            self.restored_vm_details_list.append(self.get_restored_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm detaild list after incremental change " + str(self.restored_vm_details_list))
 
-        for i in range(len(self.restored_vm_details_list)):
-            floating_ips_list_after_restore.append(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr'])
+        for id in range(len(self.restored_vm_details_list)):
+            floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses']['int-net'][1]['addr'])
 
         self.vms_details_after_selective_restore = []
-        for i in range(len(self.vm_list)):
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " security_group " + str(self.restored_vm_details_list[i]['server']['security_groups'][0]['name']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " keys " + str(self.restored_vm_details_list[i]['server']['key_name']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " floating_ip " + str(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " vm_name " + str(self.restored_vm_details_list[i]['server']['name']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " vm_status " + str(self.restored_vm_details_list[i]['server']['status']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " vm_power_status " + str(self.restored_vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
-            self.vms_details_after_selective_restore.append(str(floating_ips_list[i]) + " availability_zone " + str(self.restored_vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+        for id in range(len(self.vm_list)):
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " security_group " + str(self.restored_vm_details_list[i]['server']['security_groups'][0]['name']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " keys " + str(self.restored_vm_details_list[i]['server']['key_name']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " floating_ip " + str(self.restored_vm_details_list[i]['server']['addresses']['int-net'][1]['addr']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " vm_name " + str(self.restored_vm_details_list[i]['server']['name']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " vm_status " + str(self.restored_vm_details_list[i]['server']['status']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " vm_power_status " + str(self.restored_vm_details_list[i]['server']['OS-EXT-STS:vm_state']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " availability_zone " + str(self.restored_vm_details_list[i]['server']['OS-EXT-AZ:availability_zone']))
+            self.vms_details_after_selective_restore.append(str(floating_ips_list[id]) + " flavor " + str(self.restored_vm_details_list[i]['server']['flavor']['id']))
 
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
         self.assertTrue(self.vms_details==self.vms_details_after_one_click_restore, "virtaul instances details does not match")
 
         # verification selective restore incremental change
-        for i in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[i])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[i])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[i]))
+        for id in range(len(self.vm_list)):
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))

@@ -366,8 +366,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_available_volume_snapshots(cls):
         volume_snapshots = []
         resp = cls.snapshots_extensions_client.list_snapshots()
-        for i in range(0,len(resp['snapshots'])):
-            volume_snapshots.append(resp['snapshots'][i]['id'])
+        for id in range(0,len(resp['snapshots'])):
+            volume_snapshots.append(resp['snapshots'][id]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
 
@@ -378,10 +378,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_volume_snapshots(cls, volume_id):
         volume_snapshots = []
         resp = cls.snapshots_extensions_client.list_snapshots()
-        for i in range(0,len(resp['snapshots'])):
-            volume_snapshot_id = resp['snapshots'][i]['volumeId']
+        for id in range(0,len(resp['snapshots'])):
+            volume_snapshot_id = resp['snapshots'][id]['volumeId']
             if ( volume_id == volume_snapshot_id ):
-                volume_snapshots.append(resp['snapshots'][i]['id'])
+                volume_snapshots.append(resp['snapshots'][id]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
 
@@ -993,8 +993,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if len(floating_ips) == 0:
             raise ValueError("No free floating ip could be found")
         else:
-            for i in floating_ips:
-                floating_ips_list.append(i['ip'])
+            for ip in floating_ips:
+                floating_ips_list.append(ip['ip'])
 
         LOG.debug('floating_ips' + str(floating_ips_list))
         return floating_ips_list
@@ -1009,14 +1009,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         username = tvaultconf.instance_username
         key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
-        k = paramiko.RSAKey.from_private_key_file(key_file)
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         for i in range(30):
             while (True):
                 LOG.debug("Trying to connect to " + str(floating_ip))
                 try:
-                    ssh.connect(hostname=floating_ip, username=username ,pkey=k, timeout = 20)
+                    ssh.connect(hostname=floating_ip, username=username ,pkey=private_key, timeout = 20)
                     LOG.debug("Connected")
                     break
                 except Exception as e:
@@ -1259,22 +1259,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size):
         md5sums_dir_before = {}
-        for i in range(len(workload_instances)):
+        for id in range(len(workload_instances)):
             cls.md5sums = ""
-            LOG.debug("setting floating ip" + (floating_ips_list[i].encode('ascii','ignore')))
+            LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_b" +"/",5,"1M", backup_size)
-            cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",5,"1M", backup_size)
+            cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"mount_data_c" +"/",5,"1M", backup_size)
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[i],"/root" +"/",5,"1M", backup_size)
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
 
-            md5sums_dir_before[str(floating_ips_list[i])] = cls.md5sums
+            md5sums_dir_before[str(floating_ips_list[id])] = cls.md5sums
 
-            LOG.debug("before backup md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(cls.md5sums))
+            LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(cls.md5sums))
 
         LOG.debug("before backup md5sum : " + str(md5sums_dir_before))
         return md5sums_dir_before
@@ -1285,21 +1285,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def calculate_md5_after_restore(cls, workload_instances, floating_ips_list):
         LOG.debug("Calculating md5 sums for :" + str(workload_instances) + "||||" + str(floating_ips_list))
         md5sums_dir_after = {}
-        for i in range(len(workload_instances)):
+        for id in range(len(workload_instances)):
             cls.md5sums = ""
             # md5sums_dir_after = {}
 
-            cls.execute_command_disk_mount(floating_ips_list[i])
+            cls.execute_command_disk_mount(floating_ips_list[id])
 
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_b" +"/"))
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
 
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"mount_data_c" +"/"))
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
 
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[i],"/root" +"/"))
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
 
-            md5sums_dir_after[str(floating_ips_list[i])] = cls.md5sums
+            md5sums_dir_after[str(floating_ips_list[id])] = cls.md5sums
 
-            LOG.debug("after md5sum for " + floating_ips_list[i].encode('ascii','ignore') + " " +str(cls.md5sums))
+            LOG.debug("after md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(cls.md5sums))
 
         LOG.debug("after md5sum : " + str(md5sums_dir_after))
         return md5sums_dir_after
