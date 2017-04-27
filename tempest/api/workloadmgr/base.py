@@ -1007,7 +1007,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         # time.sleep(15)
         username = tvaultconf.instance_username
-        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
         k = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -1032,9 +1032,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def SshRemoteMachineConnectionWithRSAKey(cls, ipAddress):
         username = tvaultconf.instance_username
-        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
-        k = paramiko.RSAKey.from_private_key_file(key_file)
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         # flag = True
@@ -1042,7 +1042,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             while (True):
                 LOG.debug("Trying to connect to " + str(ipAddress))
                 try:
-                    ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
                     LOG.debug("Connected")
                     break
                 except Exception as e:
@@ -1058,12 +1058,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def execute_command_disk_create(cls, ipAddress):
         username = tvaultconf.instance_username
-        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
-        k = paramiko.RSAKey.from_private_key_file(key_file)
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+        ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
         stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
         stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
         LOG.debug("disk create my.layout output" + str(stdout.read()))
@@ -1132,12 +1132,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def execute_command_disk_mount(cls, ipAddress):
         username = tvaultconf.instance_username
-        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
-        k = paramiko.RSAKey.from_private_key_file(key_file)
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(ipAddress))
+                try:
+                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception.." + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
+        #ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+        LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
         # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
         buildCommand = "sudo mount /dev/vdb1 mount_data_b"
         sleeptime = 1
@@ -1191,12 +1204,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #dd if=/dev/urandom of=mastertest.txt,mastertest1.txt bs=1M count=1
         # import subprocess
         username = tvaultconf.instance_username
-        key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
-        k = paramiko.RSAKey.from_private_key_file(key_file)
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        ssh.connect(hostname=clientIP, username=username ,pkey=k, timeout = 20)
+        ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
         try:
             for count in range(fileCount):
                 buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
@@ -1216,12 +1229,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             local_md5sum = ""
             username = tvaultconf.instance_username
-            key_file = "/root/tempest/etc/" + str(tvaultconf.key_pair_name) + ".pem"
+            key_file = str(tvaultconf.key_pair_name) + ".pem"
             ssh=paramiko.SSHClient()
-            k = paramiko.RSAKey.from_private_key_file(key_file)
+            private_key = paramiko.RSAKey.from_private_key_file(key_file)
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             ssh.load_system_host_keys()
-            ssh.connect(hostname=clientIP, username=username ,pkey=k, timeout = 20)
+            ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
             time.sleep(3)
@@ -1270,10 +1283,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def calculate_md5_after_restore(cls, workload_instances, floating_ips_list):
+        LOG.debug("Calculating md5 sums for :" + str(workload_instances) + "||||" + str(floating_ips_list))
         md5sums_dir_after = {}
         for i in range(len(workload_instances)):
             cls.md5sums = ""
-            md5sums_dir_after = {}
+            # md5sums_dir_after = {}
 
             cls.execute_command_disk_mount(floating_ips_list[i])
 
@@ -1293,21 +1307,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     ''' method to create key pir'''
     @classmethod
-    def create_key_pair(cls, KEYPAIR_NAME):
+    def create_key_pair(cls, keypair_name):
         foorprint = ""
         # keypair = cls.keypairs_client.find_keypair(KEYPAIR_NAME)
         # print("Create Key Pair:")
         key_pairs_list_response = cls.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
-        for k in key_pairs:
-            if str(k['keypair']['name']) == KEYPAIR_NAME:
-                cls.keypairs_client.delete_keypair(KEYPAIR_NAME)
+        for key in key_pairs:
+            if str(key['keypair']['name']) == keypair_name:
+                cls.keypairs_client.delete_keypair(keypair_name)
 
-        keypair_response = cls.keypairs_client.create_keypair(name=KEYPAIR_NAME)
+        keypair_response = cls.keypairs_client.create_keypair(name=keypair_name)
         privatekey = keypair_response['keypair']['private_key']
         fingerprint  = keypair_response['keypair']['fingerprint']
-        with open("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", 'w+') as f:
+        with open(str(keypair_name) + ".pem", 'w+') as f:
             f.write(str(privatekey))
-        os.chmod("/root/tempest/etc/" + str(KEYPAIR_NAME) + ".pem", stat.S_IRWXU)
+        os.chmod(str(keypair_name) + ".pem", stat.S_IRWXU)
         LOG.debug("keypair fingerprint : " + str(fingerprint))
         return fingerprint
+
+
+    '''
+    Method to diassociate floating ip to a server
+    '''
+    @classmethod
+    def diassociate_floating_ip(cls, floating_ip, server_id):
+        set_response = cls.floating_ips_client.disassociate_floating_ip_from_server(floating_ip, server_id)
+        return set_response
