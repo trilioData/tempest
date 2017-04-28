@@ -15,7 +15,7 @@
 
 import time
 import paramiko
-import os
+import os, stat
 
 from oslo_log import log as logging
 from tempest import config
@@ -43,7 +43,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     _api_version = 2
     force_tenant_isolation = False
     credentials = ['primary']
-    
+
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
@@ -140,9 +140,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return restore_status
-    
+
     '''
-    Method returns the schedule status of a given workload 
+    Method returns the schedule status of a given workload
     '''
     @classmethod
     def getSchedulerStatus(cls, workload_id):
@@ -153,7 +153,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return schedule_status
-    
+
     '''
     Method returns the Retention Policy Type status of a given workload
     '''
@@ -166,7 +166,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return retention_policy_type
-        
+
     '''
     Method returns the Retention Policy Value of a given workload
     '''
@@ -192,7 +192,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return Full_Backup_Interval_Value
-    
+
     '''
     Method raises exception if snapshot is not successful
     '''
@@ -200,7 +200,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def assertSnapshotSuccessful(cls, workload_id, snapshot_id):
         snapshot_status = cls.getSnapshotStatus(workload_id, snapshot_id)
         cls.assertEqual(snapshot_status, "available")
-    
+
     '''
     Method raises exception if restore is not successful
     '''
@@ -208,7 +208,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def assertRestoreSuccessful(cls, workload_id, snapshot_id, restore_id):
         restore_status = cls.getRestoreStatus(workload_id, snapshot_id, restore_id)
         cls.assertEqual(restore_status, "available")
-    
+
     '''
     Method raises exception if scheduler is not enabled for a given workload
     '''
@@ -228,12 +228,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 server_id=self.read_vm_id()
             else:
 		networkid=[{'uuid':tvaultconf.internal_network_id}]
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
 	    networkid=[{'uuid':tvaultconf.internal_network_id}]
-            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
+            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
@@ -254,17 +254,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if(flag != 0):
                     server_id=self.read_vm_id()
                 else:
-                    server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                    server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref,key_name=tvaultconf.key_pair_name)
                     server_id=server['server']['id']
                     waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
             else:
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref)
+                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref,key_name=tvaultconf.key_pair_name)
                 #instances.append(server['server']['id'])
                 server_id=server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server['server']['id'], status='ACTIVE')
             instances.append(server_id)
         if(tvaultconf.cleanup):
-            self.addCleanup(self.delete_vms, instances)    
+            self.addCleanup(self.delete_vms, instances)
         return instances
 
     '''
@@ -278,7 +278,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             waiters.wait_for_server_termination(cls.servers_client, server_id)
         except lib_exc.NotFound:
             return
-    
+
     '''
     Method deletes the given VM instances list
     '''
@@ -305,7 +305,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.expected_resp = 200
         else:
             self.expected_resp = 200
-	LOG.debug("Expected Response Code: " + str(self.expected_resp))            
+	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -334,7 +334,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.volumes_client.delete_volume(volume_id)
         except Exception as e:
             return
-    
+
     '''
     Method deletes a given volume snapshot
     '''
@@ -346,7 +346,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             time.sleep(60)
         except Exception as e:
             return
-        
+
     '''
     Method deletes a list of volume snapshots
     '''
@@ -358,7 +358,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug('Snapshot delete operation completed %s' % volume_snapshots[snapshot])
             except Exception as e:
                 LOG.error("Exception: " + str(e))
-        
+
     '''
     Method to return list of available volume snapshots
     '''
@@ -366,8 +366,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_available_volume_snapshots(cls):
         volume_snapshots = []
         resp = cls.snapshots_extensions_client.list_snapshots()
-        for i in range(0,len(resp['snapshots'])):
-            volume_snapshots.append(resp['snapshots'][i]['id'])
+        for id in range(0,len(resp['snapshots'])):
+            volume_snapshots.append(resp['snapshots'][id]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
 
@@ -378,13 +378,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_volume_snapshots(cls, volume_id):
         volume_snapshots = []
         resp = cls.snapshots_extensions_client.list_snapshots()
-        for i in range(0,len(resp['snapshots'])):
-            volume_snapshot_id = resp['snapshots'][i]['volumeId']
+        for id in range(0,len(resp['snapshots'])):
+            volume_snapshot_id = resp['snapshots'][id]['volumeId']
             if ( volume_id == volume_snapshot_id ):
-                volume_snapshots.append(resp['snapshots'][i]['id'])
+                volume_snapshots.append(resp['snapshots'][id]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
         return volume_snapshots
-    
+
     '''
     Method returns the list of attached volumes to a given VM instance
     '''
@@ -397,7 +397,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             volume_list.append(volume['id']);
         LOG.debug("Attached volumes: "+ str(volume_list))
         return volume_list
-        
+
     '''
     Method deletes the given volumes list
     '''
@@ -410,7 +410,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug('Volume delete operation completed %s' % volume)
             except Exception as e:
                 pass
-    
+
     '''
     Method attaches given volume to given VM instance
     '''
@@ -421,7 +421,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         #                          server_id,
         #                          device)
         if( not tvaultconf.workloads_from_file):
-            if(tvaultconf.volumes_from_file):  
+            if(tvaultconf.volumes_from_file):
                 try:
                     LOG.debug("attach_volume: volumeId: %s, serverId: %s"  % (volume_id, server_id))
                     self.servers_client.attach_volume(server_id, volumeId=volume_id, device=device)
@@ -449,7 +449,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.volumes_client.wait_for_volume_status(volume_id, 'available')
         except lib_exc.NotFound:
             return
-    
+
     '''
     Method to detach given list of volumes
     '''
@@ -534,7 +534,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('WorkloadDeleted: %s' % workload_id)
 
     '''
-    Method creates oneclick snapshot for a given workload and returns snapshot id 
+    Method creates oneclick snapshot for a given workload and returns snapshot id
     '''
     def workload_snapshot(self, workload_id, is_full, snapshot_name="", snapshot_cleanup=True):
         if (snapshot_name == ""):
@@ -617,7 +617,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def snapshot_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if(restore_name == ""):
-            restore_name = "Tempest test restore"
+            restore_name = tvaultconf.snapshot_restore_name
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "oneclickrestore": True,
                                            "vmware": {},
@@ -674,7 +674,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms, restore_id)
         return restore_id
-   
+
     '''
     Method returns the list of restored VMs
     '''
@@ -687,10 +687,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         restore_vms = []
         for instance in instances:
             LOG.debug("instance:"+ instance['id'])
-            restore_vms.append(instance['id'])        
+            restore_vms.append(instance['id'])
         LOG.debug("Restored vms list:"+ str(restore_vms))
         return restore_vms
-    
+
     '''
     Method returns the list of restored volumes
     '''
@@ -727,12 +727,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         while (status != cls.getSnapshotStatus(workload_id, snapshot_id)):
             if(cls.getSnapshotStatus(workload_id, snapshot_id) == 'error'):
                 LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
-                raise Exception("Snapshot creation failed")            
+                raise Exception("Snapshot creation failed")
             LOG.debug('Snapshot status is: %s' % cls.getSnapshotStatus(workload_id, snapshot_id))
-            time.sleep(10)           
+            time.sleep(10)
         LOG.debug('Final Status of snapshot: %s' % (cls.getSnapshotStatus(workload_id, snapshot_id)))
         return status
-    
+
     '''
     Method to check if restore is successful
     '''
@@ -780,7 +780,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return is_running
 
 
-        
+
     '''
     Method to delete a given restore
     '''
@@ -896,7 +896,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     f.write(workload)
             f.truncate()
             return workload_id
-    
+
     '''
     Method to write scheduler details in file
     '''
@@ -916,7 +916,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if (tvaultconf.count == tvaultconf.No_of_Backup):
             tvaultconf.sched.remove_job('my_job_id')
             tvaultconf.sched.shutdown(wait=False)
-            
+
     '''
     Method to fetch the list of network ports
     '''
@@ -925,7 +925,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         port_list = cls.network_client.list_ports()
         LOG.debug("Port List: " + str(port_list))
         return port_list
-    
+
     '''
     Method to delete list of ports
     '''
@@ -971,7 +971,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
            resp.raise_for_status()
         return snapshot_info
-   
+
     '''
     Method to connect to remote linux machine
     '''
@@ -981,3 +981,356 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh.load_system_host_keys()
         ssh.connect(hostname=ipAddress, username=userName ,password=password)
         return ssh
+
+    '''
+    Method to list all floating ips
+    '''
+    @classmethod
+    def get_floating_ips(cls):
+        floating_ips_list = []
+        get_ips_response = cls.floating_ips_client.list_floating_ips()
+        floating_ips = get_ips_response['floating_ips']
+        if len(floating_ips) == 0:
+            raise ValueError("No free floating ip could be found")
+        else:
+            for ip in floating_ips:
+                floating_ips_list.append(ip['ip'])
+
+        LOG.debug('floating_ips' + str(floating_ips_list))
+        return floating_ips_list
+
+    '''
+    Method to assiciate floating ip to a server
+    '''
+    @classmethod
+    def set_floating_ip(cls, floating_ip, server_id):
+        set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
+        # time.sleep(15)
+        username = tvaultconf.instance_username
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(floating_ip))
+                try:
+                    ssh.connect(hostname=floating_ip, username=username ,pkey=private_key, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception : " + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
+        return set_response
+
+    '''
+    SSH using RSA Private key
+    '''
+    @classmethod
+    def SshRemoteMachineConnectionWithRSAKey(cls, ipAddress):
+        username = tvaultconf.instance_username
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        # flag = True
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(ipAddress))
+                try:
+                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception.." + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
+        return ssh
+
+    '''
+    layout creation and formatting the disks
+    '''
+    @classmethod
+    def execute_command_disk_create(cls, ipAddress):
+        username = tvaultconf.instance_username
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
+        LOG.debug("disk create my.layout output" + str(stdout.read()))
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdb < my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdc < my.layout")
+        stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
+        LOG.debug("fdisk output after partitioning " + str(stdout.read()))
+        # vdb1
+        buildCommand = "sudo mkfs -t ext3 /dev/vdb1"
+        sleeptime = 0.5
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        LOG.debug("sudo mkfs -t ext3 /dev/vdb1 executed")
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output waiting..")
+        retcode = chan.recv_exit_status()
+        stdin, stdout, stderr = ssh.exec_command("df -h")
+        LOG.debug("df -h after mkfs -t ext3  /dev/vdb1" + str(stdout.read()))
+        # if "/dev/vdb1" not in str(stdout.read()):
+        #     raise ValueError("/dev/vdb1 not mounted")
+        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdb1 " + str(stdout.read()))
+        # vdc1
+        buildCommand = "sudo mkfs -t ext3 /dev/vdc1"
+        sleeptime = 0.5
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        LOG.debug("sudo mkfs -t ext3 /dev/vdc1 executed")
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mkfs -t ext3 /dev/vdc1 output waiting..")
+        retcode = chan.recv_exit_status()
+        stdin, stdout, stderr = ssh.exec_command("df -h")
+        LOG.debug("df -h after mkfs -t ext3  /dev/vdc1" + str(stdout.read()))
+        # if "/dev/vdc1" not in str(stdout.read()):
+        #     raise ValueError("/dev/vdc1 not mounted")
+        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdc1 " + str(stdout.read()))
+        #  dir create
+        stdin, stdout, stderr = ssh.exec_command("sudo mkdir \mount_data_b \mount_data_c")
+
+    '''
+    disks mounting
+    '''
+    @classmethod
+    def execute_command_disk_mount(cls, ipAddress):
+        username = tvaultconf.instance_username
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        for i in range(30):
+            while (True):
+                LOG.debug("Trying to connect to " + str(ipAddress))
+                try:
+                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+                    LOG.debug("Connected")
+                    break
+                except Exception as e:
+                    LOG.debug("Got into Exception.." + str(e))
+                    i = i+1
+                    time.sleep(5)
+                    continue
+        #ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+        LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
+        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
+        buildCommand = "sudo mount /dev/vdb1 mount_data_b"
+        sleeptime = 1
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mount /dev/vdb1 mount_data_b output waiting..")
+        retcode = chan.recv_exit_status()
+        # LOG.debug("sudo mount /dev/vdb1 mount_data_b output " + str(stdout.read()))
+        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdc1 mount_data_c")
+        buildCommand = "sudo mount /dev/vdc1 mount_data_c"
+        sleeptime = 1
+        outdata, errdata = '', ''
+        ssh_transp = ssh.get_transport()
+        chan = ssh_transp.open_session()
+        # chan.settimeout(3 * 60 * 60)
+        chan.setblocking(0)
+        chan.exec_command(buildCommand)
+        while True:  # monitoring process
+            # Reading from output streams
+            while chan.recv_ready():
+                outdata += chan.recv(1000)
+            while chan.recv_stderr_ready():
+                errdata += chan.recv_stderr(1000)
+            if chan.exit_status_ready():  # If completed
+                break
+            time.sleep(sleeptime)
+            LOG.debug("sudo mount /dev/vdc1 mount_data_c output waiting..")
+        retcode = chan.recv_exit_status()
+        # LOG.debug("sudo mount /dev/vdc1 mount_data_c output " + str(stdout.read()))
+        #stdin, stdout, stderr = ssh_con.exec_command("sudo reboot")
+        LOG.debug("mounting completed for " + str(ipAddress))
+
+    '''
+    add custom sied files on linux
+    '''
+    @classmethod
+    def addCustomSizedfilesOnLinux(cls, clientIP, dirPath,fileCount, fileSize,sizeType):
+        #dd if=/dev/urandom of=mastertest.txt,mastertest1.txt bs=1M count=1
+        # import subprocess
+        username = tvaultconf.instance_username
+        key_file = str(tvaultconf.key_pair_name) + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
+        try:
+            for count in range(fileCount):
+                buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
+                LOG.debug("build command data population" + buildCommand)
+                stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                time.sleep(3)
+                stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
+                LOG.debug("file change output:" + str(stdout.read()))
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+    '''
+    calculate md5 checksum
+    '''
+    @classmethod
+    def calculatemmd5checksum(cls, clientIP, dirPath):
+        try:
+            local_md5sum = ""
+            username = tvaultconf.instance_username
+            key_file = str(tvaultconf.key_pair_name) + ".pem"
+            ssh=paramiko.SSHClient()
+            private_key = paramiko.RSAKey.from_private_key_file(key_file)
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.load_system_host_keys()
+            ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
+            buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(3)
+            for line in  stdout.readlines():
+                local_md5sum += str(line.split(" ")[0])
+            return local_md5sum
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+
+    '''
+    Method returns the list of details of restored VMs
+    '''
+    @classmethod
+    def get_restored_vm_details(cls, server_id):
+        response = cls.servers_client.show_server(server_id)
+        LOG.debug("Restored vm details :"+ str(response))
+        return response
+
+    '''method to populate data before full backup
+    '''
+    @classmethod
+    def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size):
+        md5sums_dir_before = {}
+        for id in range(len(workload_instances)):
+            cls.md5sums = ""
+            LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",5,"1M", backup_size)
+            cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
+
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",5,"1M", backup_size)
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
+
+            md5sums_dir_before[str(floating_ips_list[id])] = cls.md5sums
+
+            LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(cls.md5sums))
+
+        LOG.debug("before backup md5sum : " + str(md5sums_dir_before))
+        return md5sums_dir_before
+
+    '''method to populate data before full backup
+    '''
+    @classmethod
+    def calculate_md5_after_restore(cls, workload_instances, floating_ips_list):
+        LOG.debug("Calculating md5 sums for :" + str(workload_instances) + "||||" + str(floating_ips_list))
+        md5sums_dir_after = {}
+        for id in range(len(workload_instances)):
+            cls.md5sums = ""
+            # md5sums_dir_after = {}
+
+            cls.execute_command_disk_mount(floating_ips_list[id])
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
+
+            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
+
+            md5sums_dir_after[str(floating_ips_list[id])] = cls.md5sums
+
+            LOG.debug("after md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(cls.md5sums))
+
+        LOG.debug("after md5sum : " + str(md5sums_dir_after))
+        return md5sums_dir_after
+
+
+    ''' method to create key pir'''
+    @classmethod
+    def create_key_pair(cls, keypair_name):
+        foorprint = ""
+        # keypair = cls.keypairs_client.find_keypair(KEYPAIR_NAME)
+        # print("Create Key Pair:")
+        key_pairs_list_response = cls.keypairs_client.list_keypairs()
+        key_pairs = key_pairs_list_response['keypairs']
+        for key in key_pairs:
+            if str(key['keypair']['name']) == keypair_name:
+                cls.keypairs_client.delete_keypair(keypair_name)
+
+        keypair_response = cls.keypairs_client.create_keypair(name=keypair_name)
+        privatekey = keypair_response['keypair']['private_key']
+        fingerprint  = keypair_response['keypair']['fingerprint']
+        with open(str(keypair_name) + ".pem", 'w+') as f:
+            f.write(str(privatekey))
+        os.chmod(str(keypair_name) + ".pem", stat.S_IRWXU)
+        LOG.debug("keypair fingerprint : " + str(fingerprint))
+        return fingerprint
+
+
+    '''
+    Method to diassociate floating ip to a server
+    '''
+    @classmethod
+    def diassociate_floating_ip(cls, floating_ip, server_id):
+        set_response = cls.floating_ips_client.disassociate_floating_ip_from_server(floating_ip, server_id)
+        return set_response
