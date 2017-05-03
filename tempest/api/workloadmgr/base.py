@@ -220,7 +220,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True):
+    def create_vm(self, vm_name, vm_cleanup=True):
         if(tvaultconf.vms_from_file):
             flag=0
             flag=self.is_vm_available()
@@ -228,12 +228,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 server_id=self.read_vm_id()
             else:
 		networkid=[{'uuid':tvaultconf.internal_network_id}]
-                server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
 	    networkid=[{'uuid':tvaultconf.internal_network_id}]
-            server=self.servers_client.create_server(name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+            server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
@@ -646,7 +646,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
@@ -1212,10 +1212,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
         try:
             for count in range(fileCount):
-                buildCommand = "sudo dd if=/dev/urandom of="+str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt bs=" +str(fileSize) + " count=" + str(sizeType)
-                LOG.debug("build command data population" + buildCommand)
+		buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
+                LOG.debug("build command data population : " + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                time.sleep(3)
+                time.sleep(5)
                 stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
                 LOG.debug("file change output:" + str(stdout.read()))
         except Exception as e:
@@ -1237,7 +1237,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(3)
+            time.sleep(15)
             for line in  stdout.readlines():
                 local_md5sum += str(line.split(" ")[0])
             return local_md5sum
@@ -1249,7 +1249,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the list of details of restored VMs
     '''
     @classmethod
-    def get_restored_vm_details(cls, server_id):
+    def get_vm_details(cls, server_id):
         response = cls.servers_client.show_server(server_id)
         LOG.debug("Restored vm details :"+ str(response))
         return response
@@ -1263,13 +1263,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",5,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",6,"1M", backup_size)
             cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",5,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",6,"1M", backup_size)
             cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",5,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",6,"1M", backup_size)
             cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
 
             md5sums_dir_before[str(floating_ips_list[id])] = cls.md5sums
@@ -1334,3 +1334,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def diassociate_floating_ip(cls, floating_ip, server_id):
         set_response = cls.floating_ips_client.disassociate_floating_ip_from_server(floating_ip, server_id)
         return set_response
+
+    ''' method to get key pair details'''
+    @classmethod
+    def get_key_pair_details(cls, keypair_name):
+        foorprint = ""
+        key_pairs_list_response = cls.keypairs_client.show_keypair()
+        fingerprint  = key_pairs_list_response['keypair']['fingerprint']
+        LOG.debug("keypair fingerprint : " + str(fingerprint))
+        return fingerprint
+
+    '''get vms details list'''
+    @classmethod
+    def get_vms_details_list(cls, id, vm_details_list):
+        cls.vms_details = []
+        vm_name = vm_details_list[id]['server']['name']
+        cls.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
+        cls.vms_details.append(str(vm_name) + " keys " + str(vm_details_list[id]['server']['key_name']))
+        cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses']['int-net'][1]['addr']))
+        cls.vms_details.append(str(vm_name) + " vm_name " + str(vm_details_list[id]['server']['name']))
+        cls.vms_details.append(str(vm_name) + " vm_status " + str(vm_details_list[id]['server']['status']))
+        cls.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
+        cls.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
+        cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
+        return cls.vms_details
