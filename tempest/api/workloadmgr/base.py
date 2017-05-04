@@ -650,15 +650,35 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
-        payload={"restore": {"options": {"description": "Tempest test restore",
-                                           "oneclickrestore": False,
-                                           "vmware": {},
-                                           "openstack": {"instances": [], "zone": ""},
-                                           "type": "openstack",
-                                           "restore_options": {},
-                                           "name": restore_name},
-                "name": restore_name,
-                "description": "Tempest test restore"}}
+        if kwargs:
+            # availability_zone = kwargs['availability_zone']
+            # network = kwargs['network']
+            #flavor = kwargs['flavor']
+            #volume_type = kwargs['volume_type']
+            payload={"restore": {"options": {"description": "Tempest test restore",
+                                               "oneclickrestore": False,
+                                               "vmware": {"flavor":{
+                                                   "vcpus": "2",
+                                                   "disk" : "40",
+                                                   "ram" : "4096",
+                                                   "name": "m1.medium"
+                                               }},
+                                               "openstack": {"instances": [], "zone": ""},
+                                               "type": "openstack",
+                                               "restore_options": {},
+                                               "name": restore_name},
+                    "name": restore_name,
+                    "description": "Tempest test restore"}}
+        else:
+            payload={"restore": {"options": {"description": "Tempest test restore",
+                                               "oneclickrestore": False,
+                                               "vmware": {},
+                                               "openstack": {"instances": [], "zone": ""},
+                                               "type": "openstack",
+                                               "restore_options": {},
+                                               "name": restore_name},
+                    "name": restore_name,
+                    "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         LOG.debug("After returning from waitfor snapshot")
@@ -989,15 +1009,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_floating_ips(cls):
         floating_ips_list = []
         get_ips_response = cls.floating_ips_client.list_floating_ips()
+        LOG.debug("get floating ips response: " + str(get_ips_response))
         floating_ips = get_ips_response['floating_ips']
-        if len(floating_ips) == 0:
-            raise ValueError("No free floating ip could be found")
-        else:
-            for ip in floating_ips:
+        for ip in floating_ips:
+            LOG.debug("instanceid: " + str(ip['instance_id']))
+            if str(ip['instance_id']) == "None":
                 floating_ips_list.append(ip['ip'])
-
-        LOG.debug('floating_ips' + str(floating_ips_list))
-        return floating_ips_list
+        if len(floating_ips_list) ==0:
+            raise ValueError ("no free ips found")
+        else:
+            LOG.debug('floating_ips' + str(floating_ips_list))
+            return floating_ips_list
 
     '''
     Method to assiciate floating ip to a server
@@ -1349,12 +1371,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_vms_details_list(cls, id, vm_details_list):
         cls.vms_details = []
         vm_name = vm_details_list[id]['server']['name']
+        internal_network_name = vm_details_list[id]['server']['addresses'].items()[0][0]
         cls.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
         cls.vms_details.append(str(vm_name) + " keys " + str(vm_details_list[id]['server']['key_name']))
-        cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses']['int-net'][1]['addr']))
+        cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr']))
         cls.vms_details.append(str(vm_name) + " vm_name " + str(vm_details_list[id]['server']['name']))
         cls.vms_details.append(str(vm_name) + " vm_status " + str(vm_details_list[id]['server']['status']))
         cls.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
         cls.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
         cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
         return cls.vms_details
+
+    '''floating ip availability'''
+    @classmethod
+    def get_floating_ip_status(cls, ip):
+        floating_ip_status = cls.floating_ips_client.show_floating_ip(ip)
+        LOG.debug("floating ip details fetched: " + str(floating_ip_status))

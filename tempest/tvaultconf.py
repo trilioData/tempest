@@ -3,7 +3,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
-cleanup = True
+cleanup = False
 
 #Volume type to use by tempest
 volume_type="5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3"
@@ -52,4 +52,5 @@ No_of_Backup=1
 
 #keypair_name
 key_pair_name  = "tempest_test_key_pair"
-snapshot_restore_name = "Tempest test restore"
+instance_username = "ubuntu"
+snapshot_restore_name = "Tempest Test Restore"
