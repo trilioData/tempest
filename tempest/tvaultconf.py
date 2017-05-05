@@ -52,4 +52,5 @@ No_of_Backup=1
 
 #keypair_name
 key_pair_name  = "tempest_test_key_pair"
-snapshot_restore_name = "Tempest test restore"
+instance_username = "ubuntu"
+snapshot_restore_name = "Tempest Test Restore"
