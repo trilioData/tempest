@@ -83,7 +83,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100)
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
     #
     #     # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
@@ -129,7 +129,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
     #
     # #     # incremental change
-        self.md5sums_dir_before = self.data_populate_before_backup(self.vm_list, floating_ips_list_after_restore, 100)
+        self.md5sums_dir_before = self.data_populate_before_backup(self.vm_list, floating_ips_list_after_restore, 100, 7)
     #
     # #     # incremental snapshot backup
         self.snapshot_id=self.workload_snapshot(self.workload_id, False)

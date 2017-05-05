@@ -220,7 +220,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_name, vm_cleanup=True):
+    def create_vm(self, vm_cleanup=True, *args):
+        if args:
+            vm_name = args[0]
+        else:
+            vm_name = "Tempest-Test-Vm"
         if(tvaultconf.vms_from_file):
             flag=0
             flag=self.is_vm_available()
@@ -1279,19 +1283,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''method to populate data before full backup
     '''
     @classmethod
-    def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size):
+    def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size, files_count):
         md5sums_dir_before = {}
         for id in range(len(workload_instances)):
             cls.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",6,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",files_count,"1M", backup_size)
             cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",6,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",files_count,"1M", backup_size)
             cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
 
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",6,"1M", backup_size)
+            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",files_count,"1M", backup_size)
             cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
 
             md5sums_dir_before[str(floating_ips_list[id])] = cls.md5sums
