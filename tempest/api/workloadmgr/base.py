@@ -650,27 +650,82 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
+    @classmethod
+    def snapshot_selective_restore(cls, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
         if kwargs:
             # availability_zone = kwargs['availability_zone']
-            # network = kwargs['network']
-            #flavor = kwargs['flavor']
-            #volume_type = kwargs['volume_type']
-            payload={"restore": {"options": {"description": "Tempest test restore",
-                                               "oneclickrestore": False,
-                                               "vmware": {"flavor":{
-                                                   "vcpus": "2",
-                                                   "disk" : "40",
-                                                   "ram" : "4096",
-                                                   "name": "m1.medium"
-                                               }},
-                                               "openstack": {"instances": [], "zone": ""},
-                                               "type": "openstack",
-                                               "restore_options": {},
-                                               "name": restore_name},
+            #  restore_name = kwargs['restore_name']
+            instance_id_1 = kwargs['instance_id'][0]
+            to_retsore_instance_1 = kwargs['to_restore_instance_1']
+            instance_id_2 = kwargs['instance_id'][1]
+            to_retsore_instance_2 = kwargs['to_restore_instance_2']
+            vcpus = kwargs['vcpus']
+            ram = kwargs['ram']
+            disk = kwargs['disk']
+            int_net_1_id = kwargs['int_net_1_id']
+            resp, body = cls.compute_networks_client.show_network(int_net_1_id)
+            int_net_1_name = cls.compute_networks_client.show_network(int_net_1_id)['name']
+            int_net_1_subnets = cls.compute_networks_client.show_network(int_net_1_id)['subnets']
+            int_net_2_id = kwargs['int_net_2_id']
+            int_net_2_name = cls.compute_networks_client.show_network(int_net_2_id)['name']
+            int_net_2_subnets = cls.compute_networks_client.show_network(int_net_2_id)['subnets']
+
+            payload={
+                "restore": {
+                    "options": {
+                        'name': restore_name,
+                        'description': 'Restore description',
+                        'type': 'openstack',
+                        'openstack': {
+                            'instances': [{
+                                'id': instance_id_1,
+                                'name': 'restored',
+                                'include': to_retsore_instance_1,
+                                'power': {
+                                    'sequence': 1,
+                                },
+                                'flavor': {
+                                    'vcpus': vcpus,
+                                    'ram': ram,
+                                    'disk':  disk
+                                },
+                                'nics': [],},
+                                {
+                                'id': instance_id_2,
+                                'name': 'restored',
+                                'include': to_retsore_instance_2,
+                                'power': {
+                                    'sequence': 1,
+                                },
+                                'flavor': {
+                                    'vcpus': vcpus,
+                                    'ram': ram,
+                                    'disk': disk
+                                },
+                                'nics': [],
+                                }
+                                        ],
+                        'networks_mapping': {
+       'networks': [
+           {'snapshot_network': {
+                'name': int_net_1_name,
+                'id': int_net_1_id,
+                'subnet': {'id': int_net_1_subnets}
+               },
+            'target_network': {
+                'id': int_net_2_id,
+                'name': int_net_2_name,
+                'subnet': {'id': int_net_2_subnets}
+            }
+          }
+       ]
+     }
+    }
+}
+,
                     "name": restore_name,
                     "description": "Tempest test restore"}}
         else:
@@ -1031,25 +1086,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def set_floating_ip(cls, floating_ip, server_id):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
-        # time.sleep(15)
-        username = tvaultconf.instance_username
-        key_file = str(tvaultconf.key_pair_name) + ".pem"
-        ssh=paramiko.SSHClient()
-        private_key = paramiko.RSAKey.from_private_key_file(key_file)
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        for i in range(30):
-            while (True):
-                LOG.debug("Trying to connect to " + str(floating_ip))
-                try:
-                    ssh.connect(hostname=floating_ip, username=username ,pkey=private_key, timeout = 20)
-                    LOG.debug("Connected")
-                    break
-                except Exception as e:
-                    LOG.debug("Got into Exception : " + str(e))
-                    i = i+1
-                    time.sleep(5)
-                    continue
+        cls.SshRemoteMachineConnectionWithRSAKey(floating_ip)
         return set_response
 
     '''
@@ -1063,33 +1100,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        # flag = True
+        flag = True
         for i in range(30):
-            while (True):
+            while (flag):
                 LOG.debug("Trying to connect to " + str(ipAddress))
                 try:
                     ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
                     LOG.debug("Connected")
+                    flag = False
                     break
                 except Exception as e:
                     LOG.debug("Got into Exception.." + str(e))
                     i = i+1
                     time.sleep(5)
                     continue
+            if flag == False:
+                break
         return ssh
 
     '''
     layout creation and formatting the disks
     '''
     @classmethod
-    def execute_command_disk_create(cls, ipAddress):
-        username = tvaultconf.instance_username
-        key_file = str(tvaultconf.key_pair_name) + ".pem"
-        ssh=paramiko.SSHClient()
-        private_key = paramiko.RSAKey.from_private_key_file(key_file)
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+    def execute_command_disk_create(cls, ssh, ipAddress):
         stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
         stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
         LOG.debug("disk create my.layout output" + str(stdout.read()))
@@ -1156,26 +1189,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     disks mounting
     '''
     @classmethod
-    def execute_command_disk_mount(cls, ipAddress):
-        username = tvaultconf.instance_username
-        key_file = str(tvaultconf.key_pair_name) + ".pem"
-        ssh=paramiko.SSHClient()
-        private_key = paramiko.RSAKey.from_private_key_file(key_file)
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        for i in range(30):
-            while (True):
-                LOG.debug("Trying to connect to " + str(ipAddress))
-                try:
-                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-                    LOG.debug("Connected")
-                    break
-                except Exception as e:
-                    LOG.debug("Got into Exception.." + str(e))
-                    i = i+1
-                    time.sleep(5)
-                    continue
-        #ssh.connect(hostname=ipAddress, username=username ,pkey=k, timeout = 20)
+    def execute_command_disk_mount(cls, ssh, ipAddress):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
         # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
         buildCommand = "sudo mount /dev/vdb1 mount_data_b"
@@ -1226,24 +1240,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     add custom sied files on linux
     '''
     @classmethod
-    def addCustomSizedfilesOnLinux(cls, clientIP, dirPath,fileCount, fileSize,sizeType):
-        #dd if=/dev/urandom of=mastertest.txt,mastertest1.txt bs=1M count=1
-        # import subprocess
-        username = tvaultconf.instance_username
-        key_file = str(tvaultconf.key_pair_name) + ".pem"
-        ssh=paramiko.SSHClient()
-        private_key = paramiko.RSAKey.from_private_key_file(key_file)
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
+    def addCustomSizedfilesOnLinux(cls, ssh, dirPath,fileCount):
         try:
             for count in range(fileCount):
-		buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
+                buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
                 LOG.debug("build command data population : " + buildCommand)
-                stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                # stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                sleeptime = 2
+                outdata, errdata = '', ''
+                ssh_transp = ssh.get_transport()
+                chan = ssh_transp.open_session()
+                # chan.settimeout(3 * 60 * 60)
+                chan.setblocking(0)
+                chan.exec_command(buildCommand)
                 time.sleep(5)
-                stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
-                LOG.debug("file change output:" + str(stdout.read()))
+                while True:  # monitoring process
+                    # Reading from output streams
+                    while chan.recv_ready():
+                        outdata += chan.recv(1000)
+                    while chan.recv_stderr_ready():
+                        errdata += chan.recv_stderr(1000)
+                    if chan.exit_status_ready():  # If completed
+                        break
+                    time.sleep(sleeptime)
+                    LOG.debug(str(buildCommand)+ " waiting..")
+                retcode = chan.recv_exit_status()
+                # stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
+                # LOG.debug("file change output:" + str(stdout.read()))
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
@@ -1251,16 +1274,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     calculate md5 checksum
     '''
     @classmethod
-    def calculatemmd5checksum(cls, clientIP, dirPath):
+    def calculatemmd5checksum(cls, ssh, dirPath):
         try:
             local_md5sum = ""
-            username = tvaultconf.instance_username
-            key_file = str(tvaultconf.key_pair_name) + ".pem"
-            ssh=paramiko.SSHClient()
-            private_key = paramiko.RSAKey.from_private_key_file(key_file)
-            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-            ssh.load_system_host_keys()
-            ssh.connect(hostname=clientIP, username=username ,pkey=private_key, timeout = 20)
             buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
             time.sleep(15)
@@ -1288,18 +1304,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for id in range(len(workload_instances)):
             cls.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
-
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_b" +"/",files_count,"1M", backup_size)
-            cls.md5sums +=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
-
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"mount_data_c" +"/",files_count,"1M", backup_size)
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
-
-            cls.addCustomSizedfilesOnLinux(floating_ips_list[id],"/root" +"/",files_count,"1M", backup_size)
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
+            ssh = cls.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
+            data = ["mount_data_b/", "mount_data_c/", "/root/"]
+            for mount in data:
+                cls.addCustomSizedfilesOnLinux(ssh, mount, files_count)
+                cls.md5sums+=(cls.calculatemmd5checksum(ssh, mount))
 
             md5sums_dir_before[str(floating_ips_list[id])] = cls.md5sums
-
             LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(cls.md5sums))
 
         LOG.debug("before backup md5sum : " + str(md5sums_dir_before))
@@ -1314,14 +1325,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for id in range(len(workload_instances)):
             cls.md5sums = ""
             # md5sums_dir_after = {}
+            ssh = cls.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
 
-            cls.execute_command_disk_mount(floating_ips_list[id])
-
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_b" +"/"))
-
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"mount_data_c" +"/"))
-
-            cls.md5sums+=(cls.calculatemmd5checksum(floating_ips_list[id],"/root" +"/"))
+            cls.execute_command_disk_mount(ssh, floating_ips_list[id])
+            data = ["mount_data_b/", "mount_data_c/", "/root/"]
+            for mount in data:
+                cls.md5sums+=(cls.calculatemmd5checksum(ssh, mount))
 
             md5sums_dir_after[str(floating_ips_list[id])] = cls.md5sums
 
