@@ -650,13 +650,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
+    @classmethod
+    def snapshot_selective_restore(cls, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
         if kwargs:
             # availability_zone = kwargs['availability_zone']
-            restore_name = kwargs['restore_name']
+            #  restore_name = kwargs['restore_name']
             instance_id_1 = kwargs['instance_id'][0]
             to_retsore_instance_1 = kwargs['to_restore_instance_1']
             instance_id_2 = kwargs['instance_id'][1]
@@ -665,11 +666,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ram = kwargs['ram']
             disk = kwargs['disk']
             int_net_1_id = kwargs['int_net_1_id']
-            int_net_1_name = cls.network_client.show_network(int_net_1_id)['name']
-            int_net_1_subnets = cls.network_client.show_network(int_net_1_id)['subnets']
+            resp, body = cls.compute_networks_client.show_network(int_net_1_id)
+            int_net_1_name = cls.compute_networks_client.show_network(int_net_1_id)['name']
+            int_net_1_subnets = cls.compute_networks_client.show_network(int_net_1_id)['subnets']
             int_net_2_id = kwargs['int_net_2_id']
-            int_net_2_name = cls.network_client.show_network(int_net_2_id)['name']
-            int_net_2_subnets = cls.network_client.show_network(int_net_2_id)['subnets']
+            int_net_2_name = cls.compute_networks_client.show_network(int_net_2_id)['name']
+            int_net_2_subnets = cls.compute_networks_client.show_network(int_net_2_id)['subnets']
 
             payload={
                 "restore": {
@@ -1299,7 +1301,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def data_populate_before_backup(cls, workload_instances, floating_ips_list, backup_size, files_count):
         md5sums_dir_before = {}
-        import threading
         for id in range(len(workload_instances)):
             cls.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
