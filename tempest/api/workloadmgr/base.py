@@ -47,6 +47,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
+        cls.subnets_client = cls.os.subnets_client
         cls.wlm_client = cls.os.wlm_client
         cls.servers_client = cls.os.servers_client
         cls.server_groups_client = cls.os.server_groups_client
@@ -666,12 +667,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ram = kwargs['ram']
             disk = kwargs['disk']
             int_net_1_id = kwargs['int_net_1_id']
-            resp, body = cls.compute_networks_client.show_network(int_net_1_id)
-            int_net_1_name = cls.compute_networks_client.show_network(int_net_1_id)['name']
-            int_net_1_subnets = cls.compute_networks_client.show_network(int_net_1_id)['subnets']
+            int_net_1_name = str(cls.compute_networks_client.show_network(int_net_1_id).items()[0][1]['label'])
             int_net_2_id = kwargs['int_net_2_id']
-            int_net_2_name = cls.compute_networks_client.show_network(int_net_2_id)['name']
-            int_net_2_subnets = cls.compute_networks_client.show_network(int_net_2_id)['subnets']
+            int_net_2_name = str(cls.compute_networks_client.show_network(int_net_2_id).items()[0][1]['label'])
+            subnet_list = cls.subnets_client.list_subnets().items()[0][1]
+            for subnet in subnet_list:
+                if subnet['network_id'] == int_net_1_id:
+                    int_net_1_subnets = subnet['id']
+                elif subnet['network_id'] == int_net_2_id:
+                    int_net_2_subnets = subnet['id']
 
             payload={
                 "restore": {
@@ -739,9 +743,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "name": restore_name,
                     "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
-        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        cls.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         LOG.debug("After returning from waitfor snapshot")
-        resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
+        resp, body = cls.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
         restore_id = body['restore']['id']
         LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -750,8 +754,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
-            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-            self.addCleanup(self.delete_restored_vms, restore_id)
+            cls.addCleanup(cls.restore_delete, workload_id, snapshot_id, restore_id)
+            cls.addCleanup(cls.delete_restored_vms, restore_id)
         return restore_id
 
     '''
@@ -1101,20 +1105,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         flag = True
-        for i in range(30):
-            while (flag):
-                LOG.debug("Trying to connect to " + str(ipAddress))
-                try:
-                    ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-                    LOG.debug("Connected")
-                    flag = False
-                    break
-                except Exception as e:
-                    LOG.debug("Got into Exception.." + str(e))
-                    i = i+1
-                    time.sleep(5)
-                    continue
-            if flag == False:
+        for i in range(0, 30, 1):
+            LOG.debug("Trying to connect to " + str(ipAddress))
+            time.sleep(6)
+            try:
+                ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+            except Exception as e:
+                if i == 29:
+                    raise
+                LOG.debug("Got into Exception.." + str(e))
+            else:
                 break
         return ssh
 
