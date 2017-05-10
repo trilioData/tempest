@@ -651,8 +651,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    @classmethod
-    def snapshot_selective_restore(cls, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
+
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name ==""):
             restore_name =  "Tempest test restore"
@@ -667,15 +667,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ram = kwargs['ram']
             disk = kwargs['disk']
             int_net_1_id = kwargs['int_net_1_id']
-            int_net_1_name = str(cls.compute_networks_client.show_network(int_net_1_id).items()[0][1]['label'])
+            int_net_1_name = kwargs['int_net_1_name']
             int_net_2_id = kwargs['int_net_2_id']
-            int_net_2_name = str(cls.compute_networks_client.show_network(int_net_2_id).items()[0][1]['label'])
-            subnet_list = cls.subnets_client.list_subnets().items()[0][1]
-            for subnet in subnet_list:
-                if subnet['network_id'] == int_net_1_id:
-                    int_net_1_subnets = subnet['id']
-                elif subnet['network_id'] == int_net_2_id:
-                    int_net_2_subnets = subnet['id']
+            int_net_2_name = kwargs['int_net_2_name']
+            int_net_1_subnets = kwargs['int_net_1_subnets']
+            int_net_2_subnets = kwargs['int_net_2_subnets']
+
 
             payload={
                 "restore": {
@@ -743,9 +740,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "name": restore_name,
                     "description": "Tempest test restore"}}
         LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
-        cls.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         LOG.debug("After returning from waitfor snapshot")
-        resp, body = cls.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
+        resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
         restore_id = body['restore']['id']
         LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -754,8 +751,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
-            cls.addCleanup(cls.restore_delete, workload_id, snapshot_id, restore_id)
-            cls.addCleanup(cls.delete_restored_vms, restore_id)
+            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+            self.addCleanup(self.delete_restored_vms, restore_id)
         return restore_id
 
     '''
@@ -1242,9 +1239,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def addCustomSizedfilesOnLinux(cls, ssh, dirPath,fileCount):
         try:
+            LOG.debug("build command data population : " + str(dirPath))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-                LOG.debug("build command data population : " + buildCommand)
                 # stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 sleeptime = 2
                 outdata, errdata = '', ''
@@ -1393,6 +1390,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
         cls.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
         cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
+        cls.vms_details.append(str(vm_name) + " internal network " + str(vm_details_list[id]['server']['addresses'].items()[0][0]))
         return cls.vms_details
 
     '''floating ip availability'''
@@ -1400,3 +1398,36 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_floating_ip_status(cls, ip):
         floating_ip_status = cls.floating_ips_client.show_floating_ip(ip)
         LOG.debug("floating ip details fetched: " + str(floating_ip_status))
+
+    '''get network name  by id'''
+    @classmethod
+    def get_net_name(cls, id):
+        return str(cls.compute_networks_client.show_network(id).items()[0][1]['label'])
+
+    '''get subnet id'''
+    @classmethod
+    def get_subnet_id(cls, id):
+        subnet_list = cls.subnets_client.list_subnets().items()[0][1]
+        for subnet in subnet_list:
+            if subnet['network_id'] == id:
+                subnet = subnet['id']
+        return subnet
+
+    '''delete key'''
+    @classmethod
+    def delete_key_pair(cls, keypair_name):
+        key_pairs_list_response = cls.keypairs_client.list_keypairs()
+        key_pairs = key_pairs_list_response['keypairs']
+        for key in key_pairs:
+            if str(key['keypair']['name']) == keypair_name:
+                cls.keypairs_client.delete_keypair(keypair_name)
+
+    '''delete security group'''
+    @classmethod
+    def delete_security_group(cls, security_group):
+        cls.security_groups_client.delete_security_group(security_group)
+
+    '''delete flavor'''
+    @classmethod
+    def delete_flavor(cls, flavor):
+        cls.flavors_client.delete_flavor(flavor)
