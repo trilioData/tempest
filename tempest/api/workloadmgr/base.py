@@ -232,12 +232,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(flag != 0):
                 server_id=self.read_vm_id()
             else:
-		networkid=[{'uuid':tvaultconf.internal_network_id}]
+		networkid=[{'uuid':CONF.network.public_network_id}]
                 server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
-	    networkid=[{'uuid':tvaultconf.internal_network_id}]
+	    networkid=[{'uuid':CONF.network.public_network_id}]
             server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
@@ -672,6 +672,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             int_net_2_name = kwargs['int_net_2_name']
             int_net_1_subnets = kwargs['int_net_1_subnets']
             int_net_2_subnets = kwargs['int_net_2_subnets']
+            LOG.debug ("details: " + int_net_1_id + int_net_1_name+ int_net_1_subnets + int_net_2_id + int_net_2_name+ int_net_2_subnets)
 
 
             payload={
@@ -1401,17 +1402,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get network name  by id'''
     @classmethod
-    def get_net_name(cls, id):
-        return str(cls.compute_networks_client.show_network(id).items()[0][1]['label'])
+    def get_net_name(cls, network_id):
+        return str(cls.compute_networks_client.show_network(network_id).items()[0][1]['label'])
 
     '''get subnet id'''
     @classmethod
-    def get_subnet_id(cls, id):
+    def get_subnet_id(cls, network_id):
         subnet_list = cls.subnets_client.list_subnets().items()[0][1]
         for subnet in subnet_list:
-            if subnet['network_id'] == id:
-                subnet = subnet['id']
-        return subnet
+            if subnet['network_id'] == network_id:
+                return subnet['id']
+
 
     '''delete key'''
     @classmethod
@@ -1424,10 +1425,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''delete security group'''
     @classmethod
-    def delete_security_group(cls, security_group):
-        cls.security_groups_client.delete_security_group(security_group)
+    def delete_security_group(cls, security_group_id):
+        cls.security_groups_client.delete_security_group(security_group_id)
 
     '''delete flavor'''
     @classmethod
-    def delete_flavor(cls, flavor):
-        cls.flavors_client.delete_flavor(flavor)
+    def delete_flavor(cls, flavor_id):
+        cls.flavors_client.delete_flavor(flavor_id)
