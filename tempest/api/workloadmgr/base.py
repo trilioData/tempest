@@ -1074,7 +1074,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         floating_ips = get_ips_response['floating_ips']
         for ip in floating_ips:
             LOG.debug("instanceid: " + str(ip['instance_id']))
-            if str(ip['instance_id']) == "None":
+            if str(ip['instance_id']) == "None" or str(ip['instance_id']) == "":
                 floating_ips_list.append(ip['ip'])
         if len(floating_ips_list) ==0:
             raise ValueError ("no free ips found")
