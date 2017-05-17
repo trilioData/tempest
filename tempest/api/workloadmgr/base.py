@@ -1105,10 +1105,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         flag = True
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
-            time.sleep(6)
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
             except Exception as e:
+                time.sleep(6)
                 if i == 29:
                     raise
                 LOG.debug("Got into Exception.." + str(e))
@@ -1244,14 +1244,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
                 # stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                sleeptime = 2
                 outdata, errdata = '', ''
                 ssh_transp = ssh.get_transport()
                 chan = ssh_transp.open_session()
                 # chan.settimeout(3 * 60 * 60)
                 chan.setblocking(0)
                 chan.exec_command(buildCommand)
-                time.sleep(5)
+                time.sleep(20)
                 while True:  # monitoring process
                     # Reading from output streams
                     while chan.recv_ready():
@@ -1261,7 +1260,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     if chan.exit_status_ready():  # If completed
                         break
                     time.sleep(sleeptime)
-                    LOG.debug(str(buildCommand)+ " waiting..")
+                    # LOG.debug(str(buildCommand)+ " waiting..")
                 retcode = chan.recv_exit_status()
                 # stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
                 # LOG.debug("file change output:" + str(stdout.read()))
@@ -1382,16 +1381,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_vms_details_list(cls, id, vm_details_list):
         cls.vms_details = []
         vm_name = vm_details_list[id]['server']['name']
-        internal_network_name = vm_details_list[id]['server']['addresses'].items()[0][0]
+        internal_network_name = list(vm_details_list[id]['server']['addresses'].keys())[0]
         cls.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
         cls.vms_details.append(str(vm_name) + " keys " + str(vm_details_list[id]['server']['key_name']))
-        cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr']))
+        if len(vm_details_list[id]['server']['addresses'][str(internal_network_name)]) == 2:
+            cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr']))
         cls.vms_details.append(str(vm_name) + " vm_name " + str(vm_details_list[id]['server']['name']))
         cls.vms_details.append(str(vm_name) + " vm_status " + str(vm_details_list[id]['server']['status']))
         cls.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
         cls.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
         cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
-        cls.vms_details.append(str(vm_name) + " internal network " + str(vm_details_list[id]['server']['addresses'].items()[0][0]))
+        cls.vms_details.append(str(vm_name) + " internal network " + str(list(vm_details_list[id]['server']['addresses'].keys())[0]))
         return cls.vms_details
 
     '''floating ip availability'''

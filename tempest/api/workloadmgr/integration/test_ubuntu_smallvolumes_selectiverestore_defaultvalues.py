@@ -93,8 +93,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
 	self.workload_reset(self.workload_id)
         time.sleep(40)
+
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
+
+        self.snapshot_id=self.workload_snapshot(self.workload_id, False)
+        self.wait_for_workload_tobe_available(self.workload_id)
+        self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
+	self.workload_reset(self.workload_id)
+        time.sleep(40)
         self.delete_vms(self.workload_instances)
-        self.restore_id=self.snapshot_restore(self.workload_id, self.snapshot_id)
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
         self.assertEqual(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id), "available","Workload_id: "+self.workload_id+" Snapshot_id: "+self.snapshot_id+" Restore id: "+self.restore_id)
 
@@ -129,53 +137,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for id in range(len(self.vm_list)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
     #
-    # #     # incremental change
-        self.md5sums_dir_before = self.data_populate_before_backup(self.vm_list, floating_ips_list_after_restore, 100, 7)
-    #
-    # #     # incremental snapshot backup
-        self.snapshot_id=self.workload_snapshot(self.workload_id, False)
-        self.wait_for_workload_tobe_available(self.workload_id)
-        self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
-	self.workload_reset(self.workload_id)
-        time.sleep(40)
-    #
-    #     # no vm deletion for selective restore
-    #
-    #     # diassociate floating ips#  deassociate floating ips from previous vms
-        for id in range(len(self.vm_list)):
-            self.diassociate_floating_ip(floating_ips_list_after_restore[id], self.vm_list[id])
-    #
-    #
-        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
-        self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
-        self.assertEqual(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id), "available","Workload_id: "+self.workload_id+" Snapshot_id: "+self.snapshot_id+" Restore id: "+self.restore_id)
-
-    #
-    #
-    #     # after selective restore_id and incremental change
-    #     # after restore
-        self.vm_list = []
-    #     # restored_vm_details = ""
-        self.restored_vm_details_list = []
-        self.vm_list  =  self.get_restored_vm_list(self.restore_id)
-        LOG.debug("Restored vms : " + str (self.vm_list))
-        floating_ips_list_after_restore = []
-        for id in range(len(self.vm_list)):
-            self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-        LOG.debug("Restored vm detaild list after incremental change " + str(self.restored_vm_details_list))
-        internal_network_name = self.get_vm_details(self.vm_list[0])['server']['addresses'].items()[0][0]
-
-        for id in range(len(self.restored_vm_details_list)):
-            floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
-
-        self.vms_details_after_selective_restore = []
-        for id in range(len(self.vm_list)):
-            self.vms_details_after_selective_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
-
-        self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
-        self.assertTrue(all(items in self.vms_details_after_one_click_restore for items in self.vms_details), "virtual instances details does not match")
-    #     # self.assertTrue(self.vms_details==self.vms_details_after_one_click_restore, "virtual instances details does not match")
-    #
-    #     # verification selective restore incremental change
-        for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
