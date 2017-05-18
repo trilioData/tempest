@@ -122,7 +122,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name = tvaultconf.restore_name,
                                                         instance_id = self.workload_instances,
                                                         to_restore_instance_1 = True,
-                                                        to_restore_instance_2 = Trueeeeeee,
+                                                        to_restore_instance_2 = True,
                                                         vcpus = vcpus,
                                                         ram = ram,
                                                         disk = disk,
