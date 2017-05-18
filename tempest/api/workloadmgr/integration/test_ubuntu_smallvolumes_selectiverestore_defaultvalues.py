@@ -70,9 +70,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for id in range(len(self.workload_instances)):
             floating_ip = self.get_floating_ips()[0]
             self.set_floating_ip(str(floating_ip), self.workload_instances[id])
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
-            self.execute_command_disk_create(ssh, floating_ips_list[id])
-            self.execute_command_disk_mount(ssh, floating_ips_list[id])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+            self.execute_command_disk_create(ssh, str(floating_ip))
+            self.execute_command_disk_mount(ssh, str(floating_ip))
     #
     #     # before restore
         self.vm_details_list = []
