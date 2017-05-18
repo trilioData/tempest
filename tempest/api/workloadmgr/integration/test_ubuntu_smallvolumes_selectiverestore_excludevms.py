@@ -53,6 +53,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vm_details_list = []
         self.original_fingerprint = ""
         self.vms_details = []
+        floating_ips_list = []
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         #  floating_ips_list = self.get_floating_ips()
