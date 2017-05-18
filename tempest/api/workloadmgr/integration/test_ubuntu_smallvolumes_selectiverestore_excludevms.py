@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vms_details = []
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        floating_ips_list = self.get_floating_ips()
+        #  floating_ips_list = self.get_floating_ips()
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name)
@@ -68,7 +68,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
 
         for id in range(len(self.workload_instances)):
-            self.set_floating_ip((floating_ips_list[id].encode('ascii','ignore')), self.workload_instances[id])
+            floating_ip = self.get_floating_ips()[0]
+            self.set_floating_ip(str(floating_ip), self.workload_instances[id])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
             self.execute_command_disk_create(ssh, floating_ips_list[id])
             self.execute_command_disk_mount(ssh, floating_ips_list[id])

@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vms_details = []
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        floating_ips_list = self.get_floating_ips()
+        # floating_ips_list = self.get_floating_ips()
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name)
@@ -68,7 +68,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
 
         for id in range(len(self.workload_instances)):
-            self.set_floating_ip((floating_ips_list[id].encode('ascii','ignore')), self.workload_instances[id])
+            floating_ip = self.get_floating_ips()[0]
+            self.set_floating_ip(str(floating_ip), self.workload_instances[id])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
             self.execute_command_disk_create(ssh, floating_ips_list[id])
             self.execute_command_disk_mount(ssh, floating_ips_list[id])
@@ -122,14 +123,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
             LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
 
-        self.vms_details_after_one_click_restore = []
+        self.vms_details_after_selective_restore = []
         for id in range(len(self.vm_list)):
-            self.vms_details_after_one_click_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
+            self.vms_details_after_selective_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
 
         LOG.debug("vm details list after restore" + str( self.restored_vm_details_list))
-        LOG.debug("vm details dir after restore" + str( self.vms_details_after_one_click_restore))
+        LOG.debug("vm details dir after restore" + str( self.vms_details_after_selective_restore))
 
-        self.assertTrue(all(items in self.vms_details_after_one_click_restore for items in self.vms_details), "virtual instances details does not match")
+        self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
 
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
     #
