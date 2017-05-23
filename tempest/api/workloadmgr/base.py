@@ -1086,7 +1086,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to assiciate floating ip to a server
     '''
     @classmethod
-    def set_floating_ip(cls, floating_ip, server_id):
+    def set_floating_ip(cls, floating_ip, server_id, ip_cleanup = True):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         cls.SshRemoteMachineConnectionWithRSAKey(floating_ip)
         return set_response
@@ -1432,3 +1432,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def delete_flavor(cls, flavor_id):
         cls.flavors_client.delete_flavor(flavor_id)
+
+    '''get port_id from floating_ip'''
+    @classmethod
+    def get_port_id(cls, fixed_ip):
+        ports_list = []
+        ports_list = cls.get_port_list()
+        for port in ports_list['ports']:
+            if str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
+                return str(port['id'])
+
+    '''delete port'''
+    @classmethod
+    def delete_port(cls, server_id):
+        ports = []
+        internal_network_name = str((cls.get_vm_details(server_id)['server']['addresses'].keys()[0]))
+        fixed_ip = str((cls.get_vm_details(server_id)['server']['addresses'][internal_network_name][0]['addr']))
+        ports.append(cls.get_port_id(fixed_ip))
+        cls.delete_ports(ports)
