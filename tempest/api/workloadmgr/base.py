@@ -1086,7 +1086,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to assiciate floating ip to a server
     '''
     @classmethod
-    def set_floating_ip(cls, floating_ip, server_id, ip_cleanup = True):
+    def set_floating_ip(cls, floating_ip, server_id):
         set_response = cls.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         cls.SshRemoteMachineConnectionWithRSAKey(floating_ip)
         return set_response
