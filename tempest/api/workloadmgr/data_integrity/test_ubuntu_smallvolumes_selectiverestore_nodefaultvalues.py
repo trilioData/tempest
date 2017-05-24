@@ -37,7 +37,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_2_data_integrity(self):
+    def test_ubuntu_smallvolumes_selectiverestore_nodefaultvalues(self):
         self.total_workloads=1
         self.vms_per_workload=2
         self.volume_size=1
@@ -164,5 +164,5 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list)
 
         for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[id])]==self.md5sums_dir_after[str(floating_ips_list[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[id])]==self.md5sums_dir_after[str(floating_ips_list[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list[id]))
             self.delete_port(self.vm_list[id])
