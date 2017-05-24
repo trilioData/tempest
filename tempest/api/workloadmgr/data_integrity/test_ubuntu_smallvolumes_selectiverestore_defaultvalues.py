@@ -90,7 +90,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
 
     #     # create workload, take backup
-        # self.workload_instances = ["01b304aa-51e8-40c8-b7b5-800e9b3e4d2e", "e7a605dd-df2f-4e26-b6c5-f2016765a1d8"]
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
