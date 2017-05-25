@@ -221,9 +221,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True, *args):
-        if args:
-            vm_name = args[0]
+    def create_vm(self, vm_cleanup=True, **kwargs):
+        if kwargs:
+            vm_name = kwargs['vm_name']
+            security_group_id = kwargs['security_group_id']
         else:
             vm_name = "Tempest-Test-Vm"
         if(tvaultconf.vms_from_file):
@@ -233,18 +234,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 server_id=self.read_vm_id()
             else:
 		networkid=[{'uuid':CONF.network.public_network_id}]
-                server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":tvaultconf.security_group_name}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
 	    networkid=[{'uuid':CONF.network.public_network_id}]
-            server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+            server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":tvaultconf.security_group_name}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
             #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
             self.addCleanup(self.delete_vm, server_id)
+            self.addCleanup(self.delete_security_group, security_group_id)
         return server_id
 
     '''
@@ -1450,3 +1452,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         fixed_ip = str((cls.get_vm_details(server_id)['server']['addresses'][internal_network_name][0]['addr']))
         ports.append(cls.get_port_id(fixed_ip))
         cls.delete_ports(ports)
+
+    '''create_security_group'''
+    @classmethod
+    def create_security_group(cls, name):
+        security_group_id = cls.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
+        cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
+        cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
+        security_group_details = (cls.security_groups_client.show_security_group(str(security_group_id)))
+        LOG.debug(security_group_details)
+        return security_group_details
