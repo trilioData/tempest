@@ -56,10 +56,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         floating_ips_list = []
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        # floating_ips_list = self.get_floating_ips()
+	self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
+	security_group_id = self.security_group_details['security_group']['id']
+	LOG.debug("security group id" + str(self.security_group_details['security_group']['id']))
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name)
+             vm_id = self.create_vm(vm_name=vm_name,security_group_id =security_group_id)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
@@ -111,13 +113,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             vcpus = 2
             ram = 4096
             disk = 40
-        int_net_1_name = self.get_net_name(tvaultconf.int_net_1_id)
+        int_net_1_name = self.get_net_name(CONF.network.int_net_1_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
-        int_net_2_name = self.get_net_name(tvaultconf.int_net_2_id)
+        int_net_2_name = self.get_net_name(CONF.network.int_net_2_id)
         LOG.debug("int_net_2_name" + str(int_net_2_name))
-        int_net_1_subnets = self.get_subnet_id(tvaultconf.int_net_1_id)
+        int_net_1_subnets = self.get_subnet_id(CONF.network.int_net_1_id)
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
-        int_net_2_subnets = self.get_subnet_id(tvaultconf.int_net_2_id)
+        int_net_2_subnets = self.get_subnet_id(CONF.network.int_net_2_id)
         LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
 
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name = tvaultconf.restore_name,
@@ -165,4 +167,4 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         for id in range(len(self.vm_list)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[id])]==self.md5sums_dir_after[str(floating_ips_list[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list[id]))
-            self.delete_port(self.vm_list[id])
+            

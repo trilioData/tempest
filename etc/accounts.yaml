@@ -8,6 +8,6 @@
 # Networks can be specified to tell tempest which network it should use when
 # creating servers with an account
 
-- username: 'demo'
-  tenant_name: 'demo'
-  password: 'passwd'
+- username: 'engg'
+  tenant_name: 'engineering'
+  password: 'password'

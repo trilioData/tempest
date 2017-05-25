@@ -55,6 +55,4 @@ key_pair_name  = "tempest_test_key_pair"
 instance_username = "ubuntu"
 snapshot_restore_name = "Tempest Test Restore"
 restored_instance_flavor = 3
-int_net_1_id = "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"
-int_net_2_id = "ded97680-fe82-4fa2-939d-b57d3508fb07"
-security_group_id = "b38b65f9-c850-48fd-b8ff-674589c64bf0"
+security_group_name = "test_security_group"
