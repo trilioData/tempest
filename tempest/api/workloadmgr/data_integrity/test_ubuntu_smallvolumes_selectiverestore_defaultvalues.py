@@ -39,7 +39,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
         self.total_workloads=1
-        self.vms_per_workload=1
+        self.vms_per_workload=2
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
@@ -92,7 +92,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
-        # self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
 
         # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
@@ -102,13 +102,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.workload_reset(self.workload_id)
         time.sleep(40)
 
-    #     self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
-    #
-    #     self.snapshot_id=self.workload_snapshot(self.workload_id, False)
-    #     self.wait_for_workload_tobe_available(self.workload_id)
-    #     self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
-	# self.workload_reset(self.workload_id)
-    #     time.sleep(40)
+        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
+
+        self.snapshot_id=self.workload_snapshot(self.workload_id, False)
+        self.wait_for_workload_tobe_available(self.workload_id)
+        self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
+	self.workload_reset(self.workload_id)
+        time.sleep(40)
         self.delete_vms(self.workload_instances)
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
