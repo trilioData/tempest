@@ -39,7 +39,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
         self.total_workloads=1
-        self.vms_per_workload=2
+        self.vms_per_workload=1
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
@@ -59,11 +59,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
 	self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
 	security_group_id = self.security_group_details['security_group']['id']
-        LOG.debug("security group id" + str(self.security_group_details['security_group']['id']))
+        LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
+	flavor_id = self.create_flavor("test_flavor")
     #     # floating_ips_list = self.get_floating_ips()
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id)
+             vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id, flavor_id = flavor_id)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
@@ -91,9 +92,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
+        # self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
 
-    #     # create workload, take backup
+        # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
@@ -101,13 +102,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.workload_reset(self.workload_id)
         time.sleep(40)
 
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
-
-        self.snapshot_id=self.workload_snapshot(self.workload_id, False)
-        self.wait_for_workload_tobe_available(self.workload_id)
-        self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
-	self.workload_reset(self.workload_id)
-        time.sleep(40)
+    #     self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
+    #
+    #     self.snapshot_id=self.workload_snapshot(self.workload_id, False)
+    #     self.wait_for_workload_tobe_available(self.workload_id)
+    #     self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
+	# self.workload_reset(self.workload_id)
+    #     time.sleep(40)
         self.delete_vms(self.workload_instances)
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
@@ -124,7 +125,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for id in range(len(self.vm_list)):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         internal_network_name = self.get_vm_details(self.vm_list[0])['server']['addresses'].items()[0][0]
-
         for id in range(len(self.restored_vm_details_list)):
             floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
             LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
@@ -137,10 +137,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details dir after restore" + str( self.vms_details_after_selective_restore))
 
         self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
-
+#
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
     #
     # #     # verification one-click restore
         for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
-            
+           self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))

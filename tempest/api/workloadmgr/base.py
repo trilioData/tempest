@@ -225,6 +225,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if kwargs:
             vm_name = kwargs['vm_name']
             security_group_id = kwargs['security_group_id']
+	    flavor_id = kwargs['flavor_id']
         else:
             vm_name = "Tempest-Test-Vm"
         if(tvaultconf.vms_from_file):
@@ -234,19 +235,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 server_id=self.read_vm_id()
             else:
 		networkid=[{'uuid':CONF.network.public_network_id}]
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":tvaultconf.security_group_name}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
 	    networkid=[{'uuid':CONF.network.public_network_id}]
-            server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":tvaultconf.security_group_name}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+            server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             #self.servers_client.stop_server(server_id)
             #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
-            self.addCleanup(self.delete_vm, server_id)
             self.addCleanup(self.delete_security_group, security_group_id)
+	    self.addCleanup(self.delete_flavor, flavor_id)
+	    self.addCleanup(self.delete_vm, server_id)
+	    # self.addCleanup(self.delete_port, server_id)
         return server_id
 
     '''
@@ -280,6 +283,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def delete_vm(cls, server_id):
         try:
+	    cls.delete_port(server_id)
             body = cls.servers_client.show_server(server_id)['server']
             cls.servers_client.delete_server(server_id)
             waiters.wait_for_server_termination(cls.servers_client, server_id)
@@ -294,6 +298,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         totalVms = len(instances)
         for vm in range(0,totalVms):
             try:
+		cls.delete_port(instances[vm])
                 cls.servers_client.delete_server(instances[vm])
                 waiters.wait_for_server_termination(cls.servers_client, instances[vm])
             except Exception as e:
@@ -665,9 +670,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             to_retsore_instance_1 = kwargs['to_restore_instance_1']
             instance_id_2 = kwargs['instance_id'][1]
             to_retsore_instance_2 = kwargs['to_restore_instance_2']
-            vcpus = kwargs['vcpus']
-            ram = kwargs['ram']
-            disk = kwargs['disk']
+            # vcpus = kwargs['vcpus']
+            # ram = kwargs['ram']
+            #  disk = kwargs['disk']
             int_net_1_id = kwargs['int_net_1_id']
             int_net_1_name = kwargs['int_net_1_name']
             int_net_2_id = kwargs['int_net_2_id']
@@ -691,11 +696,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                 'power': {
                                     'sequence': 1,
                                 },
-                                'flavor': {
-                                    'vcpus': vcpus,
-                                    'ram': ram,
-                                    'disk':  disk
-                                },
                                 'nics': [],},
                                 {
                                 'id': instance_id_2,
@@ -703,11 +703,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                 'include': to_retsore_instance_2,
                                 'power': {
                                     'sequence': 1,
-                                },
-                                'flavor': {
-                                    'vcpus': vcpus,
-                                    'ram': ram,
-                                    'disk': disk
                                 },
                                 'nics': [],
                                 }
@@ -795,10 +790,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     @classmethod
     def delete_restored_vms(cls, restore_id):
-	restore_vms = cls.get_restored_vm_list(restore_id)
-	restore_volumes = cls.get_restored_volume_list(restore_id)
-        cls.delete_vms(restore_vms)
-        cls.delete_volumes(restore_volumes)
+	restored_vms = cls.get_restored_vm_list(restore_id)
+	#for vm in restored_vms:
+            #cls.delete_port(vm)
+	restored_volumes = cls.get_restored_volume_list(restore_id)
+        cls.delete_vms(restored_vms)
+        cls.delete_volumes(restored_volumes)
 
     '''
     Method to wait until the snapshot is available
@@ -1110,7 +1107,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
             except Exception as e:
-                time.sleep(6)
+                time.sleep(10)
                 if i == 29:
                     raise
                 LOG.debug("Got into Exception.." + str(e))
@@ -1261,7 +1258,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         errdata += chan.recv_stderr(1000)
                     if chan.exit_status_ready():  # If completed
                         break
-                    time.sleep(sleeptime)
+                    time.sleep(2)
                     # LOG.debug(str(buildCommand)+ " waiting..")
                 retcode = chan.recv_exit_status()
                 # stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
@@ -1384,7 +1381,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.vms_details = []
         vm_name = vm_details_list[id]['server']['name']
         internal_network_name = list(vm_details_list[id]['server']['addresses'].keys())[0]
-        cls.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
+        # cls.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
         cls.vms_details.append(str(vm_name) + " keys " + str(vm_details_list[id]['server']['key_name']))
         if len(vm_details_list[id]['server']['addresses'][str(internal_network_name)]) == 2:
             cls.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr']))
@@ -1392,7 +1389,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.vms_details.append(str(vm_name) + " vm_status " + str(vm_details_list[id]['server']['status']))
         cls.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
         cls.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
-        cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
+        # cls.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
         cls.vms_details.append(str(vm_name) + " internal network " + str(list(vm_details_list[id]['server']['addresses'].keys())[0]))
         return cls.vms_details
 
@@ -1459,6 +1456,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         security_group_id = cls.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
         cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
         cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
+	cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 22, to_port = 22)
         security_group_details = (cls.security_groups_client.show_security_group(str(security_group_id)))
         LOG.debug(security_group_details)
         return security_group_details
+
+    '''get_security_group_details'''
+    @classmethod
+    def get_security_group_details(cls, security_group_id):
+        security_group_details = (cls.security_groups_client.show_security_group(str(security_group_id)))
+        LOG.debug(security_group_details)
+        return security_group_details
+
+     
+    '''create_flavor'''
+    @classmethod
+    def create_flavor(cls, name):
+        flavor_id = cls.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
+        LOG.debug("flavor id" + str(flavor_id))
+        return flavor_id
