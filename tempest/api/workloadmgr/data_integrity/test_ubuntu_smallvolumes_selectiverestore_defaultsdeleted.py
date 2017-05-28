@@ -61,7 +61,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         flavor_id = self.create_flavor("test_flavor")
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id)
+             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
@@ -159,8 +159,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if item.split()[1] == "internal":
                     self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
 
-	 self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
+	self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
     #
     # #     # verification one-click restore
         for id in range(len(self.vm_list)):
-           self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
