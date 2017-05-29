@@ -89,16 +89,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
-    #
+
     #     # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
 	self.workload_reset(self.workload_id)
-    #
-        self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
 
         self.snapshot_id=self.workload_snapshot(self.workload_id, False)
         self.wait_for_workload_tobe_available(self.workload_id)
@@ -159,9 +156,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for item in self.vms_details_after_one_click_restore[vms]:
                 if item.split()[1] == "internal":
                     self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
-
-	self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
-    #
-    # #     # verification one-click restore
-        for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
