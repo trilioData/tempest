@@ -1425,12 +1425,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''delete security group'''
     @classmethod
     def delete_security_group(cls, security_group_id):
-        cls.security_groups_client.delete_security_group(security_group_id)
+	try:
+            cls.security_groups_client.delete_security_group(security_group_id)
+	except lib_exc.NotFound:
+            return
 
     '''delete flavor'''
     @classmethod
     def delete_flavor(cls, flavor_id):
-        cls.flavors_client.delete_flavor(flavor_id)
+	try:
+            cls.flavors_client.delete_flavor(flavor_id)
+	except lib_exc.NotFound:
+            return
 
     '''get port_id from floating_ip'''
     @classmethod

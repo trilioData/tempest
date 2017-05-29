@@ -139,7 +139,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
 #
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
-    #
-    # #     # verification one-click restore
+
+    #     # verification one-click restore
         for id in range(len(self.vm_list)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))

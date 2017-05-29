@@ -108,7 +108,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.delete_vms(self.workload_instances)
         self.delete_key_pair(tvaultconf.key_pair_name)
         self.delete_security_group(security_group_id)
-        self.delete_flavor(CONF.compute.flavor_ref)
+        self.delete_flavor(flavor_id)
 
         int_net_1_name = self.get_net_name(tvaultconf.int_net_1_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
@@ -146,6 +146,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list after incremental change " + str(self.restored_vm_details_list))
 	internal_network_name = self.get_vm_details(self.vm_list[0])['server']['addresses'].items()[0][0]
+	floating_ips_list_after_restore = []
         for id in range(len(self.restored_vm_details_list)):
             floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
             LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
