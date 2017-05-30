@@ -50,7 +50,12 @@ sched=BlockingScheduler()
 count=0
 No_of_Backup=1
 
-#keypair_name
+# test parameters
 key_pair_name  = "tempest_test_key_pair"
 instance_username = "ubuntu"
 snapshot_restore_name = "Tempest Test Restore"
+restored_instance_flavor = 2
+int_net_1_id = "f806f7a0-93b0-47f6-bf68-32ee66bddbaf"
+int_net_2_id = "ded97680-fe82-4fa2-939d-b57d3508fb07"
+security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
+security_group_name = "test_security"

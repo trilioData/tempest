@@ -36,8 +36,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         cls.client = cls.os.wlm_client
 
     @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_2_data_integrity(self):
+    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
         self.total_workloads=1
         self.vms_per_workload=2
         self.volume_size=1
@@ -54,12 +54,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
+	self.security_group_details = ""
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        # floating_ips_list = self.get_floating_ips()
+	self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
+	security_group_id = self.security_group_details['security_group']['id']
+        LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
+	flavor_id = self.create_flavor("test_flavor")
+    #     # floating_ips_list = self.get_floating_ips()
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name)
+             vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id, flavor_id = flavor_id)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
@@ -88,13 +93,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
         self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
-    #
-    # #     # create workload, take backup
+
+        # create workload, take backup
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
 	self.workload_reset(self.workload_id)
+        time.sleep(40)
 
         self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
 
@@ -103,65 +109,37 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
 	self.workload_reset(self.workload_id)
         time.sleep(40)
-
         self.delete_vms(self.workload_instances)
-
-
-        if tvaultconf.restored_instance_flavor == 3:
-            vcpus = 2
-            ram = 4096
-            disk = 40
-        int_net_1_name = self.get_net_name(tvaultconf.int_net_1_id)
-        LOG.debug("int_net_1_name" + str(int_net_1_name))
-        int_net_2_name = self.get_net_name(tvaultconf.int_net_2_id)
-        LOG.debug("int_net_2_name" + str(int_net_2_name))
-        int_net_1_subnets = self.get_subnet_id(tvaultconf.int_net_1_id)
-        LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
-        int_net_2_subnets = self.get_subnet_id(tvaultconf.int_net_2_id)
-        LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
-
-        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name = tvaultconf.restore_name,
-                                                        instance_id = self.workload_instances,
-                                                        to_restore_instance_1 = True,
-                                                        to_restore_instance_2 = True,
-                                                        vcpus = vcpus,
-                                                        ram = ram,
-                                                        disk = disk,
-                                                        int_net_1_id = tvaultconf.int_net_1_id,
-                                                        int_net_2_id = tvaultconf.int_net_2_id,
-                                                        int_net_1_name = int_net_1_name,
-                                                        int_net_2_name = int_net_2_name,
-                                                        int_net_1_subnets = int_net_1_subnets,
-                                                        int_net_2_subnets = int_net_2_subnets)
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
         self.assertEqual(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id), "available","Workload_id: "+self.workload_id+" Snapshot_id: "+self.snapshot_id+" Restore id: "+self.restore_id)
 
-        # after selective restore_id and incremental change
-        # after restore
+    #     # after restore
+    #     # verification
+    #     # get restored vms list
         self.vm_list = []
-        # restored_vm_details = ""
         self.restored_vm_details_list = []
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
-
-
+        floating_ips_list_after_restore = []
         for id in range(len(self.vm_list)):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-        LOG.debug("Restored vm details list after incremental change " + str(self.restored_vm_details_list))
-        internal_network_name = self.get_net_name(tvaultconf.int_net_2_id)
+        internal_network_name = self.get_vm_details(self.vm_list[0])['server']['addresses'].items()[0][0]
+        for id in range(len(self.restored_vm_details_list)):
+            floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
+            LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
 
-        self.vms_details_after_one_click_restore = []
+        self.vms_details_after_selective_restore = []
         for id in range(len(self.vm_list)):
-            self.vms_details_after_one_click_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
+            self.vms_details_after_selective_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
 
-        for vms in range(len(self.vm_list)):
-            for item in self.vms_details_after_one_click_restore[vms]:
-                if item.split()[1] == "flavor":
-                    self.assertTrue(item.split()[2] == "3", "After one click restore flavor not matched")
-                elif item.split()[1] == "internal":
-                    self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
+        LOG.debug("vm details list after restore" + str( self.restored_vm_details_list))
+        LOG.debug("vm details dir after restore" + str( self.vms_details_after_selective_restore))
 
-        self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list)
+        self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
+#
+        self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
 
+    #     # verification one-click restore
         for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list[id])]==self.md5sums_dir_after[str(floating_ips_list[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
+            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
