@@ -226,30 +226,42 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             vm_name = kwargs['vm_name']
             security_group_id = kwargs['security_group_id']
 	    flavor_id = kwargs['flavor_id']
-        else:
-            vm_name = "Tempest-Test-Vm"
-        if(tvaultconf.vms_from_file):
-            flag=0
-            flag=self.is_vm_available()
-            if(flag != 0):
-                server_id=self.read_vm_id()
+            if(tvaultconf.vms_from_file):
+                flag=0
+                flag=self.is_vm_available()
+                if(flag != 0):
+                    server_id=self.read_vm_id()
+                else:
+    		networkid=[{'uuid':CONF.network.public_network_id}]
+                    server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
+                    server_id= server['server']['id']
+                    waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             else:
-		networkid=[{'uuid':CONF.network.public_network_id}]
+    	    networkid=[{'uuid':CONF.network.public_network_id}]
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         else:
-	    networkid=[{'uuid':CONF.network.public_network_id}]
-            server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
-            server_id= server['server']['id']
-            waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
-            #self.servers_client.stop_server(server_id)
-            #waiters.wait_for_server_status(self.servers_client, server_id, status='SHUTOFF')
+            vm_name = "Tempest-Test-Vm"
+            if(tvaultconf.vms_from_file):
+                flag=0
+                flag=self.is_vm_available()
+                if(flag != 0):
+                    server_id=self.read_vm_id()
+                else:
+    		networkid=[{'uuid':CONF.network.public_network_id}]
+                    server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                    server_id= server['server']['id']
+                    waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
+            else:
+    	    networkid=[{'uuid':CONF.network.public_network_id}]
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                server_id= server['server']['id']
+                waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
             self.addCleanup(self.delete_security_group, security_group_id)
 	    self.addCleanup(self.delete_flavor, flavor_id)
 	    self.addCleanup(self.delete_vm, server_id)
-	    # self.addCleanup(self.delete_port, server_id)
         return server_id
 
     '''
@@ -1474,7 +1486,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(security_group_details)
         return security_group_details
 
-     
+
     '''create_flavor'''
     @classmethod
     def create_flavor(cls, name):
