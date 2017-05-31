@@ -222,22 +222,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self, vm_cleanup=True, **kwargs):
+	security_group_id = ""
+	flavor_id = ""
         if kwargs:
             vm_name = kwargs['vm_name']
             security_group_id = kwargs['security_group_id']
-	    flavor_id = kwargs['flavor_id']
+            flavor_id = kwargs['flavor_id']
             if(tvaultconf.vms_from_file):
                 flag=0
                 flag=self.is_vm_available()
                 if(flag != 0):
                     server_id=self.read_vm_id()
                 else:
-    		networkid=[{'uuid':CONF.network.public_network_id}]
+                    networkid=[{'uuid':CONF.network.public_network_id}]
                     server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
                     server_id= server['server']['id']
                     waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             else:
-    	    networkid=[{'uuid':CONF.network.public_network_id}]
+                networkid=[{'uuid':CONF.network.public_network_id}]
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
@@ -249,19 +251,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if(flag != 0):
                     server_id=self.read_vm_id()
                 else:
-    		networkid=[{'uuid':CONF.network.public_network_id}]
+                    networkid=[{'uuid':CONF.network.public_network_id}]
                     server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                     server_id= server['server']['id']
                     waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             else:
-    	    networkid=[{'uuid':CONF.network.public_network_id}]
+                networkid=[{'uuid':CONF.network.public_network_id}]
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
-            self.addCleanup(self.delete_security_group, security_group_id)
-	    self.addCleanup(self.delete_flavor, flavor_id)
-	    self.addCleanup(self.delete_vm, server_id)
+	    if security_group_id != "":
+                self.addCleanup(self.delete_security_group, security_group_id)
+	    if flavor_id != "":
+                self.addCleanup(self.delete_flavor, flavor_id)
+            self.addCleanup(self.delete_vm, server_id)
         return server_id
 
     '''
