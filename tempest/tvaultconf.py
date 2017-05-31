@@ -36,9 +36,6 @@ tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
-compute_ip = "192.168.1.21"
-compute_username = "root"
-compute_passwd = "Password1!"
 
 # Scheduler parameter
 interval="1 hrs"

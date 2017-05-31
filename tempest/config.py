@@ -136,6 +136,9 @@ IdentityGroup = [
                default='v2',
                help="Identity API version to be used for authentication "
                     "for API tests."),
+    cfg.StrOpt('admin_domain_id',
+               default='default',
+               help=""),
     cfg.StrOpt('region',
                default='RegionOne',
                help="The identity region name to use. Also used as the other "
@@ -1273,6 +1276,9 @@ WorkloadmgrGroup = [
     cfg.StrOpt('os_tenant_id',
                default=utils.env('OS_TENANT_ID', 'WORKLOADMGR_TENANT_ID'),
                help=""),
+    cfg.StrOpt('admin_domain_id',
+               default=utils.env('OS_DOMAIN_ID'),
+               help=""),
     cfg.StrOpt('os_auth_url',
                default=utils.env('OS_AUTH_URL', 'WORKLOADMGR_URL'),
                help=""),
@@ -1407,6 +1413,7 @@ class TempestConfigPrivate(object):
         self.baremetal = _CONF.baremetal
         self.input_scenario = _CONF['input-scenario']
         self.negative = _CONF.negative
+        self.wlm = _CONF.wlm
         _CONF.set_default('domain_name',
                           self.auth.default_credentials_domain_name,
                           group='identity')

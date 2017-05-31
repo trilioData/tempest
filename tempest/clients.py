@@ -483,18 +483,16 @@ class Manager(manager.Manager):
         self.object_client = ObjectClient(self.auth_provider, **params)
 
     def _set_workloadmgr_clients(self):
-        endpoint = CONF.identity.v2_public_endpoint_type
-        insecure = CONF.identity.disable_ssl_certificate_validation
         self.wlm_client = client.Client(1,
                                         CONF.auth.admin_username,
                                         CONF.auth.admin_password,
                                         CONF.identity.tenant_name,
-                                        CONF.identity.uri,
-                                        insecure,
+                                        CONF.identity.uri_v3,
+                                        CONF.identity.admin_domain_id,
+                                        insecure=CONF.wlm.insecure,
                                         region_name=CONF.identity.region,
                                         tenant_id=CONF.wlm.os_tenant_id,
-                                        endpoint_type=endpoint,
-                                        extensions=None,
+                                        endpoint_type=CONF.identity.v2_public_endpoint_type,
                                         service_type=CONF.wlm.service_type,
                                         service_name=CONF.wlm.service_name,
                                         retries=CONF.wlm.retries,
