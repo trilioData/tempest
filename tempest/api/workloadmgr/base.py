@@ -252,12 +252,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     server_id=self.read_vm_id()
                 else:
                     networkid=[{'uuid':CONF.network.public_network_id}]
-                    server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                    server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
                     server_id= server['server']['id']
                     waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
             else:
                 networkid=[{'uuid':CONF.network.public_network_id}]
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":"default"}], imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid,key_name=tvaultconf.key_pair_name)
+                server=self.servers_client.create_server(name=vm_name, imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, networks=networkid)
                 server_id= server['server']['id']
                 waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
