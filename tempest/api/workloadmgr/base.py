@@ -1352,6 +1352,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_key_pair_list(cls):
         key_pairs_list_response = cls.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
+	LOG.debug("key_pairs list: " + str(key_pairs))
         return key_pairs
         # for key in key_pairs:
         #     if str(key['keypair']['name']) == keypair_name:

@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
-        reporting.setup_report()
+        # reporting.setup_report()
         reporting.add_test_script((self.__dict__)['_testMethodName'])
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
@@ -156,7 +156,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 for item in self.vms_details_after_one_click_restore[vms]:
                     if item.split()[1] == "internal":
                         self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
-                        reporting.add_test_step(test_step, True)
+                        reporting.add_test_step(test_step+str(": ") + str(vms+1), True)
 
         except Exception as e:
             reporting.add_test_step(test_step, False)
@@ -164,7 +164,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             raise
         security_group_id_after_restore = self.get_security_group_id(security_group_name_after_restore)
         LOG.debug("restored security group rules details" + str(self.get_security_group_details(security_group_id_after_restore)['security_group']['rules']))
-        if security_group_id_after_restore == "snap_"+str(tvaultconf.security_group_name):
+        if security_group_name_after_restore == str(tvaultconf.security_group_name):
             reporting.add_test_step("Security group verification", True)
         else:
             reporting.add_test_step("Security group verification", False)
@@ -173,9 +173,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         key_pair_flag=0
         for key in restored_key_pairs:
             if str(key['keypair']['name']) == tvaultconf.key_pair_name:
-                flag = 1
-            else:
-                flag = 0
+                key_pair_flag=1
         if key_pair_flag==1 :
             reporting.add_test_step("Key Pair verification", True)
         else:

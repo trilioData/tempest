@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
-        reporting.setup_report()
+        # reporting.setup_report()
         reporting.add_test_script((self.__dict__)['_testMethodName'])
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
@@ -145,8 +145,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
         if all(items in self.vms_details_after_selective_restore for items in self.vms_details):
             reporting.add_test_step("Flavor restore verification", True)
+            reporting.add_test_step("Availability_zone verification", True)
+            reporting.add_test_step("Security group verification", True)
+            reporting.add_test_step("Key Pair verification", True)
         else:
             reporting.add_test_step("Flavor restore verification", False)
+            reporting.add_test_step("Availability_zone verification", False)
+            reporting.add_test_step("Security group verification", False)
+            reporting.add_test_step("Key Pair verification", False)
 #
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
 
