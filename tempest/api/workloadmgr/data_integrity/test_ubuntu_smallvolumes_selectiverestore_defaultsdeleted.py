@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest import reporting
 import json
 import sys
 from tempest import api
@@ -166,7 +167,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step(test_step, False)
             LOG.debug(test_step + " step failed with error: " + str(e))
             raise
-            
+
         security_group_name_after_restore = self.get_vm_details(self.vm_list[0])['server']['security_groups'][0]['name']
         security_group_id_after_restore = self.get_security_group_id(security_group_name_after_restore)
         LOG.debug("restored security group rules details" + str(self.get_security_group_details(security_group_id_after_restore)['security_group']['rules']))
