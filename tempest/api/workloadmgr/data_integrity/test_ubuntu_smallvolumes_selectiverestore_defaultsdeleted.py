@@ -54,14 +54,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
-	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
+        reporting.setup_report()
+        reporting.add_test_script((self.__dict__)['_testMethodName'])
+        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
         flavor_id = self.create_flavor("test_flavor")
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id)
+             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
@@ -102,6 +104,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.assertEqual(self.getSnapshotStatus(self.workload_id, self.snapshot_id), "available")
 	self.workload_reset(self.workload_id)
         time.sleep(40)
+
         self.delete_vms(self.workload_instances)
         self.delete_key_pair(tvaultconf.key_pair_name)
         self.delete_security_group(security_group_id)
@@ -129,30 +132,55 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
         self.assertEqual(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id), "available","Workload_id: "+self.workload_id+" Snapshot_id: "+self.snapshot_id+" Restore id: "+self.restore_id)
 
-
-        # after selective restore_id and incremental change
-        # after restore
+    #     # after selective restore_id and incremental change
+    #     # after restore
         self.vm_list = []
         # restored_vm_details = ""
         self.restored_vm_details_list = []
+
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
-
-
+        if len(self.vm_list) == 2:
+            reporting.add_test_step("VMs Restore verification", True)
+        else:
+            reporting.add_test_step("VMs Restore verification", False)
         for id in range(len(self.vm_list)):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list after incremental change " + str(self.restored_vm_details_list))
 	internal_network_name = self.get_vm_details(self.vm_list[0])['server']['addresses'].items()[0][0]
-	floating_ips_list_after_restore = []
-        for id in range(len(self.restored_vm_details_list)):
-            floating_ips_list_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr'])
-            LOG.debug("floating_ips_list_after_restore: " + str(floating_ips_list_after_restore))
 
 	self.vms_details_after_one_click_restore = []
         for id in range(len(self.vm_list)):
             self.vms_details_after_one_click_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
+        security_group_name_after_restore = self.get_vm_details(self.vm_list[0])['server']['security_groups'][0]['name']
 
-        for vms in range(len(self.vm_list)):
-            for item in self.vms_details_after_one_click_restore[vms]:
-                if item.split()[1] == "internal":
-                    self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
+        test_step = "Internal Network verification"
+        try:
+            for vms in range(len(self.vm_list)):
+                for item in self.vms_details_after_one_click_restore[vms]:
+                    if item.split()[1] == "internal":
+                        self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
+                        reporting.add_test_step(test_step, True)
+
+        except Exception as e:
+            reporting.add_test_step(test_step, False)
+            LOG.debug(test_step + " step failed with error: " + str(e))
+            raise
+        security_group_id_after_restore = self.get_security_group_id(security_group_name_after_restore)
+        LOG.debug("restored security group rules details" + str(self.get_security_group_details(security_group_id_after_restore)['security_group']['rules']))
+        if security_group_id_after_restore == "snap_"+str(tvaultconf.security_group_name):
+            reporting.add_test_step("Security group verification", True)
+        else:
+            reporting.add_test_step("Security group verification", False)
+
+        restored_key_pairs = self.get_key_pair_list()
+        key_pair_flag=0
+        for key in restored_key_pairs:
+            if str(key['keypair']['name']) == tvaultconf.key_pair_name:
+                flag = 1
+            else:
+                flag = 0
+        if key_pair_flag==1 :
+            reporting.add_test_step("Key Pair verification", True)
+        else:
+            reporting.add_test_step("Key Pair verification", False)
