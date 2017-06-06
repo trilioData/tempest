@@ -298,14 +298,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a new volume and returns Volume ID
     '''
     def create_volume(self, size, volume_type_id, volume_cleanup=True):
-        conn = self.SshRemoteMachineConnection(tvaultconf.compute_ip, tvaultconf.compute_username, tvaultconf.compute_passwd)
-        _, out, err = conn.exec_command('nova --version')
-        nova_version = err.readlines()[0]
-        LOG.debug("Nova Version: " + str(nova_version))
-        if(nova_version >= '2.31.0'):
-            self.expected_resp = 200
-        else:
-            self.expected_resp = 200
+        self.expected_resp = 200
 	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
             flag=0
