@@ -1,14 +1,14 @@
 def setup_report():
     with open("/root/tempest/Report/results.html", "a") as f:
-        f.seek(0)
+        f.seek(10)
         f.truncate()
 
     head = """<table style="width:100%" border="1">
             <tr>
-                <b>
+
                     <th>TestName</th>
                     <th>Result</th>
-                </b>
+
             </tr>
             """
     with open("/root/tempest/Report/results.html", "w+") as f:
@@ -33,9 +33,9 @@ def add_test_step(teststep, status):
 def add_test_script(script):
     message = """
 	<tr>
-	    <b>
+
 		<th colspan="2">{}</th>
-            </b>
+
         </tr>
 	""".format(script)
     with open("/root/tempest/Report/results.html", "a") as f:
