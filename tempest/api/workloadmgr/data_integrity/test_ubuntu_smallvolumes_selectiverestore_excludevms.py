@@ -15,7 +15,6 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
-from tempest import reporting
 import json
 import sys
 from tempest import api
@@ -55,9 +54,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
-        # reporting.setup_report()
-        reporting.add_test_script((self.__dict__)['_testMethodName'])
-        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
+	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
@@ -136,10 +133,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.restored_vm_details_list = []
         self.vm_list  =  self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
-        if len(self.vm_list) == 1:
-            reporting.add_test_step("VM Restore verification", True)
-        else:
-            reporting.add_test_step("VM Restore verification", False)
 
         for id in range(len(self.vm_list)):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
@@ -150,32 +143,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for id in range(len(self.vm_list)):
             self.vms_details_after_one_click_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
 
-        test_step = "Internal Network verification"
-        try:
-            for vms in range(len(self.vm_list)):
-                for item in self.vms_details_after_one_click_restore[vms]:
-                    if item.split()[1] == "internal":
-                        self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
-                        reporting.add_test_step(test_step, True)
-        except Exception as e:
-            reporting.add_test_step(test_step, False)
-            LOG.debug(test_step + " step failed with error: " + str(e))
-            raise
-
-        security_group_name_after_restore = self.get_vm_details(self.vm_list[0])['server']['security_groups'][0]['name']
-        security_group_id_after_restore = self.get_security_group_id(security_group_name_after_restore)
-        LOG.debug("restored security group rules details" + str(self.get_security_group_details(security_group_id_after_restore)['security_group']['rules']))
-        if security_group_name_after_restore == str(tvaultconf.security_group_name):
-            reporting.add_test_step("Security group verification", True)
-        else:
-            reporting.add_test_step("Security group verification", False)
-
-        restored_key_pairs = self.get_key_pair_list()
-        key_pair_flag=0
-        for key in restored_key_pairs:
-            if str(key['keypair']['name']) == tvaultconf.key_pair_name:
-                key_pair_flag=1
-        if key_pair_flag==1 :
-            reporting.add_test_step("Key Pair verification", True)
-        else:
-            reporting.add_test_step("Key Pair verification", False)
+        for vms in range(len(self.vm_list)):
+            for item in self.vms_details_after_one_click_restore[vms]:
+                if item.split()[1] == "internal":
+                    self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
