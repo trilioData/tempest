@@ -218,7 +218,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         scheduler_status = cls.getSchedulerStatus(workload_id)
         cls.assertEqual(scheduler_status, "true")
 
-
     '''
     Method returns the Instance ID of a new VM instance created
     '''
@@ -234,7 +233,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
 
-    	if(tvaultconf.cleanup == True and vm_cleanup == True):
+        if(tvaultconf.cleanup == True and vm_cleanup == True):
             if security_group_id != "":
                 self.addCleanup(self.delete_security_group, security_group_id)
             if flavor_id != "":
@@ -299,14 +298,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a new volume and returns Volume ID
     '''
     def create_volume(self, size, volume_type_id, volume_cleanup=True):
-        conn = self.SshRemoteMachineConnection(tvaultconf.compute_ip, tvaultconf.compute_username, tvaultconf.compute_passwd)
-        _, out, err = conn.exec_command('nova --version')
-        nova_version = err.readlines()[0]
-        LOG.debug("Nova Version: " + str(nova_version))
-        if(nova_version >= '2.31.0'):
-            self.expected_resp = 200
-        else:
-            self.expected_resp = 200
+        self.expected_resp = 200
 	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
             flag=0
@@ -1347,17 +1339,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("keypair fingerprint : " + str(fingerprint))
         return fingerprint
 
-    ''' method to get key pair list'''
-    @classmethod
-    def get_key_pair_list(cls):
-        key_pairs_list_response = cls.keypairs_client.list_keypairs()
-        key_pairs = key_pairs_list_response['keypairs']
-	LOG.debug("key_pairs list: " + str(key_pairs))
-        return key_pairs
-        # for key in key_pairs:
-        #     if str(key['keypair']['name']) == keypair_name:
-        #         cls.keypairs_client.delete_keypair(keypair_name)
-
 
     '''
     Method to diassociate floating ip to a server
@@ -1459,7 +1440,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_security_group'''
     @classmethod
-    def create_security_group(cls, name, security_group_cleanup=True):
+    def create_security_group(cls, name):
         security_group_id = cls.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
         cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
         cls.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
@@ -1478,23 +1459,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_flavor'''
     @classmethod
-    def create_flavor(cls, name, create_flavor_cleanup=True):
+    def create_flavor(cls, name):
         flavor_id = cls.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
         LOG.debug("flavor id" + str(flavor_id))
         return flavor_id
-
-    '''list security groups'''
-    @classmethod
-    def list_security_groups(cls):
-        security_group_list = cls.security_groups_client.list_security_groups()
-        return security_group_list
-
-    '''get security group id(name provided)'''
-    @classmethod
-    def get_security_group_id(cls, security_group_name):
-        security_groups_list = cls.list_security_groups()['security_groups']
-        LOG.debug("security_groups_details_list: " + str(security_groups_list))
-        for security_group in security_groups_list:
-            if security_group['name'] == security_group_name:
-                LOG.debug("restored security group id: " + str(security_group['id']))
-                return security_group['id']
