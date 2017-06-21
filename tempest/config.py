@@ -151,7 +151,7 @@ IdentityGroup = [
                         'publicURL', 'adminURL', 'internalURL'],
                help="The admin endpoint type to use for OpenStack Identity "
                     "(Keystone) API v2"),
-    cfg.StrOpt('v2_public_endpoint_type',
+    cfg.StrOpt('public_endpoint_type',
                default='publicURL',
                choices=['public', 'admin', 'internal',
                         'publicURL', 'adminURL', 'internalURL'],

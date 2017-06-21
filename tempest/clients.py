@@ -384,7 +384,7 @@ class Manager(manager.Manager):
                                               **params_v2_admin)
         params_v2_public = params.copy()
         params_v2_public['endpoint_type'] = (
-            CONF.identity.v2_public_endpoint_type)
+            CONF.identity.public_endpoint_type)
         # Client uses public endpoint type of Keystone API v2
         self.identity_public_client = IdentityClient(self.auth_provider,
                                                      **params_v2_public)
