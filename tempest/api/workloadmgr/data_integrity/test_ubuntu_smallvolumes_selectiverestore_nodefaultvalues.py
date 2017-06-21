@@ -37,7 +37,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_ubuntu_smallvolumes_selectiverestore_defaultsdeleted(self):
+    def test_ubuntu_smallvolumes_selectiverestore_nodefaultvalues(self):
         self.total_workloads=1
         self.vms_per_workload=2
         self.volume_size=1
