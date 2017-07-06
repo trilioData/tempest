@@ -234,10 +234,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
 
         if(tvaultconf.cleanup == True and vm_cleanup == True):
-            if security_group_id != "":
-                self.addCleanup(self.delete_security_group, security_group_id)
-            if flavor_id != "":
-                self.addCleanup(self.delete_flavor, flavor_id)
             self.addCleanup(self.delete_vm, server_id)
         return server_id
 

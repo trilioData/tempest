@@ -1,7 +1,7 @@
 #!/bin/bash -x
 BASE_DIR="$(pwd)"
 source automation/openstack-build-scripts/build.properties
-source automation/openstack-build-scripts/openstack-auth.sh
+#source automation/openstack-build-scripts/openstack-auth.sh
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
@@ -43,4 +43,4 @@ do
 done
 
 echo "Test results are written in $TEST_RESULTS_FILE"
-BASE_DIR/send_mail.py $TVAULT_VERSION $TO_ADDR
+BASE_DIR/send_mail.py 

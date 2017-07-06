@@ -3,16 +3,16 @@
 import smtplib
 import sys
 
-build_version = sys.argv[0]
+#build_version = sys.argv[0]
 
 fromaddr = 'trilio.build@gmail.com'
-toaddrs  = sys.argv[1]
+#toaddrs  = sys.argv[1]
 
 
 result_table = """ <table style="width:100%" border="1">
   <tr>
-    <b><th>TestName</th>
-    <th>Result</th> </b>
+    <th>TestName</th>
+    <th>Result</th>
   </tr>
 """
 
