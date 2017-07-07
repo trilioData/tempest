@@ -215,7 +215,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-            networkid=[{'uuid':CONF.network.public_network_id}]
+            networkid=[{'uuid':CONF.network.internal_network_id}]
             if key_pair:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
             else:
