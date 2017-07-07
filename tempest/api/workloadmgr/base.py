@@ -1017,6 +1017,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def set_floating_ip(self, floating_ip, server_id):
         set_response = self.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
+        if(tvaultconf.cleanup == True):
+            self.addCleanup(self.diassociate_floating_ip, floating_ip, server_id)
         return set_response
 
     '''
@@ -1262,7 +1264,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create key pair
     '''
-    def create_key_pair(self, keypair_name):
+    def create_key_pair(self, keypair_name, keypair_cleanup=True):
         foorprint = ""
         # keypair = self.keypairs_client.find_keypair(KEYPAIR_NAME)
         # print("Create Key Pair:")
@@ -1279,6 +1281,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.write(str(privatekey))
         os.chmod(str(keypair_name) + ".pem", stat.S_IRWXU)
         LOG.debug("keypair fingerprint : " + str(fingerprint))
+	if(tvaultconf.cleanup == True and keypair_cleanup == True):
+	    self.addCleanup(self.delete_key_pair, keypair_name)
         return fingerprint
 
     '''
@@ -1370,13 +1374,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_ports(ports)
 
     '''create_security_group'''
-    def create_security_group(self, name):
+    def create_security_group(self, name, secgrp_cleanup=True):
         security_group_id = self.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
         self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
         self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
 	self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 22, to_port = 22)
         security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
         LOG.debug(security_group_details)
+	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
+	    self.addCleanup(self.delete_security_group, security_group_id)
         return security_group_details
 
     '''get_security_group_details'''
@@ -1386,7 +1392,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return security_group_details
 
     '''create_flavor'''
-    def create_flavor(self, name):
+    def create_flavor(self, name, flavor_cleanup=True):
         flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
         LOG.debug("flavor id" + str(flavor_id))
+	if(tvaultconf.cleanup == True and flavor_cleanup == True):
+	    self.addCleanup(self.delete_flavor, flavor_id)
         return flavor_id
