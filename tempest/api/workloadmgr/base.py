@@ -1014,10 +1014,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to associate floating ip to a server
     '''
-    def set_floating_ip(self, floating_ip, server_id):
+    def set_floating_ip(self, floating_ip, server_id, floatingip_cleanup=False):
         set_response = self.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
         self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
-        if(tvaultconf.cleanup == True):
+        if(tvaultconf.cleanup == True and floatingip_cleanup == True):
             self.addCleanup(self.diassociate_floating_ip, floating_ip, server_id)
         return set_response
 
@@ -1304,7 +1304,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get vms details list'''
     def get_vms_details_list(self, id, vm_details_list):
-        cls.vms_details = []
+        self.vms_details = []
         vm_name = vm_details_list[id]['server']['name']
         internal_network_name = list(vm_details_list[id]['server']['addresses'].keys())[0]
         # self.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
@@ -1317,7 +1317,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
         # self.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
         self.vms_details.append(str(vm_name) + " internal network " + str(list(vm_details_list[id]['server']['addresses'].keys())[0]))
-        return cls.vms_details
+        return self.vms_details
 
     '''floating ip availability'''
     def get_floating_ip_status(self, ip):
@@ -1398,3 +1398,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	if(tvaultconf.cleanup == True and flavor_cleanup == True):
 	    self.addCleanup(self.delete_flavor, flavor_id)
         return flavor_id
+
+    '''
+    Method to get the flavor id corresponding to the given flavor name
+    '''
+    def get_flavor_id(self, flavor_name):
+	flavor_id = 0
+        flavor_list = self.flavors_client.list_flavors()['flavors']
+        LOG.debug("Flavor list: " + str(flavor_list))
+	for i in range(0, len(flavor_list)):
+	     if(flavor_list[i]['name'] == flavor_name):
+	          flavor_id = flavor_list[i]['id']
+        return flavor_id
+
+
+

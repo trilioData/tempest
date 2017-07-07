@@ -54,11 +54,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
+
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
-        flavor_id = self.create_flavor("test_flavor")
+	flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
+        if(flavor_id == 0):
+             flavor_id = self.create_flavor(tvaultconf.flavor_name)
+
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name)
