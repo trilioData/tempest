@@ -9,12 +9,7 @@ fromaddr = 'trilio.build@gmail.com'
 #toaddrs  = sys.argv[1]
 
 
-result_table = """ <table style="width:100%" border="1">
-  <tr>
-    <th>TestName</th>
-    <th>Result</th>
-  </tr>
-"""
+result_table = """ <table border="1"> <tr> <th>TestName</th> <th>Result</th> </tr> """
 
 test_result_file = "test_results"
 with open(test_result_file, "r") as f:
