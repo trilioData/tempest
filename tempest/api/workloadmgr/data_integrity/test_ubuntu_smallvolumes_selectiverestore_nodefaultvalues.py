@@ -107,21 +107,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(40)
         self.delete_vms(self.workload_instances)
 
-        int_net_1_name = self.get_net_name(tvaultconf.int_net_1_id)
+        int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
-        int_net_2_name = self.get_net_name(tvaultconf.int_net_2_id)
+        int_net_2_name = self.get_net_name(CONF.network.alt_internal_network_id)
         LOG.debug("int_net_2_name" + str(int_net_2_name))
-        int_net_1_subnets = self.get_subnet_id(tvaultconf.int_net_1_id)
+        int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
-        int_net_2_subnets = self.get_subnet_id(tvaultconf.int_net_2_id)
+        int_net_2_subnets = self.get_subnet_id(CONF.network.alt_internal_network_id)
         LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
 
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name = tvaultconf.restore_name,
                                                         instance_id = self.workload_instances,
                                                         to_restore_instance_1 = True,
                                                         to_restore_instance_2 = True,
-                                                        int_net_1_id = tvaultconf.int_net_1_id,
-                                                        int_net_2_id = tvaultconf.int_net_2_id,
+                                                        int_net_1_id = CONF.network.internal_network_id,
+                                                        int_net_2_id = CONF.network.alt_internal_network_id,
                                                         int_net_1_name = int_net_1_name,
                                                         int_net_2_name = int_net_2_name,
                                                         int_net_1_subnets = int_net_1_subnets,
