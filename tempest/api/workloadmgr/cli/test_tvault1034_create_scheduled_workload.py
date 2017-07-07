@@ -41,14 +41,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         #Create workload with CLI command
         self.start_date = time.strftime("%x")
-        self.start_time = time.strftime("%X")
+        self.start_time = time.strftime("%I:%M %p")
         interval = tvaultconf.interval
         retention_policy_type = tvaultconf.retention_policy_type
         retention_policy_value = tvaultconf.retention_policy_value
         workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)\
-            + " --jobschedule start_date=" + str(self.start_date) + " --jobschedule start_time=" + str(self.start_time)\
-            + " --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
-            + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)
+            + " --jobschedule start_date=" + str(self.start_date) + " --jobschedule start_time='" + str(self.start_time)\
+            + "' --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
+            + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)\
+	    + " --jobschedule enabled=True"
         rc = cli_parser.cli_returncode(workload_create)
         if rc != 0:
             raise Exception("Command did not execute correctly")

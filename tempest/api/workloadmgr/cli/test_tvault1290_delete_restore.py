@@ -79,7 +79,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         #Create one-click restore
         self.restore_id = self.snapshot_restore(self.wid, self.snapshot_id, tvaultconf.restore_name, restore_cleanup=False)
         LOG.debug("Restore ID: " + str(self.restore_id))
-        
+        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+ 
         self.restore_vm_id = self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restore VM ID: " + str(self.restore_vm_id))
         
@@ -103,4 +104,4 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         #Cleanup
         #Delete restored VM instance and volume
         self.delete_restored_vms(self.restore_vm_id, self.restore_volume_id)
-        LOG.debug("Restored VM deleted successfully")
+        LOG.debug("Restored VMs deleted successfully")
