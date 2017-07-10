@@ -5,6 +5,10 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 # following cleanup parameter value to True otherwise False
 cleanup = True
 
+#Test results for reporting
+PASS = "PASS"
+FAIL = "FAIL"
+
 #Volume type to use by tempest
 volume_type="5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3"
 

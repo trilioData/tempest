@@ -14,8 +14,9 @@ rm -f $TEST_RESULTS_FILE
 rm -rf logs
 
 mkdir -p $REPORT_DIR
-# python $BASE_DIR/tempest/reporting.py
-# echo "setup of report completed"
+sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
+python -c 'from tempest import reporting; reporting.setup_report()'
+
 for suite in "${SUITE_LIST[@]}"
 do
     tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
@@ -43,4 +44,4 @@ do
 done
 
 echo "Test results are written in $TEST_RESULTS_FILE"
-BASE_DIR/send_mail.py 
+python -c 'from tempest import reporting; reporting.end_report_table()' 

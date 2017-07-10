@@ -20,7 +20,7 @@ import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -34,6 +34,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
@@ -151,3 +152,4 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for item in self.vms_details_after_one_click_restore[vms]:
                 if item.split()[1] == "internal":
                     self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
+		    reporting.add_test_step("Internal network verification", tvaultconf.PASS)
