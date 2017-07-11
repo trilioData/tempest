@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
@@ -20,6 +20,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -61,13 +62,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         workload_modify_command = command_argument_string.workload_modify + str(self.vm_id2) + " --instance instance-id=" + str(self.vm_id) + " " + str(self.wid)
         rc = cli_parser.cli_returncode(workload_modify_command)
         if rc != 0:
+	    reporting.add_test_step("Execute workload-modify command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-modify command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
             
         self.wait_for_workload_tobe_available(self.wid)        
         workload_vm_count = query_data.get_available_vms_of_workload(self.wid)
         if (workload_vm_count == 2):
+	    reporting.add_test_step("Verification with DB", tvaultconf.PASS)
             LOG.debug("Workload has been updated successfully")
         else:
+	    reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
             raise Exception ("Workload has not been updated")

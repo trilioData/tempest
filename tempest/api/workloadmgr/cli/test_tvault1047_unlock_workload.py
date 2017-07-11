@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -57,16 +58,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Unlock workload using CLI command
         rc = cli_parser.cli_returncode(command_argument_string.workload_unlock + self.wid)       
         if rc != 0:
+	    reporting.add_test_step("Execute workload-unlock command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-unlock command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         
         #Get workload status
         wc = query_data.get_workload_status_by_id(self.wid)
         LOG.debug("Workload status: " + str(wc))
         
-        self.assertIsNot('available', str(wc), "Workload not unlocked")
-        LOG.debug("Workload unlocked")
+	if('available' == str(wc)):
+	    reporting.add_test_step("Verification", tvaultconf.PASS)
+	else:
+	    reporting.add_test_step("Verification", tvaultconf.FAIL)
         
         self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
         LOG.debug("Snapshot is available")

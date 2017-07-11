@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -53,24 +54,30 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         
         wc = self.wait_for_snapshot_tobe_available(self.wid,self.snapshot_id)
         if (str(wc) == "available"):
+	    reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
             LOG.debug("Workload snapshot successfully completed")
             self.created = True
         else:
             if (str(wc) == "error"):
                 pass
         if (self.created == False):
+	    reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
             raise Exception ("Workload snapshot did not get created")
         
         #List snapshots using CLI command
         rc = cli_parser.cli_returncode(command_argument_string.snapshot_list)        
         if rc != 0:
+	    reporting.add_test_step("Execute snapshot-list command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute snapshot-list command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         
         wc = query_data.get_available_snapshots()
         out = cli_parser.cli_output(command_argument_string.snapshot_list)
         if(int(wc) == int(out)):
+	    reporting.add_test_step("Verification with DB", tvaultconf.PASS)
             LOG.debug("Snapshot list command listed available snapshots correctly")
         else:
+	    reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
             raise Exception ("Snapshot list command did not list available snapshots correctly")

@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -52,8 +53,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    + " --jobschedule enabled=True"
         rc = cli_parser.cli_returncode(workload_create)
         if rc != 0:
+	    reporting.add_test_step("Execute workload-create command with scheduler enabled", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-create command with scheduler enabled", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         
         wc = query_data.get_workload_status(tvaultconf.workload_name)
@@ -64,10 +67,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "available"):
                 LOG.debug("Workload successfully created")
+		reporting.add_test_step("Workload status updated to available", tvaultconf.PASS)
                 self.created = True
                 break
             else:
                 if (str(wc) == "error"):
+		    reporting.add_test_step("Workload status updated to error", tvaultconf.FAIL)
                     break
         if (self.created == False):
             raise Exception ("Workload did not get created")
@@ -78,8 +83,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.schedule = query_data.get_workload_schedule(self.wid)
         LOG.debug("Workload schedule from DB: " + str(self.schedule))
         if(self.schedule.find(str(interval)) != -1):
+	    reporting.add_test_step("Verification with DB", tvaultconf.PASS)
             LOG.debug("Workload schedule enabled")
         else:
+	    reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
             raise Exception("Workload schedule not enabled")
         
         #Cleanup

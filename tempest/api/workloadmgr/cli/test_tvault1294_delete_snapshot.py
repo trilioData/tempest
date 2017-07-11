@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -65,15 +66,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Delete snapshot using CLI command
         rc = cli_parser.cli_returncode(command_argument_string.snapshot_delete + self.snapshot_id)
         if rc != 0:
+	    reporting.add_test_step("Execute snapshot-delete command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute snapshot-delete command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         time.sleep(5)
         wc = query_data.get_workload_snapshot_delete_status(tvaultconf.snapshot_name,tvaultconf.snapshot_type_full, self.snapshot_id)
         LOG.debug("Snapshot Delete status: " + str(wc))
         if (str(wc) == "1"):
+	    reporting.add_test_step("Verification", tvaultconf.PASS)
             LOG.debug("Workload snapshot successfully deleted")
         else:
+	    reporting.add_test_step("Verification", tvaultconf.FAIL)
             raise Exception ("Snapshot did not get deleted")
         
         #Cleanup
