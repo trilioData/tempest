@@ -54,7 +54,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         
         wc = self.wait_for_snapshot_tobe_available(self.wid,self.snapshot_id)
         if (str(wc) == "available"):
-	    reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
             LOG.debug("Workload snapshot successfully completed")
             self.created = True
         else:

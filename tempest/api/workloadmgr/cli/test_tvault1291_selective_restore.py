@@ -67,6 +67,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 if (str(wc) == "error"):
                     break
         if (self.created == False):
+	    reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
             raise Exception ("Workload snapshot did not get created")
         
         #Delete instance
@@ -98,8 +99,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Snapshot Restore successfully completed")
                 self.created = True
                 break
-            else:
-                if (str(wc) == "error" or str(wc) == "None"):
+            elif (str(wc) == "error" or str(wc) == "None"):
                     break
         if (self.created == False):
 	    reporting.add_test_step("Snapshot selective restore", tvaultconf.FAIL)

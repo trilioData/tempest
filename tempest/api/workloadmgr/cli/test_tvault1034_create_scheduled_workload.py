@@ -67,12 +67,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "available"):
                 LOG.debug("Workload successfully created")
-		reporting.add_test_step("Workload status updated to available", tvaultconf.PASS)
                 self.created = True
                 break
             else:
                 if (str(wc) == "error"):
-		    reporting.add_test_step("Workload status updated to error", tvaultconf.FAIL)
+		    reporting.add_test_step("Workload status verification", tvaultconf.FAIL)
                     break
         if (self.created == False):
             raise Exception ("Workload did not get created")

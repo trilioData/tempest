@@ -57,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload full snapshot successfully completed")
         else:
             if (str(wc) == "error"):
+		reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload full snapshot did not get created")
         
         #Create incremental snapshot using CLI command

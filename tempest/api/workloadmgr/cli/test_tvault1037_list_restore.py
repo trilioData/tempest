@@ -72,7 +72,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
             if (str(wc) == "available"):
-		reporting.add_test_step("One click Restore", tvaultconf.PASS)
                 LOG.debug("Snapshot Restore successfully completed")
                 self.created = True
                 break

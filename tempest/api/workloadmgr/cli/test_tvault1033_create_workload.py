@@ -21,7 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-	reporting.add_test_step(str(__name__))
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -58,12 +58,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "available"):
                 LOG.debug("Workload successfully created")
-		reporting.add_test_step("Workload status updated to available", tvaultconf.PASS)
+		reporting.add_test_step("Workload status verification", tvaultconf.PASS)
                 self.created = True
                 break
             else:
                 if (str(wc) == "error"):
-		    repoting.add_test_step("Workload status updated to error", tvaultconf.FAIL)
+		    repoting.add_test_step("Workload status verification", tvaultconf.FAIL)
                     break
         if (self.created == False):
             raise Exception ("Workload did not get created!!!")
