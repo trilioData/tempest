@@ -211,11 +211,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, key_pair = ""):
+    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}]):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-            networkid=[{'uuid':CONF.network.internal_network_id}]
             if key_pair:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
             else:
@@ -612,100 +611,43 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True, **kwargs):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True):
         LOG.debug("At the start of snapshot_selective_restore method")
-        if(restore_name ==""):
-            restore_name =  "Tempest test restore"
-        if kwargs:
-            # availability_zone = kwargs['availability_zone']
-            #  restore_name = kwargs['restore_name']
-            instance_id_1 = kwargs['instance_id'][0]
-            to_retsore_instance_1 = kwargs['to_restore_instance_1']
-            instance_id_2 = kwargs['instance_id'][1]
-            to_retsore_instance_2 = kwargs['to_restore_instance_2']
-            # vcpus = kwargs['vcpus']
-            # ram = kwargs['ram']
-            #  disk = kwargs['disk']
-            int_net_1_id = kwargs['int_net_1_id']
-            int_net_1_name = kwargs['int_net_1_name']
-            int_net_2_id = kwargs['int_net_2_id']
-            int_net_2_name = kwargs['int_net_2_name']
-            int_net_1_subnets = kwargs['int_net_1_subnets']
-            int_net_2_subnets = kwargs['int_net_2_subnets']
-            LOG.debug ("details: " + int_net_1_id + int_net_1_name+ int_net_1_subnets + int_net_2_id + int_net_2_name+ int_net_2_subnets)
-
+        if(restore_name == ""):
+            restore_name = "Tempest_test_restore"
+        if(restore_desc == ""):
+            restore_desc = "Tempest_test_restore_description"
+        if len(instance_details) > 0:
             payload={
                 "restore": {
                     "options": {
                         'name': restore_name,
-                        'description': 'Restore description',
+                        'description': restore_desc,
                         'type': 'openstack',
-			'restore_type': 'selective',
+                        'restore_type': 'selective',
                         'openstack': {
-                            'instances': [{
-                                'id': instance_id_1,
-                                'name': 'restored',
-                                'include': to_retsore_instance_1,
-                                'power': {
-                                    'sequence': 1,
-                                },
-                                'nics': [],},
-                                {
-                                'id': instance_id_2,
-                                'name': 'restored',
-                                'include': to_retsore_instance_2,
-                                'power': {
-                                    'sequence': 1,
-                                },
-                                'nics': [],
+                            'instances': instance_details,
+                            'networks_mapping': { 'networks': network_details }
+                                     }
                                 }
-                                        ],
-                        'networks_mapping': {
-       'networks': [
-           {'snapshot_network': {
-                'name': int_net_1_name,
-                'id': int_net_1_id,
-                'subnet': {'id': int_net_1_subnets}
-               },
-            'target_network': {
-                'id': int_net_2_id,
-                'name': int_net_2_name,
-                'subnet': {'id': int_net_2_subnets}
-            }
-          }
-       ]
-     }
-    }
-}
-,
-                    "name": restore_name,
-                    "description": "Tempest test restore"}}
+                           }
+                     }
+            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
+            restore_id = body['restore']['id']
+            LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
+            LOG.debug("Response:"+ str(resp.content))
+            if(resp.status_code != 202):
+                resp.raise_for_status()
+            LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
+            #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            if(tvaultconf.cleanup == True and restore_cleanup == True):
+                self.restored_vms = self.get_restored_vm_list(restore_id)
+                self.restored_volumes = self.get_restored_volume_list(restore_id)
+                self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+                self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         else:
-            payload={"restore": {"options": {"description": "Tempest test restore",
-                                               "restore_type": "selective",
-                                               "vmware": {},
-                                               "openstack": {"instances": [], "zone": ""},
-                                               "type": "openstack",
-                                               "restore_options": {},
-                                               "name": restore_name},
-                    "name": restore_name,
-                    "description": "Tempest test restore"}}
-        LOG.debug("In snapshot_restore method, before calling waitforsnapshot method")
-        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        LOG.debug("After returning from waitfor snapshot")
-        resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
-        restore_id = body['restore']['id']
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 202):
-            resp.raise_for_status()
-        LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
-        #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        if(tvaultconf.cleanup == True and restore_cleanup == True):
-            self.restored_vms = self.get_restored_vm_list(restore_id)
-            self.restored_volumes = self.get_restored_volume_list(restore_id)
-            self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-            self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
+            restore_id = 0
         return restore_id
 
     '''
@@ -754,7 +696,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         while (status != self.getSnapshotStatus(workload_id, snapshot_id)):
             if(self.getSnapshotStatus(workload_id, snapshot_id) == 'error'):
                 LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
-                #raise Exception("Snapshot creation failed")
+                raise Exception("Snapshot creation failed")
             LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(10)
         LOG.debug('Final Status of snapshot: %s' % (self.getSnapshotStatus(workload_id, snapshot_id)))
@@ -1016,9 +958,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def set_floating_ip(self, floating_ip, server_id, floatingip_cleanup=False):
         set_response = self.floating_ips_client.associate_floating_ip_to_server(floating_ip, server_id)
-        self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
+        #self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
         if(tvaultconf.cleanup == True and floatingip_cleanup == True):
-            self.addCleanup(self.diassociate_floating_ip, floating_ip, server_id)
+            self.addCleanup(self.disassociate_floating_ip_from_server, floating_ip, server_id)
         return set_response
 
     '''
@@ -1288,9 +1230,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to disassociate floating ip to a server
     '''
-    def diassociate_floating_ip(self, floating_ip, server_id):
+    def disassociate_floating_ip_from_server(self, floating_ip, server_id):
         set_response = self.floating_ips_client.disassociate_floating_ip_from_server(floating_ip, server_id)
         return set_response
+
+    '''
+    Method to fetch id of given floating ip
+    '''
+    def get_floatingip_id(self, floating_ip):
+        floatingips = self.network_client.list_floatingips()
+        for i in range(len(floatingips['floatingips']):
+            if(floatingips['floatingips'] == floating_ip):
+                floatingip_id = floatingips['floating_ip'][i]['id']
+        return floatingip_id
+
+    '''
+    Method to disassociate a given floating ip using its id
+    '''
+    def disassociate_floating_ip_with_id(self, floatingip_id):
+        payload = {"port_id": null}
+        response = self.network_client.update_floatingip(floatingip_id, payload)
+        return response
 
     '''
     Method to get key pair details

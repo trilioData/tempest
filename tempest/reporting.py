@@ -30,7 +30,7 @@ def add_test_step(teststep, status):
 def add_test_script(script):
     message = """
 	<tr>
-		<th colspan="2">{}</th>
+		<td colspan="2">{}</td>
         </tr>
 	""".format(script)
     with open(test_results_file, "a") as f:
