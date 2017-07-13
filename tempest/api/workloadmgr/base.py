@@ -654,7 +654,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the list of restored VMs
     '''
     def get_restored_vm_list(self, restore_id):
-        resp, body = self.wlm_client.client.get("/restores/"+restore_id)
+        resp, body = self.wlm_client.client.get("/restores/"+str(restore_id))
         LOG.debug("Body: " + str(body))
         LOG.debug("Response: " + str(resp))
         instances= body['restore']['instances']
