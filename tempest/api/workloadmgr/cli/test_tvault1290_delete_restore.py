@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(RestoreTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -79,7 +80,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         #Create one-click restore
         self.restore_id = self.snapshot_restore(self.wid, self.snapshot_id, tvaultconf.restore_name, restore_cleanup=False)
         LOG.debug("Restore ID: " + str(self.restore_id))
-        
+        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+ 
         self.restore_vm_id = self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restore VM ID: " + str(self.restore_vm_id))
         
@@ -89,18 +91,22 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         #Delete restore for snapshot using CLI command
         rc = cli_parser.cli_returncode(command_argument_string.restore_delete + self.restore_id)
         if rc != 0:
+	    reporting.add_test_step("Execute restore-delete command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute restore-delete command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         time.sleep(5)
         
         wc = query_data.get_snapshot_restore_delete_status(tvaultconf.restore_name,tvaultconf.restore_type)
         if (str(wc) == "1"):
+	    reporting.add_test_step("Verification", tvaultconf.PASS)
             LOG.debug("Snapshot restore successfully deleted")
         else:
+	    reporting.add_test_step("Verification", tvaultconf.FAIL)
             raise Exception ("Restore did not get deleted")
         
         #Cleanup
         #Delete restored VM instance and volume
         self.delete_restored_vms(self.restore_vm_id, self.restore_volume_id)
-        LOG.debug("Restored VM deleted successfully")
+        LOG.debug("Restored VMs deleted successfully")

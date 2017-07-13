@@ -561,6 +561,13 @@ NetworkGroup = [
                default="",
                help="Id of the public network that provides external "
                     "connectivity"),
+    cfg.StrOpt('internal_network_id',
+               default="",
+               help="Id of the internal network that is used for instance launch"),
+    cfg.StrOpt('alt_internal_network_id',
+               default="",
+               help="Id of the alternate internal network that is used for "
+                    "instance launch"),
     cfg.StrOpt('floating_network_name',
                help="Default floating network name. Used to allocate floating "
                     "IPs when neutron is enabled."),

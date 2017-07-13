@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -56,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload full snapshot successfully completed")
         else:
             if (str(wc) == "error"):
+		reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload full snapshot did not get created")
         
         #Create incremental snapshot using CLI command
@@ -63,8 +65,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("Create snapshot command: " + str(create_snapshot))
         rc = cli_parser.cli_returncode(create_snapshot)
         if rc != 0:
+	    reporting.add_test_step("Execute workload-snapshot command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-snapshot command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
                
         self.incr_snapshot_id = query_data.get_inprogress_snapshot_id(self.wid)
@@ -73,12 +77,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Wait for incremental snapshot to complete
         wc = self.wait_for_snapshot_tobe_available(self.wid, self.incr_snapshot_id)
         if (str(wc) == "available"):
+	    reporting.add_test_step("Incremental snapshot", tvaultconf.PASS)
             LOG.debug("Workload incremental snapshot successfully completed")
             self.created = True
-        else:
-            if (str(wc) == "error"):
-                raise Exception ("Workload incremental snapshot did not get created")
         if (self.created == False):
+	    reporting.add_test_step("Incremental snapshot", tvaultconf.FAIL)
             raise Exception ("Workload incremental snapshot did not get created")
         
         #Cleanup

@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(RestoreTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -66,6 +67,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 if (str(wc) == "error"):
                     break
         if (self.created == False):
+	    reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
             raise Exception ("Workload snapshot did not get created")
         
         #Delete instance
@@ -80,8 +82,10 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         restore_command = command_argument_string.selective_restore + " " + self.snapshot_id
         rc = cli_parser.cli_returncode(restore_command)
         if rc != 0:
+	    reporting.add_test_step("Execute snapshot-selective-restore command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute snapshot-selective-restore command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
             
         wc = query_data.get_snapshot_restore_status(tvaultconf.selective_restore_name,self.snapshot_id)
@@ -91,13 +95,14 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_snapshot_restore_status(tvaultconf.selective_restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
             if (str(wc) == "available"):
+		reporting.add_test_step("Snapshot selective restore", tvaultconf.PASS)
                 LOG.debug("Snapshot Restore successfully completed")
                 self.created = True
                 break
-            else:
-                if (str(wc) == "error" or str(wc) == "None"):
+            elif (str(wc) == "error" or str(wc) == "None"):
                     break
         if (self.created == False):
+	    reporting.add_test_step("Snapshot selective restore", tvaultconf.FAIL)
             raise Exception ("Snapshot Restore did not get created")
         
         self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)

@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
@@ -21,6 +21,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -43,8 +44,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)
         rc = cli_parser.cli_returncode(workload_create)
         if rc != 0:
+	    reporting.add_test_step("Execute workload-create command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-create command", tvautlconf.PASS)
             LOG.debug("Command executed correctly")
         
         wc = query_data.get_workload_status(tvaultconf.workload_name)
@@ -55,10 +58,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload status: " + str(wc))
             if (str(wc) == "available"):
                 LOG.debug("Workload successfully created")
+		reporting.add_test_step("Workload status verification", tvaultconf.PASS)
                 self.created = True
                 break
             else:
                 if (str(wc) == "error"):
+		    repoting.add_test_step("Workload status verification", tvaultconf.FAIL)
                     break
         if (self.created == False):
             raise Exception ("Workload did not get created!!!")

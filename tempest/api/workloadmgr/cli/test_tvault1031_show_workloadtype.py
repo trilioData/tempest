@@ -5,7 +5,7 @@ from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
@@ -20,6 +20,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -27,8 +28,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         #Get workload type details using CLI command
         rc = cli_parser.cli_returncode(command_argument_string.workload_type_show)
         if rc != 0:
+	    reporting.add_test_step("Execute workload-type-show command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
+	    reporting.add_test_step("Execute workload-type-show command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
             
         db_resp = query_data.get_workload_type_data(tvaultconf.workload_type_id)
@@ -37,6 +40,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("Response from CLI: " + str(cmd_resp))
         
         if(db_resp[5] == tvaultconf.workload_type_id):
+	    reporting.add_test_step("Verification with DB", tvaultconf.PASS)
             LOG.debug("Workload type response from CLI and DB match")
         else:
+	    reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
             raise Exception("Workload type response from CLI and DB do not match")

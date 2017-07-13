@@ -20,7 +20,7 @@ import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -34,6 +34,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
@@ -54,11 +55,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.original_fingerprint = ""
         self.vms_details = []
         floating_ips_list = []
+
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
-        flavor_id = self.create_flavor("test_flavor")
+	flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
+        if(flavor_id == 0):
+             flavor_id = self.create_flavor(tvaultconf.flavor_name)
+
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name)
@@ -103,21 +108,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(40)
         self.delete_vms(self.workload_instances)
 
-        int_net_1_name = self.get_net_name(tvaultconf.int_net_1_id)
+        int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
-        int_net_2_name = self.get_net_name(tvaultconf.int_net_2_id)
+        int_net_2_name = self.get_net_name(CONF.network.alt_internal_network_id)
         LOG.debug("int_net_2_name" + str(int_net_2_name))
-        int_net_1_subnets = self.get_subnet_id(tvaultconf.int_net_1_id)
+        int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
-        int_net_2_subnets = self.get_subnet_id(tvaultconf.int_net_2_id)
+        int_net_2_subnets = self.get_subnet_id(CONF.network.alt_internal_network_id)
         LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
 
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name = tvaultconf.restore_name,
                                                         instance_id = self.workload_instances,
                                                         to_restore_instance_1 = True,
                                                         to_restore_instance_2 = True,
-                                                        int_net_1_id = tvaultconf.int_net_1_id,
-                                                        int_net_2_id = tvaultconf.int_net_2_id,
+                                                        int_net_1_id = CONF.network.internal_network_id,
+                                                        int_net_2_id = CONF.network.alt_internal_network_id,
                                                         int_net_1_name = int_net_1_name,
                                                         int_net_2_name = int_net_2_name,
                                                         int_net_1_subnets = int_net_1_subnets,
@@ -147,3 +152,4 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for item in self.vms_details_after_one_click_restore[vms]:
                 if item.split()[1] == "internal":
 		    self.assertTrue(item.split()[3] == internal_network_name , "After one click restore Network not matched")
+		    reporting.add_test_step("Network verification", tvaultconf.PASS)

@@ -20,7 +20,7 @@ import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
-from tempest import tvaultconf
+from tempest import tvaultconf, reporting
 import time
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -34,6 +34,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
+	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
@@ -60,8 +61,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
 	security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
-	flavor_id = self.create_flavor("test_flavor")
+	flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
+        if(flavor_id == 0):
+             flavor_id = self.create_flavor(tvaultconf.flavor_name)	
     #     # floating_ips_list = self.get_floating_ips()
+
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id, flavor_id = flavor_id, key_pair=tvaultconf.key_pair_name)
@@ -137,9 +141,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details dir after restore" + str( self.vms_details_after_selective_restore))
 
         self.assertTrue(all(items in self.vms_details_after_selective_restore for items in self.vms_details), "virtual instances details does not match")
+	reporting.add_test_step("Match instance details", tvaultconf.PASS)
 #
         self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, floating_ips_list_after_restore)
 
     #     # verification one-click restore
         for id in range(len(self.vm_list)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
+	    reporting.add_test_step("Md5sum verification of vm-" + str(id+1), tvaultconf.PASS)
