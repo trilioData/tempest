@@ -1156,7 +1156,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_vm_details(self, server_id):
         response = self.servers_client.show_server(server_id)
-        LOG.debug("Restored vm details :"+ str(response))
+        LOG.debug("Vm details :"+ str(response))
         return response
 
     '''
@@ -1208,8 +1208,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def create_key_pair(self, keypair_name, keypair_cleanup=True):
         foorprint = ""
-        # keypair = self.keypairs_client.find_keypair(KEYPAIR_NAME)
-        # print("Create Key Pair:")
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
         for key in key_pairs:
@@ -1262,22 +1260,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("keypair fingerprint : " + str(fingerprint))
         return fingerprint
 
-    '''get vms details list'''
-    def get_vms_details_list(self, id, vm_details_list):
-        self.vms_details = []
-        vm_name = vm_details_list[id]['server']['name']
-        internal_network_name = list(vm_details_list[id]['server']['addresses'].keys())[0]
-        # self.vms_details.append(str(vm_name) + " security_group " + str(vm_details_list[id]['server']['security_groups'][0]['name']))
-        self.vms_details.append(str(vm_name) + " keys " + str(vm_details_list[id]['server']['key_name']))
-        if len(vm_details_list[id]['server']['addresses'][str(internal_network_name)]) == 2:
-            self.vms_details.append(str(vm_name) + " floating_ip " + str(vm_details_list[id]['server']['addresses'][str(internal_network_name)][1]['addr']))
-        self.vms_details.append(str(vm_name) + " vm_name " + str(vm_details_list[id]['server']['name']))
-        self.vms_details.append(str(vm_name) + " vm_status " + str(vm_details_list[id]['server']['status']))
-        self.vms_details.append(str(vm_name) + " vm_power_status " + str(vm_details_list[id]['server']['OS-EXT-STS:vm_state']))
-        self.vms_details.append(str(vm_name) + " availability_zone " + str(vm_details_list[id]['server']['OS-EXT-AZ:availability_zone']))
-        # self.vms_details.append(str(vm_name) + " flavor " + str(vm_details_list[id]['server']['flavor']['id']))
-        self.vms_details.append(str(vm_name) + " internal network " + str(list(vm_details_list[id]['server']['addresses'].keys())[0]))
-        return self.vms_details
+    '''Fetch required details of the instances'''
+    def get_vms_details_list(vm_details_list):
+	self.vms_details = []
+	for i in range(len(vm_details_list)):
+            server_id = vm_details_list[i]['server']['id']
+            if len(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]]) == 2:
+                floatingip = str(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]][1]['addr'])
+            else:
+    	        floatingip = None
+            tmp_json = { 'id': server_id,
+                    'name': vm_details_list[i]['server']['name'],
+                    'network_name': list(vm_details_list[i]['server']['addresses'].keys())[0],
+                    'keypair': vm_details_list[i]['server']['key_name'],
+                    'floating_ip': floatingip,
+                    'vm_status': vm_details_list[i]['server']['status'],
+                    'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
+                    'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
+                    'flavor_id': vm_details_list[i]['server']['flavor']['id']                    
+                    }
+	    self.vms_details.append(tmp_json)
+	return self.vms_details
 
     '''floating ip availability'''
     def get_floating_ip_status(self, ip):
@@ -1370,6 +1373,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	     if(flavor_list[i]['name'] == flavor_name):
 	          flavor_id = flavor_list[i]['id']
         return flavor_id
+
+    '''Fetch flavor details of particular flavor id'''
+    def get_flavor_details(self, flavor_id):
+	return self.show_flavor(flavor_id)
+
+ 
 
 
 

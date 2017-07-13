@@ -66,7 +66,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
 	if(flavor_id == 0):
 	     flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=False)
-	
+	self.original_flavor_conf = self.get_flavor_details(flavor_id)
+
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
              vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
@@ -90,8 +91,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#Fetch instance details before restore
         for id in range(len(self.workload_instances)):
             self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
-        for id in range(len(self.workload_instances)):
-            self.vms_details.append(self.get_vms_details_list(id, self.vm_details_list))
+        self.vms_details = self.get_vms_details_list(self.vm_details_list)
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
@@ -163,14 +163,30 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list: " + str(self.restored_vm_details_list))
 	
-        for id in range(len(self.restored_vm_details_list)):
-            self.floating_ips_after_restore.append(self.restored_vm_details_list[id]['server']['addresses'][str(self.int_net_1_name)])
-        LOG.debug("floating_ips_after_restore: " + str(self.floating_ips_after_restore))
-
-        for id in range(len(self.vm_list)):
-            self.vms_details_after_restore.append(self.get_vms_details_list(id, self.restored_vm_details_list))
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list))
 	LOG.debug("VM details after restore: " + str(self.vms_details_after_restore))
 
 	#Compare the data before and after restore
-        for vms in range(len(self.vm_list)):
-	    print vm_list[vms]
+	for i in range(len(self.vms_details_after_restore)):
+	    if(self.vms_details_after_restore[i]['network_name'] == int_net_1_name):
+		reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
+	    if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
+		reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.FAIL)
+	    if(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id']) == self.original_flavor_conf):
+		reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
+	
+	#Verify floating ips
+	self.floating_ips_after_restore = []
+	for i in range(len(self.vms_details_after_restore)):
+	    self.floating_ips_after_restore.append(self.vms_details_after_restore[i]['floating_ip'])
+	if(self.floating_ips_after_restore.sort() == self.floating_ips_list.sort()):
+	    reporting.add_test_step("Floating ip verification", tvaultconf.PASS)
+	else:
+	    reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
+
