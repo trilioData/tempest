@@ -1239,7 +1239,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_floatingip_id(self, floating_ip):
         floatingips = self.network_client.list_floatingips()
-        for i in range(len(floatingips['floatingips']):
+        for i in range(len(floatingips['floatingips'])):
             if(floatingips['floatingips'] == floating_ip):
                 floatingip_id = floatingips['floating_ip'][i]['id']
         return floatingip_id
