@@ -163,7 +163,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list: " + str(self.restored_vm_details_list))
 	
-        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list))
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
 	LOG.debug("VM details after restore: " + str(self.vms_details_after_restore))
 
 	#Compare the data before and after restore
