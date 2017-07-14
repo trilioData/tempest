@@ -947,11 +947,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("instanceid: " + str(ip['instance_id']))
             if str(ip['instance_id']) == "None" or str(ip['instance_id']) == "":
                 floating_ips_list.append(ip['ip'])
-        if len(floating_ips_list) ==0:
-            raise ValueError ("no free ips found")
-        else:
-            LOG.debug('floating_ips' + str(floating_ips_list))
-            return floating_ips_list
+        LOG.debug('floating_ips' + str(floating_ips_list))
+        return floating_ips_list
 
     '''
     Method to associate floating ip to a server
@@ -1236,6 +1233,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to fetch id of given floating ip
     '''
     def get_floatingip_id(self, floating_ip):
+	floatingip_id = None
         floatingips = self.network_client.list_floatingips()
         for i in range(len(floatingips['floatingips'])):
             if(floatingips['floatingips'] == floating_ip):
@@ -1243,11 +1241,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return floatingip_id
 
     '''
+    Method to fetch port id of given floating ip
+    '''
+    def get_portid_of_floatingip(self, floating_ip):
+        port_id = None
+        floatingips = self.network_client.list_floatingips()
+        for i in range(len(floatingips['floatingips'])):
+            if(floatingips['floatingips'] == floating_ip):
+                port_id = floatingips['floating_ip'][i]['port_id']
+        return port_id
+
+    '''
     Method to disassociate a given floating ip using its id
     '''
-    def disassociate_floating_ip_with_id(self, floatingip_id):
-        payload = {"port_id": null}
-        response = self.network_client.update_floatingip(floatingip_id, payload)
+    def disassociate_floating_ip_from_port(self, floatingip_id, port_id):
+#	if(port_id != None):
+	payload = {"port_id": port_id}
+#	else:
+#	    payload = {"port_id": "null"}
+        response = self.network_client.update_floatingip(floatingip_id, floatingip_payload=payload)
         return response
 
     '''
@@ -1255,13 +1267,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_key_pair_details(self, keypair_name):
         foorprint = ""
-        key_pairs_list_response = self.keypairs_client.show_keypair()
+        key_pairs_list_response = self.keypairs_client.show_keypair(keypair_name)
         fingerprint  = key_pairs_list_response['keypair']['fingerprint']
         LOG.debug("keypair fingerprint : " + str(fingerprint))
         return fingerprint
 
     '''Fetch required details of the instances'''
-    def get_vms_details_list(vm_details_list):
+    def get_vms_details_list(self, vm_details_list):
 	self.vms_details = []
 	for i in range(len(vm_details_list)):
             server_id = vm_details_list[i]['server']['id']
@@ -1376,7 +1388,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''Fetch flavor details of particular flavor id'''
     def get_flavor_details(self, flavor_id):
-	return self.show_flavor(flavor_id)
+	return self.flavors_client.show_flavor(flavor_id)
 
  
 
