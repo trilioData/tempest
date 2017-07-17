@@ -496,9 +496,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.delete("/workloads/"+workload_id)
             LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
             LOG.debug("Response:"+ str(resp.content))
+	    LOG.debug('WorkloadDeleted: %s' % workload_id)
+	    return True
         except Exception as e:
-            pass
-        LOG.debug('WorkloadDeleted: %s' % workload_id)
+            return False
 
     '''
     Method creates oneclick snapshot for a given workload and returns snapshot id
@@ -575,6 +576,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         self.wait_for_workload_tobe_available(workload_id)
         LOG.debug('SnapshotDeleted: %s' % workload_id)
+	return True
 
     '''
     Method creates one click restore for a given snapshot and returns the restore id
