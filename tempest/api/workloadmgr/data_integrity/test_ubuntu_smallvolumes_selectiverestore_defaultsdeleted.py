@@ -85,6 +85,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 		floating_ip = self.get_floating_ips()[0]
 	    else:
 		reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
+		raise Exception("Floating ips not available")
             self.floating_ips_list.append(floating_ip)
             self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 
