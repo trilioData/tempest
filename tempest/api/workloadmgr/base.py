@@ -546,10 +546,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         while ( status != self.getWorkloadStatus(workload_id)):
             if ( self.getWorkloadStatus(workload_id) == 'error'):
                 LOG.debug('workload status is: %s , workload create failed' % self.getWorkloadStatus(workload_id))
-                raise Exception("Workload creation failed")
+                #raise Exception("Workload creation failed")
+		return False
             LOG.debug('workload status is: %s , sleeping for 30 sec' % self.getWorkloadStatus(workload_id))
             time.sleep(30)
         LOG.debug('workload status of workload %s: %s' % (workload_id, self.getWorkloadStatus(workload_id)))
+	return True
 
     '''
     Method to check if snapshot is successful
@@ -1388,9 +1390,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''Fetch flavor details of particular flavor id'''
     def get_flavor_details(self, flavor_id):
-	return self.flavors_client.show_flavor(flavor_id)
-
- 
-
-
+        flavor_resp = self.flavors_client.show_flavor(flavor_id)['flavor']
+        flavor_details = {'ram': flavor_resp['ram'],
+                          'OS-FLV-DISABLED:disabled': flavor_resp['OS-FLV-DISABLED:disabled'],
+                          'vcpus': flavor_resp['vcpus'],
+                          'swap': flavor_resp['swap'],
+                          'os-flavor-access:is_public': flavor_resp['os-flavor-access:is_public'],
+                          'rxtx_factor': flavor_resp['rxtx_factor'],
+                          'OS-FLV-EXT-DATA:ephemeral': flavor_resp['OS-FLV-EXT-DATA:ephemeral'],
+                          'disk': flavor_resp['disk']}
+        return flavor_details
 
