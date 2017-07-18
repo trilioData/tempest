@@ -63,7 +63,7 @@ class NetworkClient(base.BaseNetworkClient):
 
     def update_floatingip(self, floatingip_id, **kwargs):
         uri = '/floatingips/%s' % floatingip_id
-        post_data = {'floatingip': kwargs}
+        post_data = {'floatingip': kwargs['floatingip_payload']}
         return self.update_resource(uri, post_data)
 
     def show_floatingip(self, floatingip_id, **fields):

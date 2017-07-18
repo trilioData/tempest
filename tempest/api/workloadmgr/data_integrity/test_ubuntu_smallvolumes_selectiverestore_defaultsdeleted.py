@@ -84,7 +84,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if(len(available_floating_ips) > 0):
 		floating_ip = self.get_floating_ips()[0]
 	    else:
-		reporting.add_test_step("Floating ips available", tvaultconf.FAIL)
+		reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
+		raise Exception("Floating ips not available")
             self.floating_ips_list.append(floating_ip)
             self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 
@@ -105,9 +106,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(10)
         
 	#Delete actual data
-	for i in range(len(self.floating_ips_list)):
-	    response = self.disassociate_floating_ip_with_id(self.get_floatingip_id(self.floating_ips_list[i]))
-	    LOG.debug("Disassociate floating ip using id response: " + str(response))
+#	for i in range(len(self.floating_ips_list)):
+#            response = self.disassociate_floating_ip_from_port(self.get_floatingip_id(self.floating_ips_list[i]), self.get_portid_of_floatingip(self.floating_ips_list[i]))
+#            LOG.debug("Disassociate floating ip using id response: " + str(response))
 	self.delete_vms(self.workload_instances)
 	self.delete_volumes(self.workload_volumes)
         self.delete_key_pair(tvaultconf.key_pair_name)
@@ -163,7 +164,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list: " + str(self.restored_vm_details_list))
 	
-        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list))
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
 	LOG.debug("VM details after restore: " + str(self.vms_details_after_restore))
 
 	#Compare the data before and after restore
@@ -171,14 +172,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if(self.vms_details_after_restore[i]['network_name'] == int_net_1_name):
 		reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
 	    else:
+		LOG.error("Expected network: " + str(int_net_1_name))
+                LOG.error("Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
 		reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
 	    if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
 		reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.PASS)
 	    else:
+		LOG.error("Original keypair details: " + str(self.original_fingerprint))
+                LOG.error("Restored keypair details: " + str(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
 		reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.FAIL)
 	    if(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id']) == self.original_flavor_conf):
 		reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.PASS)
 	    else:
+		LOG.error("Original flavor details: " + str(self.original_flavor_conf))
+		LOG.error("Restored flavor details: " + str(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
 		reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
 	
 	#Verify floating ips
@@ -188,5 +195,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	if(self.floating_ips_after_restore.sort() == self.floating_ips_list.sort()):
 	    reporting.add_test_step("Floating ip verification", tvaultconf.PASS)
 	else:
+	    LOG.error("Floating ips before restore: " + str(self.floating_ips_list.sort()))
+	    LOG.error("Floating ips after restore: " + str(self.floating_ips_after_restore.sort()))
 	    reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
 

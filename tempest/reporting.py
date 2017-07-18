@@ -1,4 +1,5 @@
 test_results_file="Report/results.html"
+sanity_results_file="test_results"
 
 def setup_report():
     with open(test_results_file, "a") as f:
@@ -39,3 +40,7 @@ def add_test_script(script):
 def end_report_table():
     with open(test_results_file, "a") as f:
         f.write("</table>")
+
+def add_sanity_results(test_step, status):
+    with open(sanity_results_file, "a") as f:
+	f.write(str(test_step) + " " + str(status) + "\n")
