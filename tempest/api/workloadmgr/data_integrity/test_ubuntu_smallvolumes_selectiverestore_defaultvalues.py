@@ -100,7 +100,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
 	#Fill 60% data on each of the volumes attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 6)
+	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 6)
 
         #Create workload and trigger full snapshot
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
@@ -112,7 +112,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(10)
 	
 	#Fill 10% more data to each of the volumes attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, floating_ips_list, 100, 7)
+	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 7)
 
 	#Trigger incremental snapshot
 	self.incr_snapshot_id=self.workload_snapshot(self.workload_id, False)

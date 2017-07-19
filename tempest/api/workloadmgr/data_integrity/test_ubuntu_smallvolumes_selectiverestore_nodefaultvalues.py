@@ -109,6 +109,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("int_net_1_name" + str(int_net_1_name))
         int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
+	int_net_2_name = self.get_net_name(CONF.network.alt_internal_network_id)
+        LOG.debug("int_net_2_name" + str(int_net_2_name))
+        int_net_2_subnets = self.get_subnet_id(CONF.network.alt_internal_network_id)
+        LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
 
         #Create instance details for restore.json
         for i in range(len(self.workload_instances)):
