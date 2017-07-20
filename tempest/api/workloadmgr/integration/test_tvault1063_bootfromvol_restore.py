@@ -38,7 +38,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_tvault1062_bootfromvol_fullsnapshot(self):
+    def test_tvault1063_bootfromvol_restore(self):
         self.total_workloads=1
         self.vms_per_workload=1
         self.volume_size=1
@@ -54,7 +54,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 				   "boot_index": 0,
 				   "uuid": volume_id1,
 				   "destination_type": "volume" }]
-	     vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+	     vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details, vm_cleanup=False)
 	     self.workload_instances.append(vm_id)
 
         #Create workload
@@ -72,3 +72,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
              reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.FAIL)
              raise Exception("Snapshot creation failed")
+
+	self.delete_vms(self.workload_instances)
+
+	#Trigger oneclick restore
+	self.restore_id = self.snapshot_restore(self.workload_id, self.snapshot_id)
+	self.wait_for_workload_tobe_available(self.workload_id)
+        if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
+             reporting.add_test_step("Oneclick restore of boot from volume instance", tvaultconf.PASS)
+        else:
+             reporting.add_test_step("Oneclick restore of boot from volume instance", tvaultconf.FAIL)
+             raise Exception("Oneclick restore failed")
