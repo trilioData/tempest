@@ -40,7 +40,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_ubuntu_smallvolumes_selectiverestore_defaultsdeleted(self):
         self.total_workloads=1
-        self.vms_per_workload=2
+        self.vms_per_workload=1
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
@@ -58,26 +58,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.vms_details_after_restore = []
 	self.instance_details = []
 	self.network_details = []
-
+	volumes = ["/dev/vdb", "/dev/vdc"]
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
+        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=True)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
 	if(flavor_id == 0):
-	     flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=False)
+	     flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=True)
 	self.original_flavor_conf = self.get_flavor_details(flavor_id)
 
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
+             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
-             self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
-             self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
+             self.attach_volume(volume_id1, vm_id, device=volumes[0])
+             self.attach_volume(volume_id2, vm_id,device=volumes[1])
 
         for id in range(len(self.workload_instances)):
 	    available_floating_ips = self.get_floating_ips()
@@ -106,9 +106,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(10)
         
 	#Delete actual data
-#	for i in range(len(self.floating_ips_list)):
-#            response = self.disassociate_floating_ip_from_port(self.get_floatingip_id(self.floating_ips_list[i]), self.get_portid_of_floatingip(self.floating_ips_list[i]))
-#            LOG.debug("Disassociate floating ip using id response: " + str(response))
+	for i in range(len(self.floating_ips_list)):
+            response = self.disassociate_floating_ip_from_server(self.floating_ips_list[i],self.workload_instances[i])
+            LOG.debug("Disassociate floating ip using id response: " + str(response))
 	self.delete_vms(self.workload_instances)
 	self.delete_volumes(self.workload_volumes)
         self.delete_key_pair(tvaultconf.key_pair_name)
@@ -198,4 +198,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    LOG.error("Floating ips before restore: " + str(self.floating_ips_list.sort()))
 	    LOG.error("Floating ips after restore: " + str(self.floating_ips_after_restore.sort()))
 	    reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
-

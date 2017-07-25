@@ -58,7 +58,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vms_details_after_restore = []
         self.instance_details = []
         self.network_details = []
-
+	volumes = ["/dev/vdb", "/dev/vdc"]
+        mount_points = ["mount_data_b", "mount_data_c"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
         security_group_id = self.security_group_details['security_group']['id']
@@ -76,8 +77,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
-             self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
-             self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
+             self.attach_volume(volume_id1, vm_id, device=volumes[0])
+             self.attach_volume(volume_id2, vm_id,device=volumes[1])
 
         for id in range(len(self.workload_instances)):
             available_floating_ips = self.get_floating_ips()
@@ -89,8 +90,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.floating_ips_list.append(floating_ip)
             self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-            self.execute_command_disk_create(ssh, str(floating_ip))
-            self.execute_command_disk_mount(ssh, str(floating_ip))
+            self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
+            self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
 
         #Fetch instance details before restore
         for id in range(len(self.workload_instances)):
@@ -100,7 +101,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("vm details dir before backups" + str( self.vms_details))
 
 	#Fill 60% data on each of the volumes attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 6)
+	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 6,mount_points)
 
         #Create workload and trigger full snapshot
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
@@ -112,7 +113,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         time.sleep(10)
 	
 	#Fill 10% more data to each of the volumes attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 7)
+	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 7,mount_points)
 
 	#Trigger incremental snapshot
 	self.incr_snapshot_id=self.workload_snapshot(self.workload_id, False)
@@ -207,7 +208,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
 
 	#Verify md5sum
-	self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, self.floating_ips_list_after_restore)
+	self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, self.floating_ips_list_after_restore,volumes,mount_points)
         for id in range(len(self.vm_list)):
             self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
             reporting.add_test_step("Md5sum verification of instance-" + str(id+1), tvaultconf.PASS)

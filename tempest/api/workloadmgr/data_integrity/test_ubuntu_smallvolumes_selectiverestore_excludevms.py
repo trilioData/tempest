@@ -58,7 +58,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.vms_details_after_restore = []
         self.instance_details = []
         self.network_details = []
-
+	volumes = ["/dev/vdb", "/dev/vdc"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
         self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
         security_group_id = self.security_group_details['security_group']['id']
@@ -76,8 +76,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
-             self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
-             self.attach_volume(volume_id2, vm_id,device="/dev/vdc")
+             self.attach_volume(volume_id1, vm_id, device=volumes[0])
+             self.attach_volume(volume_id2, vm_id,device=volumes[1])
 
         for id in range(len(self.workload_instances)):
             available_floating_ips = self.get_floating_ips()
