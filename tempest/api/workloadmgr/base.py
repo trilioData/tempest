@@ -211,14 +211,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}]):
+    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
+			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[]):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-            if key_pair:
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
+	    if (len(block_mapping_data) > 0 and key_pair != ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
+                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data)
+	    elif (len(block_mapping_data) > 0 and key_pair == ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data)
+	    elif (key_pair != ""):
+	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
             else:
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid)
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+			flavorRef=flavor_id, networks=networkid)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
 
@@ -280,21 +289,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, volume_cleanup=True):
+    def create_volume(self, size, volume_type_id, image_id="", volume_cleanup=True):
         self.expected_resp = 200
-	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
             if(flag != 0):
                 volume_id=self.read_volume_id()
             else:
-                volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+		if(image_id != ""):
+                     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+		else:
+		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
-            volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+	    if(image_id != ""):
+		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+	    else:
+		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -1403,3 +1417,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                           'disk': flavor_resp['disk']}
         return flavor_details
 
+    '''Set a volume as bootable'''
+    def set_volume_as_bootable(self, volume_id, bootable=True):
+        vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable)
+	LOG.debug("Volume bootable response: " + str(vol_resp))
+        return vol_resp
