@@ -303,6 +303,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_volume(self, volume_id):
         try:
+	    LOG.debug("Deletion of volume: " + str(volume_id) + "started")
             self.volumes_extensions_client.delete_volume(volume_id)
         except Exception as e:
             return
@@ -370,8 +371,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_volumes(self, volumes):
         total_volumes = len(volumes)
-	volume_snapshots = self.get_available_volume_snapshots()
-        self.delete_volume_snapshots(volume_snapshots)
         for volume in range(0, total_volumes):
             try:
                 self.volumes_extensions_client.delete_volume(volumes[volume])
@@ -651,8 +650,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.restored_volumes = self.get_restored_volume_list(restore_id)
 		self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
                 self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-                self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
 		self.addCleanup(self.delete_security_group, self.restored_security_group_id)
+                self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         else:
             restore_id = 0
         return restore_id
@@ -691,7 +690,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given restored VMs and volumes
     '''
     def delete_restored_vms(self, restored_vms, restored_volumes):
+	LOG.debug("Deletion of retored vms started.")
         self.delete_vms(restored_vms)
+	LOG.debug("Deletion of restored volumes started.")
         self.delete_volumes(restored_volumes)
 
     '''
