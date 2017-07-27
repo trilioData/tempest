@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest import tvaultconf
 import json
 import sys
 from tempest import api
@@ -64,24 +65,24 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	volumes = ["/dev/vdb", "/dev/vdc"]
 	mount_points = ["mount_data_b", "mount_data_c"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=True)
+        self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(flavor_id == 0):
-             flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=True)
+             flavor_id = self.create_flavor(tvaultconf.flavor_name)
         self.original_flavor_conf = self.get_flavor_details(flavor_id)
 
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
-             self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+	     vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+             self.workload_instances.append(vm_id)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
-             self.attach_volume(volume_id1, vm_id, device=volumes[vm])
-             self.attach_volume(volume_id2, vm_id,device=volumes[vm])
+             self.attach_volume(volume_id1, vm_id, device=volumes[0])
+             self.attach_volume(volume_id2, vm_id, device=volumes[1])
 
         for id in range(len(self.workload_instances)):
             available_floating_ips = self.get_floating_ips()
@@ -112,13 +113,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.wait_for_workload_tobe_available(self.workload_id)
         if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
             reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)	
+	    raise Exception("Full Snapshot Failed")
 	
 	#Fill some more data on each volume attached
 	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 1, mount_points)
 	
 	#Create in-place restore with CLI command
         #in_place_restore = command_argument_string.in_place_restore + " --instance instance-id=" +str(self.vm_id)
-	in_place_restore = "workloadmgr snapshot-inplace-restore " + "--display-name " + "test_name_inplace " + "--display-description " + "test_description_inplace " + " --filename /root/restore.json "  + str(self.snapshot_id)
+	command_argument_string  = "workloadmgr snapshot-inplace-restore " + "--display-name " + "test_name_inplace " + "--display-description " + "test_description_inplace " + " --filename " + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
 	
 	#Restore.json with only volume 2 excluded
         restore_json = json.dumps({
@@ -145,17 +147,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	'type': 'openstack'
 })
 	#Create Restore.json
-	with open('/root/restore.json', 'w') as f:
+	with open(tvaultconf.restore_filename, 'w') as f:
 	    f.write(str(json.loads(restore_json)))
-        rc = cli_parser.cli_returncode(in_place_restore)
+        rc = cli_parser.cli_returncode(command_argument_string)
         if rc != 0:
-	    reporting.add_test_step("In-Place restore via CLI-", tvaultconf.FAIL)
+	    reporting.add_test_step("In-Place restore via CLI", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
-	    reporting.add_test_step("In-Place restore via CLI-", tvaultconf.PASS)
+	    reporting.add_test_step("In-Place restore via CLI", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
 
-	#triggger in-place restore via cli
+	#get restore id from database
 	self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)	
 	self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
         
@@ -175,4 +177,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
 
 	
+	#Delete restore for snapshot
+	self.restored_volumes = self.get_restored_volume_list(self.restore_id)
+        self.restore_delete(self.workload_id, self.snapshot_id, self.restore_id)
+        LOG.debug("Snapshot Restore deleted successfully")
 	
+	#Delete restored volumes and volume snapshots
+	self.delete_volumes(self.restored_volumes)

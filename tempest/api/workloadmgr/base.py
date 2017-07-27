@@ -276,7 +276,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, volume_cleanup=False):
+    def create_volume(self, size, volume_type_id, volume_cleanup=True):
         self.expected_resp = 200
 	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
@@ -303,6 +303,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_volume(self, volume_id):
         try:
+	    volume_snapshots = self.get_volume_snapshots(volume_id)
+	    LOG.debug("Volumes snapshots for: " + str(volume_id) + ": " + str(volume_snapshots))
+	    self.delete_volume_snapshots(volume_snapshots)
 	    LOG.debug("Deletion of volume: " + str(volume_id) + "started")
             self.volumes_extensions_client.delete_volume(volume_id)
         except Exception as e:
@@ -370,10 +373,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given volumes list
     '''
     def delete_volumes(self, volumes):
-        total_volumes = len(volumes)
-        for volume in range(0, total_volumes):
+        for volume in volumes:
             try:
-                self.volumes_extensions_client.delete_volume(volumes[volume])
+                self.delete_volume(volume)
                 LOG.debug('Volume delete operation completed %s' % volume)
             except Exception as e:
 		LOG.debug("Exception" + str(e))
@@ -566,9 +568,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes a given snapshot
     '''
     def snapshot_delete(self, workload_id, snapshot_id):
-	volume_snapshots = self.get_available_volume_snapshots()
-        self.delete_volume_snapshots(volume_snapshots)
-        self.wait_for_workload_tobe_available(workload_id)
         resp, body = self.wlm_client.client.delete("/snapshots/"+str(snapshot_id))
         LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -679,12 +678,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Body: " + str(body))
         LOG.debug("Response: " + str(resp))
         instances= body['restore']['instances']
-        restore_volumes = []
+        restored_volumes = []
         for instance in instances:
             LOG.debug("instance:"+ instance['id'])
-            restore_volumes.append(self.get_attached_volumes(instance['id']))
-        LOG.debug("restored volume list:"+ str(restore_volumes))
-        return restore_volumes
+            if len(self.get_attached_volumes(instance['id'])) > 0:
+		for volume in self.get_attached_volumes(instance['id']):
+		    restored_volumes.append(volume)
+        LOG.debug("restored volume list:"+ str(restored_volumes))
+        return restored_volumes
 
     '''
     Method deletes the given restored VMs and volumes
@@ -1319,11 +1320,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	
     '''get_security_group_id_by_name'''
     def get_security_group_id_by_name(self, security_group_name):
+	security_group_id = ""
 	security_groups_list = self.security_groups_client.list_security_groups()['security_groups']
 	LOG.debug("Security groups list" + str(security_groups_list))
 	for security_group in security_groups_list:
 	    if security_group['name'] == security_group_name:
-		return security_group['id']
+		security_group_id = security_group['id']
+	if security_group_id!= "":
+	    return security_group_id
+	else:
+	    return None
 #	
 #        security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
 #        LOG.debug(security_group_details)

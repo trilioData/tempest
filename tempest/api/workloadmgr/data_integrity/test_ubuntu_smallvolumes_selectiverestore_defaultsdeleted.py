@@ -40,7 +40,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_ubuntu_smallvolumes_selectiverestore_defaultsdeleted(self):
         self.total_workloads=1
-        self.vms_per_workload=2
+        self.vms_per_workload=1
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
@@ -60,17 +60,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.network_details = []
 	volumes = ["/dev/vdb", "/dev/vdc"]
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=True)
+        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
 	if(flavor_id == 0):
-	     flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=True)
+	     flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=False)
 	self.original_flavor_conf = self.get_flavor_details(flavor_id)
 
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
              self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
