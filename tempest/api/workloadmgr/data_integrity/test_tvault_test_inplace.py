@@ -120,7 +120,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	
 	#Create in-place restore with CLI command
         #in_place_restore = command_argument_string.in_place_restore + " --instance instance-id=" +str(self.vm_id)
-	command_argument_string  = "workloadmgr snapshot-inplace-restore " + "--display-name " + "test_name_inplace " + "--display-description " + "test_description_inplace " + " --filename " + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
+	restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
 	
 	#Restore.json with only volume 2 excluded
         restore_json = json.dumps({
@@ -149,12 +149,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#Create Restore.json
 	with open(tvaultconf.restore_filename, 'w') as f:
 	    f.write(str(json.loads(restore_json)))
-        rc = cli_parser.cli_returncode(command_argument_string)
+        rc = cli_parser.cli_returncode(restore_command)
         if rc != 0:
-	    reporting.add_test_step("In-Place restore via CLI", tvaultconf.FAIL)
+	    reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
-	    reporting.add_test_step("In-Place restore via CLI", tvaultconf.PASS)
+	    reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
 
 	#get restore id from database

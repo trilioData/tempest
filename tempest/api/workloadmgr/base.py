@@ -1330,10 +1330,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    return security_group_id
 	else:
 	    return None
-#	
-#        security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
-#        LOG.debug(security_group_details)
-#        return security_group_details
+
     '''create_flavor'''
     def create_flavor(self, name, flavor_cleanup=True):
         flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
