@@ -614,7 +614,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True, sec_group_cleanup = False):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name == ""):
             restore_name = "Tempest_test_restore"
@@ -647,9 +647,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 		self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(restore_id)
-		self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
-                self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-		self.addCleanup(self.delete_security_group, self.restored_security_group_id)
+		self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+		if sec_group_cleanup == True:
+		    self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
+		    self.addCleanup(self.delete_security_group, self.restored_security_group_id)
                 self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         else:
             restore_id = 0

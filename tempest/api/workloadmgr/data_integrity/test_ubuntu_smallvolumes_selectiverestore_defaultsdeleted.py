@@ -147,7 +147,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	#Trigger selective restore
         self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name=tvaultconf.restore_name,
-                                                        instance_details=self.instance_details, network_details=self.network_details)
+                                                        instance_details=self.instance_details, network_details=self.network_details, sec_group_cleanup = True)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
 	if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
 	    reporting.add_test_step("Selective restore", tvaultconf.PASS)

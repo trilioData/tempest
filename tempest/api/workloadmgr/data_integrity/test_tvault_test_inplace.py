@@ -119,7 +119,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 1, mount_points)
 	
 	#Create in-place restore with CLI command
-        #in_place_restore = command_argument_string.in_place_restore + " --instance instance-id=" +str(self.vm_id)
 	restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
 	
 	#Restore.json with only volume 2 excluded
