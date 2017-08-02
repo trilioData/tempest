@@ -22,3 +22,4 @@ workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' 
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
 restore_show = "workloadmgr restore-show "
+inplace_restore = "workloadmgr snapshot-inplace-restore --display-name test_name_inplace --display-description test_description_inplace  --filename "

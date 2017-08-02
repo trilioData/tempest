@@ -13,7 +13,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import time
+import time,json
 import paramiko
 import os, stat
 
@@ -81,11 +81,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.os.security_group_default_rules_client)
         cls.versions_client = cls.os.compute_versions_client
 
-        if CONF.volume_feature_enabled.api_v1:
+	if CONF.volume_feature_enabled.api_v1:
             cls.volumes_client = cls.os.volumes_client
         else:
             cls.volumes_client = cls.os.volumes_v2_client
-
     @classmethod
     def register_custom_config_opts(cls):
         conf = cfg.CONF
@@ -230,9 +229,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 			flavorRef=flavor_id, networks=networkid)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
-
         if(tvaultconf.cleanup == True and vm_cleanup == True):
-            self.addCleanup(self.delete_vm, server_id)
+	    self.addCleanup(self.delete_vm, server_id)
         return server_id
 
     '''
@@ -279,9 +277,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         totalVms = len(instances)
         for vm in range(0,totalVms):
             try:
-		self.delete_port(instances[vm])
-                self.servers_client.delete_server(instances[vm])
-                waiters.wait_for_server_termination(self.servers_client, instances[vm])
+		self.delete_vm(instances[vm])
             except Exception as e:
                 pass
         LOG.debug('DeletedVms: %s' % instances)
@@ -321,7 +317,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_volume(self, volume_id):
         try:
-            self.volumes_client.delete_volume(volume_id)
+	    volume_snapshots = self.get_volume_snapshots(volume_id)
+	    LOG.debug("Volumes snapshots for: " + str(volume_id) + ": " + str(volume_snapshots))
+	    self.delete_volume_snapshots(volume_snapshots)
+	    LOG.debug("Deletion of volume: " + str(volume_id) + "started")
+            self.volumes_extensions_client.delete_volume(volume_id)
         except Exception as e:
             return
 
@@ -342,7 +342,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def delete_volume_snapshots(self, volume_snapshots):
         for snapshot in range(0, len(volume_snapshots)):
             try:
-                self.volumes_client.delete_volume(volume_snapshots[snapshot])
+                self.delete_volume_snapshot(volume_snapshots[snapshot])
                 LOG.debug('Snapshot delete operation completed %s' % volume_snapshots[snapshot])
             except Exception as e:
                 LOG.error("Exception: " + str(e))
@@ -352,7 +352,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_available_volume_snapshots(self):
         volume_snapshots = []
-        resp = self.snapshots_extensions_client.list_snapshots()
+        resp = self.snapshots_extensions_client.list_snapshots(detail=True)
         for id in range(0,len(resp['snapshots'])):
             volume_snapshots.append(resp['snapshots'][id]['id'])
         LOG.debug("Volume snapshots: " + str(volume_snapshots))
@@ -363,7 +363,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_volume_snapshots(self, volume_id):
         volume_snapshots = []
-        resp = self.snapshots_extensions_client.list_snapshots()
+        resp = self.snapshots_extensions_client.list_snapshots(detail=True)
         for id in range(0,len(resp['snapshots'])):
             volume_snapshot_id = resp['snapshots'][id]['volumeId']
             if ( volume_id == volume_snapshot_id ):
@@ -387,12 +387,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given volumes list
     '''
     def delete_volumes(self, volumes):
-        total_volumes = len(volumes)
-        for volume in range(0, total_volumes):
+        for volume in volumes:
             try:
-                self.volumes_client.delete_volume(volumes[volume])
+                self.delete_volume(volume)
                 LOG.debug('Volume delete operation completed %s' % volume)
             except Exception as e:
+		LOG.debug("Exception" + str(e))
                 pass
 
     '''
@@ -582,7 +582,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes a given snapshot
     '''
     def snapshot_delete(self, workload_id, snapshot_id):
-        self.wait_for_workload_tobe_available(workload_id)
         resp, body = self.wlm_client.client.delete("/snapshots/"+str(snapshot_id))
         LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -629,7 +628,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True, sec_group_cleanup = False):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name == ""):
             restore_name = "Tempest_test_restore"
@@ -658,11 +657,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
-            #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(tvaultconf.cleanup == True and restore_cleanup == True):
+		self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(restore_id)
-                self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+		self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+		if sec_group_cleanup == True:
+		    self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
+		    self.addCleanup(self.delete_security_group, self.restored_security_group_id)
                 self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         else:
             restore_id = 0
@@ -691,18 +693,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Body: " + str(body))
         LOG.debug("Response: " + str(resp))
         instances= body['restore']['instances']
-        restore_volumes = []
+        restored_volumes = []
         for instance in instances:
             LOG.debug("instance:"+ instance['id'])
-            restore_volumes.append(self.get_attached_volumes(instance['id']))
-        LOG.debug("restored volume list:"+ str(restore_volumes))
-        return restore_volumes
+            if len(self.get_attached_volumes(instance['id'])) > 0:
+		for volume in self.get_attached_volumes(instance['id']):
+		    restored_volumes.append(volume)
+        LOG.debug("restored volume list:"+ str(restored_volumes))
+        return restored_volumes
 
     '''
     Method deletes the given restored VMs and volumes
     '''
     def delete_restored_vms(self, restored_vms, restored_volumes):
+	LOG.debug("Deletion of retored vms started.")
         self.delete_vms(restored_vms)
+	LOG.debug("Deletion of restored volumes started.")
         self.delete_volumes(restored_volumes)
 
     '''
@@ -994,7 +1000,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
             except Exception as e:
-                time.sleep(10)
+                time.sleep(15)
                 if i == 29:
                     raise
                 LOG.debug("Got into Exception.." + str(e))
@@ -1005,117 +1011,67 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     layout creation and formatting the disks
     '''
-    def execute_command_disk_create(self, ssh, ipAddress):
+    def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
         stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
         stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
         LOG.debug("disk create my.layout output" + str(stdout.read()))
-        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdb < my.layout")
-        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk /dev/vdc < my.layout")
-        stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
-        LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-        # vdb1
-        buildCommand = "sudo mkfs -t ext3 /dev/vdb1"
-        sleeptime = 0.5
-        outdata, errdata = '', ''
-        ssh_transp = ssh.get_transport()
-        chan = ssh_transp.open_session()
-        # chan.settimeout(3 * 60 * 60)
-        chan.setblocking(0)
-        chan.exec_command(buildCommand)
-        LOG.debug("sudo mkfs -t ext3 /dev/vdb1 executed")
-        while True:  # monitoring process
-            # Reading from output streams
-            while chan.recv_ready():
-                outdata += chan.recv(1000)
-            while chan.recv_stderr_ready():
-                errdata += chan.recv_stderr(1000)
-            if chan.exit_status_ready():  # If completed
-                break
-            time.sleep(sleeptime)
-            LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output waiting..")
-        retcode = chan.recv_exit_status()
-        stdin, stdout, stderr = ssh.exec_command("df -h")
-        LOG.debug("df -h after mkfs -t ext3  /dev/vdb1" + str(stdout.read()))
-        # if "/dev/vdb1" not in str(stdout.read()):
-        #     raise ValueError("/dev/vdb1 not mounted")
-        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdb1 " + str(stdout.read()))
-        # vdc1
-        buildCommand = "sudo mkfs -t ext3 /dev/vdc1"
-        sleeptime = 0.5
-        outdata, errdata = '', ''
-        ssh_transp = ssh.get_transport()
-        chan = ssh_transp.open_session()
-        # chan.settimeout(3 * 60 * 60)
-        chan.setblocking(0)
-        chan.exec_command(buildCommand)
-        LOG.debug("sudo mkfs -t ext3 /dev/vdc1 executed")
-        while True:  # monitoring process
-            # Reading from output streams
-            while chan.recv_ready():
-                outdata += chan.recv(1000)
-            while chan.recv_stderr_ready():
-                errdata += chan.recv_stderr(1000)
-            if chan.exit_status_ready():  # If completed
-                break
-            time.sleep(sleeptime)
-            LOG.debug("sudo mkfs -t ext3 /dev/vdc1 output waiting..")
-        retcode = chan.recv_exit_status()
-        stdin, stdout, stderr = ssh.exec_command("df -h")
-        LOG.debug("df -h after mkfs -t ext3  /dev/vdc1" + str(stdout.read()))
-        # if "/dev/vdc1" not in str(stdout.read()):
-        #     raise ValueError("/dev/vdc1 not mounted")
-        # LOG.debug("sudo mkfs -t ext3 /dev/vdb1 output vdc1 " + str(stdout.read()))
-        #  dir create
-        stdin, stdout, stderr = ssh.exec_command("sudo mkdir \mount_data_b \mount_data_c")
+	for volume in volumes:
+            stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
+            stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
+            LOG.debug("fdisk output after partitioning " + str(stdout.read()))
+            # vdb1
+            buildCommand = "sudo mkfs -t ext3 " + volume + "1"
+            sleeptime = 0.5
+            outdata, errdata = '', ''
+            ssh_transp = ssh.get_transport()
+            chan = ssh_transp.open_session()
+            # chan.settimeout(3 * 60 * 60)
+            chan.setblocking(0)
+            chan.exec_command(buildCommand)
+            LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
+            while True:  # monitoring process
+                # Reading from output streams
+                while chan.recv_ready():
+                    outdata += chan.recv(1000)
+                while chan.recv_stderr_ready():
+                    errdata += chan.recv_stderr(1000)
+                if chan.exit_status_ready():  # If completed
+                    break
+                time.sleep(sleeptime)
+                LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
+            retcode = chan.recv_exit_status()
+            stdin, stdout, stderr = ssh.exec_command("df -h")
+	    LOG.debug("df -h after mkfs -t ext3 " + volume + "1 " + str(stdout.read()))
+	
+	for mount_point in mount_points:
+            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + "\\" + mount_point)
 
     '''
     disks mounting
     '''
-    def execute_command_disk_mount(self, ssh, ipAddress):
+    def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
         # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
-        buildCommand = "sudo mount /dev/vdb1 mount_data_b"
-        sleeptime = 1
-        outdata, errdata = '', ''
-        ssh_transp = ssh.get_transport()
-        chan = ssh_transp.open_session()
-        # chan.settimeout(3 * 60 * 60)
-        chan.setblocking(0)
-        chan.exec_command(buildCommand)
-        while True:  # monitoring process
-            # Reading from output streams
-            while chan.recv_ready():
-                outdata += chan.recv(1000)
-            while chan.recv_stderr_ready():
-                errdata += chan.recv_stderr(1000)
-            if chan.exit_status_ready():  # If completed
-                break
-            time.sleep(sleeptime)
-            LOG.debug("sudo mount /dev/vdb1 mount_data_b output waiting..")
-        retcode = chan.recv_exit_status()
-        # LOG.debug("sudo mount /dev/vdb1 mount_data_b output " + str(stdout.read()))
-        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdc1 mount_data_c")
-        buildCommand = "sudo mount /dev/vdc1 mount_data_c"
-        sleeptime = 1
-        outdata, errdata = '', ''
-        ssh_transp = ssh.get_transport()
-        chan = ssh_transp.open_session()
-        # chan.settimeout(3 * 60 * 60)
-        chan.setblocking(0)
-        chan.exec_command(buildCommand)
-        while True:  # monitoring process
-            # Reading from output streams
-            while chan.recv_ready():
-                outdata += chan.recv(1000)
-            while chan.recv_stderr_ready():
-                errdata += chan.recv_stderr(1000)
-            if chan.exit_status_ready():  # If completed
-                break
-            time.sleep(sleeptime)
-            LOG.debug("sudo mount /dev/vdc1 mount_data_c output waiting..")
-        retcode = chan.recv_exit_status()
-        # LOG.debug("sudo mount /dev/vdc1 mount_data_c output " + str(stdout.read()))
-        #stdin, stdout, stderr = ssh_con.exec_command("sudo reboot")
+	for i in range(len(volumes)):
+            buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
+            sleeptime = 1
+            outdata, errdata = '', ''
+            ssh_transp = ssh.get_transport()
+            chan = ssh_transp.open_session()
+            # chan.settimeout(3 * 60 * 60)
+            chan.setblocking(0)
+            chan.exec_command(buildCommand)
+            while True:  # monitoring process
+                # Reading from output streams
+                while chan.recv_ready():
+                    outdata += chan.recv(1000)
+                while chan.recv_stderr_ready():
+                    errdata += chan.recv_stderr(1000)
+                if chan.exit_status_ready():  # If completed
+                    break
+                time.sleep(sleeptime)
+                LOG.debug("sudo mount output waiting..")
+            retcode = chan.recv_exit_status()
         LOG.debug("mounting completed for " + str(ipAddress))
 
     '''
@@ -1177,16 +1133,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to populate data before full backup
     '''
-    def data_populate_before_backup(self, workload_instances, floating_ips_list, backup_size, files_count):
+    def data_populate_before_backup(self, workload_instances, floating_ips_list, backup_size, files_count, mount_points):
         md5sums_dir_before = {}
         for id in range(len(workload_instances)):
             self.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
-            data = ["mount_data_b/", "mount_data_c/", "/root/"]
-            for mount in data:
-                self.addCustomSizedfilesOnLinux(ssh, mount, files_count)
-                self.md5sums+=(self.calculatemmd5checksum(ssh, mount))
+            for mount_point in mount_points:
+                self.addCustomSizedfilesOnLinux(ssh, mount_point+"/", files_count)
+                self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
 
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
             LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
@@ -1197,7 +1152,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to populate data before full backup
     '''
-    def calculate_md5_after_restore(self, workload_instances, floating_ips_list):
+    def calculate_md5_after_restore(self, workload_instances, floating_ips_list, volumes,mount_points):
         LOG.debug("Calculating md5 sums for :" + str(workload_instances) + "||||" + str(floating_ips_list))
         md5sums_dir_after = {}
         for id in range(len(workload_instances)):
@@ -1205,10 +1160,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             # md5sums_dir_after = {}
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
 
-            self.execute_command_disk_mount(ssh, floating_ips_list[id])
-            data = ["mount_data_b/", "mount_data_c/", "/root/"]
-            for mount in data:
-                self.md5sums+=(self.calculatemmd5checksum(ssh, mount))
+            self.execute_command_disk_mount(ssh, floating_ips_list[id],volumes, mount_points)
+            for mount_point in mount_points:
+                self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
 
             md5sums_dir_after[str(floating_ips_list[id])] = self.md5sums
 
@@ -1244,7 +1198,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to disassociate floating ip to a server
     '''
     def disassociate_floating_ip_from_server(self, floating_ip, server_id):
-        set_response = self.floating_ips_client.disassociate_floating_ip_from_server(floating_ip, server_id)
+	LOG.debug("Disassociation of " + str(floating_ip) + " from " + str(server_id) + " started.")
+        set_response = self.servers_client.action(server_id, "removeFloatingIp", address=str(floating_ip))
         return set_response
 
     '''
@@ -1254,8 +1209,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	floatingip_id = None
         floatingips = self.network_client.list_floatingips()
         for i in range(len(floatingips['floatingips'])):
-            if(floatingips['floatingips'] == floating_ip):
-                floatingip_id = floatingips['floating_ip'][i]['id']
+            if(str(floatingips['floatingips'][i]['floating_ip_address']) == str(floating_ip)):
+                floatingip_id = floatingips['floatingips'][i]['id']
+		LOG.debug("floating ip id for :" + str(floating_ip) +" is: " + str(floatingip_id))
         return floatingip_id
 
     '''
@@ -1265,20 +1221,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         port_id = None
         floatingips = self.network_client.list_floatingips()
         for i in range(len(floatingips['floatingips'])):
-            if(floatingips['floatingips'] == floating_ip):
-                port_id = floatingips['floating_ip'][i]['port_id']
+            if(str(floatingips['floatingips'][i]['floating_ip_address']) == str(floating_ip)):
+                port_id = floatingips['floatingips'][i]['port_id']
+		LOG.debug("port id for :" + str(floating_ip) +" is: " + str(port_id))
         return port_id
 
-    '''
-    Method to disassociate a given floating ip using its id
-    '''
-    def disassociate_floating_ip_from_port(self, floatingip_id, port_id):
-#	if(port_id != None):
-	payload = {"port_id": port_id}
-#	else:
-#	    payload = {"port_id": "null"}
-        response = self.network_client.update_floatingip(floatingip_id, floatingip_payload=payload)
-        return response
 
     '''
     Method to get key pair details
@@ -1364,6 +1311,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         internal_network_name = str((self.get_vm_details(server_id)['server']['addresses'].keys()[0]))
         fixed_ip = str((self.get_vm_details(server_id)['server']['addresses'][internal_network_name][0]['addr']))
         ports.append(self.get_port_id(fixed_ip))
+	LOG.debug("Port deletion for " + str(ports) + " started.")
         self.delete_ports(ports)
 
     '''create_security_group'''
@@ -1383,6 +1331,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
         LOG.debug(security_group_details)
         return security_group_details
+	
+	
+    '''get_security_group_id_by_name'''
+    def get_security_group_id_by_name(self, security_group_name):
+	security_group_id = ""
+	security_groups_list = self.security_groups_client.list_security_groups()['security_groups']
+	LOG.debug("Security groups list" + str(security_groups_list))
+	for security_group in security_groups_list:
+	    if security_group['name'] == security_group_name:
+		security_group_id = security_group['id']
+	if security_group_id!= "":
+	    return security_group_id
+	else:
+	    return None
 
     '''create_flavor'''
     def create_flavor(self, name, flavor_cleanup=True):
