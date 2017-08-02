@@ -918,10 +918,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the snapshot list information
     '''
     def getSnapshotList(self, workload_id=None):
-       if(workload_id != None):
-           resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
-       else:
-           resp, body = self.wlm_client.client.get("/snapshots")
+        if(workload_id != None):
+            resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+        else:
+            resp, body = self.wlm_client.client.get("/snapshots")
         snapshot_list = []
         for i in range(0,len(body['snapshots'])):
             snapshot_list.append(body['snapshots'][i]['id'])
