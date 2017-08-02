@@ -30,7 +30,7 @@ import six
 import testscenarios
 import testtools
 
-from tempest import clients
+from tempest import clients,tvaultconf
 from tempest.common import cred_client
 from tempest.common import credentials
 from tempest.common import fixed_network
@@ -38,10 +38,28 @@ import tempest.common.generator.valid_generator as valid
 import tempest.common.validation_resources as vresources
 from tempest import config
 from tempest import exceptions
+from tempest import prerequisites
 
 LOG = logging.getLogger(__name__)
 
 CONF = config.CONF
+
+def pre_req(arg1):
+    def decorator(function):
+	
+	def wrapper(*args, **kwargs):
+
+	    if arg1['type'] == 'small_workload':
+		if tvaultconf.pre_req==True:
+		    prerequisites.small_workload(args[0])
+		else:
+		    LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
+		    
+	    function(*args, **kwargs)
+
+	return wrapper
+
+    return decorator
 
 
 def attr(**kwargs):
