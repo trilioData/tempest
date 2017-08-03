@@ -65,6 +65,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    reporting.add_test_step("Verify imported workload", tvaultconf.PASS)
         else:
 	    reporting.add_test_step("Verify imported workload", tvaultconf.FAIL)
+	    raise Exception("Imported workload verification failed")
 
 	#Get list of snapshots imported
 	self.snapshots = self.getSnapshotList()
@@ -77,6 +78,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    reporting.add_test_step("Verify imported snapshots", tvaultconf.PASS)
 	else:
 	    reporting.add_test_step("Verify imported snapshots", tvaultconf.FAIL)
+	    raise Exception("Imported snapshot verification failed")
+
+	#Trigger one click restore of imported snapshot
+	self.restore_id = self.snapshot_restore(self.workload_id_before_upgrade, self.snapshot_before_upgrade)
+	LOG.debug("Restore ID: " + str(self.restore_id))
+	self.wait_for_workload_tobe_available(self.workload_id_before_upgrade)
+	if(self.getRestoreStatus(self.workload_id_before_upgrade, self.snapshot_before_upgrade, self.restore_id) == "available"):
+	    reporting.add_test_step("One click restore of imported snapshot", tvaultconf.PASS)
+	else:
+	    reporting.add_test_step("One click restore of imported snapshot", tvaultconf.FAIL)
+	    raise Exception("One click restore of imported snapshot failed")
 
 	#Trigger full snapshot of imported workload
 	self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True)
@@ -88,3 +100,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              reporting.add_test_step("Create new snapshot of imported workload", tvaultconf.FAIL)
              raise Exception("New snapshot creation of imported workload failed")
 
+	#Cleanup
+	#Delete imported snapshot and workload
+	self.snapshot_delete(self.workload_id_before_upgrade, self.snapshot_before_upgrade)
+	self.workload_delete(self.workload_id_before_upgrade)

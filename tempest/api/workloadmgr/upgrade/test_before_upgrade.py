@@ -40,7 +40,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_before_upgrade(self):
-	tvaultconf.cleanup = False
         self.vms_per_workload=1
         self.volume_size=1
         self.workload_instances = []
