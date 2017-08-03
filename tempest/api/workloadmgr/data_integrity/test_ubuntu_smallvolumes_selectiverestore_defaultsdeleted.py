@@ -96,10 +96,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#self.workload_reset(self.workload_id)
         time.sleep(10)
         
-#	#Delete actual data
-#	for i in range(len(self.floating_ips_list)):
-#            response = self.disassociate_floating_ip_from_server(self.floating_ips_list[i],self.workload_instances[i])
-#            LOG.debug("Disassociate floating ip using id response: " + str(response))
 	self.delete_vms(self.workload_instances)
 	self.delete_volumes(self.workload_volumes)
         self.delete_key_pair(tvaultconf.key_pair_name)
