@@ -62,9 +62,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.workload_id_before_upgrade = self.read_upgrade_data("workload_id")
 	LOG.debug("Workload id before upgrade: " + str(self.workload_id_before_upgrade))
 	if(str(self.workload_id_before_upgrade) in self.workloads):
-	    reporting.add_test_step("Verify workload", tvaultconf.PASS)
+	    reporting.add_test_step("Verify imported workload", tvaultconf.PASS)
         else:
-	    reporting.add_test_step("Verify workload", tvaultconf.FAIL)
+	    reporting.add_test_step("Verify imported workload", tvaultconf.FAIL)
 
 	#Get list of snapshots imported
 	self.snapshots = self.getSnapshotList()
@@ -74,6 +74,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.snapshot_before_upgrade = self.read_upgrade_data("full_snapshot_id")
 	LOG.debug("Snapshot before upgrade: " + str(self.snapshot_before_upgrade))
 	if(str(self.snapshot_before_upgrade) in self.snapshots):
-	    reporting.add_test_step("Verify snapshot", tvaultconf.PASS)
+	    reporting.add_test_step("Verify imported snapshots", tvaultconf.PASS)
 	else:
-	    reporting.add_test_step("Verify snapshot", tvaultconf.FAIL)
+	    reporting.add_test_step("Verify imported snapshots", tvaultconf.FAIL)
+
+	#Trigger full snapshot of imported workload
+	self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True)
+	LOG.debug("New full snapshot id of imported workload: " + str(self.new_snapshot_id))
+	self.wait_for_workload_tobe_available(self.workload_id_before_upgrade)
+        if(self.getSnapshotStatus(self.workload_id_before_upgrade, self.new_snapshot_id) == "available"):
+             reporting.add_test_step("Create new snapshot of imported workload", tvaultconf.PASS)
+        else:
+             reporting.add_test_step("Create new snapshot of imported workload", tvaultconf.FAIL)
+             raise Exception("New snapshot creation of imported workload failed")
+

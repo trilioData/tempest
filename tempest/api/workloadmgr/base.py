@@ -925,7 +925,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_list = []
         for i in range(0,len(body['snapshots'])):
             snapshot_list.append(body['snapshots'][i]['id'])
-            LOG.debug('snapshot id is: %s' % snapshot_list[i])
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()

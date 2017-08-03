@@ -60,9 +60,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         #Create workload
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
         if(self.wait_for_workload_tobe_available(self.workload_id)):
-             reporting.add_test_step("Create_Workload", tvaultconf.PASS)
+             reporting.add_test_step("Create Workload", tvaultconf.PASS)
         else:
-             reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
+             reporting.add_test_step("Create Workload", tvaultconf.FAIL)
              raise Exception("Workload creation failed")
 	f.write("workload_id=" + str(self.workload_id) + "\n")
 
@@ -70,9 +70,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
         self.wait_for_workload_tobe_available(self.workload_id)
         if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-             reporting.add_test_step("Create_Snapshot", tvaultconf.PASS)
+             reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
         else:
-             reporting.add_test_step("Create_Snapshot", tvaultconf.FAIL)
+             reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
              raise Exception("Snapshot creation failed")
 	f.write("full_snapshot_id=" + str(self.snapshot_id) + "\n")
 	f.close()
