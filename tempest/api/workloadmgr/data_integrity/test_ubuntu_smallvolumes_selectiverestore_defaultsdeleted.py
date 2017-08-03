@@ -70,24 +70,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
+	     volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+             volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
              self.workload_instances.append(vm_id)
-             volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
              self.attach_volume(volume_id1, vm_id, device=volumes[0])
              self.attach_volume(volume_id2, vm_id,device=volumes[1])
 
-        for id in range(len(self.workload_instances)):
-	    available_floating_ips = self.get_floating_ips()
-	    if(len(available_floating_ips) > 0):
-		floating_ip = self.get_floating_ips()[0]
-	    else:
-		reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
-		raise Exception("Floating ips not available")
-            self.floating_ips_list.append(floating_ip)
-            self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 
 	#Fetch instance details before restore
         for id in range(len(self.workload_instances)):
@@ -105,10 +96,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#self.workload_reset(self.workload_id)
         time.sleep(10)
         
-	#Delete actual data
-	for i in range(len(self.floating_ips_list)):
-            response = self.disassociate_floating_ip_from_server(self.floating_ips_list[i],self.workload_instances[i])
-            LOG.debug("Disassociate floating ip using id response: " + str(response))
 	self.delete_vms(self.workload_instances)
 	self.delete_volumes(self.workload_volumes)
         self.delete_key_pair(tvaultconf.key_pair_name)
@@ -188,13 +175,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 		LOG.error("Restored flavor details: " + str(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
 		reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
 	
-	#Verify floating ips
-	self.floating_ips_after_restore = []
-	for i in range(len(self.vms_details_after_restore)):
-	    self.floating_ips_after_restore.append(self.vms_details_after_restore[i]['floating_ip'])
-	if(self.floating_ips_after_restore.sort() == self.floating_ips_list.sort()):
-	    reporting.add_test_step("Floating ip verification", tvaultconf.PASS)
-	else:
-	    LOG.error("Floating ips before restore: " + str(self.floating_ips_list.sort()))
-	    LOG.error("Floating ips after restore: " + str(self.floating_ips_after_restore.sort()))
-	    reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
