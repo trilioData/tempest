@@ -917,12 +917,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the snapshot list information
     '''
-    def getSnapshotList(self, workload_id='none'):
-        resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+    def getSnapshotList(self, workload_id=None):
+        if(workload_id != None):
+            resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+        else:
+            resp, body = self.wlm_client.client.get("/snapshots")
         snapshot_list = []
         for i in range(0,len(body['snapshots'])):
             snapshot_list.append(body['snapshots'][i]['id'])
-            LOG.debug('snapshot id is: %s' % snapshot_list[i])
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()
@@ -1384,3 +1386,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable)
 	LOG.debug("Volume bootable response: " + str(vol_resp))
         return vol_resp
+
+    '''Get list of workloads available'''
+    def getWorkloadList(self):
+        resp, body = self.wlm_client.client.get("/workloads")
+        workload_list = []
+        for i in range(0,len(body['workloads'])):
+            workload_list.append(body['workloads'][i]['id'])
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return workload_list
+
+    '''
+    Method to return the upgrade_data from file
+    '''
+    def read_upgrade_data(self, key):
+        value = None
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/upgrade_data_file"
+        LOG.debug("upgrade_data_file_path:%s" % filename)
+        with open(filename, "r+") as f:
+            for line in f:
+                if(line.find(key) != -1):
+                    value = line.split("=")[1]
+                    value = value.replace('\n', '')
+        return value
