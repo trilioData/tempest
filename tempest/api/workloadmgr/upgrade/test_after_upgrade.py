@@ -17,6 +17,7 @@ from tempest import config
 from tempest import test
 import json
 import sys
+import datetime
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
@@ -43,7 +44,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_after_upgrade(self):
 	#Import workloads using CLI command
+	LOG.debug("Workload import CLI command started at: " + str(datetime.datetime.now()))
         rc = cli_parser.cli_returncode(command_argument_string.workload_import)
+	LOG.debug("Workload import CLI command ended at: " + str(datetime.datetime.now()))
         if rc != 0:
             reporting.add_test_step("Execute workload-importworkloads command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
