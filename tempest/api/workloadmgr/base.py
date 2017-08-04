@@ -1006,8 +1006,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
             LOG.debug("fdisk output after partitioning " + str(stdout.read()))
             # vdb1
+	    time.sleep(5)
             buildCommand = "sudo mkfs -t ext3 " + volume + "1"
-            sleeptime = 0.5
+            sleeptime = 2
             outdata, errdata = '', ''
             ssh_transp = ssh.get_transport()
             chan = ssh_transp.open_session()
@@ -1026,8 +1027,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 time.sleep(sleeptime)
                 LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
             retcode = chan.recv_exit_status()
-            stdin, stdout, stderr = ssh.exec_command("df -h")
-	    LOG.debug("df -h after mkfs -t ext3 " + volume + "1 " + str(stdout.read()))
 	
 	for mount_point in mount_points:
             stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + "\\" + mount_point)
@@ -1044,7 +1043,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             outdata, errdata = '', ''
             ssh_transp = ssh.get_transport()
             chan = ssh_transp.open_session()
-            # chan.settimeout(3 * 60 * 60)
             chan.setblocking(0)
             chan.exec_command(buildCommand)
             while True:  # monitoring process
@@ -1058,7 +1056,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 time.sleep(sleeptime)
                 LOG.debug("sudo mount output waiting..")
             retcode = chan.recv_exit_status()
-        LOG.debug("mounting completed for " + str(ipAddress))
+	    
+	    # check mounts in df -h output
+	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
+	    output = stdout.read()
+            LOG.debug("sudo df -h after mounting " + volumes[i] + "1 :" + str(output))
+	    if str(volumes[i]+"1") in str(output):
+		LOG.debug("mounting completed for " + str(ipAddress))
+	    else:	    
+		raise Exception("Mount point failed for " + str(ipAddress))
 
     '''
     add custom sied files on linux
