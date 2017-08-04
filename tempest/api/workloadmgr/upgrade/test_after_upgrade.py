@@ -81,7 +81,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    raise Exception("Imported snapshot verification failed")
 
 	#Trigger one click restore of imported snapshot
-	self.restore_id = self.snapshot_restore(self.workload_id_before_upgrade, self.snapshot_before_upgrade)
+	self.restore_id = self.snapshot_restore(self.workload_id_before_upgrade, self.snapshot_before_upgrade, restore_cleanup=False)
 	LOG.debug("Restore ID: " + str(self.restore_id))
 	self.wait_for_workload_tobe_available(self.workload_id_before_upgrade)
 	if(self.getRestoreStatus(self.workload_id_before_upgrade, self.snapshot_before_upgrade, self.restore_id) == "available"):
@@ -91,7 +91,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    raise Exception("One click restore of imported snapshot failed")
 
 	#Trigger full snapshot of imported workload
-	self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True)
+	self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True, snapshot_cleanup=False)
 	LOG.debug("New full snapshot id of imported workload: " + str(self.new_snapshot_id))
 	self.wait_for_workload_tobe_available(self.workload_id_before_upgrade)
         if(self.getSnapshotStatus(self.workload_id_before_upgrade, self.new_snapshot_id) == "available"):
@@ -101,6 +101,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              raise Exception("New snapshot creation of imported workload failed")
 
 	#Cleanup
+	#Delete restore
+	self.restored_vms = self.get_restored_vm_list(self.restore_id)
+        self.restored_volumes = self.get_restored_volume_list(self.restore_id)
+        self.restore_delete(self.workload_id_before_upgrade, self.snapshot_before_uprgade, self.restore_id)
+        self.delete_restored_vms(self.restored_vms, self.restored_volumes)
+
+	#Delete new snapshot created
+	self.snapshot_delete(self.workload_id_before_upgrade, self.new_snapshot_id)
+
 	#Delete imported snapshot and workload
 	self.snapshot_delete(self.workload_id_before_upgrade, self.snapshot_before_upgrade)
 	self.workload_delete(self.workload_id_before_upgrade)
