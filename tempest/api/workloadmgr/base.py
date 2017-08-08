@@ -1005,14 +1005,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
             stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
             LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-            # vdb1
 	    time.sleep(5)
             buildCommand = "sudo mkfs -t ext3 " + volume + "1"
             sleeptime = 2
             outdata, errdata = '', ''
             ssh_transp = ssh.get_transport()
             chan = ssh_transp.open_session()
-            # chan.settimeout(3 * 60 * 60)
             chan.setblocking(0)
             chan.exec_command(buildCommand)
             LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
@@ -1036,7 +1034,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
-        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
 	for i in range(len(volumes)):
             buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
             sleeptime = 1
@@ -1074,14 +1071,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build command data population : " + str(dirPath))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-                # stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 outdata, errdata = '', ''
                 ssh_transp = ssh.get_transport()
                 chan = ssh_transp.open_session()
-                # chan.settimeout(3 * 60 * 60)
                 chan.setblocking(0)
                 chan.exec_command(buildCommand)
-                time.sleep(20)
+                time.sleep(10)
                 while True:  # monitoring process
                     # Reading from output streams
                     while chan.recv_ready():
@@ -1091,10 +1086,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     if chan.exit_status_ready():  # If completed
                         break
                     time.sleep(2)
-                    # LOG.debug(str(buildCommand)+ " waiting..")
                 retcode = chan.recv_exit_status()
-                # stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
-                # LOG.debug("file change output:" + str(stdout.read()))
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 

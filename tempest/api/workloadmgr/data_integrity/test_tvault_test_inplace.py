@@ -23,7 +23,7 @@ from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf, reporting
 import time
-
+import collections
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
@@ -40,84 +40,24 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
+    @test.pre_req({'type':'inplace'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_in_place_restore_cli(self):
-	self.total_workloads=1
-        self.vms_per_workload=1
-        self.volume_size=1
-        self.workload_instances = []
-        self.workload_volumes = []
-        self.workloads = []
-        self.full_snapshots = []
-        self.restores = []
-        self.fingerprint = ""
-        self.vm_details_list = []
-        self.vms_details = []
-        self.floating_ips_list = []
-        self.original_fingerprint = ""
-        self.vm_list = []
-        self.restored_vm_details_list = []
-        self.floating_ips_list_after_restore = []
-        self.vms_details_after_restore = []
-        self.instance_details = []
-        self.network_details = []
+
 	volumes = ["/dev/vdb", "/dev/vdc"]
-	mount_points = ["mount_data_b", "mount_data_c"]
-        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
-        security_group_id = self.security_group_details['security_group']['id']
-        LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
-        flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
-        if(flavor_id == 0):
-             flavor_id = self.create_flavor(tvaultconf.flavor_name)
-        self.original_flavor_conf = self.get_flavor_details(flavor_id)
+        mount_points = ["mount_data_b", "mount_data_c"]	
 
-        for vm in range(0,self.vms_per_workload):
-             vm_name = "tempest_test_vm_" + str(vm+1)
-             volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-	     vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
-             self.workload_instances.append(vm_id)
-             self.workload_volumes.append(volume_id1)
-             self.workload_volumes.append(volume_id2)
-             self.attach_volume(volume_id1, vm_id, device=volumes[0])
-             self.attach_volume(volume_id2, vm_id, device=volumes[1])
-
-        for id in range(len(self.workload_instances)):
-            available_floating_ips = self.get_floating_ips()
-            if(len(available_floating_ips) > 0):
-                floating_ip = self.get_floating_ips()[0]
-            else:
-                reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
-                raise Exception("Floating ips not available")
-            self.floating_ips_list.append(floating_ip)
-            self.set_floating_ip(str(floating_ip), self.workload_instances[id])
-	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-            self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
-            self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
-
-        #Fetch instance details before restore
-        for id in range(len(self.workload_instances)):
-            self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
-        self.vms_details = self.get_vms_details_list(self.vm_details_list)
-        LOG.debug("vm details list before backups" + str( self.vm_details_list))
-        LOG.debug("vm details dir before backups" + str( self.vms_details))
-
-	#Fill some data on each of the volumes attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 2, mount_points)
-
-        #Create workload and trigger full snapshot
-        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
-        self.snapshot_id=self.workload_snapshot(self.workload_id, True)
-        self.wait_for_workload_tobe_available(self.workload_id)
-        if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
-            reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)	
-	    raise Exception("Full Snapshot Failed")
-	
 	#Fill some more data on each volume attached
-	self.md5sums_dir_before = self.data_populate_before_backup(self.workload_instances, self.floating_ips_list, 100, 1, mount_points)
+        tree = lambda: collections.defaultdict(tree)
+        self.md5sums_dir_before = tree()
+        for floating_ip in self.floating_ips_list:
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+            for mount_point in mount_points:
+                self.addCustomSizedfilesOnLinux(ssh, mount_point, 1)
+                self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
 	
+	LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))	
 	#Create in-place restore with CLI command
 	restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
 	
@@ -144,7 +84,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	},
 	'restore_type': 'inplace',
 	'type': 'openstack'
-})
+ })
 	#Create Restore.json
 	with open(tvaultconf.restore_filename, 'w') as f:
 	    f.write(str(json.loads(restore_json)))
@@ -166,8 +106,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
             reporting.add_test_step("In-place restore", tvaultconf.FAIL)
             raise Exception("In-place restore failed")	
-
-	md5_sum_after_in_place_restore = self.calculate_md5_after_restore(self.workload_instances, self.floating_ips_list, volumes, mount_points)
+	
+	# calculate md5 after inplace restore
+        tree = lambda: collections.defaultdict(tree)
+        md5_sum_after_in_place_restore = tree()
+        for floating_ip in self.floating_ips_list:
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+            for mount_point in mount_points:
+                md5_sum_after_in_place_restore[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+	LOG.debug("md5_sum_after_in_place_restore" + str(md5_sum_after_in_place_restore))
 	
 	if(self.md5sums_dir_before == md5_sum_after_in_place_restore):
             reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
