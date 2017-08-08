@@ -1068,25 +1068,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def addCustomSizedfilesOnLinux(self, ssh, dirPath,fileCount):
         try:
-            LOG.debug("build command data population : " + str(dirPath))
+            LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(count))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-                outdata, errdata = '', ''
-                ssh_transp = ssh.get_transport()
-                chan = ssh_transp.open_session()
-                chan.setblocking(0)
-                chan.exec_command(buildCommand)
-                time.sleep(10)
-                while True:  # monitoring process
-                    # Reading from output streams
-                    while chan.recv_ready():
-                        outdata += chan.recv(1000)
-                    while chan.recv_stderr_ready():
-                        errdata += chan.recv_stderr(1000)
-                    if chan.exit_status_ready():  # If completed
-                        break
-                    time.sleep(2)
-                retcode = chan.recv_exit_status()
+		stdin, stdout, stderr = ssh.exec_command(buildCommand)
+		time.sleep(20)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
