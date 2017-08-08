@@ -5,9 +5,6 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 # following cleanup parameter value to True otherwise False
 cleanup = True
 
-# pre requisite parameter
-pre_req = True
-
 #Test results for reporting
 PASS = "PASS"
 FAIL = "FAIL"
