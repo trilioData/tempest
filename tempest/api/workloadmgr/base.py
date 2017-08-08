@@ -1068,7 +1068,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def addCustomSizedfilesOnLinux(self, ssh, dirPath,fileCount):
         try:
-            LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(count))
+            LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(fileCount))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
 		stdin, stdout, stderr = ssh.exec_command(buildCommand)
