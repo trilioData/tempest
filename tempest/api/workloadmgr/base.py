@@ -980,18 +980,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        flag = True
-        for i in range(0, 30, 1):
-            LOG.debug("Trying to connect to " + str(ipAddress))
-            try:
-                ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-            except Exception as e:
-                time.sleep(15)
-                if i == 29:
-                    raise
-                LOG.debug("Got into Exception.." + str(e))
-            else:
-                break
+	time.sleep(60)
+	ssh.connect(hostname=ipAddress, username=username ,pkey=private_key)
+        #flag = True
+        #for i in range(0, 30, 1):
+        #    LOG.debug("Trying to connect to " + str(ipAddress))
+        #    try:
+        #        ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+        #    except Exception as e:
+        #        time.sleep(15)
+        #        if i == 29:
+        #            raise
+        #        LOG.debug("Got into Exception.." + str(e))
+        #    else:
+        #        break
         return ssh
 
     '''
