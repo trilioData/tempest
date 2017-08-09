@@ -64,6 +64,7 @@ def inplace(self):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
         self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
         self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
+	ssh.close()
 
     #Fetch instance details before restore
     for id in range(len(self.workload_instances)):
@@ -79,7 +80,7 @@ def inplace(self):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
         for mount_point in mount_points:
             self.addCustomSizedfilesOnLinux(ssh, mount_point, 2)
-    
+    	ssh.close()
     #Create workload and trigger full snapshot
     self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
     self.snapshot_id=self.workload_snapshot(self.workload_id, True)

@@ -56,6 +56,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for mount_point in mount_points:
                 self.addCustomSizedfilesOnLinux(ssh, mount_point, 1)
                 self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+	    ssh.close()
 	
 	LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))	
 	#Create in-place restore with CLI command
