@@ -980,7 +980,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-	time.sleep(180)
+	time.sleep(300)
 	ssh.connect(hostname=ipAddress, username=username ,pkey=private_key)
         #flag = True
         #for i in range(0, 30, 1):
