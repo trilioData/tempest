@@ -61,6 +61,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#Create in-place restore with CLI command
 	restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
 	
+	LOG.debug("inplace restore cli command: " + str(restore_command) )
 	#Restore.json with only volume 2 excluded
         restore_json = json.dumps({
 	'openstack': {
@@ -85,6 +86,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	'restore_type': 'inplace',
 	'type': 'openstack'
  })
+	LOG.debug("restore.json for inplace restore: " + str(restore_json))
 	#Create Restore.json
 	with open(tvaultconf.restore_filename, 'w') as f:
 	    f.write(str(json.loads(restore_json)))
