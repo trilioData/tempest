@@ -980,20 +980,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-	time.sleep(300)
-	ssh.connect(hostname=ipAddress, username=username ,pkey=private_key)
-        #flag = True
-        #for i in range(0, 30, 1):
-        #    LOG.debug("Trying to connect to " + str(ipAddress))
-        #    try:
-        #        ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-        #    except Exception as e:
-        #        time.sleep(15)
-        #        if i == 29:
-        #            raise
-        #        LOG.debug("Got into Exception.." + str(e))
-        #    else:
-        #        break
+        flag = True
+        for i in range(0, 30, 1):
+            LOG.debug("Trying to connect to " + str(ipAddress))
+            try:
+                ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+            except Exception as e:
+                time.sleep(20)
+                if i == 29:
+                    raise
+                LOG.debug("Got into Exception.." + str(e))
+            else:
+                break
         return ssh
 
     '''
@@ -1110,11 +1108,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for id in range(len(workload_instances)):
             self.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.addCustomSizedfilesOnLinux(ssh, mount_point+"/", files_count)
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-
+	    	ssh.close()
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
             LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
 
@@ -1131,11 +1129,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.md5sums = ""
             # md5sums_dir_after = {}
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
-
             self.execute_command_disk_mount(ssh, floating_ips_list[id],volumes, mount_points)
+	    ssh.close()
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-
+		ssh.close()
             md5sums_dir_after[str(floating_ips_list[id])] = self.md5sums
 
             LOG.debug("after md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
