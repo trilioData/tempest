@@ -52,11 +52,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         tree = lambda: collections.defaultdict(tree)
         self.md5sums_dir_before = tree()
         for floating_ip in self.floating_ips_list:
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
                 self.addCustomSizedfilesOnLinux(ssh, mount_point, 1)
+		ssh.close()
+	    for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
                 self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-	    ssh.close()
+	    	ssh.close()
 	
 	LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))	
 	#Create in-place restore with CLI command
@@ -114,9 +117,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         tree = lambda: collections.defaultdict(tree)
         md5_sum_after_in_place_restore = tree()
         for floating_ip in self.floating_ips_list:
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
                 md5_sum_after_in_place_restore[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+		ssh.close()
 	LOG.debug("md5_sum_after_in_place_restore" + str(md5_sum_after_in_place_restore))
 	
 	if(self.md5sums_dir_before == md5_sum_after_in_place_restore):
