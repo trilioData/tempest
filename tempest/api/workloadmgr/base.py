@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import time,json
+import time
+import json
 import paramiko
-import os, stat
+import os
+import stat
+import requests
 
 from oslo_log import log as logging
 from tempest import config
@@ -23,20 +26,12 @@ import tempest.test
 from tempest.common import waiters
 from oslo_config import cfg
 from tempest_lib import exceptions as lib_exc
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from tempest import tvaultconf
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
-
-#Unused imports
-#import unittest
-#from testtools import testcase
-#from tempest import api
-#from tempest.common import compute
-#from random import choice
-#from string import ascii_lowercase
-
 
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
@@ -130,7 +125,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the current status of a given restore
     '''
     def getRestoreStatus(self, workload_id, snapshot_id, restore_id):
-        resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores/"+restore_id)
+        resp, body = self.wlm_client.client.get("/workloads/"+str(workload_id)+"/snapshots/"+str(snapshot_id)+"/restores/"+str(restore_id))
         restore_status = body['restore']['status']
         LOG.debug("#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" % (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -398,12 +393,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method attaches given volume to given VM instance
     '''
-    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=False):
-        #device = "/dev/"+''.join(choice(ascii_lowercase) for i in range(10))
-        #device = "/dev/vdb"
-        #self.volumes_client.attach_volume(volume_id,
-        #                          server_id,
-        #                          device)
+    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=True):
         if( not tvaultconf.workloads_from_file):
             if(tvaultconf.volumes_from_file):
                 try:
@@ -423,12 +413,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to detach given volume from given VM instance
     '''
     def detach_volume(self, server_id, volume_id):
-        #cls.volumes_client.detach_volume(volume_id)
-        #waiters.wait_for_volume_status(cls.volumes_client,
-        #                               volume_id, 'available')
         try:
             body = self.volumes_client.show_volume(volume_id)['volume']
-            self.servers_client.detach_volume(server_id, volume_id)
+            self.volumes_client.detach_volume(volume_id)
             self.volumes_client.wait_for_volume_status(volume_id, 'available')
         except lib_exc.NotFound:
             return
@@ -1412,3 +1399,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     value = line.split("=")[1]
                     value = value.replace('\n', '')
         return value
+
+    '''
+    Method to login to tvault landing page
+    '''
+    def login_tvault_landing_page(self, tvaultip, username, pwd):
+	auth = {'username': str(username), 'password': str(pwd)}
+        data = json.dumps(auth)
+	headers = {'Content-Type':'application/json', 'Accept':'application/json'}
+	url = "https://" + str(tvaultip) + "/login"
+	r = requests.post(url, data=data, headers=headers, verify=False)
+	if r.status_code != 201:
+            LOG.debug("Login response: " + str(r.text))
+	return r.text
+
+    '''
+    Method to reinitialize tavult
+    '''
+    def reinitialize_tvault(self, tvaultip, username, pwd):
+	auth = self.login_tvault_landing_page(tvaultip, username, pwd)
+        url = "https://" + str(tvaultip) + "/reinitialize"
+        r = requests.post(url, verify=False)
+        if r.status_code != 201:
+            LOG.debug("Reinitialize response: " + str(r.text))
+        return r.status_code
+	
+

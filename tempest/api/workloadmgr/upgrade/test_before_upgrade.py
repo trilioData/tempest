@@ -45,33 +45,40 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.workload_instances = []
         self.workload_volumes = []
 	self.test_json = {}
-	f = open("tempest/api/workloadmgr/upgrade_data_file", "w")
-	f.write("#Upgrade scenario test parameters\n")
-        for vm in range(0,self.vms_per_workload):
-	     volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             self.workload_volumes.append(volume_id1)
-             vm_id = self.create_vm()
-             self.workload_instances.append(vm_id)
-	     f.write("instance_id=" + str(vm_id) + "\n") 
-             self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
-	     f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
-        #Create workload
-        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
-        if(self.wait_for_workload_tobe_available(self.workload_id)):
-             reporting.add_test_step("Create Workload", tvaultconf.PASS)
-        else:
-             reporting.add_test_step("Create Workload", tvaultconf.FAIL)
-             raise Exception("Workload creation failed")
-	f.write("workload_id=" + str(self.workload_id) + "\n")
+	try:
+	     f = open("tempest/api/workloadmgr/upgrade_data_file", "w")
+	     f.write("#Upgrade scenario test parameters\n")
+             for vm in range(0,self.vms_per_workload):
+	          volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+                  self.workload_volumes.append(volume_id1)
+                  vm_id = self.create_vm(vm_cleanup=False)
+                  self.workload_instances.append(vm_id)
+	          f.write("instance_id=" + str(vm_id) + "\n") 
+                  self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
+	          f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
-        #Create full snapshot
-        self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
-        self.wait_for_workload_tobe_available(self.workload_id)
-        if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-             reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
-        else:
-             reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
-             raise Exception("Snapshot creation failed")
-	f.write("full_snapshot_id=" + str(self.snapshot_id) + "\n")
-	f.close()
+             #Create workload
+             self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
+             if(self.wait_for_workload_tobe_available(self.workload_id)):
+                  reporting.add_test_step("Create Workload", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create Workload", tvaultconf.FAIL)
+                  raise Exception("Workload creation failed")
+	     f.write("workload_id=" + str(self.workload_id) + "\n")
+
+             #Create full snapshot
+             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
+             self.wait_for_workload_tobe_available(self.workload_id)
+             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
+                  reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
+                  raise Exception("Snapshot creation failed")
+	     f.write("full_snapshot_id=" + str(self.snapshot_id) + "\n")
+	     f.close()
+	     reporting.test_case_to_write(tvaultconf.PASS)
+
+	except Exception as e:
+	    LOG.error("Exception: " + str(e))
+            reporting.test_case_to_write(tvaultconf.FAIL)
