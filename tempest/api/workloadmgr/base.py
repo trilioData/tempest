@@ -1111,6 +1111,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for mount_point in mount_points:
 		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.addCustomSizedfilesOnLinux(ssh, mount_point+"/", files_count)
+		ssh.close()
+	    for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
 	    	ssh.close()
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
