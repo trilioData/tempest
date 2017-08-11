@@ -1079,17 +1079,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     calculate md5 checksum
     '''
-    def calculatemmd5checksum(self, ssh, dirPath):
-        try:
-            local_md5sum = ""
-            buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(15)
-            for line in  stdout.readlines():
-                local_md5sum += str(line.split(" ")[0])
-            return local_md5sum
-        except Exception as e:
-            LOG.debug("Exception: " + str(e))
+    def calculatemmd5checksum(self, ssh, dirPath): 
+        local_md5sum = ""
+        buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
+        stdin, stdout, stderr = ssh.exec_command(buildCommand)
+        time.sleep(15)
+        for line in  stdout.readlines():
+            local_md5sum += str(line.split(" ")[0])
+        return local_md5sum
 
 
     '''
