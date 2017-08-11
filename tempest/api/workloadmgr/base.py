@@ -1322,7 +1322,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_flavor'''
     def create_flavor(self, name, flavor_cleanup=True):
-        flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
+        flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 4  , ram = 4096 )['flavor']['id']
         LOG.debug("flavor id" + str(flavor_id))
 	if(tvaultconf.cleanup == True and flavor_cleanup == True):
 	    self.addCleanup(self.delete_flavor, flavor_id)
