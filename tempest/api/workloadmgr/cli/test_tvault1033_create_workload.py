@@ -47,7 +47,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    reporting.add_test_step("Execute workload-create command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
-	    reporting.add_test_step("Execute workload-create command", tvautlconf.PASS)
+	    reporting.add_test_step("Execute workload-create command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
         
         wc = query_data.get_workload_status(tvaultconf.workload_name)
