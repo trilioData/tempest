@@ -57,6 +57,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.floating_ips_list_after_restore = []
 	self.vms_details_after_restore = []
 	self.instance_details = []
+	self.vdisks_details = []
 	self.network_details = []
 	volumes = ["/dev/vdb", "/dev/vdc"]
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
@@ -108,6 +109,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
 	#Create instance details for restore.json
+	
+	temp_vdisks_data = {'id':volume_id1,
+                                'availability_zone':"nova"
+                                },
+                                {'id':volume_id2,
+                                'availability_zone':"nova"
+                                }
+
+        LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
+
 	for i in range(len(self.workload_instances)):
 	    vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	    temp_instance_data = { 'id': self.workload_instances[i],
@@ -115,11 +126,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 				   'include': True,
 				   'restore_boot_disk': True,
 				   'name': vm_name,
-				   'vdisks':[]
+				   'vdisks':[temp_vdisks_data]
 				 }
 	    self.instance_details.append(temp_instance_data)
 	LOG.debug("Instance details for restore: " + str(self.instance_details))
-
+	
 	#Create network details for restore.json
 	snapshot_network = { 'name': int_net_1_name,
 			     'id': CONF.network.internal_network_id,
