@@ -95,7 +95,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
         #self.workload_reset(self.workload_id)
         time.sleep(10)
-
         int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
         int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
@@ -121,14 +120,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	    if (i == 1):
 		include_vm = "False"
+		temp_instance_data = { 'id': self.workload_instances[i],
+                                       'include': include_vm,
+                                     }
 	    else:
 		include_vm = "True"
-            temp_instance_data = { 'id': self.workload_instances[i],
-                                   'include': include_vm,
-                                   'restore_boot_disk': True,
-                                   'name': vm_name,
-                                   'vdisks':temp_vdisks_data[i]
-                                 }
+                temp_instance_data = { 'id': self.workload_instances[i],
+                                       'include': include_vm,
+                                       'restore_boot_disk': True,
+                                       'name': vm_name,
+                                       'vdisks':temp_vdisks_data[i]
+                                     }
             self.instance_details.append(temp_instance_data)
         LOG.debug("Instance details for restore: " + str(self.instance_details))
 
