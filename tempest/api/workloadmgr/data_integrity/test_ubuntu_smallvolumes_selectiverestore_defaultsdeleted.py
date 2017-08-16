@@ -57,7 +57,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.floating_ips_list_after_restore = []
 	self.vms_details_after_restore = []
 	self.instance_details = []
-	self.vdisks_details = []
 	self.network_details = []
 	volumes = ["/dev/vdb", "/dev/vdc"]
 	self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
@@ -110,12 +109,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	#Create instance details for restore.json
 	
-	temp_vdisks_data = {'id':volume_id1,
-                                'availability_zone':"nova"
-                                },
-                                {'id':volume_id2,
-                                'availability_zone':"nova"
-                                }
+	temp_vdisks_data = [{'id':volume_id1,
+                            'availability_zone':"nova"
+                           },
+                           {'id':volume_id2,
+                            'availability_zone':"nova"
+                           }]
 
         LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
 
@@ -126,7 +125,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 				   'include': True,
 				   'restore_boot_disk': True,
 				   'name': vm_name,
-				   'vdisks':[temp_vdisks_data]
+				   'vdisks':temp_vdisks_data
 				 }
 	    self.instance_details.append(temp_instance_data)
 	LOG.debug("Instance details for restore: " + str(self.instance_details))
