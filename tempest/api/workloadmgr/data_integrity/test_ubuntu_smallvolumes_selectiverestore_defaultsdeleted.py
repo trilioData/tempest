@@ -108,15 +108,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
 	#Create instance details for restore.json
-	
-	temp_vdisks_data = [{'id':volume_id1,
-                            'availability_zone':"nova",
-			    'new_volume_type':"ceph"
-                           },
-                           {'id':volume_id2,
-                            'availability_zone':"nova",
-			    'new_volume_type':"ceph"
-                           }]
+	temp_vdisks_data = []
+	for i in range(len(self.workload_instances)):
+	    flag=i+i
+			
+	    temp_vdisks_data[i] = [{'id':self.workload_volumes[flag],
+                                 'availability_zone':"nova",
+		     	         'new_volume_type':"ceph"
+                                },
+                                {'id':self.workload_volumes[flag+1],
+                                 'availability_zone':"nova",
+			         'new_volume_type':"ceph"
+                                }
+			       ]
 
         LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
 
@@ -127,7 +131,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 				   'include': True,
 				   'restore_boot_disk': True,
 				   'name': vm_name,
-				   'vdisks':temp_vdisks_data
+				   'vdisks':temp_vdisks_data[i]
 				 }
 	    self.instance_details.append(temp_instance_data)
 	LOG.debug("Instance details for restore: " + str(self.instance_details))
