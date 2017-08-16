@@ -102,6 +102,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
         #Create instance details for restore.json
+	temp_vdisks_data = []
+        for i in range(len(self.workload_instances)):
+            flag=i+i
+
+            temp_vdisks_data.append ([{'id':self.workload_volumes[flag],
+                                 'availability_zone':tvaultconf.availability_zone,
+                                 'new_volume_type':tvaultconf.volume_type
+                                },
+                                {'id':self.workload_volumes[flag+1],
+                                 'availability_zone':tvaultconf.availability_zone,
+                                 'new_volume_type':tvaultconf.volume_type
+                                }]
+                               )
+        LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
+
         for i in range(len(self.workload_instances)):
             vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	    if (i == 1):
@@ -112,7 +127,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                    'include': include_vm,
                                    'restore_boot_disk': True,
                                    'name': vm_name,
-                                   'vdisks':[]
+                                   'vdisks':temp_vdisks_data[i]
                                  }
             self.instance_details.append(temp_instance_data)
         LOG.debug("Instance details for restore: " + str(self.instance_details))
