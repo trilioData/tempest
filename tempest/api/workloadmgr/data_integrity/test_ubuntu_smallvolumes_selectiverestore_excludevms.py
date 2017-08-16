@@ -127,6 +127,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 		include_vm = "True"
                 temp_instance_data = { 'id': self.workload_instances[i],
                                        'include': include_vm,
+				       'availability_zone':tvaultconf.availability_zone,
                                        'restore_boot_disk': True,
                                        'name': vm_name,
                                        'vdisks':temp_vdisks_data[i]
