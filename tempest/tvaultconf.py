@@ -61,3 +61,5 @@ restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
 security_group_name = "test_security"
 flavor_name = "test_flavor"
+availability_zone = "nova"
+volume_type = "ceph"
