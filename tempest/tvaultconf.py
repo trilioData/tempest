@@ -34,6 +34,7 @@ workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
 volume_size = 1
+global_job_scheduler="false"
 
 tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"

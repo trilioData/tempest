@@ -22,6 +22,8 @@ from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
 from tempest import reporting
+from tempest.api.workloadmgr.cli.config import command_argument_string
+from tempest.api.workloadmgr.cli.util import cli_parser
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -76,9 +78,30 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                   reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
                   raise Exception("Snapshot creation failed")
 	     f.write("full_snapshot_id=" + str(self.snapshot_id) + "\n")
-	     f.close()
+
+	     #Get global job scheduler status
+	     self.scheduler_status = self.get_global_job_scheduler_status()
+	     if(self.scheduler_status == tvaultconf.global_job_scheduler):
+		LOG.debug("Global job scheduler status before upgrade: " + str(self.scheduler_status))
+	     else:
+	        if(tvaultconf.global_job_scheduler == 'true'):
+		    self.scheduler_status = self.enable_global_job_scheduler()
+		    if (self.scheduler_status == 'false'):
+			reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
+			raise Exception("Enable global job scheduler failed")
+		    else:
+			reporting.add_test_step("Enable global job scheduler", tvaultconf.PASS)
+		else:
+                    self.scheduler_status = self.disable_global_job_scheduler()
+                    if (self.scheduler_status == 'true'):
+                        reporting.add_test_step("Disable global job scheduler", tvaultconf.FAIL)
+                        raise Exception("Disable global job scheduler failed")
+                    else:
+                        reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
+             f.close()
 	     reporting.test_case_to_write(tvaultconf.PASS)
 
 	except Exception as e:
 	    LOG.error("Exception: " + str(e))
             reporting.test_case_to_write(tvaultconf.FAIL)
+	    f.close()

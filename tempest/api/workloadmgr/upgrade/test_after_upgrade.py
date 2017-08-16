@@ -55,6 +55,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Execute workload-importworkloads command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
+	    #Verify if global job scheduler setting is preserved
+	    self.scheduler = self.get_global_job_scheduler_status()
+	    if(self.scheduler == tvaultconf.global_job_scheduler):
+		reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.FAIL)
+
 	    #Get list of workloads imported
 	    self.workloads = self.getWorkloadList()
 	    LOG.debug("Workload list after import: " + str(self.workloads))

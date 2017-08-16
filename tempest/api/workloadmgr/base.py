@@ -1414,7 +1414,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	return r.text
 
     '''
-    Method to reinitialize tavult
+    Method to reinitialize tvault
     '''
     def reinitialize_tvault(self, tvaultip, username, pwd):
 	auth = self.login_tvault_landing_page(tvaultip, username, pwd)
@@ -1424,4 +1424,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Reinitialize response: " + str(r.text))
         return r.status_code
 	
+    '''
+    Method to fetch global job scheduler status
+    '''
+    def get_global_job_scheduler_status(self):
+        resp, body = self.wlm_client.client.get("/global_job_scheduler")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+	status = body['global_job_scheduler']
+        return status
+
+    '''
+    Method to enable global job scheduler
+    '''
+    def enable_global_job_scheduler(self):
+        resp, body = self.wlm_client.client.post("/global_job_scheduler/enable")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        status = body['global_job_scheduler']
+        return status
+
+    '''
+    Method to disable global job scheduler
+    '''
+    def disable_global_job_scheduler(self):
+        resp, body = self.wlm_client.client.post("/global_job_scheduler/disable")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        status = body['global_job_scheduler']
+        return status
+
 
