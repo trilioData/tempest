@@ -110,10 +110,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#Create instance details for restore.json
 	
 	temp_vdisks_data = [{'id':volume_id1,
-                            'availability_zone':"nova"
+                            'availability_zone':"nova",
+			    'new_volume_type':"ceph"
                            },
                            {'id':volume_id2,
-                            'availability_zone':"nova"
+                            'availability_zone':"nova",
+			    'new_volume_type':"ceph"
                            }]
 
         LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
