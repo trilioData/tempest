@@ -112,7 +112,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	for i in range(len(self.workload_instances)):
 	    flag=i+i
 			
-	    temp_vdisks_data[i] = [{'id':self.workload_volumes[flag],
+	    temp_vdisks_data.append [{'id':self.workload_volumes[flag],
                                  'availability_zone':"nova",
 		     	         'new_volume_type':"ceph"
                                 },
