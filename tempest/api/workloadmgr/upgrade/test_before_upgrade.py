@@ -99,9 +99,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
              f.close()
-	     reporting.test_case_to_write(tvaultconf.PASS)
+	     reporting.test_case_to_write()
 
 	except Exception as e:
 	    LOG.error("Exception: " + str(e))
-            reporting.test_case_to_write(tvaultconf.FAIL)
-	    f.close()
+	    reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
