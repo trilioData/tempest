@@ -37,8 +37,8 @@ def test_case_to_write():
         color = "red"
     test_case_to_write = """
 	<tr>
-		<td colspan="1">{0}</td>
-		<td> <font color={1}>{2}</font> </td>
+		<td colspan="1"><b>{0}</b></td>
+		<td> <font color={1}><b>{2}</b></font> </td>
         </tr>
 	""".format(test_script_name, color, test_script_status)
     with open(test_results_file, "a") as f:
