@@ -63,7 +63,7 @@ def pre_req(arg1):
                     LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
 	    function(*args)
 	return wrapper
-return decorator
+    return decorator
 
 
 def attr(**kwargs):
