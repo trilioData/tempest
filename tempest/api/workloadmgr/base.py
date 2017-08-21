@@ -1040,25 +1040,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 	for i in range(len(volumes)):
             buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
-            sleeptime = 1
-            outdata, errdata = '', ''
-            ssh_transp = ssh.get_transport()
-            chan = ssh_transp.open_session()
-            chan.setblocking(0)
-            chan.exec_command(buildCommand)
-	    time.sleep(5)
-            while True:  # monitoring process
-                # Reading from output streams
-                while chan.recv_ready():
-                    outdata += chan.recv(1000)
-                while chan.recv_stderr_ready():
-                    errdata += chan.recv_stderr(1000)
-                if chan.exit_status_ready():  # If completed
-                    break
-                time.sleep(sleeptime)
-                LOG.debug("sudo mount output waiting..")
-            retcode = chan.recv_exit_status()
-	    
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+	    time.sleep(8)
 	    # check mounts in df -h output
 	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
 	    output = stdout.read()
