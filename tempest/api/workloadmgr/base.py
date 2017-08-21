@@ -1046,6 +1046,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             chan = ssh_transp.open_session()
             chan.setblocking(0)
             chan.exec_command(buildCommand)
+	    time.sleep(5)
             while True:  # monitoring process
                 # Reading from output streams
                 while chan.recv_ready():
