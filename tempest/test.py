@@ -31,6 +31,7 @@ import testscenarios
 import testtools
 
 from tempest import clients
+from tempest import tvaultconf
 from tempest.common import cred_client
 from tempest.common import credentials
 from tempest.common import fixed_network
@@ -42,9 +43,7 @@ from tempest import prerequisites
 from tempest import tvaultconf
 
 LOG = logging.getLogger(__name__)
-
 CONF = config.CONF
-
 
 """A decorator which applies pre-requisites capabilities to a function when called with a 'type'. Pre-requisites functions must be defined in prerequisites.py. If tvaultconf.pre_req is found to be False, this decorator will return to the same fucntion and will pick the parameters from set vms_file, volumes_file, workloads_file."""
 def pre_req(arg1):
@@ -62,12 +61,9 @@ def pre_req(arg1):
                     prerequisites.inplace(args[0])
                 else:
                     LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
-		    
 	    function(*args)
-
 	return wrapper
-
-    return decorator
+return decorator
 
 
 def attr(**kwargs):

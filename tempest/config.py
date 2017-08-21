@@ -25,7 +25,8 @@ from oslo_log import log as logging
 from tempest.test_discover import plugins
 
 import sys
-sys.path.append("/opt/stack/python-workloadmgrclient/")
+sys.path.append("/usr/lib/python2.7/site-packages/")
+sys.path.append("/usr/local/lib/python2.7/dist-packages")
 
 from workloadmgrclient import utils
 

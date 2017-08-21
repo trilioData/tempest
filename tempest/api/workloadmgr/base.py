@@ -13,9 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import time,json
+import time
+import json
 import paramiko
-import os, stat
+import os
+import stat
+import requests
 
 from oslo_log import log as logging
 from tempest import config
@@ -23,20 +26,12 @@ import tempest.test
 from tempest.common import waiters
 from oslo_config import cfg
 from tempest_lib import exceptions as lib_exc
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 from tempest import tvaultconf
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
-
-#Unused imports
-#import unittest
-#from testtools import testcase
-#from tempest import api
-#from tempest.common import compute
-#from random import choice
-#from string import ascii_lowercase
-
 
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
@@ -130,7 +125,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the current status of a given restore
     '''
     def getRestoreStatus(self, workload_id, snapshot_id, restore_id):
-        resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores/"+restore_id)
+        resp, body = self.wlm_client.client.get("/workloads/"+str(workload_id)+"/snapshots/"+str(snapshot_id)+"/restores/"+str(restore_id))
         restore_status = body['restore']['status']
         LOG.debug("#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" % (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -210,14 +205,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}]):
+    def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
+			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[]):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-            if key_pair:
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
+	    if (len(block_mapping_data) > 0 and key_pair != ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
+                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data)
+	    elif (len(block_mapping_data) > 0 and key_pair == ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data)
+	    elif (key_pair != ""):
+	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
             else:
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=CONF.compute.image_ref, flavorRef=flavor_id, networks=networkid)
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+			flavorRef=flavor_id, networks=networkid)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
@@ -276,21 +280,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, volume_cleanup=True):
+    def create_volume(self, size, volume_type_id, image_id="", volume_cleanup=True):
         self.expected_resp = 200
-	LOG.debug("Expected Response Code: " + str(self.expected_resp))
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
             if(flag != 0):
                 volume_id=self.read_volume_id()
             else:
-                volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+		if(image_id != ""):
+                     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+		else:
+		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
-            volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+	    if(image_id != ""):
+		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+	    else:
+		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -384,12 +393,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method attaches given volume to given VM instance
     '''
-    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=False):
-        #device = "/dev/"+''.join(choice(ascii_lowercase) for i in range(10))
-        #device = "/dev/vdb"
-        #self.volumes_client.attach_volume(volume_id,
-        #                          server_id,
-        #                          device)
+    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=True):
         if( not tvaultconf.workloads_from_file):
             if(tvaultconf.volumes_from_file):
                 try:
@@ -409,12 +413,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to detach given volume from given VM instance
     '''
     def detach_volume(self, server_id, volume_id):
-        #cls.volumes_client.detach_volume(volume_id)
-        #waiters.wait_for_volume_status(cls.volumes_client,
-        #                               volume_id, 'available')
         try:
             body = self.volumes_client.show_volume(volume_id)['volume']
-            self.servers_client.detach_volume(server_id, volume_id)
+            self.volumes_client.detach_volume(volume_id)
             self.volumes_client.wait_for_volume_status(volume_id, 'available')
         except lib_exc.NotFound:
             return
@@ -904,12 +905,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the snapshot list information
     '''
-    def getSnapshotList(self, workload_id='none'):
-        resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+    def getSnapshotList(self, workload_id=None):
+        if(workload_id != None):
+            resp, body = self.wlm_client.client.get("/snapshots?workload_id="+workload_id)
+        else:
+            resp, body = self.wlm_client.client.get("/snapshots")
         snapshot_list = []
         for i in range(0,len(body['snapshots'])):
             snapshot_list.append(body['snapshots'][i]['id'])
-            LOG.debug('snapshot id is: %s' % snapshot_list[i])
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()
@@ -1353,4 +1356,61 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                           'OS-FLV-EXT-DATA:ephemeral': flavor_resp['OS-FLV-EXT-DATA:ephemeral'],
                           'disk': flavor_resp['disk']}
         return flavor_details
+
+    '''Set a volume as bootable'''
+    def set_volume_as_bootable(self, volume_id, bootable=True):
+        vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable)
+	LOG.debug("Volume bootable response: " + str(vol_resp))
+        return vol_resp
+
+    '''Get list of workloads available'''
+    def getWorkloadList(self):
+        resp, body = self.wlm_client.client.get("/workloads")
+        workload_list = []
+        for i in range(0,len(body['workloads'])):
+            workload_list.append(body['workloads'][i]['id'])
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return workload_list
+
+    '''
+    Method to return the upgrade_data from file
+    '''
+    def read_upgrade_data(self, key):
+        value = None
+        dir=os.path.dirname(os.path.abspath(__file__))
+        filename=dir+"/upgrade_data_file"
+        LOG.debug("upgrade_data_file_path:%s" % filename)
+        with open(filename, "r+") as f:
+            for line in f:
+                if(line.find(key) != -1):
+                    value = line.split("=")[1]
+                    value = value.replace('\n', '')
+        return value
+
+    '''
+    Method to login to tvault landing page
+    '''
+    def login_tvault_landing_page(self, tvaultip, username, pwd):
+	auth = {'username': str(username), 'password': str(pwd)}
+        data = json.dumps(auth)
+	headers = {'Content-Type':'application/json', 'Accept':'application/json'}
+	url = "https://" + str(tvaultip) + "/login"
+	r = requests.post(url, data=data, headers=headers, verify=False)
+	if r.status_code != 201:
+            LOG.debug("Login response: " + str(r.text))
+	return r.text
+
+    '''
+    Method to reinitialize tavult
+    '''
+    def reinitialize_tvault(self, tvaultip, username, pwd):
+	auth = self.login_tvault_landing_page(tvaultip, username, pwd)
+        url = "https://" + str(tvaultip) + "/reinitialize"
+        r = requests.post(url, verify=False)
+        if r.status_code != 201:
+            LOG.debug("Reinitialize response: " + str(r.text))
+        return r.status_code
+	
 

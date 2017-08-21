@@ -2,6 +2,7 @@
 from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
+
 def small_workload(self):
     self.workload_instances = []
     LOG.debug("Running prerequisites for : small_workload")
