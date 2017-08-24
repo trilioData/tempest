@@ -49,14 +49,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	self.test_json = {}
 
 	try:
-	     f = open("tempest/api/workloadmgr/upgrade_data_file", "w")
-	     f.write("#Upgrade scenario test parameters\n")
+	     f = open("tempest/upgrade_data_conf.py", "w")
              for vm in range(0,self.vms_per_workload):
 	          volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
                   self.workload_volumes.append(volume_id1)
                   vm_id = self.create_vm(vm_cleanup=False)
                   self.workload_instances.append(vm_id)
-	          f.write("instance_id=" + str(vm_id) + "\n") 
+	          f.write("instance_id=" + str(self.workload_instances) + "\n") 
                   self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
 	          f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
@@ -67,7 +66,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              else:
                   reporting.add_test_step("Create Workload", tvaultconf.FAIL)
                   raise Exception("Workload creation failed")
-	     f.write("workload_id=" + str(self.workload_id) + "\n")
+	     f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
 
              #Create full snapshot
              self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
@@ -77,12 +76,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              else:
                   reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
                   raise Exception("Snapshot creation failed")
-	     f.write("full_snapshot_id=" + str(self.snapshot_id) + "\n")
+	     f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
 
 	     #Get global job scheduler status
 	     self.scheduler_status = self.get_global_job_scheduler_status()
 	     if(self.scheduler_status == tvaultconf.global_job_scheduler):
 		LOG.debug("Global job scheduler status before upgrade: " + str(self.scheduler_status))
+		reporting.add_test_step("Global job scheduler " + str(self.scheduler_status), tvaultconf.PASS)
 	     else:
 	        if(tvaultconf.global_job_scheduler == 'true'):
 		    self.scheduler_status = self.enable_global_job_scheduler()

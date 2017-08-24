@@ -590,6 +590,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                            "openstack": {"instances": [], "zone": ""},
 					   "restore_type": "oneclick",
                                            "type": "openstack",
+					   "oneclickrestore": "True",
                                            "restore_options": {},
                                            "name": restore_name},
                 "name": restore_name,
@@ -628,6 +629,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'name': restore_name,
                         'description': restore_desc,
                         'type': 'openstack',
+			'oneclickrestore': 'False',
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
@@ -1384,21 +1386,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
            resp.raise_for_status()
         return workload_list
-
-    '''
-    Method to return the upgrade_data from file
-    '''
-    def read_upgrade_data(self, key):
-        value = None
-        dir=os.path.dirname(os.path.abspath(__file__))
-        filename=dir+"/upgrade_data_file"
-        LOG.debug("upgrade_data_file_path:%s" % filename)
-        with open(filename, "r+") as f:
-            for line in f:
-                if(line.find(key) != -1):
-                    value = line.split("=")[1]
-                    value = value.replace('\n', '')
-        return value
 
     '''
     Method to login to tvault landing page
