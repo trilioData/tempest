@@ -6,8 +6,8 @@ from tempest import tvaultconf, reporting
 def small_workload(self):
     self.workload_instances = []
     LOG.debug("Running prerequisites for : small_workload")
-    vms_per_workload = 1
-    for vm in range(0,vms_per_workload):
+    self.vms_per_workload = 2
+    for vm in range(0,self.vms_per_workload):
        vm_id = self.create_vm()
        self.workload_instances.append(vm_id)
 
@@ -89,3 +89,19 @@ def inplace(self):
     if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
         reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
         raise Exception("Full Snapshot Failed") 
+
+def load_prerequisites_data(self, type):
+     self.workload_instances = []
+     if type == 'small_workload':
+	totalVms = 2
+     for vm in range(0,totalVms):
+        if(tvaultconf.vms_from_file):
+            flag=0
+            flag=self.is_vm_available()
+            if(flag != 0):
+		server_id=self.read_vm_id() 
+		self.workload_instances.append(server_id)
+	    else:
+		LOG.debug("vms not available in vms_file")
+		raise Exception ("vms not available in vms_file, pre_requisites loading failed.")
+

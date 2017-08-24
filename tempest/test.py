@@ -51,16 +51,13 @@ def pre_req(arg1):
 	
 	def wrapper(*args):
 
-	    if arg1['type'] == 'small_workload':
-		if tvaultconf.pre_req==True:
-		    prerequisites.small_workload(args[0])
-		else:
-		    LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
-	    if arg1['type'] == 'inplace':
-                if tvaultconf.pre_req==True:
-                    prerequisites.inplace(args[0])
-                else:
-                    LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
+	    if (arg1['type'] == 'small_workload') and (tvaultconf.pre_req==True):
+		prerequisites.small_workload(args[0])
+	    elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
+                prerequisites.inplace(args[0])
+            else:
+                LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
+		prerequisites.load_prerequisites_data(args[0],arg1['type'])
 	    function(*args)
 	return wrapper
     return decorator
