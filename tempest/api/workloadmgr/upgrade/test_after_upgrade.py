@@ -101,7 +101,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    self.instance_details = []
 	    self.vol_details = []
 	    temp_vol_data = { 'id': self.original_vols[0],
-			      'availability_zone':CONF.volume.availability_zone,
+			      'availability_zone':CONF.volume.volume_availability_zone,
 			      'new_volume_type':CONF.volume.volume_type
 			    }
 	    self.vol_details.append(temp_vol_data)
@@ -109,7 +109,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                    'include': True,
                                    'name': "tempest_test_vm_restored_"+ str(self.workload_id_before_upgrade),
                                    'vdisks': self.vol_details,
-				   'availability_zone': CONF.compute.availability_zone
+				   'availability_zone': CONF.compute.vm_availability_zone
                                  }
             self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(self.instance_details))
