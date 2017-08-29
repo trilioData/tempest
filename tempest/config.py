@@ -343,7 +343,7 @@ ComputeGroup = [
                     'test the floating IP bulk feature for CRUD operation. '
                     'This block must not overlap an existing floating IP '
                     'pool.'),
-    cfg.StrOpt('availability_zone',
+    cfg.StrOpt('vm_availability_zone',
                default='nova',
                help="Compute availability zone for instance launch")
 ]
@@ -757,7 +757,7 @@ VolumeGroup = [
     cfg.IntOpt('volume_size',
                default=1,
                help='Default size in GB for volumes created by volumes tests'),
-    cfg.StrOpt('availability_zone',
+    cfg.StrOpt('volume_availability_zone',
                default='',
                help='Cinder availability zone for volume'),
     cfg.StrOpt('volume_type',
