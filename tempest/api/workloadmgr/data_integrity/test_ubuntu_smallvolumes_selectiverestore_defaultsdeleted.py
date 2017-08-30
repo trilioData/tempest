@@ -114,11 +114,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        flag=i+i
 	    		
 	        temp_vdisks_data.append ([{'id':self.workload_volumes[flag],
-                                     'availability_zone':CONF.compute.vm_availability_zone,
+                                     'availability_zone':CONF.volume.volume_availability_zone,
 	    	     	         'new_volume_type':CONF.volume.volume_type
                                     },
                                     {'id':self.workload_volumes[flag+1],
-                                     'availability_zone':CONF.compute.vm_availability_zone,
+                                     'availability_zone':CONF.volume.volume_availability_zone,
 	    		         'new_volume_type':CONF.volume.volume_type
                                     }]
 	    		       )
@@ -128,7 +128,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    for i in range(len(self.workload_instances)):
 	        vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	        temp_instance_data = { 'id': self.workload_instances[i],
-	    			   'availability_zone':'nova', 
+	    			   'availability_zone':CONF.compute.vm_availability_zone, 
 	    			   'include': True,
 	    			   'restore_boot_disk': True,
 	    			   'name': vm_name,
