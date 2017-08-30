@@ -628,11 +628,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'name': restore_name,
                         'description': restore_desc,
                         'type': 'openstack',
-<<<<<<< HEAD
-			'onceclickrestore': "False",
-=======
-			'oneclickrestore': 'False',
->>>>>>> e9a73f02f443bfb006cda45716fee20bafd8ed10
+                  			'oneclickrestore': 'False',
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
