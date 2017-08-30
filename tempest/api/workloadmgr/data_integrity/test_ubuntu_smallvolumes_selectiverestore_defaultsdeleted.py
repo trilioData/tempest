@@ -177,28 +177,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    for i in range(len(self.vms_details_after_restore)):
 
 	        if(self.vms_details_after_restore[i]['network_name'] == int_net_1_name):
-	    	reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
+	    	    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
 	        else:
-	    	LOG.error("Expected network: " + str(int_net_1_name))
+	    	    LOG.error("Expected network: " + str(int_net_1_name))
                     LOG.error("Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
-	    	reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
+	    	    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
+		    reporting.set_test_script_status(tvaultconf.FAIL)
 
 	        if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
-	    	reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.PASS)
+	    	    reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.PASS)
 	        else:
-	    	LOG.error("Original keypair details: " + str(self.original_fingerprint))
+	    	    LOG.error("Original keypair details: " + str(self.original_fingerprint))
                     LOG.error("Restored keypair details: " + str(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
-	    	reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
+	    	    reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.FAIL)
+		    reporting.set_test_script_status(tvaultconf.FAIL)
 
 	        if(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id']) == self.original_flavor_conf):
-	    	reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.PASS)
+	    	    reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.PASS)
 	        else:
-	    	LOG.error("Original flavor details: " + str(self.original_flavor_conf))
-	    	LOG.error("Restored flavor details: " + str(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
-	    	reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
+	    	    LOG.error("Original flavor details: " + str(self.original_flavor_conf))
+	    	    LOG.error("Restored flavor details: " + str(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
+	    	    reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
+		    reporting.set_test_script_status(tvaultconf.FAIL)
 
 	    reporting.test_case_to_write()
 
