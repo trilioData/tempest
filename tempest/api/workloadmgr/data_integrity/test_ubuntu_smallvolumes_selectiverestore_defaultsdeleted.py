@@ -114,11 +114,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        flag=i+i
 	    		
 	        temp_vdisks_data.append ([{'id':self.workload_volumes[flag],
-                                     'availability_zone':CONF.compute.availability_zone,
+                                     'availability_zone':CONF.compute.vm_availability_zone,
 	    	     	         'new_volume_type':CONF.volume.volume_type
                                     },
                                     {'id':self.workload_volumes[flag+1],
-                                     'availability_zone':CONF.compute.availability_zone,
+                                     'availability_zone':CONF.compute.vm_availability_zone,
 	    		         'new_volume_type':CONF.volume.volume_type
                                     }]
 	    		       )
