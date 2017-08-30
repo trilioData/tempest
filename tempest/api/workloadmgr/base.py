@@ -280,8 +280,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, image_id="", volume_cleanup=True):
-        self.expected_resp = 200
+    def create_volume(self, size, volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -289,17 +288,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 volume_id=self.read_volume_id()
             else:
 		if(image_id != ""):
-                     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+                     volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 		else:
-		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+		     volume = self.volumes_extensions_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
 	    if(image_id != ""):
-		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, imageRef=image_id)
+		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 	    else:
-		 volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id)
+		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -590,6 +589,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                            "openstack": {"instances": [], "zone": ""},
 					   "restore_type": "oneclick",
                                            "type": "openstack",
+					   "oneclickrestore": "True",
                                            "restore_options": {},
                                            "name": restore_name},
                 "name": restore_name,
@@ -628,6 +628,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'name': restore_name,
                         'description': restore_desc,
                         'type': 'openstack',
+			'oneclickrestore': 'False',
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
@@ -1386,21 +1387,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return workload_list
 
     '''
-    Method to return the upgrade_data from file
-    '''
-    def read_upgrade_data(self, key):
-        value = None
-        dir=os.path.dirname(os.path.abspath(__file__))
-        filename=dir+"/upgrade_data_file"
-        LOG.debug("upgrade_data_file_path:%s" % filename)
-        with open(filename, "r+") as f:
-            for line in f:
-                if(line.find(key) != -1):
-                    value = line.split("=")[1]
-                    value = value.replace('\n', '')
-        return value
-
-    '''
     Method to login to tvault landing page
     '''
     def login_tvault_landing_page(self, tvaultip, username, pwd):
@@ -1414,7 +1400,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	return r.text
 
     '''
-    Method to reinitialize tavult
+    Method to reinitialize tvault
     '''
     def reinitialize_tvault(self, tvaultip, username, pwd):
 	auth = self.login_tvault_landing_page(tvaultip, username, pwd)
@@ -1424,4 +1410,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Reinitialize response: " + str(r.text))
         return r.status_code
 	
+    '''
+    Method to fetch global job scheduler status
+    '''
+    def get_global_job_scheduler_status(self):
+        resp, body = self.wlm_client.client.get("/global_job_scheduler")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+	status = body['global_job_scheduler']
+        return status
+
+    '''
+    Method to enable global job scheduler
+    '''
+    def enable_global_job_scheduler(self):
+        resp, body = self.wlm_client.client.post("/global_job_scheduler/enable")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        status = body['global_job_scheduler']
+        return status
+
+    '''
+    Method to disable global job scheduler
+    '''
+    def disable_global_job_scheduler(self):
+        resp, body = self.wlm_client.client.post("/global_job_scheduler/disable")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        status = body['global_job_scheduler']
+        return status
+
 
