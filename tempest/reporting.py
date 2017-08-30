@@ -1,6 +1,8 @@
+from tempest import tvaultconf
+
 test_results_file="Report/results.html"
 sanity_results_file="test_results"
-test_script_status = "PASS"
+test_script_status = tvaultconf.PASS
 test_script_name = ""
 test_step_to_write =""
 
@@ -22,18 +24,23 @@ def add_test_script(script):
     global test_script_name
     test_script_name = script
 
-def test_case_to_write(status):
+def set_test_script_status(status):
+   global test_script_status
+   test_script_status = status
+
+def test_case_to_write():
     global test_step_to_write
-    if status == "PASS":
+    global test_script_status
+    if test_script_status == "PASS":
         color = "green"
     else:
         color = "red"
     test_case_to_write = """
 	<tr>
-		<td colspan="1">{0}</td>
-		<td> <font color={1}>{2}</font> </td>
+		<td colspan="1"><b>{0}</b></td>
+		<td> <font color={1}><b>{2}</b></font> </td>
         </tr>
-	""".format(test_script_name, color, status)
+	""".format(test_script_name, color, test_script_status)
     with open(test_results_file, "a") as f:
         f.write(test_case_to_write)
 	f.write(test_step_to_write)

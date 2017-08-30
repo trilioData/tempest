@@ -24,6 +24,7 @@ from tempest.common import waiters
 from tempest import tvaultconf
 from tempest.api.workloadmgr.cli.config import command_argument_string
 from tempest.api.workloadmgr.cli.util import cli_parser
+from tempest import upgrade_data_conf
 from tempest import reporting
 
 LOG = logging.getLogger(__name__)
@@ -55,12 +56,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Execute workload-importworkloads command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
+	    #Verify if global job scheduler setting is preserved
+	    self.scheduler = self.get_global_job_scheduler_status()
+	    LOG.debug("Expected scheduler status: " + str(tvaultconf.global_job_scheduler))
+	    LOG.debug("Actual scheduler status returned: " + str(self.scheduler))
+	    if(self.scheduler == tvaultconf.global_job_scheduler):
+		reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.FAIL)
+		reporting.set_test_script_status(tvaultconf.FAIL)
+
 	    #Get list of workloads imported
 	    self.workloads = self.getWorkloadList()
 	    LOG.debug("Workload list after import: " + str(self.workloads))
 
 	    #Verify if workload created before upgrade is imported
-	    self.workload_id_before_upgrade = self.read_upgrade_data("workload_id")
+	    self.workload_id_before_upgrade = upgrade_data_conf.workload_id
 	    LOG.debug("Workload id before upgrade: " + str(self.workload_id_before_upgrade))
 	    if(str(self.workload_id_before_upgrade) in self.workloads):
 	        reporting.add_test_step("Verify imported workload", tvaultconf.PASS)
@@ -73,23 +84,32 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    LOG.debug("Snapshot list after import: " + str(self.snapshots))
 
 	    #Verify if snapshots created before upgrade are imported
-	    self.snapshot_before_upgrade = self.read_upgrade_data("full_snapshot_id")
+	    self.snapshot_before_upgrade = upgrade_data_conf.full_snapshot_id
 	    LOG.debug("Snapshot before upgrade: " + str(self.snapshot_before_upgrade))
 	    if(str(self.snapshot_before_upgrade) in self.snapshots):
 	        reporting.add_test_step("Verify imported snapshots", tvaultconf.PASS)
 	    else:
 	        reporting.add_test_step("Verify imported snapshots", tvaultconf.FAIL)
+		reporting.set_test_script_status(tvaultconf.FAIL)
 
-	    self.original_vm_id = self.read_upgrade_data("instance_id")
+	    self.original_vm_id = upgrade_data_conf.instance_id[0]
             LOG.debug("Original VM ID: " + str(self.original_vm_id))
+	    self.original_vols = upgrade_data_conf.volume_ids
+	    LOG.debug("Original Volume IDs: " + str(self.original_vols))
 	
 	    #Create instance details for restore.json
 	    self.instance_details = []
+	    self.vol_details = []
+	    temp_vol_data = { 'id': self.original_vols[0],
+			      'availability_zone':CONF.volume.volume_availability_zone,
+			      'new_volume_type':CONF.volume.volume_type
+			    }
+	    self.vol_details.append(temp_vol_data)
             temp_instance_data = { 'id': self.original_vm_id,
                                    'include': True,
-                                   'restore_boot_disk': True,
                                    'name': "tempest_test_vm_restored_"+ str(self.workload_id_before_upgrade),
-                                   'vdisks':[]
+                                   'vdisks': self.vol_details,
+				   'availability_zone': CONF.compute.vm_availability_zone
                                  }
             self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(self.instance_details))
@@ -117,12 +137,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    LOG.debug("Selective Restore ID: " + str(self.selective_restore_id))
 	    if(self.selective_restore_id == 0):
 	        reporting.add_test_step("Trigger selective restore of imported snapshot", tvaultconf.FAIL)
+		reporting.set_test_script_status(tvaultconf.FAIL)
 	    else:
 	        self.wait_for_workload_tobe_available(self.workload_id_before_upgrade)
 	        if(self.getRestoreStatus(self.workload_id_before_upgrade, self.snapshot_before_upgrade, self.selective_restore_id) == "available"):
                     reporting.add_test_step("Selective restore of imported snapshot", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Selective restore of imported snapshot", tvaultconf.FAIL)
+		    reporting.set_test_script_status(tvaultconf.FAIL)
 
 	    #Delete original VM
 	    self.delete_vm(self.original_vm_id)
@@ -135,6 +157,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        reporting.add_test_step("One click restore of imported snapshot", tvaultconf.PASS)
 	    else:
 	        reporting.add_test_step("One click restore of imported snapshot", tvaultconf.FAIL)
+		raise Exception("One click restore failed")
 
 	    #Trigger full snapshot of imported workload
 	    self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True, snapshot_cleanup=False)
@@ -144,6 +167,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create new snapshot of imported workload", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Create new snapshot of imported workload", tvaultconf.FAIL)
+		reporting.set_test_script_status(tvaultconf.FAIL)
 
 	    #Cleanup
 	    #Delete selective restore
@@ -164,8 +188,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    #Delete imported snapshot and workload
 	    self.snapshot_delete(self.workload_id_before_upgrade, self.snapshot_before_upgrade)
 	    self.workload_delete(self.workload_id_before_upgrade)
-	    reporting.test_case_to_write(tvaultconf.PASS)
+	    reporting.test_case_to_write()
 
 	except Exception as e:
 	    LOG.error("Exception: " + str(e))
-	    reporting.test_case_to_write(tvaultconf.FAIL)
+	    reporting.set_test_script_status(tvaultconf.FAIL)
+	    reporting.test_case_to_write()
