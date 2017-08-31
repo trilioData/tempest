@@ -197,7 +197,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
 		    reporting.set_test_script_status(tvaultconf.FAIL)
 
-	reporting.test_case_to_write()
+	    reporting.test_case_to_write()
 
 	except Exception as e:
 	    LOG.error("Exception: " + str(e))
