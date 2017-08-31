@@ -120,13 +120,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for i in range(len(self.workload_instances)):
                 vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	        if (i == 1):
-	    	include_vm = "False"
-	    	temp_instance_data = { 'id': self.workload_instances[i],
-				       'availability_zone':CONF.compute.vm_availability_zone,
-                                       'include': include_vm
-                                         }
+	    	    include_vm = "False"
+	    	    temp_instance_data = { 'id': self.workload_instances[i],
+		    		       'availability_zone':CONF.compute.vm_availability_zone,
+                                           'include': include_vm
+                                             }
 	        else:
-	    	include_vm = "True"
+	    	    include_vm = "True"
                     temp_instance_data = { 'id': self.workload_instances[i],
 				           'availability_zone':CONF.compute.vm_availability_zone,
                                            'include': include_vm,
