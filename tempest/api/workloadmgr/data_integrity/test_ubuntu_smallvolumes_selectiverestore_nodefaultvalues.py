@@ -135,7 +135,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Instance details for restore: " + str(self.instance_details))
 
             #Create network details for restore.json
-            snapshot_network = { 'name': int_net_1_name,
+            snapshot_network = { 
                                  'id': CONF.network.internal_network_id,
                                  'subnet': { 'id': int_net_1_subnets }
                                }
@@ -157,7 +157,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
 		reporting.set_test_script_status(tvaultconf.FAIL)
 	        raise Exception("Selective restore failed")
-                raise Exception("Selective restore failed")
 
             #Fetch instance details after restore
             self.restored_vm_details_list = []
