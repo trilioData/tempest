@@ -24,8 +24,8 @@ from tempest.common import waiters
 from tempest import tvaultconf, reporting
 import time
 
-from tempest.api.workloadmgr.cli.config import command_argument_string
-from tempest.api.workloadmgr.cli.util import cli_parser, query_data
+from tempest import command_argument_string
+from tempest.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
