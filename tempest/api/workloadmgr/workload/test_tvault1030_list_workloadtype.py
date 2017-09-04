@@ -47,7 +47,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception ("Workload type list command did not list available workload types correctly")
 	    reporting.test_case_to_write()
 
-	 except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+	except Exception as e:
+           LOG.error("Exception: " + str(e))
+           reporting.set_test_script_status(tvaultconf.FAIL)
+           reporting.test_case_to_write()

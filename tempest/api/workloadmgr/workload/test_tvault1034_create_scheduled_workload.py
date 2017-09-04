@@ -8,9 +8,9 @@ from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
 import time
-from tempest.api.workloadmgr.cli.config import command_argument_string
-from tempest.api.workloadmgr.cli.util import cli_parser
-from tempest.api.workloadmgr.cli.util import query_data
+from tempest import command_argument_string
+from tempest.util import cli_parser
+from tempest.util import query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF

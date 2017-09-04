@@ -76,7 +76,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
 	        reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
                 raise Exception ("Snapshot list command did not list available snapshots correctly")
-	     reporting.test_case_to_write()
+	    reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))

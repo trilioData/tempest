@@ -22,8 +22,8 @@ from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
 from tempest import reporting
-from tempest.api.workloadmgr.cli.config import command_argument_string
-from tempest.api.workloadmgr.cli.util import cli_parser
+from tempest import command_argument_string
+from tempest.util import cli_parser
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
