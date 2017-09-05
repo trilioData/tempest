@@ -628,7 +628,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'name': restore_name,
                         'description': restore_desc,
                         'type': 'openstack',
-			'oneclickrestore': 'False',
+                  		'oneclickrestore': False,
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
@@ -990,7 +990,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
             except Exception as e:
-                time.sleep(15)
+                time.sleep(20)
                 if i == 29:
                     raise
                 LOG.debug("Got into Exception.." + str(e))
@@ -1009,13 +1009,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
             stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
             LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-            # vdb1
+	    time.sleep(5)
             buildCommand = "sudo mkfs -t ext3 " + volume + "1"
-            sleeptime = 0.5
+            sleeptime = 2
             outdata, errdata = '', ''
             ssh_transp = ssh.get_transport()
             chan = ssh_transp.open_session()
-            # chan.settimeout(3 * 60 * 60)
             chan.setblocking(0)
             chan.exec_command(buildCommand)
             LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
@@ -1030,8 +1029,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 time.sleep(sleeptime)
                 LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
             retcode = chan.recv_exit_status()
-            stdin, stdout, stderr = ssh.exec_command("df -h")
-	    LOG.debug("df -h after mkfs -t ext3 " + volume + "1 " + str(stdout.read()))
 	
 	for mount_point in mount_points:
             stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + "\\" + mount_point)
@@ -1041,75 +1038,46 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
-        # stdin, stdout, stderr = ssh_con.exec_command("sudo mount /dev/vdb1 mount_data_b")
 	for i in range(len(volumes)):
             buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
-            sleeptime = 1
-            outdata, errdata = '', ''
-            ssh_transp = ssh.get_transport()
-            chan = ssh_transp.open_session()
-            # chan.settimeout(3 * 60 * 60)
-            chan.setblocking(0)
-            chan.exec_command(buildCommand)
-            while True:  # monitoring process
-                # Reading from output streams
-                while chan.recv_ready():
-                    outdata += chan.recv(1000)
-                while chan.recv_stderr_ready():
-                    errdata += chan.recv_stderr(1000)
-                if chan.exit_status_ready():  # If completed
-                    break
-                time.sleep(sleeptime)
-                LOG.debug("sudo mount output waiting..")
-            retcode = chan.recv_exit_status()
-        LOG.debug("mounting completed for " + str(ipAddress))
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+	    time.sleep(8)
+	    # check mounts in df -h output
+	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
+	    output = stdout.read()
+            LOG.debug("sudo df -h after mounting " + volumes[i] + "1 :" + str(output))
+	    if str(volumes[i]+"1") in str(output):
+		LOG.debug("mounting completed for " + str(ipAddress))
+	    else:	    
+		raise Exception("Mount point failed for " + str(ipAddress))
 
     '''
     add custom sied files on linux
     '''
     def addCustomSizedfilesOnLinux(self, ssh, dirPath,fileCount):
         try:
-            LOG.debug("build command data population : " + str(dirPath))
+            LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(fileCount))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-                # stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                outdata, errdata = '', ''
-                ssh_transp = ssh.get_transport()
-                chan = ssh_transp.open_session()
-                # chan.settimeout(3 * 60 * 60)
-                chan.setblocking(0)
-                chan.exec_command(buildCommand)
-                time.sleep(20)
-                while True:  # monitoring process
-                    # Reading from output streams
-                    while chan.recv_ready():
-                        outdata += chan.recv(1000)
-                    while chan.recv_stderr_ready():
-                        errdata += chan.recv_stderr(1000)
-                    if chan.exit_status_ready():  # If completed
-                        break
-                    time.sleep(2)
-                    # LOG.debug(str(buildCommand)+ " waiting..")
-                retcode = chan.recv_exit_status()
-                # stdin, stdout, stderr = ssh.exec_command("sudo ls -l " + str(dirPath))
-                # LOG.debug("file change output:" + str(stdout.read()))
+		stdin, stdout, stderr = ssh.exec_command(buildCommand)
+		time.sleep(20)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
     '''
     calculate md5 checksum
     '''
-    def calculatemmd5checksum(self, ssh, dirPath):
-        try:
-            local_md5sum = ""
-            buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            time.sleep(15)
-            for line in  stdout.readlines():
-                local_md5sum += str(line.split(" ")[0])
-            return local_md5sum
-        except Exception as e:
-            LOG.debug("Exception: " + str(e))
+    def calculatemmd5checksum(self, ssh, dirPath): 
+        local_md5sum = ""
+        buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
+	LOG.debug("build command for md5 checksum calculation" + str(buildCommand))
+        stdin, stdout, stderr = ssh.exec_command(buildCommand)
+        time.sleep(15)
+	output = stdout.readlines()
+	LOG.debug("command executed: " + str(output))
+        for line in  output:
+            local_md5sum += str(line.split(" ")[0])
+        return local_md5sum
 
 
     '''
@@ -1128,11 +1096,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for id in range(len(workload_instances)):
             self.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.addCustomSizedfilesOnLinux(ssh, mount_point+"/", files_count)
+		ssh.close()
+	    for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-
+	    	ssh.close()
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
             LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
 
@@ -1149,11 +1120,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.md5sums = ""
             # md5sums_dir_after = {}
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
-
             self.execute_command_disk_mount(ssh, floating_ips_list[id],volumes, mount_points)
+	    ssh.close()
             for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-
+		ssh.close()
             md5sums_dir_after[str(floating_ips_list[id])] = self.md5sums
 
             LOG.debug("after md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
@@ -1338,7 +1310,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_flavor'''
     def create_flavor(self, name, flavor_cleanup=True):
-        flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 2  , ram = 1024 )['flavor']['id']
+        flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 4  , ram = 4096 )['flavor']['id']
         LOG.debug("flavor id" + str(flavor_id))
 	if(tvaultconf.cleanup == True and flavor_cleanup == True):
 	    self.addCleanup(self.delete_flavor, flavor_id)

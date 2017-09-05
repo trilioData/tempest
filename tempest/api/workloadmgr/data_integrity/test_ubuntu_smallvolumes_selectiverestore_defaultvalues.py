@@ -92,6 +92,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
             self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
+	    ssh.close()
 
         #Fetch instance details before restore
         for id in range(len(self.workload_instances)):

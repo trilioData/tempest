@@ -40,11 +40,10 @@ import tempest.common.validation_resources as vresources
 from tempest import config
 from tempest import exceptions
 from tempest import prerequisites
+from tempest import tvaultconf
 
 LOG = logging.getLogger(__name__)
-
 CONF = config.CONF
-
 
 """A decorator which applies pre-requisites capabilities to a function when called with a 'type'. Pre-requisites functions must be defined in prerequisites.py. If tvaultconf.pre_req is found to be False, this decorator will return to the same fucntion and will pick the parameters from set vms_file, volumes_file, workloads_file."""
 def pre_req(arg1):
@@ -52,16 +51,15 @@ def pre_req(arg1):
 	
 	def wrapper(*args):
 
-	    if arg1['type'] == 'small_workload':
-		if tvaultconf.pre_req==True:
-		    prerequisites.small_workload(args[0])
-		else:
-		    LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
-		    
+	    if (arg1['type'] == 'small_workload') and (tvaultconf.pre_req==True):
+		prerequisites.small_workload(args[0])
+	    elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
+                prerequisites.inplace(args[0])
+            else:
+                LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
+		prerequisites.load_prerequisites_data(args[0],arg1['type'])
 	    function(*args)
-
 	return wrapper
-
     return decorator
 
 
