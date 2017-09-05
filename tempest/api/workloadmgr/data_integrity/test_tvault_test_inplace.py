@@ -98,7 +98,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
 	        reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
 	        reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.PASS)
