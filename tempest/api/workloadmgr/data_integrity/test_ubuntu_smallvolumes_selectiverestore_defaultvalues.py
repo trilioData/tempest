@@ -61,7 +61,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	volumes = ["/dev/vdb", "/dev/vdc"]
         mount_points = ["mount_data_b", "mount_data_c"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
+        self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=True)
         security_group_id = self.security_group_details['security_group']['id']
         LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
@@ -71,10 +71,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         for vm in range(0,self.vms_per_workload):
              vm_name = "tempest_test_vm_" + str(vm+1)
-             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
-             self.workload_instances.append(vm_id)
              volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
              volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+             vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+             self.workload_instances.append(vm_id)
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
              self.attach_volume(volume_id1, vm_id, device=volumes[0])
@@ -92,6 +92,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
             self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
+	    ssh.close()
 
         #Fetch instance details before restore
         for id in range(len(self.workload_instances)):
@@ -154,7 +155,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("Network details for restore: " + str(self.network_details))
 
         #Trigger selective restore
-        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name=tvaultconf.restore_name,
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.incr_snapshot_id,restore_name=tvaultconf.restore_name,
                                                         instance_details=self.instance_details, network_details=self.network_details)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
         if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -210,5 +211,5 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	#Verify md5sum
 	self.md5sums_dir_after = self.calculate_md5_after_restore(self.vm_list, self.floating_ips_list_after_restore,volumes,mount_points)
         for id in range(len(self.vm_list)):
-            self.assertTrue(self.md5sums_dir_before[str(floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(floating_ips_list_after_restore[id]))
+            self.assertTrue(self.md5sums_dir_before[str(self.floating_ips_list_after_restore[id])]==self.md5sums_dir_after[str(self.floating_ips_list_after_restore[id])], "md5sum verification unsuccessful for ip" + str(self.floating_ips_list_after_restore[id]))
             reporting.add_test_step("Md5sum verification of instance-" + str(id+1), tvaultconf.PASS)
