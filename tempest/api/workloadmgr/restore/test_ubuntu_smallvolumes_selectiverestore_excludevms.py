@@ -20,7 +20,8 @@ import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
-from tempest import tvaultconf, reporting
+from tempest import tvaultconf
+from tempest import reporting
 import time
 LOG = logging.getLogger(__name__)
 CONF = config.CONF

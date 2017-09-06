@@ -21,14 +21,13 @@ import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
-from tempest import tvaultconf, reporting
+from tempest import tvaultconf
+from tempest import reporting
 import time
-
 from tempest import command_argument_string
-from tempest.util import cli_parser, query_data
+from tempest.util import cli_parser
+from tempest.util import query_data
 import collections
-from tempest.api.workloadmgr.cli.config import command_argument_string
-from tempest.api.workloadmgr.cli.util import cli_parser, query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
