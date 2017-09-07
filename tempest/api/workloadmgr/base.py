@@ -1415,4 +1415,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         status = body['global_job_scheduler']
         return status
 
+    '''
+    Method to create triliovault license
+    '''
+    def create_license(self, key):
+	flag = True
+	payload = {"license": key}
+        resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+	   flag = False
+           resp.raise_for_status()
+	return flag
 
+    '''
+    Method to fetch license list
+    '''
+    def get_license_list(self):
+        resp, body = self.wlm_client.client.get("/workloads/metrics/license")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        data = body['license']
+        return data
