@@ -55,6 +55,8 @@ def pre_req(arg1):
 		prerequisites.small_workload(args[0])
 	    elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
                 prerequisites.inplace(args[0])
+	    elif (arg1['type'] == 'selective') and (tvaultconf.pre_req==True):
+                prerequisites.selective(args[0])
             else:
                 LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
 		prerequisites.load_prerequisites_data(args[0],arg1['type'])

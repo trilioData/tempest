@@ -158,7 +158,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
-	        reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
             #Fetch instance details after restore
@@ -169,7 +168,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        reporting.add_test_step("Exclude instance during restore", tvaultconf.PASS)
 	    else:
 	        reporting.add_test_step("Exclude instance during restore", tvaultconf.FAIL)
-	        reporting.set_test_script_status(tvaultconf.FAIL)
 	        LOG.error("Actual workload instance list: " + str(self.workload_instances))
 	        LOG.error("Restored instance list: " + str(self.vm_list))
 	        raise Exception("Instance not excluded during restore")

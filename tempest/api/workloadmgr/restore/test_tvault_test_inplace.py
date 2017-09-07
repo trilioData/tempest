@@ -114,7 +114,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("In-place restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("In-place restore", tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("In-place restore failed")	
 	    
 	    # calculate md5 after inplace restore
@@ -129,7 +128,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    
 	    if(self.md5sums_dir_before == md5_sum_after_in_place_restore):
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
 	        raise Exception("Md5 Verification failed")
             else:
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)

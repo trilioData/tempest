@@ -156,7 +156,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
 	        raise Exception("Selective restore failed")
 
             #Fetch instance details after restore
