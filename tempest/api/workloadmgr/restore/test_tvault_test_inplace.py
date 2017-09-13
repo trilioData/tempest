@@ -50,23 +50,34 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]	
+	    
+	    #Fill some data on each of the volumes attached
+    	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 1)
+    	    ssh.close()
+
+    	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 1)
+    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 1)
+    	    ssh.close()
 
 	    #Fill some more data on each volume attached
             tree = lambda: collections.defaultdict(tree)
             self.md5sums_dir_before = tree()
-            for floating_ip in self.floating_ips_list:
-                for mount_point in mount_points:
-	    	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-                    self.addCustomSizedfilesOnLinux(ssh, mount_point, 1)
-	    	    ssh.close()
-	        for mount_point in mount_points:
-	    	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-                    self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-	      	    ssh.close()
+
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+            self.md5sums_dir_before[str(self.floating_ips_list[0])][str(mount_points[0])] = self.calculatemmd5checksum(ssh, mount_points[0])
+            ssh.close()
+
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+            self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[0])] = self.calculatemmd5checksum(ssh, mount_points[0])
+	    self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[1])] = self.calculatemmd5checksum(ssh, mount_points[1])
+            ssh.close()
+
 	    
 	    LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))	
 	    #Create in-place restore with CLI command
-	    restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.snapshot_id)
+	    restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(self.incr_snapshot_id)
 	    
 	    LOG.debug("inplace restore cli command: " + str(restore_command) )
 	    #Restore.json with only volume 2 excluded
@@ -78,14 +89,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    		'id': self.workload_instances[0],
 	    		'vdisks': [{
 	    			'restore_cinder_volme': True,
-	    			'id': self.workload_volumes[0],
-	    		},
-	    		{
-	    			'restore_cinder_volme': False,
-	    			'id': self.workload_volumes[1],
-	    			
+	    			'id': self.volumes_list[0],
+				'new_volume_type':CONF.volume.volume_type
 	    		}]
-	    	}],
+	    	},
+			    {
+                        'restore_boot_disk': True,
+                        'include': True,
+                        'id': self.workload_instances[1],
+                        'vdisks': [{
+                                'restore_cinder_volme': True,
+                                'id': self.volumes_list[1],
+				'new_volume_type':CONF.volume.volume_type
+                        }]
+                }],
 	    	'networks_mapping': {
 	    		'networks': []
 	    	}
@@ -106,26 +123,42 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
 	    #get restore id from database
-	    self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_id)	
-	    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
+	    self.restore_id = query_data.get_snapshot_restore_id(self.incr_snapshot_id)	
+	    self.wait_for_snapshot_tobe_available(self.workload_id, self.incr_snapshot_id)
             
 	    #get in-place restore status
-	    if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
+	    if(self.getRestoreStatus(self.workload_id, self.incr_snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step("In-place restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("In-place restore", tvaultconf.FAIL)
                 raise Exception("In-place restore failed")	
+
+	    # mount volumes after restore
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    	    self.execute_command_disk_mount(ssh, str(self.floating_ips_list[0]),[volumes[0]],[mount_points[0]])
+    	    ssh.close()
+
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+            self.execute_command_disk_mount(ssh, str(self.floating_ips_list[1]),volumes,mount_points)
+            ssh.close()
 	    
 	    # calculate md5 after inplace restore
             tree = lambda: collections.defaultdict(tree)
             md5_sum_after_in_place_restore = tree()
-            for floating_ip in self.floating_ips_list:
-                for mount_point in mount_points:
-	    	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-                    md5_sum_after_in_place_restore[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-	    	    ssh.close()
+
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+            md5_sum_after_in_place_restore[str(self.floating_ips_list[0])][str(mount_points[0])] = self.calculatemmd5checksum(ssh, mount_points[0])
+            ssh.close()
+
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+            md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])] = self.calculatemmd5checksum(ssh, mount_points[0])
+            md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])] = self.calculatemmd5checksum(ssh, mount_points[1])
+            ssh.close()
+
 	    LOG.debug("md5_sum_after_in_place_restore" + str(md5_sum_after_in_place_restore))
-	    
+	   
+	    LOG.debug("md5 for: " + str(self.floating_ips_list[0]) + " : " + str(md5_sum_after_in_place_restore[str(self.floating_ips_list[0])]))
+ 
 	    if(self.md5sums_dir_before == md5_sum_after_in_place_restore):
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
 	        raise Exception("Md5 Verification failed")
@@ -136,7 +169,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    #Delete restore for snapshot
 	    self.restored_volumes = self.get_restored_volume_list(self.restore_id)
 	    if tvaultconf.cleanup==True: 
-                self.restore_delete(self.workload_id, self.snapshot_id, self.restore_id)
+                self.restore_delete(self.workload_id, self.incr_snapshot_id, self.restore_id)
                 LOG.debug("Snapshot Restore deleted successfully")
 	        
 	        #Delete restored volumes and volume snapshots

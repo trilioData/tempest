@@ -13,8 +13,10 @@ def small_workload(self):
 
 def inplace(self):
     self.total_workloads=1
-    self.vms_per_workload=1
+    self.vms_per_workload=2
     self.volume_size=1
+    self.total_volumes=3
+    self.volumes_list = []
     self.workload_instances = []
     self.workload_volumes = []
     self.workloads = []
@@ -42,16 +44,24 @@ def inplace(self):
         flavor_id = self.create_flavor(tvaultconf.flavor_name)
     self.original_flavor_conf = self.get_flavor_details(flavor_id)
 
-    for vm in range(0,self.vms_per_workload):
-        vm_name = "tempest_test_vm_" + str(vm+1)
-        volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-        volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-        vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
-        self.workload_instances.append(vm_id)
-        self.workload_volumes.append(volume_id1)
-        self.workload_volumes.append(volume_id2)
-        self.attach_volume(volume_id1, vm_id, device=volumes[0])
-        self.attach_volume(volume_id2, vm_id, device=volumes[1])
+    for volume in range(self.total_volumes):
+	volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
+	self.volumes_list.append(str(volume_id))
+    LOG.debug(str(self.total_volumes) + " volumes created: " + str(self.volumes_list))
+
+    vm_name = "tempest_test_vm_1"
+    vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+    self.workload_instances.append(vm_id)
+    self.workload_volumes.append(self.volumes_list[0])
+    self.attach_volume(str(self.volumes_list[0]), vm_id, device=volumes[0])
+
+    vm_name = "tempest_test_vm_2"
+    vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+    self.workload_instances.append(vm_id)
+    self.workload_volumes.append(self.volumes_list[1])
+    self.workload_volumes.append(self.volumes_list[2])
+    self.attach_volume(self.volumes_list[1], vm_id, device=volumes[0])
+    self.attach_volume(self.volumes_list[2], vm_id, device=volumes[1])
 
     for id in range(len(self.workload_instances)):
         available_floating_ips = self.get_floating_ips()
@@ -62,10 +72,23 @@ def inplace(self):
             raise Exception("Floating ips not available")
         self.floating_ips_list.append(floating_ip)
         self.set_floating_ip(str(floating_ip), self.workload_instances[id])
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-        self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
-        self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
-	ssh.close()
+
+    
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    self.execute_command_disk_create(ssh, str(self.floating_ips_list[0]),[volumes[0]],[mount_points[0]])
+    ssh.close()
+
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    self.execute_command_disk_mount(ssh, str(self.floating_ips_list[0]),[volumes[0]],[mount_points[0]])
+    ssh.close()
+
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+    self.execute_command_disk_create(ssh, str(self.floating_ips_list[1]),volumes,mount_points)
+    ssh.close()
+    
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+    self.execute_command_disk_mount(ssh, str(self.floating_ips_list[1]),volumes,mount_points)
+    ssh.close()
 
     #Fetch instance details before restore
     for id in range(len(self.workload_instances)):
@@ -75,13 +98,16 @@ def inplace(self):
     LOG.debug("vm details list before backups" + str( self.vm_details_list))
     LOG.debug("vm details dir before backups" + str( self.vms_details))
 
-    #Fill some data on each of the volumes attached
-    import collections
-    for floating_ip in self.floating_ips_list:
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-        for mount_point in mount_points:
-            self.addCustomSizedfilesOnLinux(ssh, mount_point, 2)
-    	ssh.close()
+    #Fill some data on each of the volumes attached     
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+    ssh.close()
+
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+    self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 3)
+    ssh.close()
+
     #Create workload and trigger full snapshot
     self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
     self.snapshot_id=self.workload_snapshot(self.workload_id, True)
@@ -89,6 +115,22 @@ def inplace(self):
     if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
         reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
         raise Exception("Full Snapshot Failed") 
+
+    #delete Some Files on volumes
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
+    self.deleteSomefilesOnLinux(ssh, mount_points[0], 1)
+    ssh.close()
+
+    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
+    self.deleteSomefilesOnLinux(ssh, mount_points[0], 1)
+    self.deleteSomefilesOnLinux(ssh, mount_points[1], 1)
+    ssh.close()
+ 
+    self.incr_snapshot_id=self.workload_snapshot(self.workload_id, False)
+    self.wait_for_workload_tobe_available(self.workload_id)
+    if(self.getSnapshotStatus(self.workload_id, self.incr_snapshot_id) != "available"):
+        reporting.add_test_step("Create incremental snapshot", tvaultconf.FAIL)
+        raise Exception("Incremental Snapshot Failed")
 
 def load_prerequisites_data(self, type):
      self.workload_instances = []
