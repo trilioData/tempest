@@ -52,6 +52,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
 	        reporting.add_test_step("Execute workload-create command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+	    time.sleep(10)
 	    self.wid = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             self.wait_for_workload_tobe_available(self.wid)
