@@ -151,16 +151,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    LOG.debug("md5_sum_after_in_place_restore" + str(md5_sum_after_in_place_restore))
 	   
-	    #LOG.debug("md5 for: " + str(self.floating_ips_list[0]) + " : " + str(md5_sum_after_in_place_restore[str(self.floating_ips_list[0])]))
- 
-	    #if(self.md5sums_dir_before == md5_sum_after_in_place_restore):
-            #    reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
-	    #    raise Exception("Md5 Verification failed")
-            #else:
-            #    reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
-
 	    
-
+	    # md5 sum verification
             if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[0])]==md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])]:
                 reporting.add_test_step("Md5 Verification for volume 1", tvaultconf.PASS)
             else:

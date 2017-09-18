@@ -172,6 +172,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Md5 Verification for volume 2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
+	    if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[1])]!=md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])]:
+                reporting.add_test_step("Md5 Verification for volume 3", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Md5 Verification for volume 3", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
 	    
 	    
 	    #Delete restore for snapshot
