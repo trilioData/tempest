@@ -36,73 +36,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
-
+    @test.pre_req({'type':'selective_basic'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_ubuntu_smallvolumes_selectiverestore_defaultsdeleted(self):
 	try:
-            self.total_workloads=1
-            self.vms_per_workload=2
-            self.volume_size=1
-            self.workload_instances = []
-            self.workload_volumes = []
-            self.workloads = []
-            self.full_snapshots = []
-            self.restores = []
-            self.fingerprint = ""
-            self.vm_details_list = []
-            self.vms_details = []
-            self.floating_ips_list = []
-	    self.original_fingerprint = ""
-	    self.vm_list = []
-	    self.restored_vm_details_list = []
-	    self.floating_ips_list_after_restore = []
-	    self.vms_details_after_restore = []
-	    self.instance_details = []
-	    self.network_details = []
-	    volumes = ["/dev/vdb", "/dev/vdc"]
-	    self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-            self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
-            security_group_id = self.security_group_details['security_group']['id']
-            LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
-            flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
-	    if(flavor_id == 0):
-	         flavor_id = self.create_flavor(tvaultconf.flavor_name, flavor_cleanup=False)
-	    self.original_flavor_conf = self.get_flavor_details(flavor_id)
-
-            for vm in range(0,self.vms_per_workload):
-                 vm_name = "tempest_test_vm_" + str(vm+1)
-	         volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-                 volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-                 vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
-                 self.workload_instances.append(vm_id)
-                 self.workload_volumes.append(volume_id1)
-                 self.workload_volumes.append(volume_id2)
-                 self.attach_volume(volume_id1, vm_id, device=volumes[0])
-                 self.attach_volume(volume_id2, vm_id,device=volumes[1])
-
-
-	    #Fetch instance details before restore
-            for id in range(len(self.workload_instances)):
-                self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
-            self.vms_details = self.get_vms_details_list(self.vm_details_list)
-            LOG.debug("vm details list before backups" + str( self.vm_details_list))
-            LOG.debug("vm details dir before backups" + str( self.vms_details))
-
-	    #Create workload and trigger full snapshot
-            self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
-            self.snapshot_id=self.workload_snapshot(self.workload_id, True)
-            self.wait_for_workload_tobe_available(self.workload_id)
-	    if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
-	        reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
-	    #self.workload_reset(self.workload_id)
-            time.sleep(10)
             
 	    self.delete_vms(self.workload_instances)
 	    self.delete_volumes(self.workload_volumes)
             self.delete_key_pair(tvaultconf.key_pair_name)
-            self.delete_security_group(security_group_id)
-            self.delete_flavor(flavor_id)
+            self.delete_security_group(self.security_group_id)
+            self.delete_flavor(self.flavor_id)
 
             int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
@@ -159,7 +103,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        reporting.add_test_step("Selective restore", tvaultconf.PASS)
 	    else:
 	        reporting.add_test_step("Selective restore", tvaultconf.FAIL)
-		reporting.set_test_script_status(tvaultconf.FAIL)
 	        raise Exception("Selective restore failed")
 
             #Fetch instance details after restore
