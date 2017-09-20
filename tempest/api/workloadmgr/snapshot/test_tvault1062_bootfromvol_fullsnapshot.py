@@ -48,7 +48,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.workload_volumes = []
 
             for vm in range(0,self.vms_per_workload):
-                 volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type, image_id=CONF.compute.image_ref)
+                 volume_id1 = self.create_volume(image_id=CONF.compute.image_ref)
                  self.workload_volumes.append(volume_id1)
    	         self.set_volume_as_bootable(volume_id1)
 	         self.block_mapping_details = [{ "source_type": "volume", 

@@ -54,7 +54,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                vm_id = self.create_vm()
                workload_instances.append(vm_id)
                self.workload_instances.append(vm_id)
-               volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
+               volume_id = self.create_volume()
                workload_volumes.append(volume_id)
                self.attach_volume(volume_id, vm_id)
 

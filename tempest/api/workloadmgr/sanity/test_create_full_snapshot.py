@@ -48,8 +48,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for vm in range(0,self.vms_per_workload):
              vm_id = self.create_vm()
              self.workload_instances.append(vm_id)
-             volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-             volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+             volume_id1 = self.create_volume()
+             volume_id2 = self.create_volume()
              self.workload_volumes.append(volume_id1)
              self.workload_volumes.append(volume_id2)
              self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
@@ -57,7 +57,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	#Create workload
         self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
-	if(self.wait_for_workload_tobe_available(self.workload_id)):
+	self.wait_for_workload_tobe_available(self.workload_id)
+        if(self.getWorkloadStatus(self.workload_id) == "available"):
 	     reporting.add_sanity_results("Create_Workload", tvaultconf.PASS)
 	else:
 	     reporting.add_sanity_results("Create_Workload", tvaultconf.FAIL)

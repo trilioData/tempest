@@ -280,7 +280,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(self, size=tvaultconf.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -1438,3 +1438,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         data = body['license']
         return data
+
+
+    '''
+    Method returns the schedule details of a given workload
+    '''
+    def getSchedulerDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        schedule_details = body['workload']['jobschedule']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return schedule_details

@@ -37,7 +37,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+            self.volume_id = self.create_volume()
             LOG.debug("Volume ID: " + str(self.volume_id))
         
             #Attach volume to the instance
