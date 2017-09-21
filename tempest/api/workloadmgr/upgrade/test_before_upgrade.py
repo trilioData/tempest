@@ -101,7 +101,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	     #Fetch workload scheduler and retention settings
 	     self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
-	     LOG.debug("Workload scheduler settings: " + str(scheduler_settings))
+	     LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
 	     f.write("scheduler_settings=" + str(self.scheduler_settings))
 
              f.close()

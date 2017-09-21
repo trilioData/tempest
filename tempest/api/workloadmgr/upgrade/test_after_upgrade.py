@@ -79,6 +79,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        reporting.add_test_step("Verify imported workload", tvaultconf.FAIL)
 	        raise Exception("Imported workload verification failed")
 
+            #Verify if workload scheduler settings are preserved
+            self.scheduler_settings_before_upgrade = upgrade_data_conf.scheduler_settings
+            self.scheduler_settings_after_upgrade = self.getSchedulerDetails(self.workload_id_before_upgrade)
+            LOG.debug("Scheduler settings before upgrade: " + str(self.scheduler_settings_before_upgrade) + " ; and after upgrade: " + str(self.scheduler_settings_after_upgrade))
+            for key in self.scheduler_settings_before_upgrade.keys():
+                if(self.scheduler_settings_before_upgrade[key] == self.scheduler_settings_after_upgrade[key]):
+                    reporting.add_test_step("Workload scheduler '" + str(key) + "' preserve", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Workload scheduler '" + str(key) + "' preserve", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
 	    #Get list of snapshots imported
 	    self.snapshots = self.getSnapshotList()
 	    LOG.debug("Snapshot list after import: " + str(self.snapshots))
