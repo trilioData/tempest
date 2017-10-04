@@ -74,6 +74,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	     reporting.add_sanity_results("Create_Snapshot", tvaultconf.FAIL)
 	     raise Exception("Snapshot creation failed")
 
+	self.snapshot_details = self.getSnapshotDetails(self.workload_id, self.snapshot_id)
+        LOG.debug("Performance data: Snapshot ID %s, Workload ID %s, Uploaded size %s, Time taken %s" % (self.snapshot_id, self.workload_id, self.snapshot_details['uploaded_size'], self.snapshot_details['time_taken']))
+
 	#Delete snapshot
 	resp = self.snapshot_delete(self.workload_id, self.snapshot_id)
 	if resp:

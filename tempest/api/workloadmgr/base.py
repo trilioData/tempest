@@ -1451,3 +1451,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return schedule_details
+
+    '''
+    Method returns snapshot details
+    '''
+    def getSnapshotDetails(self, workload_id, snapshot_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id)
+        snapshot_details = body['snapshot']
+        LOG.debug("#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" % (workload_id, snapshot_id))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return snapshot_details
