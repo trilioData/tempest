@@ -37,7 +37,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
-    @test.pre_req({'type':'selective'})
+    @test.pre_req({'type':'selective_with_floating_ips'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
