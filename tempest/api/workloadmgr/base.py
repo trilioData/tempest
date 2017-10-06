@@ -288,17 +288,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 volume_id=self.read_volume_id()
             else:
 		if(image_id != ""):
-                     volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+                     volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 		else:
-		     volume = self.volumes_extensions_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
+		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
 	    if(image_id != ""):
-		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 	    else:
-		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
