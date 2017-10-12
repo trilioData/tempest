@@ -1438,3 +1438,74 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         data = body['license']
         return data
+
+    '''
+    Method runs file search and returns filesearch id for given instance id and path
+    '''
+    def filepath_search(self, vm_id, path):
+        payload={"file_search": {"end": 0,
+                     "filepath": path,
+                     "date_from": "",
+                     "snapshot_ids": [],
+                     "start": 0,
+                     "date_to": "",
+                     "vm_id": vm_id}}
+
+        resp, body = self.wlm_client.client.post("/search", json=payload)
+        filesearch_id = body['file_search']['id']
+        LOG.debug("#### filesearchid: %s , operation:filepath_search" % filesearch_id)
+        time.sleep(30)
+        while (self.getSearchStatus(filesearch_id) != "completed" and self.getSearchStatus(filesearch_id) != "error"):
+                LOG.debug('filepath_search status is: %s , sleeping for 30 sec' % self.getSearchStatus(filesearch_id))
+                time.sleep(30)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return filesearch_id
+
+
+    '''
+    Method returns the current status of file search for given filesearch id
+    '''
+    def getSearchStatus(self, filesearch_id):
+        resp, body = self.wlm_client.client.get("/search/"+str(filesearch_id))
+        filesearch_status = body['file_search']['status']
+        LOG.debug("#### filesearchid: %s , filesearch status: %s, operation: filepath_search_status" % (filesearch_id, filesearch_status))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return filesearch_status
+
+    '''
+    Method returns snapshot wise file count for given filesearch id and path
+    '''
+    def verifyFilepath_Search(self, filesearch_id, path):
+        resp, body = self.wlm_client.client.get("/search/"+str(filesearch_id))
+        LOG.debug("Response:"+ str(resp.content))
+        resp = json.loads(resp.content)
+        snapshot_wise_filecount = {}
+        path1=""
+        if "*" in path:
+            path1= path.split("/")[1]
+        else:
+            path1=path
+	for k, v in resp["file_search"].items():
+            if k == "json_resp":
+                data = eval(v)
+                for k1 in range(len(data)):
+                    for k2, v2 in data[k1].items():
+                        for k3 in data[k1][k2]:
+                            i = 0
+                            for k4, v2 in k3.items():
+                                if path1 in k4:
+                                    i += 1
+                                else:
+                                    break
+                            if i != 0:
+                                LOG.debug("File exist in "+ k2+" " + k4)
+                                LOG.debug("Total Files found = " + str(i))
+			        snapshot_wise_filecount[k2] = i
+                            else:
+                                LOG.debug("File not exist in "+ k2+" " + k4)
+		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
+        return snapshot_wise_filecount
