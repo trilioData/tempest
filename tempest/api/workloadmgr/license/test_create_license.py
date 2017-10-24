@@ -27,15 +27,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_license(self):
-	self.license_txt = ""
-	#Get license key content
-	with open(tvaultconf.license_filename) as f:
-	    for line in f:
-	        self.license_txt += line
-	LOG.debug("License text: " + str(self.license_txt))
-
 	#Create license using CLI command
-	self.cmd = command_argument_string.license_create + "\"" + self.license_txt + "\""
+	self.cmd = command_argument_string.license_create + tvaultconf.license_filename
         LOG.debug("License create command: " + str(self.cmd))
         rc = cli_parser.cli_returncode(self.cmd)
         if rc != 0:
