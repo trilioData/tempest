@@ -977,18 +977,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create SSH connection using RSA Private key
     '''
-    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress):
-        username = tvaultconf.instance_username
+    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress, username=tvaultconf.instance_username):
         key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        flag = True
+        flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
+	    if(flag == True):
+		break
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+		flag = True
             except Exception as e:
                 time.sleep(20)
                 if i == 29:
@@ -1463,3 +1465,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_details
+
