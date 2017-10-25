@@ -36,4 +36,6 @@ list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
 
 #License commands
 license_create = "workloadmgr license-create "
+license_check = "workloadmgr license-check"
+license_list = "workloadmgr license-list"
 
