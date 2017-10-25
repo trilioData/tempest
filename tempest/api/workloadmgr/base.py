@@ -1442,13 +1442,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method runs file search and returns filesearch id for given instance id and path
     '''
-    def filepath_search(self, vm_id, path):
-        payload={"file_search": {"end": 0,
+    def filepath_search(self, vm_id, path, snapshot_ids=[], start=0, end=0, date_from="", date_to=""):
+        payload={"file_search": {"end": end,
                      "filepath": path,
-                     "date_from": "",
-                     "snapshot_ids": [],
-                     "start": 0,
-                     "date_to": "",
+                     "date_from": date_from,
+                     "snapshot_ids": snapshot_ids,
+                     "start": start,
+                     "date_to": date_to,
                      "vm_id": vm_id}}
 
         resp, body = self.wlm_client.client.post("/search", json=payload)
@@ -1501,11 +1501,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     i += 1
                                 else:
                                     break
-                            if i != 0:
-                                LOG.debug("File exist in "+ k2+" " + k4)
+
+			    if i != 0:
+                                LOG.debug("File exist in "+ k2)
                                 LOG.debug("Total Files found = " + str(i))
-			        snapshot_wise_filecount[k2] = i
-                            else:
-                                LOG.debug("File not exist in "+ k2+" " + k4)
+                                snapshot_wise_filecount[k2] = i
+                            elif k2 not in snapshot_wise_filecount.keys():
+                                LOG.debug("File not exist in "+ k2)
+                                snapshot_wise_filecount[k2] = i
+
 		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
+
