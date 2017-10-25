@@ -36,7 +36,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+            self.volume_id = self.create_volume()
             LOG.debug("Volume ID: " + str(self.volume_id))
         
             #Attach volume to the instance
@@ -52,14 +52,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
 	        reporting.add_test_step("Execute workload-create command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+
 	    time.sleep(10)
 	    self.wid = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
-            self.wait_for_workload_tobe_available(self.wid)
-	    if(self.getWorkloadStatus(self.wid) == "available"):
-                reporting.add_test_step("Create workload", tvaultconf.PASS)
-            else:
-                reporting.add_test_step("Create workload", tvaultconf.FAIL)
+	    if(self.wid != None):
+		self.wait_for_workload_tobe_available(self.wid)
+		if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+	        else:
+                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+	    else:
+		reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
  
             #Cleanup

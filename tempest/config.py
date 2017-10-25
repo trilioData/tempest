@@ -762,7 +762,10 @@ VolumeGroup = [
                help='Cinder availability zone for volume'),
     cfg.StrOpt('volume_type',
                default='',
-               help='Volume type name')
+               help='Volume type name'),
+    cfg.StrOpt('volume_type_id',
+               default='',
+               help='Volume type id')
 ]
 
 volume_feature_group = cfg.OptGroup(name='volume-feature-enabled',

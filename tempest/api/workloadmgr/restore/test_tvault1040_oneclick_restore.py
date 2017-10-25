@@ -38,7 +38,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type, volume_cleanup=False)
+            self.volume_id = self.create_volume(volume_cleanup=False)
             LOG.debug("Volume ID: " + str(self.volume_id))
          
             #Attach volume to the instance

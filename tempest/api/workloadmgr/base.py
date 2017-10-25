@@ -280,7 +280,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size, volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(self, size=tvaultconf.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -288,17 +288,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 volume_id=self.read_volume_id()
             else:
 		if(image_id != ""):
-                     volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+                     volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 		else:
-		     volume = self.volumes_extensions_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
+		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
 	    if(image_id != ""):
-		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
 	    else:
-		 volume = self.volumes_extensions_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -977,18 +977,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create SSH connection using RSA Private key
     '''
-    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress):
-        username = tvaultconf.instance_username
+    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress, username=tvaultconf.instance_username):
         key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh=paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
-        flag = True
+        flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
+	    if(flag == True):
+		break
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+		flag = True
             except Exception as e:
                 time.sleep(20)
                 if i == 29:
@@ -1438,3 +1440,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         data = body['license']
         return data
+
+
+    '''
+    Method returns the schedule details of a given workload
+    '''
+    def getSchedulerDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        schedule_details = body['workload']['jobschedule']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return schedule_details
+
+    '''
+    Method returns snapshot details
+    '''
+    def getSnapshotDetails(self, workload_id, snapshot_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id)
+        snapshot_details = body['snapshot']
+        LOG.debug("#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" % (workload_id, snapshot_id))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return snapshot_details
+

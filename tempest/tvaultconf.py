@@ -12,9 +12,6 @@ pre_req = True
 PASS = "PASS"
 FAIL = "FAIL"
 
-#Volume type to use by tempest
-volume_type="5a745b43-57cf-4fc4-9a5f-d296c0f1e5b3"
-
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
 
@@ -63,5 +60,3 @@ restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
 security_group_name = "test_security"
 flavor_name = "test_flavor"
-availability_zone = "nova"
-volume_type = "ceph"

@@ -37,7 +37,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+            self.volume_id = self.create_volume()
             LOG.debug("Volume ID: " + str(self.volume_id))
         
             #Attach volume to the instance
@@ -61,15 +61,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         
             wc = query_data.get_deleted_workload(self.wid)
             LOG.debug("Workload status: " + str(wc))
-            while (str(wc) != "deleted"):
-                time.sleep(5)
-                wc = query_data.get_deleted_workload(self.wid)
-                LOG.debug("Workload status: " + str(wc))
-                if (str(wc) == "deleted"):
-	    	    reporting.add_test_step("Verification with DB", tvaultconf.PASS)
-                    LOG.debug("Workload successfully deleted")
-                    self.deleted = True
-                    break
+	    if(str(wc) == "deleted"):
+		reporting.add_test_step("Verification with DB", tvaultconf.PASS)
+                LOG.debug("Workload successfully deleted")
+                self.deleted = True
+	    else:
+		while (str(wc) != "deleted"):
+                    time.sleep(5)
+                    wc = query_data.get_deleted_workload(self.wid)
+                    LOG.debug("Workload status: " + str(wc))
+                    if (str(wc) == "deleted"):
+	    	        reporting.add_test_step("Verification with DB", tvaultconf.PASS)
+                        LOG.debug("Workload successfully deleted")
+                        self.deleted = True
+                        break
             if (self.deleted == False):
    	        reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
                 raise Exception ("Workload did not get deleted")

@@ -36,7 +36,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+            self.volume_id = self.create_volume()
             LOG.debug("Volume ID: " + str(self.volume_id))
         
             #Attach volume to the instance
@@ -71,14 +71,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create scheduled workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            self.schedule = query_data.get_workload_schedule(self.wid)
-            LOG.debug("Workload schedule from DB: " + str(self.schedule))
-            if(self.schedule.find(str(interval)) != -1):
-	        reporting.add_test_step("Verification with DB", tvaultconf.PASS)
+            self.schedule = self.getSchedulerStatus(self.wid)
+            LOG.debug("Workload schedule: " + str(self.schedule))
+            if(self.schedule):
+	        reporting.add_test_step("Verification", tvaultconf.PASS)
                 LOG.debug("Workload schedule enabled")
             else:
-	        reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
-                raise Exception("Workload schedule not enabled")
+	        reporting.add_test_step("Verification", tvaultconf.FAIL)
+                LOG.error("Workload schedule not enabled")
         
             #Cleanup
             #Delete workload
