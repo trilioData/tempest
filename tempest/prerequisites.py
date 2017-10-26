@@ -297,44 +297,32 @@ def filesearch(self):
     self.volumes_ids = []
     self.date_from = ""
     self.date_to = ""
+    self.ssh = []
 
-    # Create two volumes
+    # Create key_pair and get available floating IP's
+    self.create_key_pair(tvaultconf.key_pair_name)
+    floating_ips_list = self.get_floating_ips()   
+
+    # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
+    # Partitioning and  formatting and mounting the attached disks
     for i in range(0, 2):
         self.volumes_ids.append(self.create_volume(tvaultconf.volume_size, tvaultconf.volume_type))
         LOG.debug("Volume-"+ str(i) +" ID: " + str(self.volumes_ids[i]))
-
-    # Launch two instances
-    self.create_key_pair(tvaultconf.key_pair_name)
-    for i in range(0, 2):
         self.instances_ids.append(self.create_vm(key_pair=tvaultconf.key_pair_name))
         LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
-
-    # Attach volumes to the instances
-    for i in range(0, 2):
         self.attach_volume(self.volumes_ids[i], self.instances_ids[i])
         LOG.debug("Volume attached")
-
-    # Assign Floating IP's
-    floating_ips_list = self.get_floating_ips()
-    self.set_floating_ip(floating_ips_list[0], self.instances_ids[0])
-    self.set_floating_ip(floating_ips_list[1], self.instances_ids[1])
-
-    # Partitioning and  formatting the attached disks
-    ssh1 = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
-    self.execute_command_disk_create(ssh1, floating_ips_list[0], volumes, mount_points)
-    ssh2 = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
-    self.execute_command_disk_create(ssh2, floating_ips_list[1], volumes, mount_points)
-
-    # Disk mounting
-    self.execute_command_disk_mount(ssh1, floating_ips_list[0], volumes, mount_points)
-    self.execute_command_disk_mount(ssh2, floating_ips_list[1], volumes, mount_points)
+        self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
+        self.ssh.append(self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i])))
+        self.execute_command_disk_create(self.ssh[i], floating_ips_list[i], volumes, mount_points)
+        self.execute_command_disk_mount(self.ssh[i], floating_ips_list[i], volumes, mount_points)
 	    
     # Create workload
     self.workload_instances.append(self.instances_ids[0])
     self.workload_instances.append(self.instances_ids[1])
     self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
     LOG.debug("Workload ID: " + str(self.wid))
-    time.sleep(5)
+    workload_available = self.wait_for_workload_tobe_available(self.wid)
                 
     # Create full snapshot 
     self.snapshot_ids.append(self.workload_snapshot(self.wid, True))
@@ -342,10 +330,10 @@ def filesearch(self):
     #Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[0])
     time_now = time.time()
-    self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S.000000")
+    self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
     # Add two files to vm1 to path /opt
-    self.addCustomSizedfilesOnLinux(ssh1, "//opt", 2)
+    self.addCustomSizedfilesOnLinux(self.ssh[0], "//opt", 2)
 
     # Create incremental-1 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -354,7 +342,7 @@ def filesearch(self):
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[1])
 
     # Add two files to vm2 to path /home/ubuntu/mount_data_b
-    self.addCustomSizedfilesOnLinux(ssh2, "//home/ubuntu/mount_data_b", 2)
+    self.addCustomSizedfilesOnLinux(self.ssh[1], "//home/ubuntu/mount_data_b", 2)
 
     # Create incremental-2 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -364,7 +352,7 @@ def filesearch(self):
 
 
     # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-    self.addCustomSizedfilesOnLinux(ssh1, "//home/ubuntu/mount_data_b", 1)
+    self.addCustomSizedfilesOnLinux(self.ssh[0], "//home/ubuntu/mount_data_b", 1)
 
     # Create incremental-3 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -372,4 +360,4 @@ def filesearch(self):
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[3])
     time_now = time.time()
-    self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S.000000")
+    self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
