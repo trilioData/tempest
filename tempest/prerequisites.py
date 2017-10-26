@@ -47,7 +47,7 @@ def inplace(self):
     self.original_flavor_conf = self.get_flavor_details(flavor_id)
 
     for volume in range(self.total_volumes):
-	volume_id = self.create_volume(self.volume_size,tvaultconf.volume_type)
+	volume_id = self.create_volume()
 	self.volumes_list.append(str(volume_id))
     LOG.debug(str(self.total_volumes) + " volumes created: " + str(self.volumes_list))
 
@@ -182,8 +182,8 @@ def selective_with_floating_ips(self):
 
     for vm in range(0,self.vms_per_workload):
         vm_name = "tempest_test_vm_" + str(vm+1)
-        volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-        volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+        volume_id1 = self.create_volume()
+        volume_id2 = self.create_volume()
         vm_id = self.create_vm(vm_name=vm_name ,security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
         self.workload_instances.append(vm_id)
         self.workload_volumes.append(volume_id1)
@@ -261,8 +261,8 @@ def selective_basic(self):
 
     for vm in range(0,self.vms_per_workload):
         vm_name = "tempest_test_vm_" + str(vm+1)
-        volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
-        volume_id2 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+        volume_id1 = self.create_volume()
+        volume_id2 = self.create_volume()
         vm_id = self.create_vm(vm_name=vm_name ,security_group_id=self.security_group_id,flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
         self.workload_instances.append(vm_id)
         self.workload_volumes.append(volume_id1)

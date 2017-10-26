@@ -36,7 +36,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
-            self.volume_id = self.create_volume(tvaultconf.volume_size,tvaultconf.volume_type)
+            self.volume_id = self.create_volume()
             LOG.debug("Volume ID: " + str(self.volume_id))
         
             #Attach volume to the instance
@@ -64,7 +64,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload list command listed available workloads correctly")
             else:
    	        reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
-                raise Exception ("Workload list command did not list available workloads correctly")
+                raise Exception ("Workload list command did not list available workloads correctly, from db: " + str(wc) + " , from cmd: " + str(out))
 	    reporting.test_case_to_write()
 
         except Exception as e:

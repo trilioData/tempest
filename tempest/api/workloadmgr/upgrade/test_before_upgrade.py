@@ -51,7 +51,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	try:
 	     f = open("tempest/upgrade_data_conf.py", "w")
              for vm in range(0,self.vms_per_workload):
-	          volume_id1 = self.create_volume(self.volume_size,tvaultconf.volume_type)
+	          volume_id1 = self.create_volume()
                   self.workload_volumes.append(volume_id1)
                   vm_id = self.create_vm(vm_cleanup=False)
                   self.workload_instances.append(vm_id)
@@ -98,6 +98,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         raise Exception("Disable global job scheduler failed")
                     else:
                         reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
+
+	     #Fetch workload scheduler and retention settings
+	     self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
+	     LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
+	     f.write("scheduler_settings=" + str(self.scheduler_settings))
+
              f.close()
 	     reporting.test_case_to_write()
 
