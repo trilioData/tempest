@@ -288,7 +288,6 @@ def selective_basic(self):
         raise Exception("Full Snapshot Failed")
 
 def filesearch(self):
-    self.workload_instances = []
     self.filecount_in_snapshots = {}
     volumes = ["/dev/vdb"]
     mount_points = ["mount_data_b"]
@@ -318,9 +317,7 @@ def filesearch(self):
         self.execute_command_disk_mount(self.ssh[i], floating_ips_list[i], volumes, mount_points)
 	    
     # Create workload
-    self.workload_instances.append(self.instances_ids[0])
-    self.workload_instances.append(self.instances_ids[1])
-    self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+    self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
     LOG.debug("Workload ID: " + str(self.wid))
     workload_available = self.wait_for_workload_tobe_available(self.wid)
                 
