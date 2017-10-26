@@ -305,7 +305,7 @@ def filesearch(self):
     # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
     # Partitioning and  formatting and mounting the attached disks
     for i in range(0, 2):
-        self.volumes_ids.append(self.create_volume(tvaultconf.volume_size, tvaultconf.volume_type))
+        self.volumes_ids.append(self.create_volume())
         LOG.debug("Volume-"+ str(i) +" ID: " + str(self.volumes_ids[i]))
         self.instances_ids.append(self.create_vm(key_pair=tvaultconf.key_pair_name))
         LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
