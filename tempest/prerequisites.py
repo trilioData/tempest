@@ -2,6 +2,8 @@
 from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
+import time
+import datetime
 
 def small_workload(self):
     self.workload_instances = []
@@ -284,3 +286,75 @@ def selective_basic(self):
     if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
         reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
         raise Exception("Full Snapshot Failed")
+
+def filesearch(self):
+    self.filecount_in_snapshots = {}
+    volumes = ["/dev/vdb"]
+    mount_points = ["mount_data_b"]
+    self.snapshot_ids = []
+    self.instances_ids = []
+    self.volumes_ids = []
+    self.date_from = ""
+    self.date_to = ""
+    self.ssh = []
+
+    # Create key_pair and get available floating IP's
+    self.create_key_pair(tvaultconf.key_pair_name)
+    floating_ips_list = self.get_floating_ips()   
+
+    # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
+    # Partitioning and  formatting and mounting the attached disks
+    for i in range(0, 2):
+        self.volumes_ids.append(self.create_volume())
+        LOG.debug("Volume-"+ str(i) +" ID: " + str(self.volumes_ids[i]))
+        self.instances_ids.append(self.create_vm(key_pair=tvaultconf.key_pair_name))
+        LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
+        self.attach_volume(self.volumes_ids[i], self.instances_ids[i])
+        LOG.debug("Volume attached")
+        self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
+        self.ssh.append(self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i])))
+        self.execute_command_disk_create(self.ssh[i], floating_ips_list[i], volumes, mount_points)
+        self.execute_command_disk_mount(self.ssh[i], floating_ips_list[i], volumes, mount_points)
+	    
+    # Create workload
+    self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+    LOG.debug("Workload ID: " + str(self.wid))
+    workload_available = self.wait_for_workload_tobe_available(self.wid)
+                
+    # Create full snapshot 
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, True))
+    LOG.debug("Snapshot ID-1: " + str(self.snapshot_ids[0]))
+    #Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[0])
+    time_now = time.time()
+    self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
+
+    # Add two files to vm1 to path /opt
+    self.addCustomSizedfilesOnLinux(self.ssh[0], "//opt", 2)
+
+    # Create incremental-1 snapshot
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    LOG.debug("Snapshot ID-2: " + str(self.snapshot_ids[1]))    
+    # Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[1])
+
+    # Add two files to vm2 to path /home/ubuntu/mount_data_b
+    self.addCustomSizedfilesOnLinux(self.ssh[1], "//home/ubuntu/mount_data_b", 2)
+
+    # Create incremental-2 snapshot
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    LOG.debug("Snapshot ID-3: " + str(self.snapshot_ids[2]))
+    # Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[2])
+
+
+    # Add one  file to vm1 to path /home/ubuntu/mount_data_b
+    self.addCustomSizedfilesOnLinux(self.ssh[0], "//home/ubuntu/mount_data_b", 1)
+
+    # Create incremental-3 snapshot
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    LOG.debug("Snapshot ID-4: " + str(self.snapshot_ids[3]))
+    # Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[3])
+    time_now = time.time()
+    self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
