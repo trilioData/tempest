@@ -1564,5 +1564,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
-
-
