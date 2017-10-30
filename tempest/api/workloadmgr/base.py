@@ -1421,14 +1421,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create triliovault license
     '''
     def create_license(self, key):
-	flag = True
-	payload = {"license": key}
-        resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-	   flag = False
-           resp.raise_for_status()
-	return flag
+        flag = True
+        msg = ""
+        payload = {"license": key}
+        try:
+            resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
+            LOG.debug("Response:"+ str(resp.content))
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            if(flag):
+                return flag
+            else:
+                return msg
 
     '''
     Method to fetch license list
@@ -1464,6 +1472,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_details
+
+    '''
+    Method to get license check
+    '''
+    def get_license_check(self):
+        flag = True
+        msg = ""
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/license_check")
+            LOG.debug("Response:"+ str(resp.content))
+	    msg = body['message']
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            return msg
 
     '''
     Method runs file search and returns filesearch id for given instance id and path
@@ -1538,5 +1564,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
 		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
-
-
