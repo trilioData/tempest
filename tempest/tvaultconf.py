@@ -47,6 +47,8 @@ tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
 
+no_of_compute_nodes = 1
+
 # Scheduler parameter
 interval="1 hrs"
 enabled='false'
