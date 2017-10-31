@@ -1592,7 +1592,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     pass
                         LOG.debug("Total Files found = " + str(snapshot_wise_filecount[k2]))
                 LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
-        LOG.debugsnapshot_wise_filecount
+        return snapshot_wise_filecount
 
 
     def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass, db_password=CONF.wlm.op_db_password):
