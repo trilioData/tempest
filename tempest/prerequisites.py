@@ -350,7 +350,6 @@ def filesearch(self):
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[2])
 
-
     # Add one  file to vm1 to path /home/ubuntu/mount_data_b
     self.addCustomSizedfilesOnLinux(self.ssh[0], "//home/ubuntu/mount_data_b", 1)
 
