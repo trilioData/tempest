@@ -30,7 +30,12 @@ snapshot_type_full = "full"
 restore_name = "test-oneclick-restore"
 selective_restore_name = "test-selective-restore"
 restore_filename = "/opt/restore.json"
-license_filename = "tvault_license.txt"
+vm_license_filename = "test_licenses/tvault_license_10VM.txt"
+capacity_license_filename = "test_licenses/tvault_license_100GB.txt"
+compute_license_filename = "test_licenses/tvault_license_10compute.txt"
+invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
+expired_license_filename = "test_licenses/tvault_license_expired.txt"
+
 workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
@@ -41,6 +46,8 @@ tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
+
+no_of_compute_nodes = 1
 
 # Scheduler parameter
 interval="1 hrs"
