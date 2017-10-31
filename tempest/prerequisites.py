@@ -289,8 +289,8 @@ def selective_basic(self):
 
 def filesearch(self):
     self.filecount_in_snapshots = {}
-    volumes = ["/dev/vdb"]
-    mount_points = ["mount_data_b"]
+    volumes = ["/dev/vdb", "/dev/vdc"]
+    mount_points = ["mount_data_b", "mount_data_c"]
     self.snapshot_ids = []
     self.instances_ids = []
     self.volumes_ids = []
@@ -305,12 +305,15 @@ def filesearch(self):
     # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
     # Partitioning and  formatting and mounting the attached disks
     for i in range(0, 2):
-        self.volumes_ids.append(self.create_volume())
-        LOG.debug("Volume-"+ str(i) +" ID: " + str(self.volumes_ids[i]))
+	j = i + i
+	for n in range(0, 2):
+            self.volumes_ids.append(self.create_volume())
+	    LOG.debug("Volume-"+ str(n+j+1) +" ID: " + str(self.volumes_ids[n+j]))
         self.instances_ids.append(self.create_vm(key_pair=tvaultconf.key_pair_name))
         LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
-        self.attach_volume(self.volumes_ids[i], self.instances_ids[i])
-        LOG.debug("Volume attached")
+        self.attach_volume(self.volumes_ids[j], self.instances_ids[i], volumes[0])
+	self.attach_volume(self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
+        LOG.debug("Two Volumes attached")
         self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
         self.ssh.append(self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i])))
         self.execute_command_disk_create(self.ssh[i], floating_ips_list[i], volumes, mount_points)
@@ -338,8 +341,8 @@ def filesearch(self):
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[1])
 
-    # Add two files to vm2 to path /home/ubuntu/mount_data_b
-    self.addCustomSizedfilesOnLinux(self.ssh[1], "//home/ubuntu/mount_data_b", 2)
+    # Add two files to vm2 to path /home/ubuntu/mount_data_c
+    self.addCustomSizedfilesOnLinux(self.ssh[1], "//home/ubuntu/mount_data_c", 2)
 
     # Create incremental-2 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
