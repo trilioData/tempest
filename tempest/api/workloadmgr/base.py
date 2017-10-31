@@ -1538,33 +1538,62 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = json.loads(resp.content)
         snapshot_wise_filecount = {}
         path1=""
-        if "*" in path:
-            path1= path.split("/")[1]
-        else:
+	if "*" in path:
+            path1= path.strip("*")
+	elif "?" in path:
+            path1 = path.split("?")[0]
+	else:
             path1=path
-	for k, v in resp["file_search"].items():
+        for k, v in resp["file_search"].items():
             if k == "json_resp":
                 data = eval(v)
                 for k1 in range(len(data)):
                     for k2, v2 in data[k1].items():
                         for k3 in data[k1][k2]:
-                            i = 0
-                            for k4, v2 in k3.items():
-                                if path1 in k4:
-                                    i += 1
-                                else:
-                                    break
+                            if "*" in path or "?" in path:
+                                i = 0
+                                for k4, v4 in k3.items():
+                                    if len(v4) != 0 and "/dev" in k4:
+                                        for k5 in v4:
+                                            disk = k3.keys()[0]
+                                            if path1 in k5:
+                                                i += 1
+                                            else:
+                                                break
+                                    disk = k3.keys()[0]
+                                if i != 0 and k2 not in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif i != 0 and k2 in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = snapshot_wise_filecount[k2] + i
+                                elif k2 not in snapshot_wise_filecount.keys():
+                                    LOG.debug("File not exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif k2 in snapshot_wise_filecount.keys():
+                                    pass
+                            else:
+                                i = 0
+                                for k4, v2 in k3.items():
+                                    if path1 in k4:
+                                        disk = k3.keys()[1]
+                                        i += 1
+                                    else:
+                                        break
+                                if i != 0:
+                                    LOG.debug("File exist in "+ k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif i!= 0 and k2 in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = snapshot_wise_filecount[k2] + i
+                                elif k2 not in snapshot_wise_filecount.keys():
+                                    snapshot_wise_filecount[k2] = i
+                                elif k2 in snapshot_wise_filecount.keys():
+                                    pass
+                        LOG.debug("Total Files found = " + str(snapshot_wise_filecount[k2]))
+                LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
+        LOG.debugsnapshot_wise_filecount
 
-			    if i != 0:
-                                LOG.debug("File exist in "+ k2)
-                                LOG.debug("Total Files found = " + str(i))
-                                snapshot_wise_filecount[k2] = i
-                            elif k2 not in snapshot_wise_filecount.keys():
-                                LOG.debug("File not exist in "+ k2)
-                                snapshot_wise_filecount[k2] = i
-
-		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
-        return snapshot_wise_filecount
 
     def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass, db_password=CONF.wlm.op_db_password):
         user_exist = False
