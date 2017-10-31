@@ -1422,14 +1422,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create triliovault license
     '''
     def create_license(self, key):
-	flag = True
-	payload = {"license": key}
-        resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-	   flag = False
-           resp.raise_for_status()
-	return flag
+        flag = True
+        msg = ""
+        payload = {"license": key}
+        try:
+            resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
+            LOG.debug("Response:"+ str(resp.content))
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            if(flag):
+                return flag
+            else:
+                return msg
 
     '''
     Method to fetch license list
@@ -1465,6 +1473,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_details
+
+    '''
+    Method to get license check
+    '''
+    def get_license_check(self):
+        flag = True
+        msg = ""
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/license_check")
+            LOG.debug("Response:"+ str(resp.content))
+	    msg = body['message']
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            return msg
 
     '''
     Method runs file search and returns filesearch id for given instance id and path
@@ -1540,7 +1566,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
 
-
     def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass, db_password=CONF.wlm.op_db_password):
         user_exist = False
 
@@ -1606,7 +1631,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             channel.close()
             ssh.close()
 
-    def config_backup_configure_yaml_create(selff, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
+    def create_config_backup_yaml(selff, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
         ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
     

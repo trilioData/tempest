@@ -1,0 +1,10 @@
+LicenseID               	 TVAULT-6510530c-8df5-11e7-b626-00238baa03ab
+Description             	 TrilioVault License from TrilioData, Inc
+CreationDate            	 2017-08-30
+LicenseEdition          	 ENTERPRISE
+LicenseTypeName         	 EULA
+Organisation            	 Luxoft
+LicenseExpiryDate       	 2017-08-29
+Licensed For            	 1 Virtual Machines
+Evaluation              	 False
+License Key             	 AAABSg0ODAoPeNp9Uk2PgjAQvfdXNNnrNimwoGvCwayYmCAaRfY8lEGbYDEtGP33i+IHko1z7Jv35s2bfvxiRsf1ljqc2vbIGYxcj9rcGpBlrcUODE6gQvos/wIyPmQOJ4UUqAwmqI0sVaeFzEGqChUogcHpIPW5VXmQ7W8StuQgk9ULOYjiYLVczdYBAVHJY3f4raXSNZJ1ENF/ym/emeda3OXosWGWu8yycMBSz/YY57YzTAG4A+nDQMffy4KNxzXqI+rZpD/jov+VOuKtflTvU9SLfGOafDpkZpHgCEUNL3tfoSkUBu/G4vMBI9jjM5lNOL6DGZ2Wuku1aCJ1VUNB5yB2UqEhEzRCy0N/jB9rWcgygbqo6E2O5rrc0xZoooBPOlOC/Gi8mnzzBW78fkR+nIw3YdwewuHvg1roLShp+nn4YX0q8+oPK4OxTDAsAhRCxKCupzadMx0RsY6ldeyV0pEIVQIUSbvfuDG6tUwXVxkfuYt4jJAufJw=X02gc

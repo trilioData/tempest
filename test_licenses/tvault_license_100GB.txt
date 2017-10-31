@@ -1,0 +1,10 @@
+LicenseID               	 TVAULT-31f889ea-70df-11e7-8604-5254004cc87e
+Description             	 TrilioVault License from TrilioData, Inc
+CreationDate            	 2017-07-25
+LicenseEdition          	 ENTERPRISE
+LicenseTypeName         	 EULA
+Organisation            	 Luxoft
+LicenseExpiryDate       	 2020-09-01
+Licensed For            	 100 GB Backup Capacity
+Evaluation              	 False
+License Key             	 AAABVA0ODAoPeNp9UstuwjAQvPsrLPVaS7abEIqUA49QUaUBQeC+NZvWakgiJ0bw9w2QQogq9ujZmZ2d9VNskb7blEqXcjkQ7sD1qOTCIwtr1DeUOIEK6a38E8i4x6RLUq0wK3GDptR51mohH6CzCjPIFAaHQpvjRaUmS874K+OChBdysNXVHTmI4mC5WM5WAQFV6X17eNNSGYtkFUT0n/Lrd/YiEs+REpnHtwkTAj3W73GHudJ1OHeU6nt4NdDy1yx49bhCs0czm3Rn1Po9qRz+UD+yu08082Rd1vm0yEyQYA+phbu9z9AU0vJqLD4WGMEOb8msw+EfuKXT3LSpgnP6NqIjUD+2oGMoQOnqSCZYKqOL7ig/NjrV+QZsWtFGkiYm39ELUMcBz3SWKTI2eDb64Bs0/G5MfrwZrsP4dIx+/xXhYVhz8wWZLruZ+KE95En1C2XGsPswLAIUX/PTECU96x7FTiZnMmH/6ZossSACFFNypZ4Pj+7w5l1r9iGMVEheyD0wX02go
