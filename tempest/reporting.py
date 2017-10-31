@@ -44,6 +44,8 @@ def test_case_to_write():
     with open(test_results_file, "a") as f:
         f.write(test_case_to_write)
 	f.write(test_step_to_write)
+    test_step_to_write = ""
+    test_script_status = tvaultconf.PASS
 
 def add_test_step(teststep, status):
     if status == "PASS":
