@@ -19,6 +19,7 @@ import paramiko
 import os
 import stat
 import requests
+import re
 
 from oslo_log import log as logging
 from tempest import config
@@ -1421,14 +1422,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create triliovault license
     '''
     def create_license(self, key):
-	flag = True
-	payload = {"license": key}
-        resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-	   flag = False
-           resp.raise_for_status()
-	return flag
+        flag = True
+        msg = ""
+        payload = {"license": key}
+        try:
+            resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
+            LOG.debug("Response:"+ str(resp.content))
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            if(flag):
+                return flag
+            else:
+                return msg
 
     '''
     Method to fetch license list
@@ -1464,6 +1473,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_details
+
+    '''
+    Method to get license check
+    '''
+    def get_license_check(self):
+        flag = True
+        msg = ""
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/license_check")
+            LOG.debug("Response:"+ str(resp.content))
+	    msg = body['message']
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            flag = False
+            msg = str(e)
+        finally:
+            LOG.debug("flag: "+ str(flag) + " msg: " + str(msg))
+            return msg
 
     '''
     Method runs file search and returns filesearch id for given instance id and path
@@ -1539,4 +1566,84 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
 
+    def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass, db_password=CONF.wlm.op_db_password):
+        user_exist = False
 
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        config_user_check_command = ["cat /etc/passwd | grep {}".format(config_user)]
+
+        for command in config_user_check_command:
+            channel.send(command + "\n")
+            while not channel.recv_ready():  # Wait for the server to read and respond
+                time.sleep(0.1)
+            time.sleep(0.1)  # wait enough for writing to (hopefully) be finished
+            output = channel.recv(9999)  # read in
+	    LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
+            if "/bin/bash" in str(output):
+                user_exist = True
+	        LOG.debug("****config_user exists****")
+            time.sleep(0.1)
+        if not user_exist:
+	    LOG.debug("config_user doesn't exist, Creating config user.")
+            commands = ["useradd {}".format(config_user),
+                        "passwd {}".format(config_user),
+                        "echo password", "echo password",
+                        "cat /etc/passwd | grep user",
+                        "echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
+                        "cat /etc/sudoers | grep user", "su {}".format(config_user),
+                        "ssh-keygen", "\n", "\n", "\n",
+                        "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(config_user),
+                        "cat /home/{}/.ssh/authorized_keys".format(config_user),
+                        "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
+
+            for command in commands:
+                channel.send(command + "\n")
+                while not channel.recv_ready():  # Wait for the server to read and respond
+                    time.sleep(0.1)
+                time.sleep(0.1)  # wait enough for writing to (hopefully) be finished
+                output = channel.recv(9999)  # read in
+                LOG.debug(str(output))
+                time.sleep(0.1)
+
+            buildCommand = "cat /home/{}/.ssh/id_rsa".format(config_user)
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            output = stdout.read()
+            with open("config_backup_pvk", 'w+') as f:
+                f.write(output)
+
+            os.chmod("config_backup_pvk", stat.S_IRUSR)
+
+            channel.close()
+            ssh.close()
+
+    def create_config_backup_yaml(selff, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+    
+        yaml_file = """
+                databases:
+                    database1:
+                        host: {0}
+                        password: {2}
+                        port: None
+                        user: {1}
+                trusted_user:
+                    username: {3}""".format(str(ip[0]), str(user), str(db_password), config_user)
+    
+        with open("yaml_file", 'w') as f:
+            f.write(str(yaml_file))

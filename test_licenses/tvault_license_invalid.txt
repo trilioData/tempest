@@ -1,0 +1,10 @@
+LicenseID               	 TVAULT-e4cfbb26-5846-11e7-a05b-00238baa03ab
+Description             	 TrilioVault License from TrilioData, Inc
+CreationDate            	 2017-06-23
+LicenseEdition          	 ENTERPRISE
+LicenseTypeName         	 EULA
+Organisation            	 Luxoft
+LicenseExpiryDate       	 2020-07-31
+Licensed For            	 10 Compute Nodes
+Evaluation              	 False
+License Key             	 aaabtA0ODAoPeNp9Uk2PgjAQvfdXNNnrNmlB1DXhYBQTNywaRe8DDrtNoJCWGv33y4ofSDbOsW/emzdv+rbQkn5aRR2XCm/CvYkYUoeLEVlbnf6AwTnUSB/l/4GMD5njklymqAzuURtZqk4L+QKpalSgUgxOldTnVqUhO5zxEXMFCVtycJD1EzmI4mCz3iy3AYG0lsfu8GtLrS2SbRDRf8pv3hkO0iz54Jx548GQCYEjBtxLGOeOO04AuAvJ3UDH33XBu8ct6iPq5bw/46LvNiG80o9skaBeZTvT5NMhM0GCI+QWnva+QAvIDd6MxecKIyjwkcwunN7AA12UuksVnM7KorLNGlF5QEPmaFItq/4QP9Yyl+UebF7TqxjNdFnQFmiCgHe6VCmZabxYfPEBrvx+QH68n+7CuD1D4ryOaaW/QUnTT8MP7anM6l9Vd7FIMCwCFB138A4bjODmm7+MlWp8CE9soVd7AhRFkm0rr4KhPTjGo3bw+U2PDpTbiw==X02gg
