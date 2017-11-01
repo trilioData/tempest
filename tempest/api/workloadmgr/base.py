@@ -20,6 +20,7 @@ import os
 import stat
 import requests
 import re
+import collections
 
 from oslo_log import log as logging
 from tempest import config
@@ -1631,7 +1632,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             channel.close()
             ssh.close()
 
-    def create_config_backup_yaml(selff, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
+    def create_config_backup_yaml(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
         ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
     
@@ -1647,3 +1648,70 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     
         with open("yaml_file", 'w') as f:
             f.write(str(yaml_file))
+
+    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
+
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+	ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+    
+        config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
+                       "glance": ["/etc/glance", "/var/lib/glance", "/var/log/glance"],
+                       "keystone": ["/etc/keystone", "/var/lib/keystone", "/var/log/keystone"],
+                       "cinder": ["/etc/cinder", "/var/lib/cinder", "/var/log/cinder"],
+                       "neutron": ["/etc/neutron", "/var/lib/neutron"],
+                       "swift": ["/etc/swift", "/var/log/swift/"],
+                       "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
+                       "orchestration": ["/etc/heat/", "/var/log/heat/"]}
+        
+        tree = lambda: collections.defaultdict(tree)
+        md5_sum_before_config_backup = tree()
+    
+        for service, service_dirs in config_yaml.items():
+            service_md5_list = []
+            for service_dir in service_dirs:
+                
+                channel = ssh.invoke_shell()
+                time.sleep(1)
+                channel.recv(9999)
+                channel.send("\n")
+                time.sleep(1)
+                
+                md5_calculate_command = "find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; md5sum checksums_backup.md5 > checksums_backup1.md5; cat checksums_backup1.md5;".format(service_dir)
+                channel.send(md5_calculate_command + "\n")
+		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance":
+                    time.sleep(45)
+                while not channel.recv_ready():
+                    time.sleep(1)
+                time.sleep(1)
+                output = channel.recv(9999).decode('utf-8').strip("\n")
+                if "No such file or directory" in output:
+                    service_md5_list.append("No such file or directory")
+                    LOG.debug("md5_calculate_command: " + md5_calculate_command + ", Output: No such file or directory")
+                else:
+                    service_md5_list.append(str(output)[:-47][189:])
+                    LOG.debug("md5_calculate_command: " + md5_calculate_command + ", Output: " + str(output))
+                    
+                channel.close()
+            time.sleep(0.1)
+    
+            md5_sum_before_config_backup[service] = service_md5_list
+    
+        LOG.debug("md5_sum_before_config_backup : " + str(md5_sum_before_config_backup))
+
+
+    def get_config_workload(self):
+        resp, body = self.wlm_client.client.get("/config_workload")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        # status = body['global_job_scheduler']
+        return body
+
+
