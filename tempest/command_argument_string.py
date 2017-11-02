@@ -39,3 +39,7 @@ license_create = "workloadmgr license-create "
 license_check = "workloadmgr license-check"
 license_list = "workloadmgr license-list"
 
+
+#Config backup commands
+config_workload_configure = "workloadmgr config-workload-configure"
+config_workload_show = "workloadmgr config-workload-show"

@@ -1632,22 +1632,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             channel.close()
             ssh.close()
 
-    def create_config_backup_yaml(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password):
+    def create_config_backup_yaml(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password, added_dir=""):
         ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
-    
-        yaml_file = """
-                databases:
-                    database1:
-                        host: {0}
-                        password: {2}
-                        port: None
-                        user: {1}
-                trusted_user:
-                    username: {3}""".format(str(ip[0]), str(user), str(db_password), config_user)
-    
-        with open("yaml_file", 'w') as f:
-            f.write(str(yaml_file))
+
+        yaml_dir = {'databases':{'database1':{'host':str(ip[0]), 'password':str(db_password), 'port':None, 'user':str(user)}}, 'trusted_user':{'username':config_user}} 
+
+        if added_dir != "":
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    yaml_dir.update(added_dir)
+
+   	import yaml 
+        with open("yaml_file.yaml", 'w') as f:
+            yaml.dump(yaml_dir, f, default_flow_style=False)
 
     def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
 
@@ -1668,10 +1665,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                        "neutron": ["/etc/neutron", "/var/lib/neutron"],
                        "swift": ["/etc/swift", "/var/log/swift/"],
                        "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
-                       "orchestration": ["/etc/heat/", "/var/log/heat/"]}
+                       "orchestration": ["/etc/heat/", "/var/log/heat/"],
+		       "tvault-contego": ["/etc/tvault-contego/"]}
+
+	LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
         
         tree = lambda: collections.defaultdict(tree)
-        md5_sum_before_config_backup = tree()
+        md5_sum_config_backup = tree()
     
         for service, service_dirs in config_yaml.items():
             service_md5_list = []
@@ -1685,8 +1685,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 
                 md5_calculate_command = "find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; md5sum checksums_backup.md5 > checksums_backup1.md5; cat checksums_backup1.md5;".format(service_dir)
                 channel.send(md5_calculate_command + "\n")
-		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance":
-                    time.sleep(45)
+		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance" or service_dir == "/var/lib/nova":
+                    time.sleep(60)
                 while not channel.recv_ready():
                     time.sleep(1)
                 time.sleep(1)
@@ -1698,12 +1698,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     service_md5_list.append(str(output)[:-47][189:])
                     LOG.debug("md5_calculate_command: " + md5_calculate_command + ", Output: " + str(output))
                     
-                channel.close()
+	    channel.close()
             time.sleep(0.1)
     
-            md5_sum_before_config_backup[service] = service_md5_list
+            md5_sum_config_backup[service] = service_md5_list
     
-        LOG.debug("md5_sum_before_config_backup : " + str(md5_sum_before_config_backup))
+        LOG.debug("md5_sum_config_backup : " + str(md5_sum_config_backup))
+	return md5_sum_config_backup
 
 
     def get_config_workload(self):
@@ -1711,7 +1712,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()
-        # status = body['global_job_scheduler']
         return body
 
+    def create_config_backup(self):
+	payload = {"backup": {"name": "Config backup", "description": "No description"}}
+        resp, body = self.wlm_client.client.post("/config_backup", json=payload)
+        LOG.debug("Response:"+ str(resp.content))
+        if resp.status_code != 202:
+           resp.raise_for_status()
+	config_backup_id = body['config_backup']['id']
+	self.wait_for_config_backup_tobe_available(config_backup_id)
+	# if(tvaultconf.cleanup == True and config_backup_cleanup_cleanup == True):
+        #     self.addCleanup(self.config_backup_delete,config_backup_id)
+        return config_backup_id
 
+    def wait_for_config_backup_tobe_available(self, config_backup_id):
+	status = "available"
+        LOG.debug('Checking config backup status')
+        while (status != self.getConfigbackupStatus(config_backup_id)):
+            if(self.getConfigbackupStatus(config_backup_id) == 'error'):
+                LOG.debug('Config backup status is: %s' % self.getConfigbackupStatus(config_backup_id))
+                raise Exception("Config backup creation failed")
+            LOG.debug('Config backup status is: %s' % self.getConfigbackupStatus(config_backup_id))
+            time.sleep(30)
+        LOG.debug('Final Status of Config backup : %s' % (self.getConfigbackupStatus(config_backup_id)))
+        return status	
+
+    def getConfigbackupStatus(self, config_backup_id):
+	resp, body = self.wlm_client.client.get("/config_backup/" + config_backup_id)
+        config_backup_status = body['config_backup']['status']
+        LOG.debug("#### config_backup_id %s , operation:config_backup_show" % (config_backup_id))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return config_backup_status
