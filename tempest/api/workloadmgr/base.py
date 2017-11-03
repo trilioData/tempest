@@ -1746,3 +1746,32 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return config_backup_status
+
+    def get_config_backup_list(self):
+	body = ""
+        resp, body = self.wlm_client.client.get("/config_backups")
+        LOG.debug("#### config_backup_list" + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return body
+
+    def show_config_backup(self, config_backup_id):
+        body = ""
+        resp, body = self.wlm_client.client.get("/config_backup/" + str(config_backup_id))
+        LOG.debug("#### config_backup_details" + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return body
+
+    def delete_config_backup(self, config_backup_id):
+        resp, body = self.wlm_client.client.delete("/config_backup/" + str(config_backup_id))
+        LOG.debug("#### config_backup_delete response body: " + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+	    return False
+        else:
+	    return True 
+
