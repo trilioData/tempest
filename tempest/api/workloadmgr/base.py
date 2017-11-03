@@ -1598,6 +1598,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if "/bin/bash" in str(output):
                 user_exist = True
 	        LOG.debug("****config_user exists****")
+		channel.close()
+            	ssh.close()
+
             time.sleep(0.1)
         if not user_exist:
 	    LOG.debug("config_user doesn't exist, Creating config user.")
