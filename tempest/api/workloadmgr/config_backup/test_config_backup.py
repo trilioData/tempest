@@ -28,7 +28,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07170-912e-49a5-a629-5f52eeada4c9')
     def test_config_backup(self):
-	reporting.add_test_script(str(__name__)+ "_default + added_dir")
+	reporting.add_test_script(str(__name__)+ "_default and  + added_dir")
 	try:
 	    # prerequisite handles config_user creation and config_backup_pvk(private key) creation
             
@@ -70,12 +70,53 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    LOG.debug("config_workload_md5sum_after_backup: " + str(config_workload_md5sum_after_backup))
 
 	    for i in range(len(config_workload_md5sum_before_backup.keys())):
-	        if config_workload_md5sum_before_backup.values()[i][0] == config_workload_md5sum_after_backup.values()[i][0]:
+	        if config_workload_md5sum_before_backup.values()[i][0] == config_workload_md5sum_after_backup.values()[i][0] or config_workload_md5sum_before_backup.values()[i][0] in config_workload_md5sum_after_backup.values()[i][0]:
 		    LOG.debug("Config backup md5 verification: " + str(config_workload_md5sum_before_backup.keys()[i]) + " : " + config_workload_md5sum_before_backup.values()[i][0] + " equal to " + config_workload_md5sum_after_backup.values()[i][0])
 	            reporting.add_test_step("Config backup md5 verification: config_dir : " + str(config_workload_md5sum_before_backup.keys()[i]), tvaultconf.PASS)
 	        else:
 	            reporting.add_test_step("Config backup md5 verification: config_dir : " + str(config_workload_md5sum_before_backup.keys()[i]), tvaultconf.FAIL)
 	            LOG.debug("Config backup md5 verification: " + str(config_workload_md5sum_before_backup.keys()[i]) + " : " + config_workload_md5sum_before_backup.values()[i][0] + " not equal to " + config_workload_md5sum_after_backup.values()[i][0])
+
+
+	    # test config_backup_list
+            config_backup_list_output = self.get_config_backup_list()
+
+	    LOG.debug("config_backup list output: " + str(config_backup_list_output))
+
+	    if config_backup_list_output != "":
+	    	reporting.add_test_step("Config_backup_list", tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Config_backup_list", tvaultconf.FAIL)
+
+            config_backups_list = config_backup_list_output['backups']
+	     
+	    config_backup_found = False
+	    
+	    for backup in config_backups_list:
+            	if backup['id'] == config_backup_id:
+		    config_backup_found = True
+                    LOG.debug("config_backup_id found in config_backups_list")
+                    
+
+	    if config_backup_found:
+		reporting.add_test_step("config_backup_id in config_backups_list", tvaultconf.PASS)
+            else:
+                LOG.debug("config_backup_id not found in config_backups_list")
+                reporting.add_test_step("config_backup_id in config_backups_list", tvaultconf.FAIL)
+	    
+	    # test config_backup_show 
+	    config_backup_details = self.show_config_backup(config_backup_id)
+
+	    if config_backup_details != "":
+                reporting.add_test_step("Config_backup_show", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Config_backup_show", tvaultconf.FAIL)
+
+	    # test_config_backup_delete
+	    if self.delete_config_backup(config_backup_id):
+		reporting.add_test_step("Config_backup_delete", tvaultconf.PASS)
+	    else:
+	    	reporting.add_test_step("Config_backup_delete", tvaultconf.FAIL)
 
 	    reporting.test_case_to_write()
 
@@ -83,4 +124,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
-
+    
