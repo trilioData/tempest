@@ -1689,7 +1689,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 md5_calculate_command = "find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; md5sum checksums_backup.md5 > checksums_backup1.md5; cat checksums_backup1.md5;".format(service_dir)
                 channel.send(md5_calculate_command + "\n")
 		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance" or service_dir == "/var/lib/nova":
-                    time.sleep(60)
+                    time.sleep(75)
                 while not channel.recv_ready():
                     time.sleep(1)
                 time.sleep(1)
