@@ -43,3 +43,6 @@ license_list = "workloadmgr license-list"
 #Config backup commands
 config_workload_configure = "workloadmgr config-workload-configure"
 config_workload_show = "workloadmgr config-workload-show"
+config_backup = "workloadmgr config-backup"
+config_backup_show = "workloadmgr config-backup-show"
+config_backup_delete = "workloadmgr config-backup-delete"
