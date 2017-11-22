@@ -1033,14 +1033,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
             retcode = chan.recv_exit_status()
 	
-	for mount_point in mount_points:
-            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + "\\" + mount_point)
+	# for mount_point in mount_points:
+            # stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
 
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
+	for mount_point in mount_points:
+            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
+	    stdin, stdout, stderr = ssh.exec_command("sudo ls -l")
+	    LOG.debug("dir list: " + str(stdout.read()))
 	for i in range(len(volumes)):
             buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
