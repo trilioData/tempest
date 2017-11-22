@@ -1033,9 +1033,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
             retcode = chan.recv_exit_status()
 	
-	# for mount_point in mount_points:
-            # stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
-
     '''
     disks mounting
     '''
