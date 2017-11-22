@@ -30,7 +30,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    # Run Filesearch on vm-2
 	    vmid_to_search = self.instances_ids[1]
    	    filepath_to_search = "/File*"
-	    #filecount_in_snapshots = {self.snapshot_ids[0]: 0, self.snapshot_ids[1] : 0, self.snapshot_ids[2] : 2, self.snapshot_ids[3] : 2}
+	    filecount_in_snapshots = {self.snapshot_ids[0]: 0, self.snapshot_ids[1] : 0, self.snapshot_ids[2] : 2, self.snapshot_ids[3] : 2}
 	    filesearch_id = self.filepath_search(vmid_to_search, filepath_to_search)
 	    snapshot_wise_filecount = self.verifyFilepath_Search(filesearch_id, filepath_to_search)
 	    for snapshot_id in filecount_in_snapshots.keys():
