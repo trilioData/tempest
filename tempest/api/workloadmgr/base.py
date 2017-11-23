@@ -208,22 +208,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
-			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[]):
+			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=""):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
 	    if (len(block_mapping_data) > 0 and key_pair != ""):
 		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
-                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data)
+                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
 	    elif (len(block_mapping_data) > 0 and key_pair == ""):
 		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data)
+                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
 	    elif (key_pair != ""):
 	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
+			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
             else:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid)
+			flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
@@ -1689,7 +1689,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 md5_calculate_command = "find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; md5sum checksums_backup.md5 > checksums_backup1.md5; cat checksums_backup1.md5;".format(service_dir)
                 channel.send(md5_calculate_command + "\n")
 		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance" or service_dir == "/var/lib/nova":
-                    time.sleep(75)
+                    while not channel.recv_ready():
+                        time.sleep(2)
                 while not channel.recv_ready():
                     time.sleep(1)
                 time.sleep(1)
@@ -1717,16 +1718,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         return body
 
-    def create_config_backup(self):
-	payload = {"backup": {"name": "Config backup", "description": "No description"}}
+    def create_config_backup(self,config_backup_cleanup=False):
+	payload = {"backup": {"name": "Config backup", "description": "Test description"}}
         resp, body = self.wlm_client.client.post("/config_backup", json=payload)
         LOG.debug("Response:"+ str(resp.content))
         if resp.status_code != 202:
            resp.raise_for_status()
 	config_backup_id = body['config_backup']['id']
 	self.wait_for_config_backup_tobe_available(config_backup_id)
-	# if(tvaultconf.cleanup == True and config_backup_cleanup_cleanup == True):
-        #     self.addCleanup(self.config_backup_delete,config_backup_id)
+	if(tvaultconf.cleanup == True and config_backup_cleanup == True):
+            self.addCleanup(self.delete_config_backup,config_backup_id)
         return config_backup_id
 
     def wait_for_config_backup_tobe_available(self, config_backup_id):
@@ -1740,15 +1741,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             time.sleep(30)
         LOG.debug('Final Status of Config backup : %s' % (self.getConfigbackupStatus(config_backup_id)))
         return status	
-
-    def getConfigbackupStatus(self, config_backup_id):
-	resp, body = self.wlm_client.client.get("/config_backup/" + config_backup_id)
-        config_backup_status = body['config_backup']['status']
-        LOG.debug("#### config_backup_id %s , operation:config_backup_show" % (config_backup_id))
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-            resp.raise_for_status()
-        return config_backup_status
 
     def get_config_backup_list(self):
 	body = ""
