@@ -34,6 +34,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             # for config backup configuration, yaml_file creation
             self.create_config_backup_yaml()
+	    
+	    config_workload_id = None
 
             # config backup configuration with CLI command
             config_workload_command = command_argument_string.config_workload_configure + " --config-file yaml_file.yaml --authorized-key config_backup_pvk "
@@ -48,6 +50,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Triggering config_workload_configure command via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
+	    config_workload_id = query_data.get_config_workload_id()
+            LOG.debug("Config workload id: " + str(config_workload_id))
+
+	    if(config_workload_id != None):
+                reporting.add_test_step("Config Workload Configure", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Config Worklaod Configure", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL) 
+
             reporting.test_case_to_write()
 
         except Exception as e:
@@ -59,7 +70,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('ae78e629-1499-451b-b82e-6165b269863d')
     def test_2_config_workload_show(self):
-        reporting.add_test_script(str(__name__) + "_show_cli")
+        reporting.add_test_script(str(__name__) + "_show")
         try:
 	    # test config_workload_show cli
             config_workload_show_command = command_argument_string.config_workload_show 
@@ -74,33 +85,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Triggering config_workload_show_command via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly") 
 
-	    output = cli_parser.cli_output(config_workload_show_command)
-	    LOG.debug("config_workload_show_command output from cli: " + str(output))
+	    config_workload_output = self.get_config_workload()
+	    LOG.debug("config_workload_show_command output: " + str(output))
 
-            reporting.test_case_to_write()
-
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
-
-    @test.attr(type='smoke')
-    @test.idempotent_id('52d14575-e2dd-46bf-b1f2-7c317121fc6e')
-    def test_3_config_workload_get_api(self):
-        reporting.add_test_script(str(__name__) + "get_api")
-        try:
-	    # test config_workload get api
-            config_workload_output = self.get_config_workload()
-	    LOG.debug("config_workload show output from api: " + str(config_workload_output))
-
-            config_workload_status = config_workload_output['status']
+	    config_workload_status = config_workload_output['status']
 
             if config_workload_status == "available":
                 LOG.debug("config_workload status is available, config_workload_id: " + config_workload_output['id'])
                 reporting.add_test_step("config_workload status: available", tvaultconf.PASS)
             else:
                 LOG.debug("config_workload status is not available, Error msg: " + config_workload_output['error_msg'])
-                reporting.add_test_step("config_workload status: " + config_workload_output['status'], tvaultconf.FAIL) 
+                reporting.add_test_step("config_workload status: " + config_workload_output['status'], tvaultconf.FAIL)
+		raise Exception ("Config Workload Configure Failed.")
 
             reporting.test_case_to_write()
 
@@ -109,11 +105,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-
+    test.pre_req({'type':'config_backup'})
     @test.attr(type='smoke')
     @test.idempotent_id('52d14575-e2dd-46bf-b1f2-7c317121fc6e')
-    def test_4_config_workload_added_dir(self):
-        reporting.add_test_script(str(__name__) + "_added_dir")
+    def test_3_config_workload_added_dir(self):
+        reporting.add_test_script(str(__name__) + "_additional_dir")
         try: 
 	    # prerequisite handles config_user creation and config_backup_pvk(private key) creation
 

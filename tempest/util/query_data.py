@@ -405,3 +405,18 @@ def get_config_backup_id():
     finally:
         cursor.close()
         conn.close()
+
+def get_config_workload_id():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_config_backup_id = ("select id from config_workloads;")
+        cursor.execute(get_config_backup_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print (str(e))
+    finally:
+        cursor.close()
+        conn.close()

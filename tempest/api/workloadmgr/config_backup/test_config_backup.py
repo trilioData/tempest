@@ -37,6 +37,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # for config backup configuration, yaml_file creation 
 	    added_dir = {'tvault-contego':{'config_dir':['/etc/tvault-contego/']}}
             self.create_config_backup_yaml(added_dir = added_dir)
+	    
+	    config_workload_id=None
 
             # config backup configuration with CLI command
             config_workload_command = command_argument_string.config_workload_configure + " --config-file yaml_file.yaml --authorized-key config_backup_pvk "
@@ -50,6 +52,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Triggering config_workload_configure command via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+
+	    config_workload_id = query_data.get_config_workload_id()
+            LOG.debug("Config workload id: " + str(config_workload_id))
+
+            if(config_workload_id != None):
+                reporting.add_test_step("Config Workload Configure", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Config Worklaod Configure", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 	    
 
 	    # config_workload_md5sum_before_backup
@@ -76,14 +87,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 	    if(config_backup_id != None):
 		self.wait_for_config_backup_tobe_available(config_backup_id)
-		if(self.getConfigbackupStatus(config_backup_id) == "available"):
+		if(self.show_config_backup(config_backup_id)['config_backup']['status'] == "available"):
                     reporting.add_test_step("Config Backup", tvaultconf.PASS)
 	        else:
                     reporting.add_test_step("Config Backup", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
+		    LOG.debug("Calculating MD5 sums for any data loss.")
 	    else:
 		reporting.add_test_step("Config Backup", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)       
+                reporting.set_test_script_status(tvaultconf.FAIL)     
+	        raise Exception("Config Backup Failed.")  
 	 
 	    config_workload_md5sum_after_backup = self.calculate_md5_config_backup()
 	    LOG.debug("config_workload_md5sum_after_backup: " + str(config_workload_md5sum_after_backup))
@@ -94,6 +107,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	            reporting.add_test_step("Config backup md5 verification: config_dir : " + str(config_workload_md5sum_before_backup.keys()[i]), tvaultconf.PASS)
 	        else:
 	            reporting.add_test_step("Config backup md5 verification: config_dir : " + str(config_workload_md5sum_before_backup.keys()[i]), tvaultconf.FAIL)
+		    reporting.set_test_script_status(tvaultconf.FAIL)
 	            LOG.debug("Config backup md5 verification: " + str(config_workload_md5sum_before_backup.keys()[i]) + " : " + config_workload_md5sum_before_backup.values()[i][0] + " not equal to " + config_workload_md5sum_after_backup.values()[i][0])
 
 		if config_workload_md5sum_before_backup.keys()[i] == "compute" or config_workload_md5sum_before_backup.keys()[i] == "cinder":
@@ -103,6 +117,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		   else:
 			LOG.debug("Config backup md5 verification: " + str(config_workload_md5sum_before_backup.keys()[i]) + " : " + config_workload_md5sum_before_backup.values()[i][1] + " not equal to " + config_workload_md5sum_after_backup.values()[i][1])
                         reporting.add_test_step("Config backup md5 verification: lib_dir : " + str(config_workload_md5sum_before_backup.keys()[i]), tvaultconf.FAIL)
+		        reporting.set_test_script_status(tvaultconf.FAIL)
 
 	    reporting.test_case_to_write()
 
@@ -171,6 +186,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Triggering config_backup_show command via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+
+	    
 	    reporting.test_case_to_write()
 
         except Exception as e:
@@ -198,6 +215,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Triggering config_backup_delete command via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+
+	    config_backup_id_after_deletion = query_data.get_config_backup_id()
+            LOG.debug("Config backup id after: " + str(config_backup_id_after_deletion))
+
+	    if config_backup_id_after_deletion == config_backup_id:
+	        reporting.add_test_step("Config Backup Deletion", tvaultconf.FAIL)
+	        reporting.set_test_script_status(tvaultconf.FAIL)
+	    else:
+		reporting.add_test_step("Config Backup Deletion", tvaultconf.PASS)
+	    
 	    reporting.test_case_to_write()
 
         except Exception as e:
