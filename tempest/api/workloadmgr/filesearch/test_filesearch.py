@@ -29,8 +29,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type':'filesearch'})
     @test.attr(type='smoke')
     @test.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
-    def test_1_filesearch_withoutparameters(self):
-	reporting.add_test_script(str(__name__) + "_withoutparameters")
+    def test_1_filesearch_default_parameters(self):
+	reporting.add_test_script(str(__name__) + "_default_parameters")
 	try:
 	    global instances_ids
 	    global snapshot_ids 
@@ -51,13 +51,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 		    filesearch_status = True
 	        else:
 		    filesearch_status = False
-		    LOG.debug("Filepath Search withoutparameters unsuccessful")
-                    reporting.add_test_step("Verification of Filepath serach withoutparameters", tvaultconf.FAIL)
-	   	    raise Exception ("Filesearch withoutparameters does not execute correctly")
+		    LOG.debug("Filepath Search default_parameters unsuccessful")
+                    reporting.add_test_step("Verification of Filepath serach default_parameters", tvaultconf.FAIL)
+	   	    raise Exception ("Filesearch default_parameters does not execute correctly")
 
 	    if filesearch_status == True:
-	        LOG.debug("Filepath_Search withoutparameters successful")
-	    	reporting.add_test_step("Verification of Filepath serach withoutparameters", tvaultconf.PASS)
+	        LOG.debug("Filepath_Search default_parameters successful")
+	    	reporting.add_test_step("Verification of Filepath serach default_parameters", tvaultconf.PASS)
 		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 		
