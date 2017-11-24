@@ -86,7 +86,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly") 
 
 	    config_workload_output = self.get_config_workload()
-	    LOG.debug("config_workload_show_command output: " + str(output))
+	    LOG.debug("config_workload_show_command output: " + str(config_workload_output))
 
 	    config_workload_status = config_workload_output['status']
 
