@@ -35,7 +35,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    # prerequisite handles config_user creation and config_backup_pvk(private key) creation
             
             # for config backup configuration, yaml_file creation 
-	    added_dir = {'tvault-contego':{'config_dir':['/etc/tvault-contego/']}}
+	    added_dir = {tvaultconf.additional_dir.keys()[0]:{'config_dir':tvaultconf.additional_dir.values()[0]}}
             self.create_config_backup_yaml(added_dir = added_dir)
 	    
 	    config_workload_id=None
@@ -64,7 +64,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    
 
 	    # config_workload_md5sum_before_backup
-	    config_workload_md5sum_before_backup = self.calculate_md5_config_backup()
+	    config_workload_md5sum_before_backup = self.calculate_md5_config_backup(added_dir=tvaultconf.additional_dir)
 	    LOG.debug("config_workload_md5sum_before_backup: " + str(config_workload_md5sum_before_backup))
 	    
 	    # config backup configuration with CLI command
@@ -98,7 +98,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)     
 	        raise Exception("Config Backup Failed.")  
 	 
-	    config_workload_md5sum_after_backup = self.calculate_md5_config_backup()
+	    config_workload_md5sum_after_backup = self.calculate_md5_config_backup(added_dir=tvaultconf.additional_dir)
 	    LOG.debug("config_workload_md5sum_after_backup: " + str(config_workload_md5sum_after_backup))
 
 	    for i in range(len(config_workload_md5sum_before_backup.keys())):
