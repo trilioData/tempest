@@ -1610,7 +1610,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         "cat /etc/passwd | grep user",
                         "echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
                         "cat /etc/sudoers | grep user", "su {}".format(config_user),
-                        "ssh-keygen", "\n", "\n", "\n",
+                        "ssh-keygen -t rsa", "\n", "\n", "\n",
                         "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(config_user),
                         "cat /home/{}/.ssh/authorized_keys".format(config_user),
                         "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
@@ -1630,7 +1630,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             with open("config_backup_pvk", 'w+') as f:
                 f.write(output)
 
-            os.chmod("config_backup_pvk", stat.S_IRUSR)
+            os.chmod("config_backup_pvk", stat.S_IRWXU)
 
             channel.close()
             ssh.close()
@@ -1649,7 +1649,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         with open("yaml_file.yaml", 'w') as f:
             yaml.dump(yaml_dir, f, default_flow_style=False)
 
-    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
+    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir=""):
 
 	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
@@ -1660,17 +1660,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("connecting")
         ssh.connect(hostname=str(ip[0]), username=user, password=passw)
         LOG.debug("connected")
-    
-        config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
-                       "glance": ["/etc/glance", "/var/lib/glance", "/var/log/glance"],
-                       "keystone": ["/etc/keystone", "/var/lib/keystone", "/var/log/keystone"],
-                       "cinder": ["/etc/cinder", "/var/lib/cinder", "/var/log/cinder"],
-                       "neutron": ["/etc/neutron", "/var/lib/neutron"],
-                       "swift": ["/etc/swift", "/var/log/swift/"],
-                       "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
-                       "orchestration": ["/etc/heat/", "/var/log/heat/"],
-		       "tvault-contego": ["/etc/tvault-contego/"]}
 
+
+	config_yaml = tvaultconf.config_yaml
+
+	if added_dir != "":
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    config_yaml.update(added_dir)
+    
 	LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
         
         tree = lambda: collections.defaultdict(tree)
@@ -1690,10 +1687,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 channel.send(md5_calculate_command + "\n")
 		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance" or service_dir == "/var/lib/nova":
                     while not channel.recv_ready():
-                        time.sleep(2)
+                        time.sleep(5)
                 while not channel.recv_ready():
                     time.sleep(1)
-                time.sleep(1)
+                # time.sleep(1)
                 output = channel.recv(9999).decode('utf-8').strip("\n")
                 if "No such file or directory" in output:
                     service_md5_list.append("No such file or directory")
@@ -1733,13 +1730,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def wait_for_config_backup_tobe_available(self, config_backup_id):
 	status = "available"
         LOG.debug('Checking config backup status')
-        while (status != self.getConfigbackupStatus(config_backup_id)):
-            if(self.getConfigbackupStatus(config_backup_id) == 'error'):
-                LOG.debug('Config backup status is: %s' % self.getConfigbackupStatus(config_backup_id))
+        while (status != self.show_config_backup(config_backup_id)['config_backup']['status']):
+            if(self.show_config_backup(config_backup_id)['config_backup']['status'] == 'error'):
+                LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
                 raise Exception("Config backup creation failed")
-            LOG.debug('Config backup status is: %s' % self.getConfigbackupStatus(config_backup_id))
+            LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
             time.sleep(30)
-        LOG.debug('Final Status of Config backup : %s' % (self.getConfigbackupStatus(config_backup_id)))
+        LOG.debug('Final Status of Config backup : %s' % (self.show_config_backup(config_backup_id)['config_backup']['status']))
         return status	
 
     def get_config_backup_list(self):

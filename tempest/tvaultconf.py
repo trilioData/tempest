@@ -30,24 +30,15 @@ snapshot_type_full = "full"
 restore_name = "test-oneclick-restore"
 selective_restore_name = "test-selective-restore"
 restore_filename = "/opt/restore.json"
-vm_license_filename = "test_licenses/tvault_license_10VM.txt"
-capacity_license_filename = "test_licenses/tvault_license_100GB.txt"
-compute_license_filename = "test_licenses/tvault_license_10compute.txt"
-invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
-expired_license_filename = "test_licenses/tvault_license_expired.txt"
-
 workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
 volume_size = 1
-global_job_scheduler=False
 
 tvault_ip = "192.168.1.116"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
-
-no_of_compute_nodes = 1
 
 # Scheduler parameter
 interval="1 hrs"
@@ -67,3 +58,12 @@ restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
 security_group_name = "test_security"
 flavor_name = "test_flavor"
+config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
+                       "glance": ["/etc/glance", "/var/lib/glance", "/var/log/glance"],
+                       "keystone": ["/etc/keystone", "/var/lib/keystone", "/var/log/keystone"],
+                       "cinder": ["/etc/cinder", "/var/lib/cinder", "/var/log/cinder"],
+                       "neutron": ["/etc/neutron", "/var/lib/neutron"],
+                       "swift": ["/etc/swift", "/var/log/swift/"],
+                       "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
+                       "orchestration": ["/etc/heat/", "/var/log/heat/"]}
+additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
