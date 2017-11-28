@@ -19,6 +19,7 @@ import paramiko
 import os
 import stat
 import requests
+import re
 
 from oslo_log import log as logging
 from tempest import config
@@ -1032,14 +1033,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
             retcode = chan.recv_exit_status()
 	
-	for mount_point in mount_points:
-            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + "\\" + mount_point)
-
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
+	for mount_point in mount_points:
+            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
+	    stdin, stdout, stderr = ssh.exec_command("sudo ls -l")
+	    LOG.debug("dir list: " + str(stdout.read()))
 	for i in range(len(volumes)):
             buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
@@ -1537,30 +1539,60 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = json.loads(resp.content)
         snapshot_wise_filecount = {}
         path1=""
-        if "*" in path:
-            path1= path.split("/")[1]
-        else:
+	if "*" in path:
+            path1= path.strip("*")
+	elif "?" in path:
+            path1 = path.split("?")[0]
+	else:
             path1=path
-	for k, v in resp["file_search"].items():
+        for k, v in resp["file_search"].items():
             if k == "json_resp":
                 data = eval(v)
                 for k1 in range(len(data)):
                     for k2, v2 in data[k1].items():
                         for k3 in data[k1][k2]:
-                            i = 0
-                            for k4, v2 in k3.items():
-                                if path1 in k4:
-                                    i += 1
-                                else:
-                                    break
-
-			    if i != 0:
-                                LOG.debug("File exist in "+ k2)
-                                LOG.debug("Total Files found = " + str(i))
-                                snapshot_wise_filecount[k2] = i
-                            elif k2 not in snapshot_wise_filecount.keys():
-                                LOG.debug("File not exist in "+ k2)
-                                snapshot_wise_filecount[k2] = i
-
-		LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
+                            if "*" in path or "?" in path:
+                                i = 0
+                                for k4, v4 in k3.items():
+                                    if len(v4) != 0 and "/dev" in k4:
+                                        for k5 in v4:
+                                            disk = k3.keys()[0]
+                                            if path1 in k5:
+                                                i += 1
+                                            else:
+                                                break
+                                    disk = k3.keys()[0]
+                                if i != 0 and k2 not in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif i != 0 and k2 in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = snapshot_wise_filecount[k2] + i
+                                elif k2 not in snapshot_wise_filecount.keys():
+                                    LOG.debug("File not exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif k2 in snapshot_wise_filecount.keys():
+                                    pass
+                            else:
+                                i = 0
+                                for k4, v2 in k3.items():
+                                    if path1 in k4:
+                                        disk = k3.keys()[1]
+                                        i += 1
+                                    else:
+                                        break
+                                if i != 0:
+                                    LOG.debug("File exist in "+ k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = i
+                                elif i!= 0 and k2 in snapshot_wise_filecount.keys():
+                                    LOG.debug("File exist in " + k2 + " in volume " + disk)
+                                    snapshot_wise_filecount[k2] = snapshot_wise_filecount[k2] + i
+                                elif k2 not in snapshot_wise_filecount.keys():
+                                    snapshot_wise_filecount[k2] = i
+                                elif k2 in snapshot_wise_filecount.keys():
+                                    pass
+                        LOG.debug("Total Files found = " + str(snapshot_wise_filecount[k2]))
+                LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
+
+
