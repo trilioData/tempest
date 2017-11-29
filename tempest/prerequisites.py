@@ -289,32 +289,47 @@ def selective_basic(self):
 
 def filesearch(self):
     self.filecount_in_snapshots = {}
-    volumes = ["/dev/vdb"]
-    mount_points = ["mount_data_b"]
+    volumes = ["/dev/vdb", "/dev/vdc"]
+    mount_points = ["mount_data_b", "mount_data_c"]
     self.snapshot_ids = []
     self.instances_ids = []
     self.volumes_ids = []
     self.date_from = ""
     self.date_to = ""
-    self.ssh = []
+    self.total_vms = 2
+    self.total_volumes_per_vm = 2
 
     # Create key_pair and get available floating IP's
     self.create_key_pair(tvaultconf.key_pair_name)
+    self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
+    security_group_id = self.security_group_details['security_group']['id']
     floating_ips_list = self.get_floating_ips()   
 
     # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
     # Partitioning and  formatting and mounting the attached disks
-    for i in range(0, 2):
-        self.volumes_ids.append(self.create_volume())
-        LOG.debug("Volume-"+ str(i) +" ID: " + str(self.volumes_ids[i]))
-        self.instances_ids.append(self.create_vm(key_pair=tvaultconf.key_pair_name))
+    for i in range(0, self.total_vms):
+	vm_name = "Test_Tempest_Vm" + str(i+1)
+	j = i + i
+	for n in range(0, self.total_volumes_per_vm):
+            self.volumes_ids.append(self.create_volume())
+	    LOG.debug("Volume-"+ str(n+j+1) +" ID: " + str(self.volumes_ids[n+j]))
+        self.instances_ids.append(self.create_vm(vm_name=vm_name, key_pair=tvaultconf.key_pair_name, security_group_id=security_group_id))
         LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
-        self.attach_volume(self.volumes_ids[i], self.instances_ids[i])
-        LOG.debug("Volume attached")
+        self.attach_volume(self.volumes_ids[j], self.instances_ids[i], volumes[0])
+	time.sleep(10)
+	self.attach_volume(self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
+	time.sleep(10)
+        LOG.debug("Two Volumes attached")
         self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
-        self.ssh.append(self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i])))
-        self.execute_command_disk_create(self.ssh[i], floating_ips_list[i], volumes, mount_points)
-        self.execute_command_disk_mount(self.ssh[i], floating_ips_list[i], volumes, mount_points)
+	time.sleep(15)
+
+	self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i]))
+        self.execute_command_disk_create(self.ssh, floating_ips_list[i], volumes, mount_points)
+	self.ssh.close()
+
+	self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[i]))
+        self.execute_command_disk_mount(self.ssh, floating_ips_list[i], volumes, mount_points)
+	self.ssh.close()
 	    
     # Create workload
     self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
@@ -330,7 +345,9 @@ def filesearch(self):
     self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
     # Add two files to vm1 to path /opt
-    self.addCustomSizedfilesOnLinux(self.ssh[0], "//opt", 2)
+    self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+    self.addCustomSizedfilesOnLinux(self.ssh, "//opt", 2)
+    self.ssh.close()
 
     # Create incremental-1 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -338,8 +355,10 @@ def filesearch(self):
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[1])
 
-    # Add two files to vm2 to path /home/ubuntu/mount_data_b
-    self.addCustomSizedfilesOnLinux(self.ssh[1], "//home/ubuntu/mount_data_b", 2)
+    # Add two files to vm2 to path /home/ubuntu/mount_data_c
+    self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+    self.addCustomSizedfilesOnLinux(self.ssh, "//home/ubuntu/mount_data_c", 2)
+    self.ssh.close()
 
     # Create incremental-2 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -347,9 +366,10 @@ def filesearch(self):
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[2])
 
-
     # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-    self.addCustomSizedfilesOnLinux(self.ssh[0], "//home/ubuntu/mount_data_b", 1)
+    self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+    self.addCustomSizedfilesOnLinux(self.ssh, "//home/ubuntu/mount_data_b", 1)
+    self.ssh.close()
 
     # Create incremental-3 snapshot
     self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
@@ -359,5 +379,5 @@ def filesearch(self):
     time_now = time.time()
     self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
-def config_backup(self):
-    self.config_user_create()
+
+    
