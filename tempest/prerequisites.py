@@ -380,4 +380,5 @@ def filesearch(self):
     self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-    
+def config_backup(self):
+    self.config_user_create()    
