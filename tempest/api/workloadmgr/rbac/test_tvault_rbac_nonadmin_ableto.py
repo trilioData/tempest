@@ -26,7 +26,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	reporting.add_test_script(str(__name__))
 
     @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @test.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
     def test_tvault_rbac_nonadmin_ableto(self):
 	try:
 	    # Use non-admin credentials
