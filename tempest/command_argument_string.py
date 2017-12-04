@@ -13,6 +13,13 @@ workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload
 workload_show = "workloadmgr workload-show "
 workload_import = "workloadmgr workload-importworkloads"
 
+get_storage_usage = "workloadmgr workload-get-storage-usage" 
+get_import_workloads_list = "workloadmgr workload-get-importworkloads-list" 
+workload_disable_global_job_scheduler = "workloadmgr disable-global-job-scheduler"
+workload_enable_global_job_scheduler = "workloadmgr enable-global-job-scheduler"
+get_nodes  = "workloadmgr workload-get-nodes" 
+get_auditlog = "workloadmgr workload-get-auditlog"
+
 
 #Snapshot commands
 snapshot_list = "workloadmgr snapshot-list | grep available | wc -l"
@@ -38,4 +45,3 @@ list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
 license_create = "workloadmgr license-create "
 license_check = "workloadmgr license-check"
 license_list = "workloadmgr license-list"
-
