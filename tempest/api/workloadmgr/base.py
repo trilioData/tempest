@@ -1597,8 +1597,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return snapshot_wise_filecount
 
 
-    def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm
-.config_pass, db_password=CONF.wlm.op_db_password):
+    def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass):
 
         user_exist = False
         ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
@@ -1637,20 +1636,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    LOG.debug("config_user doesn't exist, Creating config user.")
             commands = ["useradd {}".format(config_user),
                         "passwd {}".format(config_user),
-                        "echo password", "echo password",
-                        "cat /etc/passwd | grep user",
+                        "echo {}".format(config_pass), "echo {}".format(config_pass),
+                        "cat /etc/passwd",
                         "echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
-                        "cat /etc/sudoers | grep user", "su {}".format(config_user),
+                        "cat /etc/sudoers",
+		        "su {}".format(config_user),
                         "ssh-keygen -t rsa", "\n", "\n", "\n",
                         "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(config_user),
                         "cat /home/{}/.ssh/authorized_keys".format(config_user),
                         "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
-
+	    
             for command in commands:
                 channel.send(command + "\n")
                 while not channel.recv_ready():  # Wait for the server to read and respond
                     time.sleep(0.1)
-                time.sleep(0.1)  # wait enough for writing to (hopefully) be finished
+                time.sleep(2)  # wait enough for writing to (hopefully) be finished
                 output = channel.recv(9999)  # read in
                 LOG.debug(str(output))
                 time.sleep(0.1)
@@ -1680,7 +1680,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         with open("yaml_file.yaml", 'w') as f:
             yaml.dump(yaml_dir, f, default_flow_style=False)
 
-    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir=""):
+    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir="", vault_storage_path="", compute_hostname=""):
 
 	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
@@ -1705,36 +1705,57 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         md5_sum_config_backup = tree()
     
         for service, service_dirs in config_yaml.items():
-            service_md5_list = []
+	    service_dirs_list = {}
             for service_dir in service_dirs:
+		service_md5_list = {}
+	        LOG.debug("vault_storage_path: " + " | " + vault_storage_path + " | ")
+                LOG.debug("service: " + " | " + service + " | ")
+                LOG.debug("compute_hostname: " + " | " + compute_hostname + " | ")
+                LOG.debug("service_dir: " +  " | " + service_dir + " | ")
                 
-                channel = ssh.invoke_shell()
-                time.sleep(1)
-                channel.recv(9999)
-                channel.send("\n")
-                time.sleep(1)
-                
-                md5_calculate_command = "find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; md5sum checksums_backup.md5 > checksums_backup1.md5; cat checksums_backup1.md5;".format(service_dir)
-                channel.send(md5_calculate_command + "\n")
-		if service_dir == "/var/lib/cinder" or service_dir == "/var/lib/glance" or service_dir == "/var/lib/nova":
-                    while not channel.recv_ready():
-                        time.sleep(5)
-                while not channel.recv_ready():
-                    time.sleep(1)
-                # time.sleep(1)
-                output = channel.recv(9999).decode('utf-8').strip("\n")
-                if "No such file or directory" in output:
-                    service_md5_list.append("No such file or directory")
-                    LOG.debug("md5_calculate_command: " + md5_calculate_command + ", Output: No such file or directory")
-                else:
-                    service_md5_list.append(str(output)[:-47][189:])
-                    LOG.debug("md5_calculate_command: " + md5_calculate_command + ", Output: " + str(output))
-                    
-	    channel.close()
+	        if vault_storage_path != "":
+		    service_dir = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		    LOG.debug("service_dir_vault: " + str(service_dir))
+		if "log" not in service_dir:    
+		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir)
+                stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
+
+		exit_status = stdout.channel.recv_exit_status()
+		if exit_status == 0:
+    		    LOG.debug("command {} completed".format(md5_calculate_command))
+		else:
+    		    LOG.debug("Error", exit_status)
+	        output = stdout.readlines()
+		LOG.debug("md5 calculate output: " + str(output))
+                for line in output:
+		    LOG.debug("line: " + str(line))
+		    if "triliovault-mounts" in str(line.split()[1]):
+            	        if "/var/lib" in str(line.split()[1]):
+			    service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find('/var/lib'):]:str(line.split()[0])})
+			else:
+			     service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find('/etc'):]:str(line.split()[0])})
+		    else:
+			service_md5_list.update({str(line.split()[1]):str(line.split()[0])})
+	        
+		LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
+
+	        if "log" not in str(service_dir):
+		    if  "triliovault-mounts" in str(service_dir):
+			if "etc" in str(service_dir):
+			    service_dirs_list.update({str(service_dir)[str(service_dir).find('/etc'):]:service_md5_list})
+			elif "/var/lib" in str(service_dir):
+			    service_dirs_list.update({str(service_dir)[str(service_dir).find('/var/lib'):]:service_md5_list})
+		    else:
+		        service_dirs_list.update({str(service_dir):service_md5_list})
+
+		LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
+		
+	    #channel.close()
             time.sleep(0.1)
     
-            md5_sum_config_backup[service] = service_md5_list
-    
+            md5_sum_config_backup[service] = service_dirs_list
+        
+	ssh.close()
         LOG.debug("md5_sum_config_backup : " + str(md5_sum_config_backup))
 	return md5_sum_config_backup
 
@@ -1797,4 +1818,52 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    return False
         else:
 	    return True 
+
+    def sudo_access_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, access=True):
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        if not access:
+	    commands = ["sed -i '$ d' /etc/sudoers", "cat /etc/sudoers"]
+	else:
+	    commands = ["echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
+
+        for command in commands:
+            channel.send(command + "\n")
+            time.sleep(3)  # wait enough for writing to (hopefully) be finished
+            output = channel.recv(9999)  # read in
+	    LOG.debug(str(output))
+
+	channel.close()
+	ssh.close()
+
+    def get_compute_hostname(self, compute_node_ip = tvaultconf.compute_node_ip, compute_node_username=tvaultconf.compute_node_username, compute_node_password=tvaultconf.compute_node_password):
+	
+	ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=compute_node_ip, username=compute_node_username, password=compute_node_password)
+        LOG.debug("connected")
+
+	buildCommand ="hostname"
+        stdin, stdout, stderr = ssh.exec_command(buildCommand)
+        hostname = stdout.read()
+	LOG.debug("compute: " + str(compute_node_ip) + ": hostname: "+ str(hostname))
+        ssh.close()
+	
+	return hostname
 

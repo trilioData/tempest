@@ -47,7 +47,14 @@ tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
 
+
+no_of_compute_nodes = 1
+compute_node_ip = "192.168.1.189"
+compute_node_username = "root"
+compute_node_password = "password"
+
 # Scheduler parameter
+
 interval="1 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"

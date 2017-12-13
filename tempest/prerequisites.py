@@ -4,6 +4,8 @@ LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
 import time
 import datetime
+from tempest import command_argument_string
+from tempest.util import cli_parser
 
 def small_workload(self):
     self.workload_instances = []
@@ -380,5 +382,24 @@ def filesearch(self):
     self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
 
-def config_backup(self):
+def config_workload(self):
     self.config_user_create()    
+
+def config_backup(self):
+    self.config_user_create()
+    # for config backup configuration, yaml_file creation
+    added_dir = {tvaultconf.additional_dir.keys()[0]:{'config_dir':tvaultconf.additional_dir.values()[0]}}
+    self.create_config_backup_yaml(added_dir = added_dir)
+
+    # config backup configuration with CLI command
+    config_workload_command = command_argument_string.config_workload_configure + " --config-file yaml_file.yaml --authorized-key config_backup_pvk "
+
+    LOG.debug("config workload configure cli command: " + str(config_workload_command))
+
+    rc = cli_parser.cli_returncode(config_workload_command)
+    if rc != 0:
+        LOG.debug("Triggering config_workload_configure command via CLI FAIL")
+        raise Exception("Command did not execute correctly")
+    else:
+        LOG.debug("Triggering config_workload_configure command via CLI PASS")
+        LOG.debug("Command executed correctly")
