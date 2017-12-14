@@ -113,8 +113,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     test.pre_req({'type':'config_workload'})
     @test.attr(type='smoke')
     @test.idempotent_id('52d14575-e2dd-46bf-b1f2-7c317121fc6e')
-    def test_3_config_workload_added_dir(self):
-        reporting.add_test_script(str(__name__) + "_additional_dir")
+    def test_3_config_workload_reconfigure(self):
+        reporting.add_test_script(str(__name__) + "_reconfigure_additional_dir")
         try: 
             # prerequisite handles config_user creation and config_backup_pvk(private key) creation
 

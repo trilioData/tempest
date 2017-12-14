@@ -1616,20 +1616,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         channel.send("\n")
         time.sleep(1)
 
-        config_user_check_command = ["cat /etc/passwd | grep {}".format(config_user)]
+        config_user_check_command = "cat /etc/passwd | grep {}".format(config_user)
 
-        for command in config_user_check_command:
-            channel.send(command + "\n")
-            while not channel.recv_ready():  # Wait for the server to read and respond
-                time.sleep(0.1)
-            time.sleep(0.1)  # wait enough for writing to (hopefully) be finished
-            output = channel.recv(9999)  # read in
-	    LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
-            if "/bin/bash" in str(output):
-                user_exist = True
-	        LOG.debug("****config_user exists****")
-		channel.close()
-            	ssh.close()
+        channel.send(command + "\n")
+        output = channel.recv(9999)  # read in
+	LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
+        if "/bin/bash" in str(output):
+            user_exist = True
+	    LOG.debug("****config_user exists****")
+	channel.close()
+        ssh.close()
 
             time.sleep(0.1)
         if not user_exist:
