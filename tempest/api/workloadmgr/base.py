@@ -1733,7 +1733,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 		LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
 
 	        if "log" not in str(service_dir):
-			service_dirs_list.update({str(service_dir):service_md5_list})
+		    service_dirs_list.update({str(service_dir):service_md5_list})
 
 		LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
 		
