@@ -99,7 +99,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    # Launch recovery instance and Mount snapshot
 	    self.recoveryinstances_id = self.create_vm(flavor_id=tvaultconf.recovery_flavor_ref, key_pair=tvaultconf.key_pair_name, image_id=tvaultconf.recovery_image_ref)
             LOG.debug("VM-"+ str(2) +" ID: " + str(self.recoveryinstances_id))
-	    status = self.mount_snapshot(self.snapshot_id, self.recoveryinstances_id)
+	    status = self.mount_snapshot(self.wid, self.snapshot_id, self.recoveryinstances_id)
             if status == True:
                 LOG.debug("snapshot Mounted successfully")
 		reporting.add_test_step("Verification of snapshot mount", tvaultconf.PASS)
