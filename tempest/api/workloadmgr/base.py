@@ -1618,16 +1618,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         config_user_check_command = "cat /etc/passwd | grep {}".format(config_user)
 
-        channel.send(command + "\n")
+        channel.send(config_user_check_command + "\n")
         output = channel.recv(9999)  # read in
 	LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
         if "/bin/bash" in str(output):
             user_exist = True
 	    LOG.debug("****config_user exists****")
-	channel.close()
-        ssh.close()
 
-            time.sleep(0.1)
+        time.sleep(0.1)
         if not user_exist:
 	    LOG.debug("config_user doesn't exist, Creating config user.")
             commands = ["useradd {}".format(config_user),
@@ -1833,7 +1831,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         time.sleep(1)
 
         if not access:
-	    commands = ["sed -i '$ d' /etc/sudoers", "cat /etc/sudoers"]
+	    commands = ["sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user), "cat /etc/sudoers"]
 	else:
 	    commands = ["echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
 
@@ -1862,4 +1860,31 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh.close()
 	
 	return hostname
+  
+    def delete_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
 
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        commands = ["userdel -r {}".format(config_user),"sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user),"cat /etc/passwd" , "cat /etc/sudoers"]
+
+        for command in commands:
+            channel.send(command + "\n")
+            time.sleep(3)  # wait enough for writing to (hopefully) be finished
+            output = channel.recv(9999)  # read in
+            LOG.debug(str(output))
+
+        channel.close()
+        ssh.close()

@@ -56,7 +56,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 	    if(config_backup_id != None):
 	        status  = self.wait_for_config_backup_tobe_available(config_backup_id)
-	        if status == "available"):
+	        if status == "available":
 	            LOG.debug("config backup detials: " + str(self.show_config_backup(config_backup_id)))
                     reporting.add_test_step("Config Backup", tvaultconf.PASS)
 	        else:
@@ -193,6 +193,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
             else:
         	reporting.add_test_step("Config Backup Deletion", tvaultconf.PASS)
+
+	    # delete config_user
+	    self.delete_config_user()
             
             reporting.test_case_to_write()
 
