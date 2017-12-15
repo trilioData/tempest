@@ -1781,7 +1781,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         while (status != self.show_config_backup(config_backup_id)['config_backup']['status']):
             if(self.show_config_backup(config_backup_id)['config_backup']['status'] == 'error'):
                 LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
-                raise Exception("Config backup creation failed")
+                return status
             LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
             time.sleep(30)
         LOG.debug('Final Status of Config backup : %s' % (self.show_config_backup(config_backup_id)['config_backup']['status']))
