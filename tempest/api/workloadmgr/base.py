@@ -1702,16 +1702,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    service_dirs_list = {}
             for service_dir in service_dirs:
 		service_md5_list = {}
+		service_dir_path = service_dir
+		md5_calculate_command = ""
 	        LOG.debug("vault_storage_path: " + " | " + vault_storage_path + " | ")
                 LOG.debug("service: " + " | " + service + " | ")
                 LOG.debug("compute_hostname: " + " | " + compute_hostname + " | ")
                 LOG.debug("service_dir: " +  " | " + service_dir + " | ")
                 
 	        if vault_storage_path != "":
-		    service_dir = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
-		    LOG.debug("service_dir_vault: " + str(service_dir))
-		if "log" not in service_dir:    
-		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir)
+		    service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		    LOG.debug("service_dir_vault: " + str(service_dir_path))
+		if "log" not in service_dir_path:    
+		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
                 stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
 
 		exit_status = stdout.channel.recv_exit_status()
@@ -1724,23 +1726,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 for line in output:
 		    LOG.debug("line: " + str(line))
 		    if "triliovault-mounts" in str(line.split()[1]):
-            	        if "/var/lib" in str(line.split()[1]):
-			    service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find('/var/lib'):]:str(line.split()[0])})
-			else:
-			     service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find('/etc'):]:str(line.split()[0])})
+			service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find(str(service_dir)):]:str(line.split()[0])})
 		    else:
 			service_md5_list.update({str(line.split()[1]):str(line.split()[0])})
 	        
 		LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
 
 	        if "log" not in str(service_dir):
-		    if  "triliovault-mounts" in str(service_dir):
-			if "etc" in str(service_dir):
-			    service_dirs_list.update({str(service_dir)[str(service_dir).find('/etc'):]:service_md5_list})
-			elif "/var/lib" in str(service_dir):
-			    service_dirs_list.update({str(service_dir)[str(service_dir).find('/var/lib'):]:service_md5_list})
-		    else:
-		        service_dirs_list.update({str(service_dir):service_md5_list})
+			service_dirs_list.update({str(service_dir):service_md5_list})
 
 		LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
 		
