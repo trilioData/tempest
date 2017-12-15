@@ -1613,7 +1613,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
 	        LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
 	        is_successful = False
-                raise Exception("Snapshot mount failed")
+		return is_successful
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
 	if(tvaultconf.cleanup == True and mount_cleanup == True):
@@ -1636,7 +1636,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method to change role andd rule in policy.json file on tvault
+    Method to add newadmin role and newadmin_api rule to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to add backup role and backup_api rule to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation 
+    and "workload:get_nodes" operations in policy.json file on tvault
     '''
     def change_policyjson_file(self, role, rule, policy_changes_cleanup = True):
         ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
@@ -1668,7 +1670,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 rule_assign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:admin_or_owner"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Assign backup_api rule to restore_delete  command : " + str(rule))
                 rule_assign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:admin_or_owner"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2 +"; "+ rule_assign_command3 +"; "+ rule_assign_command4 +"; "+ rule_assign_command5 +"; "+ rule_assign_command6
+                commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2 +"; "+ rule_assign_command3 +"; "+ rule_assign_command4 \
+			   +"; "+ rule_assign_command5 +"; "+ rule_assign_command6
                 stdin, stdout, stderr = ssh.exec_command(commands)
                 if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
                     self.addCleanup(self.revert_changes_policyjson, "admin_or_owner")
@@ -1677,7 +1680,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception: " + str(e))
 
     '''
-    Method to revert changes of role andd rule in policy.json file on tvault
+    Method to revert changes of role and rule in policy.json file on tvault
+    Method to delete newadmin role and newadmin_api rule was assigned to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to delete backup role and backup_api rule was assigned to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
+    and "workload:get_nodes" operations in policy.json file on tvault
     '''
     def revert_changes_policyjson(self, rule):
         ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
@@ -1705,7 +1711,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
                 rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
+                commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
+                           +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
