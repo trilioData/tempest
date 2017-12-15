@@ -212,6 +212,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Triggering config_workload_configure command via CLI", tvaultconf.FAIL)
                 LOG.debug("Command executed incorrectly")
 
+
+	    # delete config_user
+	    self.delete_config_user()
+
             reporting.test_case_to_write()
 
         except Exception as e:
