@@ -16,8 +16,6 @@ fi
 
 rm -f tempest.log
 
-
-
 function usage {
   echo "Usage: $0 [OPTION]..."
   echo "Run Tempest test suite"
@@ -28,6 +26,7 @@ function usage {
   echo "  -f, --force              Force a clean re-build of the virtual environment. Useful when dependencies have been added."
   echo "  -u, --update             Update the virtual environment with any newer package versions"
   echo "  -s, --smoke              Only run smoke tests"
+  echo "  -Z, --functional         Only run functional tests"
   echo "  -t, --serial             Run testr serially"
   echo "  --list-tests <reg_exp>   List tests"
   echo "  -i, --list-failing       List failed cases from last testrun"
@@ -63,34 +62,46 @@ config_file=""
 update=0
 logging=0
 logging_config=etc/logging.conf
+test_filter_option=""
+filepath_arg="$3"
 
-if ! options=$(getopt -o VNnfusthdFiC:lL: -l list-tests:virtual-env,no-virtual-env,no-site-packages,force,update,smoke,serial,help,debug,list-tests,run-failing,list-failing,config:,logging,logging-config: -- "$@")
+if ! options=$(getopt -o VNnfusthdFiC:lL: -l list-tests:virtual-env,no-virtual-env,no-site-packages,force,update,smoke,functional,serial,help,debug,list-tests,run-failing,list-failing,config:,logging,logging-config: -- "$@")
 then
     # parse error
     usage
     exit 1
 fi
+
 eval set -- $options
 first_uu=yes
+
+if [ "$1" == "-V" ]; then
+    always_venv=1
+    never_venv=0
+else
+    echo "You Must run on vitual environment with option -V"
+    exit 1
+fi
+
 while [ $# -gt 0 ]; do
-  case "$1" in
+  case "$2" in
     -h|--help) usage; exit;;
-    -V|--virtual-env) always_venv=1; never_venv=0;;
     -N|--no-virtual-env) always_venv=0; never_venv=1;;
     -n|--no-site-packages) no_site_packages=1;;
     -f|--force) force=1;;
     -u|--update) update=1;;
     -d|--debug) debug=1;;
     -C|--config) config_file=$2; shift;;
-    -s|--smoke) testrargs+="smoke";;
+    -s|--smoke) testrargs+="smoke"; tests_filter_option="smoke";;
+    -Z|--functional) testrargs+="functional"; tests_filter_option="functional";;
     -t|--serial) serial=1;;
     -l|--logging) logging=1;;
     -L|--logging-config) logging_config=$2; shift;;
-    --list-tests) shift; shift; testrargs="$testrargs $1"; list_tests; exit;;
+    --list-tests) shift; shift; testrargs="$testrargs $2"; list_tests; exit;;
     -i|--list-failing) list-failing-cases; exit;;
     -F|--run-failing) testrargs="--failing"; $#=0;;
-    --) [ "yes" == "$first_uu" ] || testrargs="$testrargs $1"; first_uu=no  ;;
-    *) testrargs="$testrargs $1";;
+    --) [ "yes" == "$first_uu" ] || testrargs="$testrargs $2"; first_uu=no  ;;
+    *) testrargs="$testrargs $2";;
   esac
   shift
 done
@@ -136,10 +147,20 @@ function run_tests {
       return $?
   fi
 
-  if [ $serial -eq 1 ]; then
-      ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+  if [ -z "$filepath_arg" ]; then
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      if [ $serial -eq 1 ]; then
+          ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      else
+          ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      fi
   else
-      ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"'$tests_filter_option'\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      if [ $serial -eq 1 ]; then
+          ${wrapper} testr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      else
+          ${wrapper} testr run --parallel --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      fi
   fi
 }
 
@@ -161,6 +182,11 @@ then
       # Automatically install the virtualenv
       python tools/install_venv.py $installvenvopts
       wrapper="${with_venv}"
+      sed -i '/self._instance_source = instance_source/a \\tself.tests_filter_option = \"\"' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      sed -i '/filters = list(map(re.compile, self.test_filters))/i \\t \ \ \ filtered_test_ids = []\n\t \ \ \ \if self.tests_filter_option is \"\":\
+      \t\treturn test_ids\n\t \ \ \ \else:\n\t\tfor test_id in test_ids:\n\t\t \ \ \ \if self.tests_filter_option in test_id:\n\t\t\tfiltered_test_ids.append(test_id)\
+      \t\treturn filtered_test_ids' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
     else
       echo -e "No virtual environment found...create one? (Y/n) \c"
       read use_ve
@@ -168,6 +194,11 @@ then
         # Install the virtualenv and run the test suite in it
         python tools/install_venv.py $installvenvopts
         wrapper=${with_venv}
+	sed -i '/self._instance_source = instance_source/a \\tself.tests_filter_option = \"\"' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+	sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+	sed -i '/filters = list(map(re.compile, self.test_filters))/i \\t \ \ \ filtered_test_ids = []\n\t \ \ \ \if self.tests_filter_option is \"\":\
+	\t\treturn test_ids\n\t \ \ \ \else:\n\t\tfor test_id in test_ids:\n\t\t \ \ \ \if self.tests_filter_option in test_id:\n\t\t\tfiltered_test_ids.append(test_id)\
+	\t\treturn filtered_test_ids' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
       fi
     fi
   fi
@@ -177,3 +208,4 @@ run_tests
 retval=$?
 
 exit $retval
+
