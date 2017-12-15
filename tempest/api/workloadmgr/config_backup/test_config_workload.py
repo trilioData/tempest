@@ -110,7 +110,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    test.pre_req({'type':'config_workload'})
+    @test.pre_req({'type':'config_workload'})
     @test.attr(type='smoke')
     @test.idempotent_id('52d14575-e2dd-46bf-b1f2-7c317121fc6e')
     def test_3_config_workload_reconfigure(self):
