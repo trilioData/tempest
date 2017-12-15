@@ -1600,7 +1600,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to mount snapshot and return the status
     '''
-    def mount_snapshot(self, snapshot_id, vm_id, mount_cleanup = True):
+    def mount_snapshot(self, workload_id, snapshot_id, vm_id, mount_cleanup = True):
 	is_successful = True
         payload={"mount": {"mount_vm_id": vm_id,
                            "options": {}}}
@@ -1609,25 +1609,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         LOG.debug("Getting snapshot mount status")
-        while(self.getSnapshotMountStatus(snapshot_id)!= "mounted"):
-	    if(self.getSnapshotMountStatus(snapshot_id) == "available"):
+        while(self.getSnapshotStatus(workload_id, snapshot_id)!= "mounted"):
+	    if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
 	        LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
 	        is_successful = False
                 raise Exception("Snapshot mount failed")
-            LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotMountStatus(snapshot_id))
+            LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
 	if(tvaultconf.cleanup == True and mount_cleanup == True):
             self.addCleanup(self.unmount_snapshot, snapshot_id)
         return is_successful
 
-
-    '''
-    Method returns the current status of snapshot mount
-    '''
-    def getSnapshotMountStatus(self, snapshot_id):
-        resp, body = self.wlm_client.client.get("/snapshots/"+snapshot_id)
-        mount_status = body['snapshot']['status']
-        return mount_status
 
     '''
     Method to unmount snapshot and return the status
@@ -1640,6 +1632,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
 	    return True
         except Exception as e:
+	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
             return False
 
     '''
