@@ -9,8 +9,6 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
-from tempest.util import query_data
-import time
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -33,8 +31,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    self.change_policyjson_file("newadmin", "newadmin_api")
 	    	
 	    # Use new-admin credentials
-            os.environ['OS_USERNAME']= 'newadmin'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.newadmin_user
+	    os.environ['OS_PASSWORD']= CONF.identity.common_password
 
 	    # Run get_storage_usage CLI by newadmin role
             get_storage_usage  = command_argument_string.get_storage_usage
@@ -60,8 +58,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 
 	    # Use admin credentials
-            os.environ['OS_USERNAME']= 'admin'
-            os.environ['OS_PASSWORD']= '065a81ab140f4f52'
+	    os.environ['OS_USERNAME']= CONF.identity.username
+	    os.environ['OS_PASSWORD']= CONF.identity.password
 
             # Run get_storage_usage CLI by admin
             get_storage_usage  = command_argument_string.get_storage_usage
@@ -86,8 +84,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Command get_nodes executed correctly by admin")
 
 	    # Use non-admin credentials
-	    os.environ['OS_USERNAME']= 'nonadmin'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user
+	    os.environ['OS_PASSWORD']= CONF.identity.common_password
 
 	    # Run get_storage_usage CLI by non-admin
 	    get_storage_usage  = command_argument_string.get_storage_usage
