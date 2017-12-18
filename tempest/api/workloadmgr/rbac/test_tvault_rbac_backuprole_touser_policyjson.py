@@ -44,8 +44,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(floating_ips_list[0], self.instances_id[0])
 
             # Use backupuser credentials
-            os.environ['OS_USERNAME']= 'backupuser'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.backupuser
+	    os.environ['OS_PASSWORD']= CONF.identity.common_password
 
             # Create workload with CLI by backup role
 	    workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.instances_id[0])
@@ -98,9 +98,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.restore_volume_id1 = self.get_restored_volume_list(self.restore_id1)
                 LOG.debug("Restore Volume ID: " + str(self.restore_volume_id1))
 	 
-	    # Use backupuser credentials
-            os.environ['OS_USERNAME']= 'admin'
-            os.environ['OS_PASSWORD']= '065a81ab140f4f52'
+	    # Use admin credentials
+	    os.environ['OS_USERNAME']= CONF.identity.username
+	    os.environ['OS_PASSWORD']= CONF.identity.password
 
 	    # Create workload with CLI by admin role
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.restore_vm_id1)
@@ -164,8 +164,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 		raise Exception("Command workload_delete executed correctly by admin role")
 	    
 	    # Use nonadmin credentials
-            os.environ['OS_USERNAME']= 'nonadmin'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user
+	    os.environ['OS_PASSWORD']= CONF.identity.common_password
 
 	    # Create workload with CLI by default role
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.restore_vm_id1)
@@ -229,8 +229,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Command workload_delete executed correctly by default role")
 
 	    # Use backupuser credentials
-            os.environ['OS_USERNAME']= 'backupuser'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.backupuser
+	    os.environ['OS_PASSWORD']= CONF.identity.common_password
 	
 	    # Run restore_delete CLI by backup role
             restore_delete = command_argument_string.restore_delete + str(self.restore_id1)
