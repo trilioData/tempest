@@ -7,8 +7,6 @@ from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
-from tempest import command_argument_string
-from tempest.util import cli_parser
 from tempest.util import query_data
 import time
 
@@ -30,8 +28,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_tvault_rbac_nonadmin_ableto(self):
 	try:
 	    # Use non-admin credentials
-	    os.environ['OS_USERNAME']= 'nonadmin'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user
+            os.environ['OS_PASSWORD']= CONF.identity.common_password
 	    self.instances_id = []
 
 	    # Create volume, Launch an Instance
