@@ -9,8 +9,6 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
-from tempest.util import query_data
-import time
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -30,8 +28,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_tvault_rbac_nonadmin_notableto(self):
 	try:
 	    # Use non-admin credentials
-	    os.environ['OS_USERNAME']= 'nonadmin'
-            os.environ['OS_PASSWORD']= 'password'
+	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user 
+            os.environ['OS_PASSWORD']= CONF.identity.common_password
 
 	    # Run get_storage_usage CLI
 	    get_storage_usage  = command_argument_string.get_storage_usage
