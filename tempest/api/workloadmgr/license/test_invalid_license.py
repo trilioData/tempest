@@ -45,7 +45,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	        for line in f:
 	            self.license_txt += line
 	    LOG.debug("License text: " + str(self.license_txt))
-	    out = self.create_license(self.license_txt)
+	    out = self.create_license(tvaultconf.invalid_license_filename, self.license_txt)
 	    LOG.debug("license-create API output: " + str(out))
 	    if(str(out).find('Cannot verify the license signature') != -1):
 		reporting.add_test_step("Verify error message", tvaultconf.PASS)
