@@ -29,15 +29,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	try:
 	    # Use non-admin credentials
 	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user
-            os.environ['OS_PASSWORD']= CONF.identity.common_password
+            os.environ['OS_PASSWORD']= CONF.identity.nonadmin_password
 	    self.instances_id = []
 
 	    # Create volume, Launch an Instance
 	    floating_ips_list = self.get_floating_ips()
 	    self.volumes_id = self.create_volume(volume_cleanup=False)
-            LOG.debug("Volume-"+ str(1) +" ID: " + str(self.volumes_id))
-            self.instances_id.append(self.create_vm(vm_cleanup=False, key_pair=tvaultconf.key_pair_name))
-            LOG.debug("VM-"+ str(1) +" ID: " + str(self.instances_id[0]))
+            LOG.debug("Volume-1 ID: " + str(self.volumes_id))
+            self.instances_id.append(self.create_vm(vm_cleanup=False))
+            LOG.debug("VM-1 ID: " + str(self.instances_id[0]))
             self.attach_volume(self.volumes_id, self.instances_id[0])
             LOG.debug("Volume attached")
             self.set_floating_ip(floating_ips_list[0], self.instances_id[0])
@@ -95,8 +95,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.FAIL)
 
 	    # Launch recovery instance and Mount snapshot
-	    self.recoveryinstances_id = self.create_vm(flavor_id=tvaultconf.recovery_flavor_ref, key_pair=tvaultconf.key_pair_name, image_id=tvaultconf.recovery_image_ref)
-            LOG.debug("VM-"+ str(2) +" ID: " + str(self.recoveryinstances_id))
+	    self.recoveryinstances_id = self.create_vm(flavor_id=tvaultconf.recovery_flavor_ref, image_id=tvaultconf.recovery_image_ref)
+            LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
 	    status = self.mount_snapshot(self.wid, self.snapshot_id, self.recoveryinstances_id)
             if status == True:
                 LOG.debug("snapshot Mounted successfully")

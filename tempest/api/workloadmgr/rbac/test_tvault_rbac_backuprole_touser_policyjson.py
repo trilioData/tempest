@@ -36,16 +36,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create volume, Launch an Instance
             floating_ips_list = self.get_floating_ips()
             self.volumes_id = self.create_volume(volume_cleanup=False)
-            LOG.debug("Volume-"+ str(1) +" ID: " + str(self.volumes_id))
-            self.instances_id.append(self.create_vm(vm_cleanup=False, key_pair=tvaultconf.key_pair_name))
-            LOG.debug("VM-"+ str(1) +" ID: " + str(self.instances_id[0]))
+            LOG.debug("Volume-1 ID: " + str(self.volumes_id))
+            self.instances_id.append(self.create_vm(vm_cleanup=False))
+            LOG.debug("VM-1 ID: " + str(self.instances_id[0]))
             self.attach_volume(self.volumes_id, self.instances_id[0])
             LOG.debug("Volume attached")
             self.set_floating_ip(floating_ips_list[0], self.instances_id[0])
 
             # Use backupuser credentials
 	    os.environ['OS_USERNAME']= CONF.identity.backupuser
-	    os.environ['OS_PASSWORD']= CONF.identity.common_password
+	    os.environ['OS_PASSWORD']= CONF.identity.backupuser_password
 
             # Create workload with CLI by backup role
 	    workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.instances_id[0])
@@ -165,7 +165,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    
 	    # Use nonadmin credentials
 	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user
-	    os.environ['OS_PASSWORD']= CONF.identity.common_password
+	    os.environ['OS_PASSWORD']= CONF.identity.nonadmin_password
 
 	    # Create workload with CLI by default role
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.restore_vm_id1)
@@ -230,7 +230,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    # Use backupuser credentials
 	    os.environ['OS_USERNAME']= CONF.identity.backupuser
-	    os.environ['OS_PASSWORD']= CONF.identity.common_password
+	    os.environ['OS_PASSWORD']= CONF.identity.backupuser_password
 	
 	    # Run restore_delete CLI by backup role
             restore_delete = command_argument_string.restore_delete + str(self.restore_id1)
