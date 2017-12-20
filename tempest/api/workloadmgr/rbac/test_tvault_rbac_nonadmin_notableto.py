@@ -29,7 +29,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	try:
 	    # Use non-admin credentials
 	    os.environ['OS_USERNAME']= CONF.identity.nonadmin_user 
-            os.environ['OS_PASSWORD']= CONF.identity.common_password
+            os.environ['OS_PASSWORD']= CONF.identity.nonadmin_password
 
 	    # Run get_storage_usage CLI
 	    get_storage_usage  = command_argument_string.get_storage_usage
