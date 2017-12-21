@@ -380,4 +380,47 @@ def filesearch(self):
     self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
 
+def basic_workload(self):
+    self.workload_instances = []
+        
+    #Launch instance
+    self.vm_id = self.create_vm()
+    LOG.debug("VM ID: " + str(self.vm_id))
+
+    #Create volume
+    self.volume_id = self.create_volume()
+    LOG.debug("Volume ID: " + str(self.volume_id))
     
+    #Attach volume to the instance
+    self.attach_volume(self.volume_id, self.vm_id)
+    LOG.debug("Volume attached")
+
+    #Create workload
+    self.workload_instances.append(self.vm_id)
+    self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+    LOG.debug("Workload ID: " + str(self.wid))    
+
+def bootfromvol_workload(self):
+    self.total_workloads=1
+    self.vms_per_workload=1
+    self.workload_instances = []
+    self.workload_volumes = []
+
+    for vm in range(0,self.vms_per_workload):
+         volume_id1 = self.create_volume(image_id=CONF.compute.image_ref)
+         self.workload_volumes.append(volume_id1)
+         self.set_volume_as_bootable(volume_id1)
+         self.block_mapping_details = [{ "source_type": "volume", 
+    		   "delete_on_termination": "false",
+    		   "boot_index": 0,
+    		   "uuid": volume_id1,
+    		   "destination_type": "volume" }]
+         vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+         self.workload_instances.append(vm_id)
+
+    #Create workload
+    self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
+    if (self.wait_for_workload_tobe_available(self.workload_id) == False):
+        reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
+        raise Exception("Workload creation failed")
+    self.workload_status = self.getWorkloadStatus(self.workload_id)
