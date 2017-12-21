@@ -281,7 +281,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size=tvaultconf.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(self, size=CONF.volume.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -1424,10 +1424,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create triliovault license
     '''
-    def create_license(self, key):
+    def create_license(self, filename, key):
         flag = True
         msg = ""
-        payload = {"license": key}
+        payload = {"license": {"file_name": filename, "lic_txt": key}}
         try:
             resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
             LOG.debug("Response:"+ str(resp.content))

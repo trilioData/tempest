@@ -43,7 +43,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	try:
 	    self.total_workloads=1
             self.vms_per_workload=1
-            self.volume_size=1
             self.workload_instances = []
             self.workload_volumes = []
 
