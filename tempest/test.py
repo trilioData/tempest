@@ -45,10 +45,6 @@ from tempest import tvaultconf
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
-def pre_req_mod(arg0, arg1):
-    if (arg1['type'] == 'basic_workload') and (tvaultconf.pre_req==True):
-	prerequisites.basic_workload(arg0)
-
 """A decorator which applies pre-requisites capabilities to a function when called with a 'type'. Pre-requisites functions must be defined in prerequisites.py. If tvaultconf.pre_req is found to be False, this decorator will return to the same fucntion and will pick the parameters from set vms_file, volumes_file, workloads_file."""
 def pre_req(arg1):
     def decorator(function):
