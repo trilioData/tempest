@@ -16,8 +16,6 @@ fi
 
 rm -f tempest.log
 
-
-
 function usage {
   echo "Usage: $0 [OPTION]..."
   echo "Run Tempest test suite"
@@ -28,6 +26,7 @@ function usage {
   echo "  -f, --force              Force a clean re-build of the virtual environment. Useful when dependencies have been added."
   echo "  -u, --update             Update the virtual environment with any newer package versions"
   echo "  -s, --smoke              Only run smoke tests"
+  echo "  -z, --functional         Only run functional tests"
   echo "  -t, --serial             Run testr serially"
   echo "  --list-tests <reg_exp>   List tests"
   echo "  -i, --list-failing       List failed cases from last testrun"
@@ -63,15 +62,19 @@ config_file=""
 update=0
 logging=0
 logging_config=etc/logging.conf
+test_filter_option=""
+filepath_arg="$2"
 
-if ! options=$(getopt -o VNnfusthdFiC:lL: -l list-tests:virtual-env,no-virtual-env,no-site-packages,force,update,smoke,serial,help,debug,list-tests,run-failing,list-failing,config:,logging,logging-config: -- "$@")
+if ! options=$(getopt -o VNnfuszthdFiC:lL: -l list-tests:virtual-env,no-virtual-env,no-site-packages,force,update,smoke,functional,serial,help,debug,list-tests,run-failing,list-failing,config:,logging,logging-config: -- "$@")
 then
     # parse error
     usage
     exit 1
 fi
+
 eval set -- $options
 first_uu=yes
+
 while [ $# -gt 0 ]; do
   case "$1" in
     -h|--help) usage; exit;;
@@ -82,7 +85,8 @@ while [ $# -gt 0 ]; do
     -u|--update) update=1;;
     -d|--debug) debug=1;;
     -C|--config) config_file=$2; shift;;
-    -s|--smoke) testrargs+="smoke";;
+    -s|--smoke) testrargs+="smoke"; tests_filter_option="smoke";;
+    -z|--functional) testrargs+="functional"; tests_filter_option="functional";;
     -t|--serial) serial=1;;
     -l|--logging) logging=1;;
     -L|--logging-config) logging_config=$2; shift;;
@@ -136,10 +140,20 @@ function run_tests {
       return $?
   fi
 
-  if [ $serial -eq 1 ]; then
-      ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+  if [ -z "$filepath_arg" ]; then
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      if [ $serial -eq 1 ]; then
+          ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      else
+          ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      fi
   else
-      ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"'$tests_filter_option'\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      if [ $serial -eq 1 ]; then
+          ${wrapper} testr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      else
+          ${wrapper} testr run --parallel --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+      fi
   fi
 }
 
@@ -177,3 +191,5 @@ run_tests
 retval=$?
 
 exit $retval
+
+
