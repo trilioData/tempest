@@ -76,7 +76,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='functional')
+    @test.attr(type='smoke')
     @test.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
     def test_2_filesearch_snapshotids(self):
 	reporting.add_test_script(str(__name__) + "_snapshotids")
