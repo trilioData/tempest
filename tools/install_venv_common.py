@@ -129,13 +129,11 @@ class InstallVenv(object):
         return parser.parse_args(argv[1:])[0]
 
     def add_tests_segregate_code(self):
-	cmd = "grep -q self.tests_filter_option .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+        cmd = "grep -q self.tests_filter_option .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
         p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-	p.wait()
-	rc = p.returncode
-	if rc == 0:
-	    return rc            
-        else:
+        p.wait()
+        rc = p.returncode
+        if rc == 1:
             cmd1="sed -i '/self._instance_source = instance_source/a \\\\tself.tests_filter_option = \\\"\\\"' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
             cmd2="sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
             cmd3="sed -i '/filters = list(map(re.compile, self.test_filters))/i \\\\t \ \ \ filtered_test_ids = []\\n\\t \ \ \ \if self.tests_filter_option is \\\"\\\":\\n\\t\\treturn " \
@@ -145,7 +143,7 @@ class InstallVenv(object):
             p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
             p.wait()
             rc = p.returncode
-            return rc
+        return rc
 
 class Distro(InstallVenv):
 
