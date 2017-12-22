@@ -4,6 +4,9 @@ LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
 import time
 import datetime
+from tempest import config
+
+CONF = config.CONF
 
 def small_workload(self):
     self.workload_instances = []
@@ -384,11 +387,11 @@ def basic_workload(self):
     self.workload_instances = []
         
     #Launch instance
-    self.vm_id = self.create_vm()
+    self.vm_id = self.create_vm(vm_cleanup=False)
     LOG.debug("VM ID: " + str(self.vm_id))
 
     #Create volume
-    self.volume_id = self.create_volume()
+    self.volume_id = self.create_volume(volume_cleanup=False)
     LOG.debug("Volume ID: " + str(self.volume_id))
     
     #Attach volume to the instance
@@ -397,7 +400,7 @@ def basic_workload(self):
 
     #Create workload
     self.workload_instances.append(self.vm_id)
-    self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+    self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=False)
     LOG.debug("Workload ID: " + str(self.wid))    
 
 def bootfromvol_workload(self):
@@ -407,19 +410,19 @@ def bootfromvol_workload(self):
     self.workload_volumes = []
 
     for vm in range(0,self.vms_per_workload):
-         volume_id1 = self.create_volume(image_id=CONF.compute.image_ref)
-         self.workload_volumes.append(volume_id1)
-         self.set_volume_as_bootable(volume_id1)
+         self.volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=False)
+         self.workload_volumes.append(self.volume_id)
+         self.set_volume_as_bootable(self.volume_id)
          self.block_mapping_details = [{ "source_type": "volume", 
     		   "delete_on_termination": "false",
     		   "boot_index": 0,
-    		   "uuid": volume_id1,
-    		   "destination_type": "volume" }]
-         vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
-         self.workload_instances.append(vm_id)
+    		   "uuid": self.volume_id,
+    		   "destination_type": "volume"}]
+         self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details, vm_cleanup=False)
+         self.workload_instances.append(self.vm_id)
 
     #Create workload
-    self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
+    self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
     if (self.wait_for_workload_tobe_available(self.workload_id) == False):
         reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
         raise Exception("Workload creation failed")

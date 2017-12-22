@@ -43,13 +43,31 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_tvault1062_bootfromvol_fullsnapshot(self):
 	try:
             #Create full snapshot
-            self.snapshot_id=self.workload_snapshot(self.workload_id, True)
+            self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
             self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
                 reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
+	    
+	    #Cleanup
+	    #Delete Snapshot
+	    self.snapshot_delete(self.workload_id, self.snapshot_id)
+	    
+            #Delete volume
+            self.volume_snapshots = self.get_available_volume_snapshots()
+            self.delete_volume_snapshots(self.volume_snapshots)
+
+	    #Delete workload
+	    self.workload_delete(self.workload_id)
+
+	    #Delete vm
+            self.delete_vm(self.vm_id)
+	     
+	    #Delete volume
+	    self.delete_volume(self.volume_id)
+
 	    reporting.test_case_to_write()
 
         except Exception as e:
