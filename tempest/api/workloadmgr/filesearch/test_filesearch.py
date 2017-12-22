@@ -20,6 +20,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     snapshot_ids = []
     date_from = ""
     date_to = ""
+    wid = ""
+    security_group_id = ""
+    volumes_ids = []
+    
 
     @classmethod
     def setup_clients(cls):
@@ -36,10 +40,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    global snapshot_ids 
 	    global date_from
             global date_to
+	    global wid
+	    global security_group_id
+	    global volumes_ids
 	    instances_ids = self.instances_ids
             snapshot_ids = self.snapshot_ids
 	    date_from = self.date_from
 	    date_to = self.date_to
+	    wid = self.wid
+	    volumes_ids = self.volumes_ids
+            security_group_id = self.security_group_id
 	    # Run Filesearch on vm-1
 	    vmid_to_search = instances_ids[0]
 	    filepath_to_search = "/opt/File_1.txt"
@@ -66,7 +76,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
+    @test.attr(type='functional')
     @test.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
     def test_2_filesearch_snapshotids(self):
 	reporting.add_test_script(str(__name__) + "_snapshotids")
@@ -253,6 +263,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	try:
 	    global instances_ids
             global snapshot_ids
+	    global wid
+            global security_group_id
+	    global volumes_ids
 	    # Run Filesearch on vm-1
 	    vmid_to_search = instances_ids[0]
    	    filepath_to_search = "/opt/File_?.txt"
@@ -273,8 +286,30 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    	reporting.add_test_step("Verification of Filepath serach with wildcards_questionmark", tvaultconf.PASS)
 		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
-		
+			
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
+			
+	# Cleanup 
+	# Delete all snapshots
+	for snapshot_id in snapshot_ids:
+	    self.snapshot_delete(wid, snapshot_id)
+
+	# Delete workload
+	self.workload_delete(wid)
+
+	# Delete VMs
+	for vm in instances_ids:
+	    self.delete_vm(vm)
+
+	# Delete volumes
+	for volume_id in volumes_ids:
+	    self.delete_volume(volume_id)
+
+	# Delete security group
+	self.delete_security_group(security_group_id)
+
+	# Delete key pair 
+	self.delete_key_pair(tvaultconf.key_pair_name)
