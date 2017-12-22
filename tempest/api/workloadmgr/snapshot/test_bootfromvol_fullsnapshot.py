@@ -40,7 +40,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type':'bootfromvol_workload'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_tvault1062_bootfromvol_fullsnapshot(self):
+    def test_bootfromvol_fullsnapshot(self):
 	try:
             #Create full snapshot
             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)

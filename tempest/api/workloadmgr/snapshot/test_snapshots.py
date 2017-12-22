@@ -32,9 +32,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type':'basic_workload'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_1_tvault1292_create_full_snapshot(self):
+    def test_1_create_full_snapshot(self):
 	try:
-	    reporting.add_test_script(str(__name__)+ "_tvault1292_create_full_snapshot")
+	    reporting.add_test_script(str(__name__)+ "_create_full_snapshot")
 	    
 	    global vm_id
 	    global volume_id
@@ -82,9 +82,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_2_tvault1293_create_incremental_snapshot(self):
+    def test_2_create_incremental_snapshot(self):
 	try:
-            reporting.add_test_script(str(__name__)+ "_tvault1293_create_incremental_snapshot")
+            reporting.add_test_script(str(__name__)+ "_create_incremental_snapshot")
 
             global workload_id
             self.created = False
@@ -127,9 +127,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_3_tvault1036_list_snapshot(self):
+    def test_3_list_snapshot(self):
 	try:
-	    reporting.add_test_script(str(__name__)+ "tvault1036_list_snapshot")
+	    reporting.add_test_script(str(__name__)+ "_list_snapshot")
 	    
 	    #List snapshots using CLI command
             rc = cli_parser.cli_returncode(command_argument_string.snapshot_list)        
@@ -158,14 +158,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_4_tvault1294_delete_snapshot(self):
+    def test_4_delete_snapshot(self):
 	try:
 	    global workload_id
 	    global snapshot_id
 	    global volume_id
 	    global vm_id
 	
-	    reporting.add_test_script(str(__name__)+ "tvault1294_delete_snapshot")
+	    reporting.add_test_script(str(__name__)+ "_delete_snapshot")
 	    
 	    #Delete snapshot using CLI command
             rc = cli_parser.cli_returncode(command_argument_string.snapshot_delete + snapshot_id)
