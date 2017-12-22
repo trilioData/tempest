@@ -23,7 +23,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     wid = ""
     security_group_id = ""
     volumes_ids = []
-    
 
     @classmethod
     def setup_clients(cls):
