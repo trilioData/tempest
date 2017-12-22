@@ -300,9 +300,9 @@ def filesearch(self):
     self.total_volumes_per_vm = 2
 
     # Create key_pair and get available floating IP's
-    self.create_key_pair(tvaultconf.key_pair_name)
-    self.security_group_details = self.create_security_group(tvaultconf.security_group_name)
-    security_group_id = self.security_group_details['security_group']['id']
+    self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
+    self.security_group_details = self.create_security_group(tvaultconf.security_group_name, secgrp_cleanup=False)
+    self.security_group_id = self.security_group_details['security_group']['id']
     floating_ips_list = self.get_floating_ips()   
 
     # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
@@ -311,9 +311,9 @@ def filesearch(self):
 	vm_name = "Test_Tempest_Vm" + str(i+1)
 	j = i + i
 	for n in range(0, self.total_volumes_per_vm):
-            self.volumes_ids.append(self.create_volume())
+            self.volumes_ids.append(self.create_volume(volume_cleanup=False))
 	    LOG.debug("Volume-"+ str(n+j+1) +" ID: " + str(self.volumes_ids[n+j]))
-        self.instances_ids.append(self.create_vm(vm_name=vm_name, key_pair=tvaultconf.key_pair_name, security_group_id=security_group_id))
+        self.instances_ids.append(self.create_vm(vm_cleanup=False, vm_name=vm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id))
         LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
         self.attach_volume(self.volumes_ids[j], self.instances_ids[i], volumes[0])
 	time.sleep(10)
@@ -332,12 +332,12 @@ def filesearch(self):
 	self.ssh.close()
 	    
     # Create workload
-    self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+    self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=False)
     LOG.debug("Workload ID: " + str(self.wid))
     workload_available = self.wait_for_workload_tobe_available(self.wid)
                 
     # Create full snapshot 
-    self.snapshot_ids.append(self.workload_snapshot(self.wid, True))
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, True, snapshot_cleanup=False))
     LOG.debug("Snapshot ID-1: " + str(self.snapshot_ids[0]))
     #Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[0])
@@ -350,7 +350,7 @@ def filesearch(self):
     self.ssh.close()
 
     # Create incremental-1 snapshot
-    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False, snapshot_cleanup=False))
     LOG.debug("Snapshot ID-2: " + str(self.snapshot_ids[1]))    
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[1])
@@ -361,7 +361,7 @@ def filesearch(self):
     self.ssh.close()
 
     # Create incremental-2 snapshot
-    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False, snapshot_cleanup=False))
     LOG.debug("Snapshot ID-3: " + str(self.snapshot_ids[2]))
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[2])
@@ -372,7 +372,7 @@ def filesearch(self):
     self.ssh.close()
 
     # Create incremental-3 snapshot
-    self.snapshot_ids.append(self.workload_snapshot(self.wid, False))
+    self.snapshot_ids.append(self.workload_snapshot(self.wid, False, snapshot_cleanup=False))
     LOG.debug("Snapshot ID-4: " + str(self.snapshot_ids[3]))
     # Wait till snapshot is complete
     self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_ids[3])
