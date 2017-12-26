@@ -282,7 +282,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size=tvaultconf.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(self, size=CONF.volume.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -606,10 +606,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
-        #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+	self.restored_vms = self.get_restored_vm_list(restore_id)
+        self.restored_volumes = self.get_restored_volume_list(restore_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
-            self.restored_vms = self.get_restored_vm_list(restore_id)
-	    self.restored_volumes = self.get_restored_volume_list(restore_id)
+            #self.restored_vms = self.get_restored_vm_list(restore_id)
+	    #self.restored_volumes = self.get_restored_volume_list(restore_id)
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         return restore_id
@@ -1423,10 +1425,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create triliovault license
     '''
-    def create_license(self, key):
+    def create_license(self, filename, key):
         flag = True
         msg = ""
-        payload = {"license": key}
+        payload = {"license": {"file_name": filename, "lic_txt": key}}
         try:
             resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
             LOG.debug("Response:"+ str(resp.content))
@@ -2001,3 +2003,41 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         channel.close()
         ssh.close()
+
+    '''
+    Method to revert changes of role and rule in policy.json file on tvault
+    Method to delete newadmin role and newadmin_api rule was assigned to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to delete backup role and backup_api rule was assigned to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
+    and "workload:get_nodes" operations in policy.json file on tvault
+    '''
+    def revert_changes_policyjson(self, rule):
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        try:
+            role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
+	    if rule == "admin_api":
+	        LOG.debug("Delete new_admin role in policy.json : ")
+                LOG.debug("Reassign admin rule to workload storage usage command : ")
+                rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Ressign admin rule to get_nodes command : ")
+                rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
+	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+                stdin, stdout, stderr = ssh.exec_command(commands)
+	    elif rule == "admin_or_owner":
+	        LOG.debug("Delete backup role in policy.json : ")
+		LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+                rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
+                rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_create command : " + str(rule))
+                rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_delete  command : " + str(rule))
+                rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_create  command : " + str(rule))
+                rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
+                rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
+                           +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
+                stdin, stdout, stderr = ssh.exec_command(commands)
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))

@@ -128,6 +128,22 @@ class InstallVenv(object):
                                "install.")
         return parser.parse_args(argv[1:])[0]
 
+    def add_tests_segregate_code(self):
+        cmd = "grep -q self.tests_filter_option .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+        p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+        p.wait()
+        rc = p.returncode
+        if rc == 1:
+            cmd1="sed -i '/self._instance_source = instance_source/a \\\\tself.tests_filter_option = \\\"\\\"' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+            cmd2="sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+            cmd3="sed -i '/filters = list(map(re.compile, self.test_filters))/i \\\\t \ \ \ filtered_test_ids = []\\n\\t \ \ \ \if self.tests_filter_option is \\\"\\\":\\n\\t\\treturn " \
+                 "test_ids\\n\\t \ \ \ \else:\\n\\t\\tfor test_id in test_ids:\\n\\t\\t \ \ \ \if self.tests_filter_option in test_id:\\n\\t\\t\\tfiltered_test_ids.append(test_id)\\n\\t\\t" \
+                 "return filtered_test_ids' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+            cmd=cmd1+"; " +cmd2+"; " +cmd3
+            p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+            p.wait()
+            rc = p.returncode
+        return rc
 
 class Distro(InstallVenv):
 
