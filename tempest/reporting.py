@@ -1,24 +1,23 @@
 from tempest import tvaultconf
-import subprocess
 
-test_results_file="/root/tempest/Report/results.html"
+test_results_file="Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
 test_step_to_write =""
-passed_count = 0
-failed_count = 0
-total_tests_count = passed_count + failed_count
 
-def setup_report(testname):
-    testname = testname
+def setup_report():
+    with open(test_results_file, "a") as f:
+        f.seek(10)
+        f.truncate()
+
     head = """<table border="1">
-            <tr bgcolor="#b3e6ff">
-                    <th>{0}</th>
+            <tr>
+                    <th>TestName</th>
                     <th>Result</th>
             </tr>
-            """.format(testname)
-    with open(test_results_file, "a") as f:
+            """
+    with open(test_results_file, "w+") as f:
             f.write(head)
 
 def add_test_script(script):
@@ -32,16 +31,10 @@ def set_test_script_status(status):
 def test_case_to_write():
     global test_step_to_write
     global test_script_status
-    global passed_count
-    global failed_count
-    global total_tests_count
     if test_script_status == "PASS":
         color = "green"
-	passed_count += 1
     else:
         color = "red"
-	failed_count += 1
-    total_tests_count = passed_count + failed_count
     test_case_to_write = """
 	<tr>
 		<td colspan="1"><b>{0}</b></td>
@@ -53,11 +46,6 @@ def test_case_to_write():
 	f.write(test_step_to_write)
     test_step_to_write = ""
     test_script_status = tvaultconf.PASS
-    cmd1 = "sed -i -e '9s/passed_count = [0-9]*/passed_count = {0}/' tempest/reporting.py".format(passed_count)
-    cmd2 = "sed -i -e '10s/failed_count = [0-9]*/failed_count = {0}/' tempest/reporting.py".format(failed_count)
-    cmd = cmd1+"; " +cmd2
-    p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-    p.wait()
 
 def add_test_step(teststep, status):
     if status == "PASS":
@@ -75,37 +63,7 @@ def add_test_step(teststep, status):
 
 def end_report_table():
     with open(test_results_file, "a") as f:
-        f.write("</table>\n<br>")
-    cmd1 = "sed -i -e '11s/<td>[0-9]*/<td>{0}/' Report/results.html".format(total_tests_count)
-    cmd2 = "sed -i -e '12s/<b>[0-9]*/<b>{0}/' Report/results.html".format(passed_count)
-    cmd3 = "sed -i -e '13s/<b>[0-9]*/<b>{0}/' Report/results.html".format(failed_count)
-    cmd = cmd1+"; " +cmd2+"; "+cmd3
-    p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
-    p.wait()
-
-def consolidate_report_table():
-    global passed_count
-    global failed_count
-    global total_tests_count
-    consolidate_table = """
-	<table border="2">
-            <tr bgcolor="#b3ffff">
-                    <th colspan="4">Consolidate Report</th>
-            </tr>
-            <tr>
-                    <th>Total</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-            </tr>
-            <tr align="center"> <td>{0}</td>
-                 <td><font color=green><b>{1}</b></td>
-                 <td><font color=red><b>{2}</b></td>
-            </tr>
-        </table>
-	<br>
-        """.format(total_tests_count, passed_count, failed_count)
-    with open(test_results_file, "a") as f:
-        f.write(consolidate_table) 
+        f.write("</table>")
 
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:

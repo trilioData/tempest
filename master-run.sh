@@ -5,8 +5,7 @@ source automation/openstack-build-scripts/build.properties
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
-#SUITE_LIST=("tempest.api.workloadmgr.data_integrity")
-SUITE_LIST=("tempest.api.workloadmgr.license" "tempest.api.workloadmgr.rbac")
+SUITE_LIST=("tempest.api.workloadmgr.data_integrity")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
@@ -16,18 +15,18 @@ rm -rf logs
 
 mkdir -p $REPORT_DIR
 sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
-python -c 'from tempest import reporting; reporting.consolidate_report_table()'
+python -c 'from tempest import reporting; reporting.setup_report()'
 
 for suite in "${SUITE_LIST[@]}"
 do
-    testname=$(echo $suite| cut -d'.' -f 4)
-    python -c "from tempest import reporting; reporting.setup_report('$testname')"
     tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
     sed -i '1,5d'  $TEST_LIST_FILE
     sed -i 's/\[.*\]//' $TEST_LIST_FILE
 
+    echo $suite
     while read -r line
     do  
+	echo $line
         rm -rf /opt/lock
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
@@ -42,10 +41,7 @@ do
     
     
     done < "$TEST_LIST_FILE"
-    python -c 'from tempest import reporting; reporting.end_report_table()'
 done
 
 echo "Test results are written in $TEST_RESULTS_FILE"
-sed -i -e '9s/passed_count = [0-9]*/passed_count = 0/' tempest/reporting.py
-sed -i -e '10s/failed_count = [0-9]*/failed_count = 0/' tempest/reporting.py
-
+python -c 'from tempest import reporting; reporting.end_report_table()' 
