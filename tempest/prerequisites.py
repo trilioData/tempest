@@ -4,14 +4,11 @@ LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
 import time
 import datetime
-<<<<<<< HEAD
 from tempest import config
-
-CONF = config.CONF
-=======
 from tempest import command_argument_string
 from tempest.util import cli_parser
->>>>>>> be3fced1a417a49b1c52feddf75c262b7066fe7c
+
+CONF = config.CONF
 
 def small_workload(self):
     self.workload_instances = []

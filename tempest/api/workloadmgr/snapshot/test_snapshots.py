@@ -25,7 +25,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @classmethod
     def setup_clients(cls):
-	cls.prereq = "basic_workload"
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	
