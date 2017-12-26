@@ -284,31 +284,33 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	        LOG.debug("Filepath_Search with wildcards_questionmark successful")
 	    	reporting.add_test_step("Verification of Filepath serach with wildcards_questionmark", tvaultconf.PASS)
 		reporting.set_test_script_status(tvaultconf.PASS)
-                reporting.test_case_to_write()
-			
+	    
+	    # Cleanup
+            # Delete all snapshots
+            for snapshot_id in snapshot_ids:
+                self.snapshot_delete(wid, snapshot_id)
+
+            # Delete workload
+            self.workload_delete(wid)
+
+            # Delete VMs
+            for instance_id in instances_ids:
+                self.delete_vm(instance_id)
+
+            # Delete volumes
+            for volume_id in volumes_ids:
+                self.delete_volume(volume_id)
+
+            # Delete security group
+            self.delete_security_group(security_group_id)
+
+            # Delete key pair
+            self.delete_key_pair(tvaultconf.key_pair_name)
+	
+	    reporting.test_case_to_write()
+		
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 			
-	# Cleanup 
-	# Delete all snapshots
-	for snapshot_id in snapshot_ids:
-	    self.snapshot_delete(wid, snapshot_id)
-
-	# Delete workload
-	self.workload_delete(wid)
-
-	# Delete VMs
-	for vm in instances_ids:
-	    self.delete_vm(vm)
-
-	# Delete volumes
-	for volume_id in volumes_ids:
-	    self.delete_volume(volume_id)
-
-	# Delete security group
-	self.delete_security_group(security_group_id)
-
-	# Delete key pair 
-	self.delete_key_pair(tvaultconf.key_pair_name)
