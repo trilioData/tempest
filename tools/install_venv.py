@@ -66,6 +66,7 @@ def main(argv):
     install.create_virtualenv(no_site_packages=options.no_site_packages)
     install.install_dependencies()
     print_help(venv, root)
+    install.add_tests_segregate_code()
 
 if __name__ == '__main__':
     main(sys.argv)

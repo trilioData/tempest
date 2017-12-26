@@ -281,7 +281,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates a new volume and returns Volume ID
     '''
-    def create_volume(self, size=tvaultconf.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(self, size=CONF.volume.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag=0
             flag=self.is_volume_available()
@@ -605,10 +605,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
-        #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+	self.restored_vms = self.get_restored_vm_list(restore_id)
+        self.restored_volumes = self.get_restored_volume_list(restore_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
-            self.restored_vms = self.get_restored_vm_list(restore_id)
-	    self.restored_volumes = self.get_restored_volume_list(restore_id)
+            #self.restored_vms = self.get_restored_vm_list(restore_id)
+	    #self.restored_volumes = self.get_restored_volume_list(restore_id)
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         return restore_id
@@ -1422,10 +1424,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to create triliovault license
     '''
-    def create_license(self, key):
+    def create_license(self, filename, key):
         flag = True
         msg = ""
-        payload = {"license": key}
+        payload = {"license": {"file_name": filename, "lic_txt": key}}
         try:
             resp, body = self.wlm_client.client.post("/workloads/license",json=payload)
             LOG.debug("Response:"+ str(resp.content))
@@ -1595,4 +1597,122 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("Total number of files found in each snapshot ="+ str(snapshot_wise_filecount))
         return snapshot_wise_filecount
 
+    '''
+    Method to mount snapshot and return the status
+    '''
+    def mount_snapshot(self, workload_id, snapshot_id, vm_id, mount_cleanup = True):
+	is_successful = True
+        payload={"mount": {"mount_vm_id": vm_id,
+                           "options": {}}}
+        resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/mount", json=payload)
+        LOG.debug("#### Mounting of snapshot is initiated: ")
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        LOG.debug("Getting snapshot mount status")
+        while(self.getSnapshotStatus(workload_id, snapshot_id)!= "mounted"):
+	    if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
+	        LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
+	        is_successful = False
+		return is_successful
+            LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
+            time.sleep(30)
+	if(tvaultconf.cleanup == True and mount_cleanup == True):
+            self.addCleanup(self.unmount_snapshot, snapshot_id)
+        return is_successful
 
+
+    '''
+    Method to unmount snapshot and return the status
+    '''
+    def unmount_snapshot(self, snapshot_id):
+        try:
+            resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/dismount")
+            LOG.debug("#### snapshotid: %s , operation: unmount_snapshot" % snapshot_id)
+            LOG.debug("Response status code:"+ str(resp.status_code))
+	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
+	    return True
+        except Exception as e:
+	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
+            return False
+
+    '''
+    Method to add newadmin role and newadmin_api rule to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to add backup role and backup_api rule to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation 
+    and "workload:get_nodes" operations in policy.json file on tvault
+    '''
+    def change_policyjson_file(self, role, rule, policy_changes_cleanup = True):
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+	try:
+	    if role == "newadmin":
+                LOG.debug("Add new_admin role in policy.json : " + str(role))
+                role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(rule, role)
+	        LOG.debug("Assign new_admin rule to workload storage usage command : " + str(rule))
+                rule_assign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:admin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+	        LOG.debug("Assign new_admin rule to get_nodes command : " + str(rule))
+                rule_assign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:admin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+	        commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2
+                stdin, stdout, stderr = ssh.exec_command(commands)
+	        if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
+		    self.addCleanup(self.revert_changes_policyjson, "admin_api")
+	        self.ssh.close()
+	    elif role == "backup":
+		LOG.debug("Add backup role in policy.json : " + str(role))
+                role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(rule, role)
+                LOG.debug("Assign backup_api rule to snapshot_create  command : " + str(rule))
+                rule_assign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:admin_or_owner"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Assign backup_api rule to snapshot_delete  command : " + str(rule))
+                rule_assign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:admin_or_owner"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Assign backup_api rule to workload_create  command : " + str(rule))
+                rule_assign_command3 = 'sed -i \'s/"workload:workload_create": "rule:admin_or_owner"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Assign backup_api rule to workload_delete  command : " + str(rule))
+                rule_assign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:admin_or_owner"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Assign backup_api rule to restore_create  command : " + str(rule))
+                rule_assign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:admin_or_owner"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Assign backup_api rule to restore_delete  command : " + str(rule))
+                rule_assign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:admin_or_owner"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2 +"; "+ rule_assign_command3 +"; "+ rule_assign_command4 \
+			   +"; "+ rule_assign_command5 +"; "+ rule_assign_command6
+                stdin, stdout, stderr = ssh.exec_command(commands)
+                if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
+                    self.addCleanup(self.revert_changes_policyjson, "admin_or_owner")
+                self.ssh.close()
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+    '''
+    Method to revert changes of role and rule in policy.json file on tvault
+    Method to delete newadmin role and newadmin_api rule was assigned to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to delete backup role and backup_api rule was assigned to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
+    and "workload:get_nodes" operations in policy.json file on tvault
+    '''
+    def revert_changes_policyjson(self, rule):
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        try:
+            role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
+	    if rule == "admin_api":
+	        LOG.debug("Delete new_admin role in policy.json : ")
+                LOG.debug("Reassign admin rule to workload storage usage command : ")
+                rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Ressign admin rule to get_nodes command : ")
+                rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
+	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+                stdin, stdout, stderr = ssh.exec_command(commands)
+	    elif rule == "admin_or_owner":
+	        LOG.debug("Delete backup role in policy.json : ")
+		LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+                rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
+                rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_create command : " + str(rule))
+                rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_delete  command : " + str(rule))
+                rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_create  command : " + str(rule))
+                rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
+                rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
+                           +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
+                stdin, stdout, stderr = ssh.exec_command(commands)
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
