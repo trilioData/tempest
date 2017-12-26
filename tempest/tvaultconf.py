@@ -46,9 +46,14 @@ tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
 
+
 no_of_compute_nodes = 1
+compute_node_ip = "192.168.1.189"
+compute_node_username = "root"
+compute_node_password = "password"
 
 # Scheduler parameter
+
 interval="1 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
@@ -66,3 +71,12 @@ restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
 security_group_name = "test_security"
 flavor_name = "test_flavor"
+config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
+                       "glance": ["/etc/glance", "/var/lib/glance", "/var/log/glance"],
+                       "keystone": ["/etc/keystone", "/var/lib/keystone", "/var/log/keystone"],
+                       "cinder": ["/etc/cinder", "/var/lib/cinder", "/var/log/cinder"],
+                       "neutron": ["/etc/neutron", "/var/lib/neutron"],
+                       "swift": ["/etc/swift", "/var/log/swift/"],
+                       "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
+                       "orchestration": ["/etc/heat/", "/var/log/heat/"]}
+additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}

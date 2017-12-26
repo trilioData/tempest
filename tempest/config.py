@@ -1350,6 +1350,21 @@ WorkloadmgrGroup = [
     cfg.IntOpt('retries',
                default=0,
                help=""),
+    cfg.StrOpt('op_user',
+               default=None,
+               help="openstack's ssh username used to create a ssh connection"),
+    cfg.StrOpt('op_passw',
+               default=None,
+               help="openstack's password used to create a ssh connection"),
+    cfg.StrOpt('op_db_password',
+               default=None,
+               help="openstack's Maria db password"),
+    cfg.StrOpt('config_user',
+               default=None,
+               help="config backup user"),
+    cfg.StrOpt('config_pass',
+               default=None,
+               help="config backup user's password"),
 ]
 
 _opts = [

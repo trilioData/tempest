@@ -20,6 +20,7 @@ import os
 import stat
 import requests
 import re
+import collections
 
 from oslo_log import log as logging
 from tempest import config
@@ -207,22 +208,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self, vm_cleanup=True, vm_name="Tempest_Test_Vm", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
-			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[]):
+			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=""):
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
 	    if (len(block_mapping_data) > 0 and key_pair != ""):
 		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
-                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data)
+                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
 	    elif (len(block_mapping_data) > 0 and key_pair == ""):
 		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data)
+                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
 	    elif (key_pair != ""):
 	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name)
+			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
             else:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid)
+			flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
@@ -1678,6 +1679,330 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.ssh.close()
         except Exception as e:
             LOG.debug("Exception: " + str(e))
+
+    '''
+    Method to revert changes of role and rule in policy.json file on tvault
+    Method to delete newadmin role and newadmin_api rule was assigned to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
+    Method to delete backup role and backup_api rule was assigned to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
+    and "workload:get_nodes" operations in policy.json file on tvault
+    '''
+    def revert_changes_policyjson(self, rule):
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        try:
+            role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
+	    if rule == "admin_api":
+	        LOG.debug("Delete new_admin role in policy.json : ")
+                LOG.debug("Reassign admin rule to workload storage usage command : ")
+                rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Ressign admin rule to get_nodes command : ")
+                rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
+	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+                stdin, stdout, stderr = ssh.exec_command(commands)
+	    elif rule == "admin_or_owner":
+	        LOG.debug("Delete backup role in policy.json : ")
+		LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+                rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
+                rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_create command : " + str(rule))
+                rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to workload_delete  command : " + str(rule))
+                rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_create  command : " + str(rule))
+                rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                LOG.debug("Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
+                rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
+                commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
+                           +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
+                stdin, stdout, stderr = ssh.exec_command(commands)
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+
+    def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass):
+
+        user_exist = False
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        config_user_check_command = "cat /etc/passwd | grep {}".format(config_user)
+
+        channel.send(config_user_check_command + "\n")
+        output = channel.recv(9999)  # read in
+	LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
+        if "/bin/bash" in str(output):
+            user_exist = True
+	    LOG.debug("****config_user exists****")
+
+        time.sleep(0.1)
+        if not user_exist:
+	    LOG.debug("config_user doesn't exist, Creating config user.")
+            commands = ["useradd {}".format(config_user),
+                        "passwd {}".format(config_user),
+                        "echo {}".format(config_pass), "echo {}".format(config_pass),
+                        "cat /etc/passwd",
+                        "echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
+                        "cat /etc/sudoers",
+		        "su {}".format(config_user),
+                        "ssh-keygen -t rsa", "\n", "\n", "\n",
+                        "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(config_user),
+                        "cat /home/{}/.ssh/authorized_keys".format(config_user),
+                        "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
+	    
+            for command in commands:
+                channel.send(command + "\n")
+                while not channel.recv_ready():  # Wait for the server to read and respond
+                    time.sleep(0.1)
+                time.sleep(2)  # wait enough for writing to (hopefully) be finished
+                output = channel.recv(9999)  # read in
+                LOG.debug(str(output))
+                time.sleep(0.1)
+
+            buildCommand = "cat /home/{}/.ssh/id_rsa".format(config_user)
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            output = stdout.read()
+            with open("config_backup_pvk", 'w+') as f:
+                f.write(output)
+
+            os.chmod("config_backup_pvk", stat.S_IRWXU)
+
+            channel.close()
+            ssh.close()
+
+    def create_config_backup_yaml(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password, added_dir=""):
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        yaml_dir = {'databases':{'database1':{'host':str(ip[0]), 'password':str(db_password), 'port':None, 'user':str(user)}}, 'trusted_user':{'username':config_user}} 
+
+        if added_dir != "":
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    yaml_dir.update(added_dir)
+
+   	import yaml 
+        with open("yaml_file.yaml", 'w') as f:
+            yaml.dump(yaml_dir, f, default_flow_style=False)
+
+    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir="", vault_storage_path="", compute_hostname=""):
+
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+	ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+
+
+	config_yaml = tvaultconf.config_yaml
+
+	if added_dir != "":
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    config_yaml.update(added_dir)
+    
+	LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
+        
+        tree = lambda: collections.defaultdict(tree)
+        md5_sum_config_backup = tree()
+    
+        for service, service_dirs in config_yaml.items():
+	    service_dirs_list = {}
+            for service_dir in service_dirs:
+		service_md5_list = {}
+		service_dir_path = service_dir
+		md5_calculate_command = ""
+	        LOG.debug("vault_storage_path: " + " | " + vault_storage_path + " | ")
+                LOG.debug("service: " + " | " + service + " | ")
+                LOG.debug("compute_hostname: " + " | " + compute_hostname + " | ")
+                LOG.debug("service_dir: " +  " | " + service_dir + " | ")
+                
+	        if vault_storage_path != "":
+		    service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		    LOG.debug("service_dir_vault: " + str(service_dir_path))
+		if "log" not in service_dir_path:    
+		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
+                stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
+
+		exit_status = stdout.channel.recv_exit_status()
+		if exit_status == 0:
+    		    LOG.debug("command {} completed".format(md5_calculate_command))
+		else:
+    		    LOG.debug("Error", exit_status)
+	        output = stdout.readlines()
+		LOG.debug("md5 calculate output: " + str(output))
+                for line in output:
+		    LOG.debug("line: " + str(line))
+		    if "triliovault-mounts" in str(line.split()[1]):
+			service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find(str(service_dir)):]:str(line.split()[0])})
+		    else:
+			service_md5_list.update({str(line.split()[1]):str(line.split()[0])})
+	        
+		LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
+
+	        if "log" not in str(service_dir):
+		    service_dirs_list.update({str(service_dir):service_md5_list})
+
+		LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
+		
+	    #channel.close()
+            time.sleep(0.1)
+    
+            md5_sum_config_backup[service] = service_dirs_list
+        
+	ssh.close()
+        LOG.debug("md5_sum_config_backup : " + str(md5_sum_config_backup))
+	return md5_sum_config_backup
+
+
+    def get_config_workload(self):
+        resp, body = self.wlm_client.client.get("/config_workload")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return body
+
+    def create_config_backup(self,config_backup_cleanup=False):
+	payload = {"backup": {"name": "Config backup", "description": "Test description"}}
+        resp, body = self.wlm_client.client.post("/config_backup", json=payload)
+        LOG.debug("Response:"+ str(resp.content))
+        if resp.status_code != 202:
+           resp.raise_for_status()
+	config_backup_id = body['config_backup']['id']
+	self.wait_for_config_backup_tobe_available(config_backup_id)
+	if(tvaultconf.cleanup == True and config_backup_cleanup == True):
+            self.addCleanup(self.delete_config_backup,config_backup_id)
+        return config_backup_id
+
+    def wait_for_config_backup_tobe_available(self, config_backup_id):
+	status = "available"
+        LOG.debug('Checking config backup status')
+        while (status != self.show_config_backup(config_backup_id)['config_backup']['status']):
+            if(self.show_config_backup(config_backup_id)['config_backup']['status'] == 'error'):
+                LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
+                return status
+            LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
+            time.sleep(30)
+        LOG.debug('Final Status of Config backup : %s' % (self.show_config_backup(config_backup_id)['config_backup']['status']))
+        return status	
+
+    def get_config_backup_list(self):
+	body = ""
+        resp, body = self.wlm_client.client.get("/config_backups")
+        LOG.debug("#### config_backup_list" + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return body
+
+    def show_config_backup(self, config_backup_id):
+        body = ""
+        resp, body = self.wlm_client.client.get("/config_backup/" + str(config_backup_id))
+        LOG.debug("#### config_backup_details" + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return body
+
+    def delete_config_backup(self, config_backup_id):
+        resp, body = self.wlm_client.client.delete("/config_backup/" + str(config_backup_id))
+        LOG.debug("#### config_backup_delete response body: " + (str(body)))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+	    return False
+        else:
+	    return True 
+
+    def sudo_access_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, access=True):
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        if not access:
+	    commands = ["sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user), "cat /etc/sudoers"]
+	else:
+	    commands = ["echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
+
+        for command in commands:
+            channel.send(command + "\n")
+            time.sleep(3)  # wait enough for writing to (hopefully) be finished
+            output = channel.recv(9999)  # read in
+	    LOG.debug(str(output))
+
+	channel.close()
+	ssh.close()
+
+    def get_compute_hostname(self, compute_node_ip = tvaultconf.compute_node_ip, compute_node_username=tvaultconf.compute_node_username, compute_node_password=tvaultconf.compute_node_password):
+	
+	ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=compute_node_ip, username=compute_node_username, password=compute_node_password)
+        LOG.debug("connected")
+
+	buildCommand ="hostname"
+        stdin, stdout, stderr = ssh.exec_command(buildCommand)
+        hostname = stdout.read()
+	LOG.debug("compute: " + str(compute_node_ip) + ": hostname: "+ str(hostname))
+        ssh.close()
+	
+	return hostname
+  
+    def delete_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
+        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+        LOG.debug("ip" + str(ip))
+
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        LOG.debug("connecting")
+        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
+        LOG.debug("connected")
+        channel = ssh.invoke_shell()
+
+        time.sleep(1)
+        channel.recv(9999)
+        channel.send("\n")
+        time.sleep(1)
+
+        commands = ["userdel -r {}".format(config_user),"sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user),"cat /etc/passwd" , "cat /etc/sudoers"]
+
+        for command in commands:
+            channel.send(command + "\n")
+            time.sleep(3)  # wait enough for writing to (hopefully) be finished
+            output = channel.recv(9999)  # read in
+            LOG.debug(str(output))
+
+        channel.close()
+        ssh.close()
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
