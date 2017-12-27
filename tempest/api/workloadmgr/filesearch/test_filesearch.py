@@ -67,7 +67,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search default_parameters successful")
 	    	reporting.add_test_step("Verification of Filepath serach default_parameters", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 		
         except Exception as e:
@@ -101,7 +100,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search with snapshotids successful")
 	    	reporting.add_test_step("Verification of Filepath serach with snapshotids", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 		
         except Exception as e:
@@ -138,7 +136,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search for firsttwosnapshots successful")
 	    	reporting.add_test_step("Verification of Filepath serach for firsttwosnapshots", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 
         except Exception as e:
@@ -175,7 +172,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search for latesttwosnapshots successful")
 	    	reporting.add_test_step("Verification of Filepath serach for latesttwosnapshots", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 		
         except Exception as e:
@@ -214,7 +210,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search successful with daterange")
 	    	reporting.add_test_step("Verification of Filepath serach with daterange", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 
         except Exception as e:
@@ -247,7 +242,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search with wildcard_star successful")
 	    	reporting.add_test_step("Verification of Filepath serach with wildcard_star", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
                 reporting.test_case_to_write()
 		
         except Exception as e:
@@ -283,7 +277,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    if filesearch_status == True:
 	        LOG.debug("Filepath_Search with wildcards_questionmark successful")
 	    	reporting.add_test_step("Verification of Filepath serach with wildcards_questionmark", tvaultconf.PASS)
-		reporting.set_test_script_status(tvaultconf.PASS)
 	    
 	    # Cleanup
             # Delete all snapshots
