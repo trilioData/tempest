@@ -5,8 +5,7 @@ source automation/openstack-build-scripts/build.properties
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
-#SUITE_LIST=("tempest.api.workloadmgr.data_integrity")
-SUITE_LIST=("tempest.api.workloadmgr.license" "tempest.api.workloadmgr.rbac" "tempest.api.workloadmgr.filesearch")
+SUITE_LIST=("tempest.api.workloadmgr.data_integrity")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
