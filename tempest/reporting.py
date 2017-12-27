@@ -1,17 +1,16 @@
 from tempest import tvaultconf
 import subprocess
 
-test_results_file="/root/tempest/Report/results.html"
+test_results_file="Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
 test_step_to_write =""
-passed_count = 11
-failed_count = 5
+passed_count = 0
+failed_count = 0
 total_tests_count = passed_count + failed_count
 
 def setup_report(testname):
-    testname = testname
     head = """<table border="1">
             <tr bgcolor="#b3e6ff">
                     <th>{0}</th>
@@ -104,7 +103,7 @@ def consolidate_report_table():
         </table>
 	<br>
         """.format(total_tests_count, passed_count, failed_count)
-    with open(test_results_file, "a") as f:
+    with open(test_results_file, "w+") as f:
         f.write(consolidate_table) 
 
 def add_sanity_results(test_step, status):
