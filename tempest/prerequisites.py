@@ -451,3 +451,115 @@ def config_backup(self):
     else:
         LOG.debug("Triggering config_workload_configure command via CLI PASS")
         LOG.debug("Command executed correctly")
+
+
+'''
+boot from volume 2 vms, 2 volumes attached to each, 3 files added to each of the volumes, md5 sum for each vm, 1 workload, full snapshot and incremental snapshot 
+'''
+def bootfromvol_workload_medium(self):
+    self.total_workloads=1
+    self.vms_per_workload=2
+    self.workload_instances = []
+    self.workload_volumes = []
+    self.floating_ips_list = []
+    volumes = ["/dev/vdb", "/dev/vdc"]
+    mount_points = ["mount_data_b", "mount_data_c"]
+
+    self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
+
+    self.security_group_details = self.create_security_group(tvaultconf.security_group_name,secgrp_cleanup=False)
+    security_group_id = self.security_group_details['security_group']['id']
+    LOG.debug("security group rules" + str(self.security_group_details['security_group']['rules']))
+
+    flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
+    if(flavor_id == 0):
+        flavor_id = self.create_flavor(tvaultconf.flavor_name,flavor_cleanup=False)
+    self.original_flavor_conf = self.get_flavor_details(flavor_id)
+
+    for vm in range(0,self.vms_per_workload):
+        self.volume_id_1 = self.create_volume(size=4, image_id=CONF.compute.image_ref, volume_cleanup=False)
+        self.volume_id_2 = self.create_volume(volume_cleanup=False)
+        self.volume_id_3 = self.create_volume(volume_cleanup=False)
+        self.workload_volumes.append(self.volume_id_2)
+        self.workload_volumes.append(self.volume_id_3)
+        self.set_volume_as_bootable(self.volume_id_1)
+        self.block_mapping_details = [{ "source_type": "volume",
+    		   "delete_on_termination": "false",
+    		   "boot_index": 0,
+    		   "uuid": self.volume_id_1,
+    		   "destination_type": "volume"}]
+        self.vm_id = self.create_vm(image_id="",security_group_id=security_group_id,flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, block_mapping_data=self.block_mapping_details, vm_cleanup=False)
+	self.attach_volume(self.volume_id_2, self.vm_id, device=volumes[0])
+	self.attach_volume(self.volume_id_3, self.vm_id, device=volumes[1])
+        self.workload_instances.append(self.vm_id)
+
+    for id in range(len(self.workload_instances)):
+        available_floating_ips = self.get_floating_ips()
+        if(len(available_floating_ips) > 0):
+            floating_ip = self.get_floating_ips()[0]
+        else:
+            reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
+            raise Exception("Floating ips not available")
+        self.floating_ips_list.append(floating_ip)
+        self.set_floating_ip(str(floating_ip), self.workload_instances[id])
+
+    import collections
+    tree = lambda: collections.defaultdict(tree)
+    self.md5sums_dir_before = tree()
+        
+    for floating_ip in self.floating_ips_list:
+	ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+        self.execute_command_disk_create(ssh, str(floating_ip),volumes,mount_points)
+	#self.channel.close()
+	ssh.close()
+
+	ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+        self.execute_command_disk_mount(ssh, str(floating_ip),volumes,mount_points)
+	#self.channel.close()
+        ssh.close()
+	
+	ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+	self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+	ssh.close()
+
+	ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+        self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 3)
+        ssh.close()
+
+	for mount_point in mount_points:
+	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+	    self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+	    ssh.close()
+
+    LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
+   
+    self.vm_details_list = []
+	 
+    #Fetch instance details before restore
+    for id in range(len(self.workload_instances)):
+        self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
+
+    self.vms_details = self.get_vms_details_list(self.vm_details_list)
+    LOG.debug("vm details list before backups" + str( self.vm_details_list))
+    LOG.debug("vm details dir before backups" + str( self.vms_details))
+
+    #Create workload
+    self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
+    if (self.wait_for_workload_tobe_available(self.workload_id) == False):
+        reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
+        raise Exception("Workload creation failed")
+    self.workload_status = self.getWorkloadStatus(self.workload_id)
+
+    self.snapshot_ids = []
+
+    # Create full snapshot
+    self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+    LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[0]))
+    #Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+
+    # Create incr snapshot
+    self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+    LOG.debug("Incr Snapshot_id: " + str(self.snapshot_ids[1]))
+    #Wait till snapshot is complete
+    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[1])
