@@ -1008,55 +1008,50 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     layout creation and formatting the disks
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
-        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
-        stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
-        LOG.debug("disk create my.layout output" + str(stdout.read()))
-	for volume in volumes:
-            stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
-            stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
-            LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-	    time.sleep(5)
-            buildCommand = "sudo mkfs -t ext3 " + volume + "1"
-            sleeptime = 2
-            outdata, errdata = '', ''
-            ssh_transp = ssh.get_transport()
-            chan = ssh_transp.open_session()
-            chan.setblocking(0)
-            chan.exec_command(buildCommand)
-            LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
-            while True:  # monitoring process
-                # Reading from output streams
-                while chan.recv_ready():
-                    outdata += chan.recv(1000)
-                while chan.recv_stderr_ready():
-                    errdata += chan.recv_stderr(1000)
-                if chan.exit_status_ready():  # If completed
-                    break
-                time.sleep(sleeptime)
-                LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
-            retcode = chan.recv_exit_status()
+ 	self.channel = ssh.invoke_shell()	
+	for volume in volumes:	
+
+	    commands = ["sudo fdisk {}".format(volume),
+		    "n",
+		    "p",
+	            "1",
+		    "2048",
+		    "2097151",
+		    "w",
+		    "sudo fdisk -l | grep {}".format(volume),
+		    "sudo mkfs -t ext3 {}1".format(volume)]
+
+	    for command in commands:
+	    	LOG.debug("Executing: " + str(command))
+	    	self.channel.send(command + "\n")
+		time.sleep(5)
+	    	while not self.channel.recv_ready():
+		    time.sleep(3)
 	
+	   	output = self.channel.recv(9999)
+	    	LOG.debug(str(output))
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
-	for mount_point in mount_points:
-            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
-	    stdin, stdout, stderr = ssh.exec_command("sudo ls -l")
-	    LOG.debug("dir list: " + str(stdout.read()))
+
+	self.channel = ssh.invoke_shell()
 	for i in range(len(volumes)):
-            buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-	    time.sleep(8)
-	    # check mounts in df -h output
-	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
-	    output = stdout.read()
-            LOG.debug("sudo df -h after mounting " + volumes[i] + "1 :" + str(output))
-	    if str(volumes[i]+"1") in str(output):
-		LOG.debug("mounting completed for " + str(ipAddress))
-	    else:	    
-		raise Exception("Mount point failed for " + str(ipAddress))
+
+	    commands = ["sudo mkdir " + mount_points[i],"sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
+                      "sudo df -h"]
+
+            for command in commands:
+                LOG.debug("Executing: " + str(command))
+                self.channel.send(command + "\n")
+                time.sleep(3)
+                while not self.channel.recv_ready():
+                    time.sleep(2)
+
+                output = self.channel.recv(9999)
+                LOG.debug(str(output))
+                time.sleep(2)
 
     '''
     add custom sied files on linux
