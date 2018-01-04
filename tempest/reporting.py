@@ -1,7 +1,7 @@
 from tempest import tvaultconf
 import subprocess
 
-test_results_file="/root/tempest/Report/results.html"
+test_results_file="Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
