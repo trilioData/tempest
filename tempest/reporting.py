@@ -1,7 +1,7 @@
 from tempest import tvaultconf
 import subprocess
 
-test_results_file="Report/results.html"
+test_results_file="/root/tempest/Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
@@ -75,9 +75,9 @@ def add_test_step(teststep, status):
 def end_report_table():
     with open(test_results_file, "a") as f:
         f.write("</table>\n<br>")
-    cmd1 = "sed -i -e '11s/<td>[0-9]*/<td>{0}/' Report/results.html".format(total_tests_count)
-    cmd2 = "sed -i -e '12s/<b>[0-9]*/<b>{0}/' Report/results.html".format(passed_count)
-    cmd3 = "sed -i -e '13s/<b>[0-9]*/<b>{0}/' Report/results.html".format(failed_count)
+    cmd1 = "sed -i -e '14s/<td>[0-9]*/<td>{0}/' Report/results.html".format(total_tests_count)
+    cmd2 = "sed -i -e '15s/<b>[0-9]*/<b>{0}/' Report/results.html".format(passed_count)
+    cmd3 = "sed -i -e '16s/<b>[0-9]*/<b>{0}/' Report/results.html".format(failed_count)
     cmd = cmd1+"; " +cmd2+"; "+cmd3
     p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
     p.wait()
@@ -88,6 +88,9 @@ def consolidate_report_table():
     global total_tests_count
     consolidate_table = """
 	<table border="2">
+	    <col width="150">
+  	    <col width="150">
+            <col width="150">
             <tr bgcolor="#b3ffff">
                     <th colspan="4">Consolidate Report</th>
             </tr>
