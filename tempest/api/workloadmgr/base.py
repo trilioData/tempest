@@ -1279,16 +1279,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_ports(ports)
 
     '''create_security_group'''
-    def create_security_group(self, name, secgrp_cleanup=True):
-        security_group_id = self.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
-	self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 22, to_port = 22)
-        security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
-        LOG.debug(security_group_details)
+    def create_security_group(self, name, description, secgrp_cleanup=True):
+        self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
 	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
-	    self.addCleanup(self.delete_security_group, security_group_id)
-        return security_group_details
+	    self.addCleanup(self.delete_security_group, self.security_group_id)
+        return self.security_group_id
 
     '''get_security_group_details'''
     def get_security_group_details(self, security_group_id):
@@ -2036,3 +2031,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
+
+    '''
+    add security group rule
+    '''
+    def add_security_group_rule(self, parent_group_id = "", remote_group_id = "", ip_protocol="", from_port = 1, to_port= 40000):
+	LOG.debug("parent group id: {}".format(str(parent_group_id)))
+	LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
+	if remote_group_id != "":
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id),group_id=str(remote_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+	else:
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+
+    def deleteSomefilesOnLinux(self, ssh, mount_point, number):
+	self.channel = ssh.invoke_shell()
+	command = "sudo rm -rf {}/File_1.txt"
+	LOG.debug("Executing: " + str(command))
+        self.channel.send(command + "\n")
+        while not self.channel.recv_ready():
+            time.sleep(3)
+
+        output = self.channel.recv(9999)
+        LOG.debug(str(output))		
+        
