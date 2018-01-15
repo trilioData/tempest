@@ -158,7 +158,7 @@ def load_prerequisites_data(self, type):
 		LOG.debug("vms not available in vms_file")
 		raise Exception ("vms not available in vms_file, pre_requisites loading failed.")
 
-def bootfrom_image_with_floating_ips(self):
+def bootfrom_image_floating_ips(self):
     self.total_workloads=1
     self.vms_per_workload=2
     self.volume_size=1
