@@ -54,8 +54,6 @@ def pre_req(arg1):
 		prerequisites.small_workload(args[0])
 	    elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
                 prerequisites.inplace(args[0])
-	    elif (arg1['type'] == 'selective_with_floating_ips') and (tvaultconf.pre_req==True):
-                prerequisites.selective_with_floating_ips(args[0])
 	    elif (arg1['type'] == 'selective_basic') and (tvaultconf.pre_req==True):
                 prerequisites.selective_basic(args[0])
 	    elif (arg1['type'] == 'filesearch') and (tvaultconf.pre_req==True):
@@ -72,6 +70,8 @@ def pre_req(arg1):
                 prerequisites.bootfromvol_workload_medium(args[0])
 	    elif (arg1['type'] == 'bootfrom_image_with_floating_ips') and (tvaultconf.pre_req==True):
                 prerequisites.bootfrom_image_with_floating_ips(args[0])
+	    elif (arg1['type'] == 'nested_security') and (tvaultconf.pre_req==True):
+                prerequisites.nested_security(args[0])
             elif tvaultconf.pre_req==False:
                 LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
 		prerequisites.load_prerequisites_data(args[0],arg1['type'])
