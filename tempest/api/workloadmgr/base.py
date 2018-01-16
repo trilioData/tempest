@@ -1010,55 +1010,50 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     layout creation and formatting the disks
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
-        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
-        stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
-        LOG.debug("disk create my.layout output" + str(stdout.read()))
-	for volume in volumes:
-            stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
-            stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
-            LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-	    time.sleep(5)
-            buildCommand = "sudo mkfs -t ext3 " + volume + "1"
-            sleeptime = 2
-            outdata, errdata = '', ''
-            ssh_transp = ssh.get_transport()
-            chan = ssh_transp.open_session()
-            chan.setblocking(0)
-            chan.exec_command(buildCommand)
-            LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
-            while True:  # monitoring process
-                # Reading from output streams
-                while chan.recv_ready():
-                    outdata += chan.recv(1000)
-                while chan.recv_stderr_ready():
-                    errdata += chan.recv_stderr(1000)
-                if chan.exit_status_ready():  # If completed
-                    break
-                time.sleep(sleeptime)
-                LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
-            retcode = chan.recv_exit_status()
+ 	self.channel = ssh.invoke_shell()	
+	for volume in volumes:	
+
+	    commands = ["sudo fdisk {}".format(volume),
+		    "n",
+		    "p",
+	            "1",
+		    "2048",
+		    "2097151",
+		    "w",
+		    "sudo fdisk -l | grep {}".format(volume),
+		    "sudo mkfs -t ext3 {}1".format(volume)]
+
+	    for command in commands:
+	    	LOG.debug("Executing: " + str(command))
+	    	self.channel.send(command + "\n")
+		time.sleep(5)
+	    	while not self.channel.recv_ready():
+		    time.sleep(3)
 	
+	   	output = self.channel.recv(9999)
+	    	LOG.debug(str(output))
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
-	for mount_point in mount_points:
-            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
-	    stdin, stdout, stderr = ssh.exec_command("sudo ls -l")
-	    LOG.debug("dir list: " + str(stdout.read()))
+
+	self.channel = ssh.invoke_shell()
 	for i in range(len(volumes)):
-            buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-	    time.sleep(8)
-	    # check mounts in df -h output
-	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
-	    output = stdout.read()
-            LOG.debug("sudo df -h after mounting " + volumes[i] + "1 :" + str(output))
-	    if str(volumes[i]+"1") in str(output):
-		LOG.debug("mounting completed for " + str(ipAddress))
-	    else:	    
-		raise Exception("Mount point failed for " + str(ipAddress))
+
+	    commands = ["sudo mkdir " + mount_points[i],"sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
+                      "sudo df -h"]
+
+            for command in commands:
+                LOG.debug("Executing: " + str(command))
+                self.channel.send(command + "\n")
+                time.sleep(3)
+                while not self.channel.recv_ready():
+                    time.sleep(2)
+
+                output = self.channel.recv(9999)
+                LOG.debug(str(output))
+                time.sleep(2)
 
     '''
     add custom sied files on linux
@@ -1286,16 +1281,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_ports(ports)
 
     '''create_security_group'''
-    def create_security_group(self, name, secgrp_cleanup=True):
-        security_group_id = self.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
-	self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 22, to_port = 22)
-        security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
-        LOG.debug(security_group_details)
+    def create_security_group(self, name, description, secgrp_cleanup=True):
+        self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
 	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
-	    self.addCleanup(self.delete_security_group, security_group_id)
-        return security_group_details
+	    self.addCleanup(self.delete_security_group, self.security_group_id)
+        return self.security_group_id
 
     '''get_security_group_details'''
     def get_security_group_details(self, security_group_id):
@@ -2043,3 +2033,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
+
+    '''
+    add security group rule
+    '''
+    def add_security_group_rule(self, parent_group_id = "", remote_group_id = "", ip_protocol="", from_port = 1, to_port= 40000):
+	LOG.debug("parent group id: {}".format(str(parent_group_id)))
+	LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
+	if remote_group_id != "":
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id),group_id=str(remote_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+	else:
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+
+    def deleteSomefilesOnLinux(self, ssh, mount_point, number):
+	self.channel = ssh.invoke_shell()
+	command = "sudo rm -rf {}/File_1.txt"
+	LOG.debug("Executing: " + str(command))
+        self.channel.send(command + "\n")
+        while not self.channel.recv_ready():
+            time.sleep(3)
+
+        output = self.channel.recv(9999)
+        LOG.debug(str(output))		
+        
