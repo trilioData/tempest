@@ -1280,7 +1280,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_ports(ports)
 
     '''create_security_group'''
-    def create_security_group(self, name, secgrp_cleanup=True):
+    def create_security_group(self, name, description, secgrp_cleanup=True):
 	self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
 	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
 	    self.addCleanup(self.delete_security_group, self.security_group_id)
