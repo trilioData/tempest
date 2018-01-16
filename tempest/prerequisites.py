@@ -8,6 +8,7 @@ from tempest import config
 from tempest import command_argument_string
 from tempest.util import cli_parser
 import collections
+from random import randint
 
 CONF = config.CONF
 
@@ -480,7 +481,6 @@ def bootfromvol_workload_medium(self):
     self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
 
     self.security_group_id = self.create_security_group(tvaultconf.security_group_name,"tempest_sample_description", secgrp_cleanup=False)
-    from random import randint
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
@@ -581,219 +581,217 @@ def bootfromvol_workload_medium(self):
     self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[1])
 
 def nested_security(self):
-    self.raise_exception=False
-    from random import randint
-    self.security_group_list = []
-    #  create security group 1-8
-    n = 5
-    for i in range(n):
+    try:
+	self.exception = ""
+        self.security_group_list = []
+        #  create security group 1-5
+        n = 5
+        for i in range(n):
 
-        self.security_group_id = self.create_security_group("sec_group_{}".format(i+1)," security group {}".format(i+1), secgrp_cleanup=False
-)
+            self.security_group_id = self.create_security_group("sec_group_{}".format(i+1)," security group {}".format(i+1), secgrp_cleanup=False)
 
-        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
-)
-        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
-)
-        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
-        LOG.debug("security group {} id".format(i+1) + str(self.security_group_id))
+            self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+            self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
+            self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
+            LOG.debug("security group {} id".format(i+1) + str(self.security_group_id))
+            self.security_group_list.append(self.security_group_id)
+
+        for i in range(1,n+1):
+            for j in range(0, n):
+                if i+j > n:
+                    self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[(i+j-2)%n], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+                    continue
+                self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[i+j-2], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+
+        self.security_group_id = self.create_security_group("sec_group_{}".format("six")," security group {}".format("six"), secgrp_cleanup=False)
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.security_group_list.append(self.security_group_id)
+        self.add_security_group_rule(parent_group_id = self.security_group_list[n], remote_group_id = self.security_group_list[n], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_list[n], remote_group_id = self.security_group_list[n-1], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
 
-    for i in range(1,n+1):
-        for j in range(0, n):
-            if i+j > n:
-                self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[(i+j-2)%n], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
-                continue
-            self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[i+j-2], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        LOG.debug("security group ids: {}".format(str(self.security_group_list)))
 
-    self.security_group_id = self.create_security_group("sec_group_{}".format("six")," security group {}".format("six"), secgrp_cleanup=False)
-    self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
-    self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
-    self.security_group_list.append(self.security_group_id)
-    self.add_security_group_rule(parent_group_id = self.security_group_list[n], remote_group_id = self.security_group_list[n], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
-    self.add_security_group_rule(parent_group_id = self.security_group_list[n], remote_group_id = self.security_group_list[n-1], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        self.total_workloads=1
+        self.vms_per_workload=1
+        self.workload_instances = []
+        self.workload_volumes = []
+        self.floating_ips_list = []
+        volumes = ["/dev/vdb", "/dev/vdc"]
 
-    LOG.debug("security group ids: {}".format(str(self.security_group_list)))
+        self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
+        if(self.flavor_id == 0):
+            self.flavor_id = self.create_flavor(tvaultconf.flavor_name,flavor_cleanup=False)
+        self.original_flavor_conf = self.get_flavor_details(self.flavor_id)
 
-    self.total_workloads=1
-    self.vms_per_workload=1
-    self.workload_instances = []
-    self.workload_volumes = []
-    self.floating_ips_list = []
-    volumes = ["/dev/vdb", "/dev/vdc"]
+        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
 
-    self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
-    if(self.flavor_id == 0):
-        self.flavor_id = self.create_flavor(tvaultconf.flavor_name,flavor_cleanup=False)
-    self.original_flavor_conf = self.get_flavor_details(self.flavor_id)
+        for vm in range(0,self.vms_per_workload):
+            vm_name = "tempest_test_vm_" + str(vm+1)
+            vm_id = self.create_vm(vm_name=vm_name ,security_group_id=self.security_group_list[n],flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
+            self.workload_instances.append(vm_id)
 
-    self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
+        for id in range(len(self.workload_instances)):
+            available_floating_ips = self.get_floating_ips()
+            if(len(available_floating_ips) > 0):
+                floating_ip = self.get_floating_ips()[0]
+            else:
+		self.exception = "Floating ips not available"
+                raise Exception(self.exception)
+            self.floating_ips_list.append(floating_ip)
+            self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 
-    for vm in range(0,self.vms_per_workload):
-        vm_name = "tempest_test_vm_" + str(vm+1)
-        vm_id = self.create_vm(vm_name=vm_name ,security_group_id=self.security_group_list[n],flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
-        self.workload_instances.append(vm_id)
+        self.vm_details_list = []
 
-    for id in range(len(self.workload_instances)):
-        available_floating_ips = self.get_floating_ips()
-        if(len(available_floating_ips) > 0):
-            floating_ip = self.get_floating_ips()[0]
+        #Fetch instance details before restore
+        for id in range(len(self.workload_instances)):
+            self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
+
+        self.vms_details = self.get_vms_details_list(self.vm_details_list)
+        LOG.debug("vm details list before backups" + str( self.vm_details_list))
+
+        #Create workload
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
+        if (self.wait_for_workload_tobe_available(self.workload_id) == False):
+	    self.exception = "Workload creation failed"
+            raise Exception(self.exception)
+        self.workload_status = self.getWorkloadStatus(self.workload_id)
+
+        self.snapshot_ids = []
+
+        # Create full snapshot
+        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+        LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[0]))
+        #Wait till snapshot is complete
+        self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+
+        self.instance_details = []
+
+        int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
+        LOG.debug("int_net_1_name" + str(int_net_1_name))
+        int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
+        LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
+
+        #Create instance details for restore.json
+        for i in range(len(self.workload_instances)):
+            vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
+            temp_instance_data = { 'id': self.workload_instances[i],
+                                   'include': True,
+                                   'restore_boot_disk': True,
+                                   'name': vm_name,
+                                   'vdisks':[]
+                                 }
+            self.instance_details.append(temp_instance_data)
+        LOG.debug("Instance details for restore: " + str(self.instance_details))
+
+        #Create network details for restore.json
+        snapshot_network = { 'name': int_net_1_name,
+                             'id': CONF.network.internal_network_id,
+                             'subnet': { 'id': int_net_1_subnets }
+                           }
+        target_network = { 'name': int_net_1_name,
+                           'id': CONF.network.internal_network_id,
+                           'subnet': { 'id': int_net_1_subnets }
+                         }
+        self.network_details = [ { 'snapshot_network': snapshot_network,
+                                   'target_network': target_network } ]
+        LOG.debug("Network details for restore: " + str(self.network_details))
+
+        self.restore_ids = []
+
+        #disassociate floating ip from server
+        self.disassociate_floating_ip_from_server(self.floating_ips_list[0], self.workload_instances[0])
+
+        #Trigger selective restore
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name, instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
+        self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+
+        if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
+            self.restore_ids.append(self.restore_id)
+            LOG.debug("First selective restore id: {}".format(str(self.restore_id)))
         else:
-            reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
-            raise Exception("Floating ips not available")
-        self.floating_ips_list.append(floating_ip)
-        self.set_floating_ip(str(floating_ip), self.workload_instances[id])
+	    self.exception = "Trigger selective restore via api"
+            raise Exception(self.exception)
 
-    self.vm_details_list = []
+        #Fetch instance details after restore
+        self.restored_vm_details_list = []
+        self.vm_list  =  self.get_restored_vm_list(self.restore_id)
+        LOG.debug("Restored vms : " + str (self.vm_list))
 
-    #Fetch instance details before restore
-    for id in range(len(self.workload_instances)):
-        self.vm_details_list.append(self.get_vm_details(self.workload_instances[id]))
+        for id in range(len(self.vm_list)):
+             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
+        LOG.debug("Restored vm details list after first selective restore: " + str(self.restored_vm_details_list))
 
-    self.vms_details = self.get_vms_details_list(self.vm_details_list)
-    LOG.debug("vm details list before backups" + str( self.vm_details_list))
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
+        LOG.debug("VM details after restore after first selective restore: " + str(self.vms_details_after_restore))
 
-    #Create workload
-    self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
-    if (self.wait_for_workload_tobe_available(self.workload_id) == False):
-        reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
-        raise Exception("Workload creation failed")
-    self.workload_status = self.getWorkloadStatus(self.workload_id)
+        # delete security group 3
+        self.delete_security_group(self.security_group_list[2])
 
-    self.snapshot_ids = []
+        # Create full snapshot
+        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+        LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[1]))
+        #Wait till snapshot is complete
+        self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[1])
 
-    # Create full snapshot
-    self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
-    LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[0]))
-    #Wait till snapshot is complete
-    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+        #Trigger selective restore
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name,instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
 
-    self.instance_details = []
+        self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+        if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
+            self.restore_ids.append(self.restore_id)
+        else:
+	    self.exception = "Trigger Selective restore via api"
+            raise Exception(self.exception)
 
-    int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
-    LOG.debug("int_net_1_name" + str(int_net_1_name))
-    int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
-    LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
+        self.vm_list = self.get_restored_vm_list(self.restore_id)
+        LOG.debug("Restored vms : " + str (self.vm_list))
 
-    #Create instance details for restore.json
-    for i in range(len(self.workload_instances)):
-        vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
-        temp_instance_data = { 'id': self.workload_instances[i],
-                               'include': True,
-                               'restore_boot_disk': True,
-                               'name': vm_name,
-                               'vdisks':[]
-                             }
-        self.instance_details.append(temp_instance_data)
-    LOG.debug("Instance details for restore: " + str(self.instance_details))
 
-    #Create network details for restore.json
-    snapshot_network = { 'name': int_net_1_name,
-                         'id': CONF.network.internal_network_id,
-                         'subnet': { 'id': int_net_1_subnets }
-                       }
-    target_network = { 'name': int_net_1_name,
-                       'id': CONF.network.internal_network_id,
-                       'subnet': { 'id': int_net_1_subnets }
-                     }
-    self.network_details = [ { 'snapshot_network': snapshot_network,
-                               'target_network': target_network } ]
-    LOG.debug("Network details for restore: " + str(self.network_details))
 
-    self.restore_ids = []
+        for id in range(len(self.vm_list)):
+             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
+        LOG.debug("Restored vm details list after second selective restore: " + str(self.restored_vm_details_list))
 
-    #disassociate floating ip from server
-    self.disassociate_floating_ip_from_server(self.floating_ips_list[0], self.workload_instances[0])
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
+        LOG.debug("VM details after restore after second selective restore: " + str(self.vms_details_after_restore))
 
-    #Trigger selective restore
-    self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name, instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
-    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
+        self.security_group_id = self.create_security_group("sec_group_{}".format("_final")," security group {}".format("_main"), secgrp_cleanup=False)
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
+        self.security_group_list.append(self.security_group_id)
+        self.add_security_group_rule(parent_group_id = self.security_group_list[n+1], remote_group_id = self.security_group_list[n+1], ip_protocol="TCP", from_port = "1",to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_list[n+1], remote_group_id = self.security_group_list[2], ip_protocol="TCP", from_port = "1",to_port= randint(1, 65535))
 
-    if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
-        reporting.add_test_step("Selective restore", tvaultconf.PASS)
+        #Delete the original instance
+        self.delete_vm(self.workload_instances[0])
+        LOG.debug("Instance deleted successfully")
+
+        #Create one-click restore using CLI command
+        restore_command = command_argument_string.oneclick_restore + " " + str(self.snapshot_ids[1])
+        rc = cli_parser.cli_returncode(restore_command)
+        if rc != 0:
+	    self.exception = "Execute snapshot-oneclick-restore command via cli"
+            raise Exception(self.exception)
+        else:
+            LOG.debug("Command executed correctly")
+
+        self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_ids[1])
+        LOG.debug("Final Restore ID: " + str(self.restore_id))
         self.restore_ids.append(self.restore_id)
-        LOG.debug("First selective restore id: {}".format(str(self.restore_id)))
-    else:
-        reporting.add_test_step("Selective restore", tvaultconf.FAIL)
-        raise Exception("Selective restore failed")
 
-    #Fetch instance details after restore
-    self.restored_vm_details_list = []
-    self.vm_list  =  self.get_restored_vm_list(self.restore_id)
-    LOG.debug("Restored vms : " + str (self.vm_list))
+        self.vm_details_list_after = []
 
-    for id in range(len(self.vm_list)):
-         self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-    LOG.debug("Restored vm details list after first selective restore: " + str(self.restored_vm_details_list))
+        self.vm_list = self.get_restored_vm_list(self.restore_id)
+        LOG.debug("Restored vms : " + str (self.vm_list))
 
-    self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
-    LOG.debug("VM details after restore after first selective restore: " + str(self.vms_details_after_restore))
+        for id in range(len(self.vm_list)):
+             self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
+        LOG.debug("Restored vm details list after oneclick restore: " + str(self.restored_vm_details_list))
 
-    # delete security group 3
-    self.delete_security_group(self.security_group_list[2])
+        self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
+        LOG.debug("VM details after restore after oneclick restore: " + str(self.vms_details_after_restore))
 
-    # Create full snapshot
-    self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
-    LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[1]))
-    #Wait till snapshot is complete
-    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[1])
+    except Exception as self.exception:
+        LOG.error("Exception" + str(self.exception))
 
-    #Trigger selective restore
-    self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name,instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
-
-    self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
-    if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
-        reporting.add_test_step("Selective restore", tvaultconf.PASS)
-        self.restore_ids.append(self.restore_id)
-    else:
-        reporting.add_test_step("Selective restore", tvaultconf.FAIL)
-        raise Exception("Selective restore failed")
-
-    self.vm_list = self.get_restored_vm_list(self.restore_id)
-    LOG.debug("Restored vms : " + str (self.vm_list))
-
-
-
-    for id in range(len(self.vm_list)):
-         self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-    LOG.debug("Restored vm details list after second selective restore: " + str(self.restored_vm_details_list))
-
-    self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
-    LOG.debug("VM details after restore after second selective restore: " + str(self.vms_details_after_restore))
-
-    self.security_group_id = self.create_security_group("sec_group_{}".format("_final")," security group {}".format("_main"), secgrp_cleanup=False)
-    self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
-    self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
-    self.security_group_list.append(self.security_group_id)
-    self.add_security_group_rule(parent_group_id = self.security_group_list[n+1], remote_group_id = self.security_group_list[n+1], ip_protocol="TCP", from_port = "1",to_port= randint(1, 65535))
-    self.add_security_group_rule(parent_group_id = self.security_group_list[n+1], remote_group_id = self.security_group_list[2], ip_protocol="TCP", from_port = "1",to_port= randint(1, 65535))
-
-    #Delete the original instance
-    self.delete_vm(self.workload_instances[0])
-    LOG.debug("Instance deleted successfully")
-
-    #Create one-click restore using CLI command
-    restore_command = command_argument_string.oneclick_restore + " " + str(self.snapshot_ids[1])
-    rc = cli_parser.cli_returncode(restore_command)
-    if rc != 0:
-        reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
-        raise Exception("Command did not execute correctly")
-    else:
-        reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.PASS)
-        LOG.debug("Command executed correctly")
-
-    self.restore_id = query_data.get_snapshot_restore_id(self.snapshot_ids[1])
-    LOG.debug("Final Restore ID: " + str(self.restore_id))
-    self.restore_ids.append(self.restore_id)
-
-    self.vm_details_list_after = []
-
-    self.vm_list = self.get_restored_vm_list(self.restore_id)
-    LOG.debug("Restored vms : " + str (self.vm_list))
-
-    for id in range(len(self.vm_list)):
-         self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-    LOG.debug("Restored vm details list after oneclick restore: " + str(self.restored_vm_details_list))
-
-    self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
-    LOG.debug("VM details after restore after oneclick restore: " + str(self.vms_details_after_restore))

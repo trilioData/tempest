@@ -147,7 +147,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_2_regression(self):
         reporting.add_test_script(str(__name__)+"_nested_security")
         try:
-            LOG.debug("pre req completed")
+	    if self.exception != "":
+            	LOG.debug("pre req failed")
+		raise Exception (str(self.exception))
+	    LOG.debug("pre req completed")
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
