@@ -42,6 +42,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
 	try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
 	    volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]
             

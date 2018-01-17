@@ -48,6 +48,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_1_regression(self):
 	reporting.add_test_script(str(__name__)+"_one_click_restore_bootfromvol")
         try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
 	    self.created=False
 
 	    #Delete the original instance
@@ -149,6 +155,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         try:
 	    if self.exception != "":
             	LOG.debug("pre req failed")
+		reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
 		raise Exception (str(self.exception))
 	    LOG.debug("pre req completed")
         except Exception as e:
@@ -316,6 +323,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_regression(self):
         try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
             reporting.add_test_script(str(__name__)+"_selective_restore_default_values")
             volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]
@@ -454,6 +467,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_5_regression(self):
         reporting.add_test_script(str(__name__)+"_selective_restore_bootfromvol")
         try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
             self.created=False
 	    volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]
@@ -591,6 +610,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_6_regression(self):
         reporting.add_test_script(str(__name__)+"_one_click_restore_bootfrom_image")
         try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
             self.created=False
 
             #Delete the original instance
