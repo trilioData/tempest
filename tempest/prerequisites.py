@@ -597,7 +597,7 @@ def nested_security(self):
         n = 5
         for i in range(n):
 
-            self.security_group_id = self.create_security_group("sec_group_{}".format(i+1)," security group {}".format(i+1), secgrp_cleanup=False)
+            self.security_group_id = self.create_security_group("sec_group_{}".format(i+1)," security group {}".format(i+1))
 
             self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
             self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
@@ -612,7 +612,7 @@ def nested_security(self):
                     continue
                 self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[i+j-2], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
 
-        self.security_group_id = self.create_security_group("sec_group_{}".format("six")," security group {}".format("six"), secgrp_cleanup=False)
+        self.security_group_id = self.create_security_group("sec_group_{}".format("six")," security group {}".format("six"))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.security_group_list.append(self.security_group_id)
@@ -630,14 +630,14 @@ def nested_security(self):
 
         self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(self.flavor_id == 0):
-            self.flavor_id = self.create_flavor(tvaultconf.flavor_name,flavor_cleanup=False)
+            self.flavor_id = self.create_flavor(tvaultconf.flavor_name)
         self.original_flavor_conf = self.get_flavor_details(self.flavor_id)
 
-        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
+        self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
 
         for vm in range(0,self.vms_per_workload):
             vm_name = "tempest_test_vm_" + str(vm+1)
-            vm_id = self.create_vm(vm_name=vm_name ,security_group_id=self.security_group_list[n],flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=False)
+            vm_id = self.create_vm(vm_name=vm_name ,security_group_id=self.security_group_list[n],flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name)
             self.workload_instances.append(vm_id)
 
         for id in range(len(self.workload_instances)):
@@ -660,7 +660,7 @@ def nested_security(self):
         LOG.debug("vm details list before backups" + str( self.vm_details_list))
 
         #Create workload
-        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
+        self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel)
         if (self.wait_for_workload_tobe_available(self.workload_id) == False):
 	    self.exception = "Workload creation failed"
             raise Exception(self.exception)
@@ -669,7 +669,7 @@ def nested_security(self):
         self.snapshot_ids = []
 
         # Create full snapshot
-        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True))
         LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[0]))
         #Wait till snapshot is complete
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
@@ -712,7 +712,7 @@ def nested_security(self):
         self.disassociate_floating_ip_from_server(self.floating_ips_list[0], self.workload_instances[0])
 
         #Trigger selective restore
-        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name, instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name, instance_details=self.instance_details, network_details=self.network_details)
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
 
         if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
@@ -738,13 +738,13 @@ def nested_security(self):
         self.delete_security_group(self.security_group_list[2])
 
         # Create full snapshot
-        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False))
+        self.snapshot_ids.append(self.workload_snapshot(self.workload_id, True))
         LOG.debug("Full Snapshot_id: " + str(self.snapshot_ids[1]))
         #Wait till snapshot is complete
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[1])
 
         #Trigger selective restore
-        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name,instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
+        self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_ids[0],restore_name=tvaultconf.restore_name,instance_details=self.instance_details, network_details=self.network_details)
 
         self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_ids[0])
         if(self.getRestoreStatus(self.workload_id, self.snapshot_ids[0], self.restore_id) == "available"):
@@ -756,8 +756,6 @@ def nested_security(self):
         self.vm_list = self.get_restored_vm_list(self.restore_id)
         LOG.debug("Restored vms : " + str (self.vm_list))
 
-
-
         for id in range(len(self.vm_list)):
              self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
         LOG.debug("Restored vm details list after second selective restore: " + str(self.restored_vm_details_list))
@@ -765,7 +763,7 @@ def nested_security(self):
         self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
         LOG.debug("VM details after restore after second selective restore: " + str(self.vms_details_after_restore))
 
-        self.security_group_id = self.create_security_group("sec_group_{}".format("_final")," security group {}".format("_main"), secgrp_cleanup=False)
+        self.security_group_id = self.create_security_group("sec_group_{}".format("_final")," security group {}".format("_main"))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.security_group_list.append(self.security_group_id)
