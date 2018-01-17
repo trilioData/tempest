@@ -1,4 +1,3 @@
-
 from oslo_log import log as logging
 LOG = logging.getLogger(__name__)
 from tempest import tvaultconf, reporting
@@ -804,5 +803,3 @@ def nested_security(self):
 
     except Exception as self.exception:
         LOG.error("Exception" + str(self.exception))
-
-
