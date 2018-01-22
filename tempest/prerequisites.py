@@ -325,7 +325,7 @@ def filesearch(self):
 
     # Create key_pair and get available floating IP's
     self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
-    self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=True)
+    self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=False)
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
 )
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
