@@ -435,7 +435,7 @@ def bootfromvol_workload(self):
     self.workload_volumes = []
 
     for vm in range(0,self.vms_per_workload):
-         self.volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=False)
+         self.volume_id = self.create_volume(size=4, image_id=CONF.compute.image_ref, volume_cleanup=False)
          self.workload_volumes.append(self.volume_id)
          self.set_volume_as_bootable(self.volume_id)
          self.block_mapping_details = [{ "source_type": "volume", 
