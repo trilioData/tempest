@@ -209,8 +209,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def create_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
 			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
-	ts = str(datetime.now()) 
-	vm_name = "Tempest_Test_Vm" + ts
+	if vm_name == "":
+	    ts = str(datetime.now()) 
+	    vm_name = "Tempest_Test_Vm" + ts
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
