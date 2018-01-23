@@ -2043,3 +2043,59 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
+
+    def create_scheduler_policy(self, policy_name, fullbackup_interval, interval, retention_policy_value, 
+                                retention_policy_type="Number of Snapshots to Keep", description='test',
+                                policy_cleanup=True):
+        payload = {"workload_policy": {
+                                       "field_values": {
+                                                        "fullbackup_interval": fullbackup_interval, 
+                                                        "retention_policy_type": retention_policy_type, 
+                                                        "interval": interval,
+                                                        "retention_policy_value": retention_policy_value
+                                                       }, 
+                                       "display_name": policy_name, 
+                                       "display_description": description, 
+                                       "metadata": {}
+                                      }
+                  }
+        resp, body = self.wlm_client.client.post("/workload_policy/", json=payload)
+        policy_id = body['policy']['id']
+        print "policy id is : " + policy_id
+        LOG.debug("#### policyid: %s , operation:schedular_policy_create" %policy_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+              
+        LOG.debug('PolicyCreated: %s' % policy_id)
+        if(tvaultconf.cleanup == True and policy_cleanup == True):
+            self.addCleanup(self.delete_scheduler_policy, policy_id)
+        
+        return policy_id
+
+    def assign_workload_policy(self,policy_id,add_project_ids_list=[],remove_project_ids_list=[]):
+        payload = {"policy": 
+                           {
+                             "remove_projects": remove_project_ids_list, 
+                             "add_projects": add_project_ids_list
+                           }
+                  } 
+    
+        resp, body = self.wlm_client.client.post("/workload_policy/"+policy_id+"/assign", json=payload)
+        policy_id = body['policy']['id']
+        print "policy id is : " + policy_id
+        LOG.debug("#### policyid: %s , operation:assign_schedular_policy" %policy_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return policy_id
+
+    def delete_scheduler_policy(self, policy_id):
+        try:
+            resp, body = self.wlm_client.client.delete("/workload_policy/"+policy_id)
+            LOG.debug("#### policy id: %s , operation: workload_policy_delete" % policy_id)
+            LOG.debug("Response:"+ str(resp.content))
+            LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
+            return True
+        except Exception as e:
+            return False

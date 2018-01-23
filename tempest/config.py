@@ -223,6 +223,10 @@ IdentityGroup = [
                help="API key to use when authenticating.",
                secret=True,
                deprecated_for_removal=True),
+    cfg.StrOpt('admin_tenant_id',
+               help="admin tenant id to be used for authentcation "
+                    "for API tests."), 
+
 ]
 
 identity_feature_group = cfg.OptGroup(name='identity-feature-enabled',

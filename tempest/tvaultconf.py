@@ -63,6 +63,10 @@ sched=BlockingScheduler()
 count=0
 No_of_Backup=1
 
+# Scheduler policy parameters
+policy_name="policy2"
+fullbackup_interval="8"
+
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
 instance_username = "ubuntu"
