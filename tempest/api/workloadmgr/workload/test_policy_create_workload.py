@@ -25,25 +25,12 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
 
+    @test.pre_req({'type':'small_workload'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_policy_create_workload(self):
 	try:
-	    #Prerequisites
-            self.created = False
-
-            #Launch instance
-            self.vm_id = self.create_vm()
-            LOG.debug("VM ID: " + str(self.vm_id))
-
-            #Create volume
-            self.volume_id = self.create_volume()
-            LOG.debug("Volume ID: " + str(self.volume_id))
-        
-            #Attach volume to the instance
-            self.attach_volume(self.volume_id, self.vm_id)
-            LOG.debug("Volume attached")
-            
+	    
             #create scehdular policy
             self.policy_id = self.create_scheduler_policy(
                                                           policy_name = tvaultconf.policy_name, 

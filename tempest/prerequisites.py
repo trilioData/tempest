@@ -11,12 +11,17 @@ from tempest.util import cli_parser
 CONF = config.CONF
 
 def small_workload(self):
-    self.workload_instances = []
     LOG.debug("Running prerequisites for : small_workload")
-    self.vms_per_workload = 2
-    for vm in range(0,self.vms_per_workload):
-       vm_id = self.create_vm()
-       self.workload_instances.append(vm_id)
+    self.vm_id = self.create_vm()
+    LOG.debug("Vm ID: " + str(self.vm_id))
+
+    #Create volume
+    self.volume_id = self.create_volume()
+    LOG.debug("Volume ID: " + str(self.volume_id))
+
+    #Attach volume to the instance
+    self.attach_volume(self.volume_id, self.vm_id)
+    LOG.debug("Volume attached")
 
 def inplace(self):
     self.total_workloads=1
