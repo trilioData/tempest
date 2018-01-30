@@ -171,7 +171,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         try:
             reporting.add_test_script(str(__name__)+"_inplace_restore_cli")
 
-            volumes = ["/dev/vdb", "/dev/vdc"]
+            volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]	
 
             #calculate md5 sum before
@@ -300,16 +300,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Md5 Verification for volume 3", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            
-            
-            #Delete restore for snapshot
-            self.restored_volumes = self.get_restored_volume_list(self.restore_id)
-            if tvaultconf.cleanup==True: 
-                self.restore_delete(self.workload_id, self.incr_snapshot_id, self.restore_id)
-                LOG.debug("Snapshot Restore deleted successfully")
-                
-                #Delete restored volumes and volume snapshots
-                self.delete_volumes(self.restored_volumes)
 
             reporting.test_case_to_write()
 
@@ -317,6 +307,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
+
+	finally:
+	    #Delete restore for snapshot
+            self.restored_volumes = self.get_restored_volume_list(self.restore_id)
+            if tvaultconf.cleanup==True:
+                self.restore_delete(self.workload_id, self.incr_snapshot_id, self.restore_id)
+                LOG.debug("Snapshot Restore deleted successfully")
+
+                #Delete restored volumes and volume snapshots
+                self.delete_volumes(self.restored_volumes)
 
     @test.pre_req({'type':'bootfrom_image_with_floating_ips'})
     @test.attr(type='smoke')
@@ -330,7 +330,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("pre req completed")
 
             reporting.add_test_script(str(__name__)+"_selective_restore_default_values")
-            volumes = ["/dev/vdb", "/dev/vdc"]
+            volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
             
 
@@ -474,7 +474,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("pre req completed")
 
             self.created=False
-	    volumes = ["/dev/vdb", "/dev/vdc"]
+	    volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
 
 	    int_net_1_name = self.get_net_name(CONF.network.internal_network_id)

@@ -41,7 +41,7 @@ def inplace(self):
     self.vms_details_after_restore = []
     self.instance_details = []
     self.network_details = []
-    volumes = ["/dev/vdb", "/dev/vdc"]
+    volumes = tvaultconf.volumes_parts 
     mount_points = ["mount_data_b", "mount_data_c"]
     self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
     ts = str(datetime.now())
@@ -181,7 +181,7 @@ def bootfrom_image_with_floating_ips(self):
         self.vms_details_after_restore = []
         self.instance_details = []
         self.network_details = []
-        volumes = ["/dev/vdb", "/dev/vdc"]
+        volumes = tvaultconf.volumes_parts
         mount_points = ["mount_data_b", "mount_data_c"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
 	ts = str(datetime.now())
@@ -267,7 +267,7 @@ def selective_basic(self):
         self.vms_details_after_restore = []
         self.instance_details = []
         self.network_details = []
-        volumes = ["/dev/vdb", "/dev/vdc"]
+        volumes = tvaultconf.volumes_parts
         self.security_group_id = ""
         self.flavor_id = ""
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
@@ -316,7 +316,7 @@ def selective_basic(self):
 
 def filesearch(self):
     self.filecount_in_snapshots = {}
-    volumes = ["/dev/vdb", "/dev/vdc"]
+    volumes = tvaultconf.volumes_parts
     mount_points = ["mount_data_b", "mount_data_c"]
     self.snapshot_ids = []
     self.instances_ids = []
@@ -490,7 +490,7 @@ def bootfromvol_workload_medium(self):
         self.workload_instances = []
         self.workload_volumes = []
         self.floating_ips_list = []
-        volumes = ["/dev/vdb", "/dev/vdc"]
+        volumes = tvaultconf.volumes_parts
         mount_points = ["mount_data_b", "mount_data_c"]
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
@@ -637,7 +637,7 @@ def nested_security(self):
         self.workload_instances = []
         self.workload_volumes = []
         self.floating_ips_list = []
-        volumes = ["/dev/vdb", "/dev/vdc"]
+        volumes = tvaultconf.volumes_parts
 
         self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(self.flavor_id == 0):

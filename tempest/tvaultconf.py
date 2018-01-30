@@ -81,3 +81,4 @@ config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "orchestration": ["/etc/heat/", "/var/log/heat/"]}
 additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
 bootfromvol_vol_size = 4
+volumes_parts = ["/dev/vdb", "/dev/vdc"] 
