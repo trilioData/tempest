@@ -48,7 +48,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception (str(self.exception))
             LOG.debug("pre req completed")
 
-	    volumes = ["/dev/vdb", "/dev/vdc"]
+	    volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
             
 
