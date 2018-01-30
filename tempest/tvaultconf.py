@@ -80,3 +80,4 @@ config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
                        "orchestration": ["/etc/heat/", "/var/log/heat/"]}
 additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
+bootfromvol_vol_size = 4
