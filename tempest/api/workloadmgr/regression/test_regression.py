@@ -168,8 +168,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_regression(self):
+	reporting.add_test_script(str(__name__)+"_inplace_restore_cli")
         try:
-            reporting.add_test_script(str(__name__)+"_inplace_restore_cli")
+            LOG.debug("pre req completed")
 
             volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]	
@@ -322,6 +323,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_regression(self):
+	reporting.add_test_script(str(__name__)+"_selective_restore_default_values")
         try:
 	    if self.exception != "":
                 LOG.debug("pre req failed")
@@ -329,7 +331,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception (str(self.exception))
             LOG.debug("pre req completed")
 
-            reporting.add_test_script(str(__name__)+"_selective_restore_default_values")
             volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
             
