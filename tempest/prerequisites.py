@@ -44,7 +44,8 @@ def inplace(self):
     volumes = ["/dev/vdb", "/dev/vdc"]
     mount_points = ["mount_data_b", "mount_data_c"]
     self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-    security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=True)
+    ts = str(datetime.now())
+    security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name+ts)," security group {}".format("test_sec"), secgrp_cleanup=True)
     self.add_security_group_rule(parent_group_id = security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
 )
     self.add_security_group_rule(parent_group_id = security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
@@ -183,7 +184,8 @@ def bootfrom_image_with_floating_ips(self):
         volumes = ["/dev/vdb", "/dev/vdc"]
         mount_points = ["mount_data_b", "mount_data_c"]
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=True)
+	ts = str(datetime.now())
+        security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name+ts)," security group {}".format("test_sec"), secgrp_cleanup=True)
         self.add_security_group_rule(parent_group_id = security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
 )
         self.add_security_group_rule(parent_group_id = security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
@@ -269,7 +271,8 @@ def selective_basic(self):
         self.security_group_id = ""
         self.flavor_id = ""
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name)
-        self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=True)
+	ts = str(datetime.now())
+        self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name+ts)," security group {}".format("test_sec"), secgrp_cleanup=True)
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
 )
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
@@ -325,7 +328,8 @@ def filesearch(self):
 
     # Create key_pair and get available floating IP's
     self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
-    self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name)," security group {}".format("test_sec"), secgrp_cleanup=False)
+    ts = str(datetime.now())
+    self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name+ts)," security group {}".format("test_sec"), secgrp_cleanup=False)
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535)
 )
     self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535)
@@ -490,8 +494,9 @@ def bootfromvol_workload_medium(self):
         mount_points = ["mount_data_b", "mount_data_c"]
 
         self.original_fingerprint = self.create_key_pair(tvaultconf.key_pair_name,keypair_cleanup=False)
+	ts = str(datetime.now())
 
-        self.security_group_id = self.create_security_group(tvaultconf.security_group_name,"tempest_sample_description", secgrp_cleanup=False)
+        self.security_group_id = self.create_security_group(tvaultconf.security_group_name+ts,"tempest_sample_description", secgrp_cleanup=False)
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
@@ -601,8 +606,8 @@ def nested_security(self):
         #  create security group 1-5
         n = 5
         for i in range(n):
-
-            self.security_group_id = self.create_security_group("sec_group_{}".format(i+1)," security group {}".format(i+1))
+	    ts = str(datetime.now())
+            self.security_group_id = self.create_security_group("sec_group_{}".format(str(i+1)+str(ts))," security group {}".format(i+1))
 
             self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
             self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
@@ -617,7 +622,8 @@ def nested_security(self):
                     continue
                 self.add_security_group_rule(parent_group_id = self.security_group_list[i-1], remote_group_id = self.security_group_list[i+j-2], ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
 
-        self.security_group_id = self.create_security_group("sec_group_{}".format("six")," security group {}".format("six"))
+	ts = str(datetime.now())
+        self.security_group_id = self.create_security_group("sec_group_{}".format("six"+ts)," security group {}".format("six"))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.security_group_list.append(self.security_group_id)
@@ -768,7 +774,8 @@ def nested_security(self):
         self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
         LOG.debug("VM details after restore after second selective restore: " + str(self.vms_details_after_restore))
 
-        self.security_group_id = self.create_security_group("sec_group_{}".format("_final")," security group {}".format("_main"))
+	ts = str(datetime.now())
+        self.security_group_id = self.create_security_group("sec_group_{}".format("_final"+ts)," security group {}".format("_main"))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.security_group_list.append(self.security_group_id)
