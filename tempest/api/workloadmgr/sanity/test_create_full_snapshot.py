@@ -116,6 +116,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         #Add results to sanity report
         for k,v in result_json.items():
-             for k1,v1 in v['result'].items():
-                 reporting.add_sanity_results(k1+"_"+k, v1)
+	     for k1 in reversed(v['result'].keys()):
+                 reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
 
