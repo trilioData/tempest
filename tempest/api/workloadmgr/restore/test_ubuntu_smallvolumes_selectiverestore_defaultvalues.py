@@ -37,12 +37,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
-    @test.pre_req({'type':'selective_with_floating_ips'})
+    @test.pre_req({'type':'bootfrom_image_with_floating_ips'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
 	try:
-	    volumes = ["/dev/vdb", "/dev/vdc"]
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
+	    volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
             
 

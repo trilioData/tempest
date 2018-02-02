@@ -34,7 +34,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.created = False
             self.workload_instances = []
             #Launch instance
-            self.vm_id = self.create_vm()
+            self.vm_id = self.create_vm(vm_name="bootfromvol_vm")
             LOG.debug("VM ID: " + str(self.vm_id))
 
             #Create volume
