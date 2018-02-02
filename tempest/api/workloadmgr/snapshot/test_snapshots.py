@@ -43,6 +43,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    workload_id = self.wid
 	    vm_id = self.vm_id
 	    volume_id = self.volume_id
+
+	    LOG.debug("workload is:" + str(workload_id))
+	    LOG.debug("vm id: " + str(vm_id))
+	    LOG.debug("volume id: " + str(volume_id))
 	    
 	    self.created = False
 	    
@@ -87,6 +91,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             global workload_id
             self.created = False
+	    LOG.debug("workload is:" + str(workload_id))
 
 	    #Create incremental snapshot using CLI command
             create_snapshot = command_argument_string.incr_snapshot_create + workload_id
