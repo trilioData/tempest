@@ -3,7 +3,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
-cleanup = True
+cleanup = True 
 
 # pre requisite paramter
 pre_req = True
@@ -74,7 +74,7 @@ flavor_name = "test_flavor"
 config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "glance": ["/etc/glance", "/var/lib/glance", "/var/log/glance"],
                        "keystone": ["/etc/keystone", "/var/lib/keystone", "/var/log/keystone"],
-                       "cinder": ["/etc/cinder", "/var/log/cinder"],
+                       "cinder": ["/etc/cinder","/var/lib/cinder", "/var/log/cinder"],
                        "neutron": ["/etc/neutron", "/var/lib/neutron"],
                        "swift": ["/etc/swift", "/var/log/swift/"],
                        "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
