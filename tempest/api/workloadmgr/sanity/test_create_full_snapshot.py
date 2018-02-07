@@ -40,12 +40,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 
     def _attached_volume_prerequisite(self, volume_type):
-        self.vm_id = self.create_vm()
         if(volume_type == "LVM"):
             self.volume_id = self.create_volume(volume_type_id=CONF.volume.volume_type_id_1)
         else:
             self.volume_id = self.create_volume()
-        self.attach_volume(self.volume_id, self.vm_id, device="/dev/vdb")
+	self.vm_id = self.create_vm()
+        self.attach_volume(self.volume_id, self.vm_id, device=tvaultconf.volumes_parts[0])
+
+
+    def _boot_from_volume_prerequisite(self, volume_type):
+        if(volume_type == "LVM"):
+            self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id_1)
+        else:
+            self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id)
+	self.set_volume_as_bootable(self.volume_id)
+        self.block_mapping_details = [{ "source_type": "volume", 
+    		   "delete_on_termination": "false",
+    		   "boot_index": 0,
+    		   "uuid": self.volume_id,
+    		   "destination_type": "volume"}]
+        self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
 
 
     def _create_workload(self, workload_instances):
@@ -75,47 +89,70 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_full_snapshot(self):
-        result_json = {}
-        for test in tvaultconf.enabled_tests:
-            result_json[test] = {}
-        LOG.debug("Result json: " + str(result_json))
+	try:
+	    result_json = {}
+            for test in tvaultconf.enabled_tests:
+                result_json[test] = {}
+            LOG.debug("Result json: " + str(result_json))
 
-        for k in result_json.keys():
-             if(k.find("Attach") != -1):
-                 if(k.find("Ceph") != -1):
-                     self._attached_volume_prerequisite("Ceph")
-                 else:
-                     self._attached_volume_prerequisite("LVM")
-             result_json[k]['instances'] = self.vm_id
-             result_json[k]['volumes'] = self.volume_id
-             self._create_workload([self.vm_id])
-             result_json[k]['result'] = {}
-             result_json[k]['workload'] = self.workload_id
-             result_json[k]['workload_status'] = self.workload_status
-             if(self.workload_status == "available"):
-                 result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
-             else:
-                 result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL
-                 continue
+            for k in result_json.keys():
+                if(k.find("Attach") != -1):
+                   if(k.find("Ceph") != -1):
+                       self._attached_volume_prerequisite("Ceph")
+                   else:
+                       self._attached_volume_prerequisite("LVM")
+		elif(k.find("Boot") != -1):
+                   if(k.find("Ceph") != -1):
+                       self._boot_from_volume_prerequisite("Ceph")
+                   else:
+                       self._boot_from_volume_prerequisite("LVM")
 
-             self._create_full_snapshot()
-             result_json[k]['snapshot'] = self.snapshot_id
-             result_json[k]['snapshot_status'] = self.snapshot_status
+                result_json[k]['instances'] = self.vm_id
+                result_json[k]['volumes'] = self.volume_id
+                self._create_workload([self.vm_id])
+                result_json[k]['result'] = {}
+                result_json[k]['workload'] = self.workload_id
+                result_json[k]['workload_status'] = self.workload_status
+                if(self.workload_status == "available"):
+                    result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
+                else:
+                    result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL
+                    continue
 
-        LOG.debug("Result json: " + str(result_json))
+                self._create_full_snapshot()
+                result_json[k]['snapshot'] = self.snapshot_id
+                result_json[k]['snapshot_status'] = self.snapshot_status
+            LOG.debug("Result json: " + str(result_json))
 
-        for k in result_json.keys():
-             result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
-             if(result_json[k]['snapshot_status'] == "available"):
-                 result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
-             else:
-                 result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
-                 continue
+            for k in result_json.keys():
+                result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
+                if(result_json[k]['snapshot_status'] == "available"):
+                    result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
+                else:
+                    result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
 
-        LOG.debug("Final Result json: " + str(result_json))
+	        if(result_json[k]['workload_status'] == "available" and result_json[k]['snapshot_status'] in ("available", "error")):
+	            result_json[k]['snapshot_delete_response'] = self._delete_snapshot(result_json[k]['workload'], result_json[k]['snapshot'])
+                    if(result_json[k]['snapshot_delete_response']):
+                        result_json[k]['result']['Delete_Snapshot'] = tvaultconf.PASS
+                    else:
+                        result_json[k]['result']['Delete_Snapshot'] = tvaultconf.FAIL
 
-        #Add results to sanity report
-        for k,v in result_json.items():
-	     for k1 in reversed(v['result'].keys()):
-                 reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
+	        if(result_json[k]['workload_status'] in ("available", "error")):
+	            result_json[k]['workload_delete_response'] = self._delete_workload(result_json[k]['workload'])
+                    if(result_json[k]['workload_delete_response']):
+                        result_json[k]['result']['Delete_Workload'] = tvaultconf.PASS
+                    else:
+                        result_json[k]['result']['Delete_Workload'] = tvaultconf.FAIL
+            LOG.debug("Final Result json: " + str(result_json))
+
+	except Exception as e:
+	    LOG.error("Exception: " + str(e))
+
+	finally:
+	    #Add results to sanity report
+	    LOG.debug("Finally Result json: " + str(result_json))
+            for k,v in result_json.items():
+	        for k1 in reversed(v['result'].keys()):
+                    reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
 

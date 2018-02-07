@@ -160,6 +160,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Selective restore of imported snapshot", tvaultconf.FAIL)
 		    reporting.set_test_script_status(tvaultconf.FAIL)
 
+	    #Verify workload definition after selective restore
+
+
 	    #Delete original VM
 	    self.delete_vm(self.original_vm_id)
 
@@ -172,6 +175,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    else:
 	        reporting.add_test_step("One click restore of imported snapshot", tvaultconf.FAIL)
 		raise Exception("One click restore failed")
+
+	    #Verify workload definition after one click restore
+
 
 	    #Trigger full snapshot of imported workload
 	    self.new_snapshot_id = self.workload_snapshot(self.workload_id_before_upgrade, is_full=True, snapshot_cleanup=False)
