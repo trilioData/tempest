@@ -131,6 +131,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
 
+            for k in result_json.keys():
 	        if(result_json[k]['workload_status'] == "available" and result_json[k]['snapshot_status'] in ("available", "error")):
 	            result_json[k]['snapshot_delete_response'] = self._delete_snapshot(result_json[k]['workload'], result_json[k]['snapshot'])
                     if(result_json[k]['snapshot_delete_response']):
@@ -138,6 +139,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         result_json[k]['result']['Delete_Snapshot'] = tvaultconf.FAIL
 
+            for k in result_json.keys():
 	        if(result_json[k]['workload_status'] in ("available", "error")):
 	            result_json[k]['workload_delete_response'] = self._delete_workload(result_json[k]['workload'])
                     if(result_json[k]['workload_delete_response']):
