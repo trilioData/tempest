@@ -23,7 +23,6 @@ from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
 from tempest import reporting
-from datetime import datetime
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -96,6 +95,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Result json: " + str(result_json))
 
             for k in result_json.keys():
+	        result_json[k]['result'] = {}
                 if(k.find("Attach") != -1):
                    if(k.find("Ceph") != -1):
                        self._attached_volume_prerequisite("Ceph")
@@ -110,7 +110,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 result_json[k]['instances'] = self.vm_id
                 result_json[k]['volumes'] = self.volume_id
                 self._create_workload([self.vm_id])
-                result_json[k]['result'] = {}
                 result_json[k]['workload'] = self.workload_id
                 result_json[k]['workload_status'] = self.workload_status
                 if(self.workload_status == "available"):
@@ -165,6 +164,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    #Add results to sanity report
 	    LOG.debug("Finally Result json: " + str(result_json))
             for k,v in result_json.items():
-	        for k1 in reversed(v['result'].keys()):
-                    reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
+	 	if(len(v['result'].keys()) > 0):
+	            for k1 in reversed(v['result'].keys()):
+                        reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
 
