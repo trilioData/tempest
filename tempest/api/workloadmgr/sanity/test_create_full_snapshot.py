@@ -125,27 +125,37 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Result json: " + str(result_json))
 
             for k in result_json.keys():
-                result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
-                if(result_json[k]['snapshot_status'] == "available"):
-                    result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
-                else:
-                    result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
+		if('snapshot_status' in result_json[k].keys()):
+                    result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
+		    result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+                    if(result_json[k]['snapshot_status'] == "available"):
+                        result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
+                    else:
+		        result_json[k]['snapshot_error_msg'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['error_msg']
+                        result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
+            LOG.debug("Result json: " + str(result_json))
 
             for k in result_json.keys():
-	        if(result_json[k]['workload_status'] == "available" and result_json[k]['snapshot_status'] in ("available", "error")):
-	            result_json[k]['snapshot_delete_response'] = self._delete_snapshot(result_json[k]['workload'], result_json[k]['snapshot'])
-                    if(result_json[k]['snapshot_delete_response']):
-                        result_json[k]['result']['Delete_Snapshot'] = tvaultconf.PASS
-                    else:
-                        result_json[k]['result']['Delete_Snapshot'] = tvaultconf.FAIL
+               if('snapshot_status' in result_json[k].keys()):
+		   result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
+		   result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+	           if(result_json[k]['workload_status'] == "available" and result_json[k]['snapshot_status'] in ("available", "error")):
+	               result_json[k]['snapshot_delete_response'] = self._delete_snapshot(result_json[k]['workload'], result_json[k]['snapshot'])
+                       if(result_json[k]['snapshot_delete_response']):
+                           result_json[k]['result']['Delete_Snapshot'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['result']['Delete_Snapshot'] = tvaultconf.FAIL
+            LOG.debug("Result json: " + str(result_json))
 
             for k in result_json.keys():
-	        if(result_json[k]['workload_status'] in ("available", "error")):
-	            result_json[k]['workload_delete_response'] = self._delete_workload(result_json[k]['workload'])
-                    if(result_json[k]['workload_delete_response']):
-                        result_json[k]['result']['Delete_Workload'] = tvaultconf.PASS
-                    else:
-                        result_json[k]['result']['Delete_Workload'] = tvaultconf.FAIL
+               if('workload_status' in result_json[k].keys()):
+		   result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+	           if(result_json[k]['workload_status'] in ("available", "error")):
+	               result_json[k]['workload_delete_response'] = self._delete_workload(result_json[k]['workload'])
+                       if(result_json[k]['workload_delete_response']):
+                           result_json[k]['result']['Delete_Workload'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['result']['Delete_Workload'] = tvaultconf.FAIL
             LOG.debug("Final Result json: " + str(result_json))
 
 	except Exception as e:
