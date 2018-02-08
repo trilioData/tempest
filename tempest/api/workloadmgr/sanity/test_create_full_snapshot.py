@@ -126,7 +126,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for k in result_json.keys():
 		if('snapshot_status' in result_json[k].keys()):
                     result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
-		    result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+		    result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
                     if(result_json[k]['snapshot_status'] == "available"):
                         result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
                     else:
@@ -137,7 +137,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for k in result_json.keys():
                if('snapshot_status' in result_json[k].keys()):
 		   result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
-		   result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+		   result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
 	           if(result_json[k]['workload_status'] == "available" and result_json[k]['snapshot_status'] in ("available", "error")):
 	               result_json[k]['snapshot_delete_response'] = self._delete_snapshot(result_json[k]['workload'], result_json[k]['snapshot'])
                        if(result_json[k]['snapshot_delete_response']):
@@ -148,7 +148,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             for k in result_json.keys():
                if('workload_status' in result_json[k].keys()):
-		   result_json[k]['workload_status'] = getWorkloadStatus(result_json[k]['workload'])
+		   result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
 	           if(result_json[k]['workload_status'] in ("available", "error")):
 	               result_json[k]['workload_delete_response'] = self._delete_workload(result_json[k]['workload'])
                        if(result_json[k]['workload_delete_response']):
@@ -164,7 +164,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    #Add results to sanity report
 	    LOG.debug("Finally Result json: " + str(result_json))
             for k,v in result_json.items():
-	 	if(len(v['result'].keys()) > 0):
+	 	if(('result' in v.keys()) and (len(v['result'].keys()) > 0)):
 	            for k1 in reversed(v['result'].keys()):
                         reporting.add_sanity_results(k1+"_"+k, v['result'][k1])
 
