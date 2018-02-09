@@ -1212,6 +1212,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 floatingip = str(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]][1]['addr'])
             else:
     	        floatingip = None
+	    if "security_groups" not in vm_details_list[i]['server'].keys():	
+	        security_group = None
+	    else:
+	    	security_group = vm_details_list[i]['server']['security_groups']
+
             tmp_json = { 'id': server_id,
                     'name': vm_details_list[i]['server']['name'],
                     'network_name': list(vm_details_list[i]['server']['addresses'].keys())[0],
@@ -1220,7 +1225,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'vm_status': vm_details_list[i]['server']['status'],
                     'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
                     'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
-                    'flavor_id': vm_details_list[i]['server']['flavor']['id']                    
+                    'flavor_id': vm_details_list[i]['server']['flavor']['id'],
+		    'security_groups': security_group
                     }
 	    self.vms_details.append(tmp_json)
 	return self.vms_details
@@ -1826,8 +1832,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	        if vault_storage_path != "":
 		    service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
 		    LOG.debug("service_dir_vault: " + str(service_dir_path))
-		if "log" not in service_dir_path:    
-		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
+		if "log" not in service_dir_path:   
+		    if "/var/lib/cinder" != service_dir_path: 
+		        md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
                 stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
 
 		exit_status = stdout.channel.recv_exit_status()
