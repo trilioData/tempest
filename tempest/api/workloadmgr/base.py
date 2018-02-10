@@ -2061,3 +2061,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         output = self.channel.recv(9999)
         LOG.debug(str(output))
+
+    '''
+    Method to fetch details of a specific workload
+    '''
+    def getWorkloadDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        workload_data = body['workload']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return workload_data
+
