@@ -12,6 +12,8 @@ pre_req = True
 PASS = "PASS"
 FAIL = "FAIL"
 
+enabled_tests = ["Attached_Volume_Ceph"]
+
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
 
@@ -31,7 +33,7 @@ restore_name = "test-oneclick-restore"
 selective_restore_name = "test-selective-restore"
 restore_filename = "/opt/restore.json"
 vm_license_filename = "test_licenses/tvault_license_10VM.txt"
-capacity_license_filename = "test_licenses/tvault_license_100GB.txt"
+capacity_license_filename = "test_licenses/tvault_license_100TB.txt"
 compute_license_filename = "test_licenses/tvault_license_10compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"

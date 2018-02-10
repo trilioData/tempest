@@ -786,7 +786,13 @@ VolumeGroup = [
                help='Volume type name'),
     cfg.StrOpt('volume_type_id',
                default='',
-               help='Volume type id')
+               help='Volume type id'),
+    cfg.StrOpt('volume_type_1',
+               default='',
+               help='Alternate Volume type name'),
+    cfg.StrOpt('volume_type_id_1',
+               default='',
+               help='Alternate Volume type id')
 ]
 
 volume_feature_group = cfg.OptGroup(name='volume-feature-enabled',
