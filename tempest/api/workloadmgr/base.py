@@ -1830,8 +1830,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("service_dir: " +  " | " + service_dir + " | ")
                 
 	        if vault_storage_path != "":
-		    service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
-		    LOG.debug("service_dir_vault: " + str(service_dir_path))
+		    if "/var/lib/cinder" not in service_dir:
+		        service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		        LOG.debug("service_dir_vault: " + str(service_dir_path))
 		if "log" not in service_dir_path:   
 		    if "/var/lib/cinder" != service_dir_path: 
 		        md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
