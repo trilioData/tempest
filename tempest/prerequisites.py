@@ -387,7 +387,7 @@ def filesearch(self):
         self.ssh.close()
 
         # Create incremental-1 snapshot
-	self.snapshot_id=self.workload_snapshot(self.wid, True, snapshot_cleanup=False)
+	self.snapshot_id=self.workload_snapshot(self.wid, False, snapshot_cleanup=False)
         self.wait_for_workload_tobe_available(self.wid)
         if(self.getSnapshotStatus(self.wid, self.snapshot_id) != "available"):
             self.exception = "Create incremental-1 snapshot"
@@ -402,7 +402,7 @@ def filesearch(self):
         self.ssh.close()
 
         # Create incremental-2 snapshot
-	self.snapshot_id=self.workload_snapshot(self.wid, True, snapshot_cleanup=False)
+	self.snapshot_id=self.workload_snapshot(self.wid, False, snapshot_cleanup=False)
         self.wait_for_workload_tobe_available(self.wid)
         if(self.getSnapshotStatus(self.wid, self.snapshot_id) != "available"):
             self.exception = "Create incremental-2 snapshot"
@@ -417,7 +417,7 @@ def filesearch(self):
         self.ssh.close()
 
         # Create incremental-3 snapshot
-	self.snapshot_id=self.workload_snapshot(self.wid, True, snapshot_cleanup=False)
+	self.snapshot_id=self.workload_snapshot(self.wid, False, snapshot_cleanup=False)
         self.wait_for_workload_tobe_available(self.wid)
         if(self.getSnapshotStatus(self.wid, self.snapshot_id) != "available"):
             self.exception = "Create incremental-3 snapshot"
