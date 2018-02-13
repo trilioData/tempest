@@ -35,6 +35,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_1_filesearch_default_parameters(self):
 	reporting.add_test_script(str(__name__) + "_default_parameters")
 	try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
 	    global instances_ids
 	    global snapshot_ids 
 	    global date_from
