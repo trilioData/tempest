@@ -2099,3 +2099,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         except Exception as e:
             return False
+
+    def getWorkloadDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        workload_details = body['workload']['jobschedule']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return workload_details
+
+    def get_policy_idof_workload(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        policy_id_of_workload = body['workload']['metadata']['policy_id']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % policy_id_of_workload)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return policy_id_of_workload
+
+   
