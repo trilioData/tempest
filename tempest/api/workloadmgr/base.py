@@ -209,8 +209,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def create_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
 			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
-	ts = str(datetime.now()) 
-	vm_name = "Tempest_Test_Vm" + ts
+	if(vm_name == ""):
+	    ts = str(datetime.now())
+	    vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
@@ -446,7 +447,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             else:
                 in_list = []
                 ts=str(datetime.now())
-                workload_name = "tempest"+ ts
+                workload_name = "tempest"+ ts.replace('.','-')
                 for id in instances:
                     in_list.append({'instance-id':id})
                 payload={'workload': {'name': workload_name,
@@ -465,8 +466,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             in_list = []
             if(workload_name == ""):
-                ts=str(datetime.now())
-                workload_name = "tempest"+ ts
+		ts=str(datetime.now())
+                workload_name = "tempest"+ ts.replace('.','-')
             for id in instances:
                 in_list.append({'instance-id':id})
             payload={'workload': {'name': workload_name,
@@ -524,7 +525,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_id = body['snapshot']['id']
         LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:"+ str(resp.content))
-        self.wait_for_workload_tobe_available(workload_id)
+        #self.wait_for_workload_tobe_available(workload_id)
         if(tvaultconf.cleanup == True and snapshot_cleanup == True):
             self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
         return snapshot_id
@@ -1010,56 +1011,50 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     layout creation and formatting the disks
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
-        stdin, stdout, stderr = ssh.exec_command("sudo sfdisk -d /dev/vda > my.layout")
-        stdin, stdout, stderr = ssh.exec_command("sudo cat my.layout")
-        LOG.debug("disk create my.layout output" + str(stdout.read()))
-	for volume in volumes:
-            stdin, stdout, stderr = ssh.exec_command("sudo sfdisk " + volume + " < my.layout")
-            stdin, stdout, stderr = ssh.exec_command("sudo fdisk -l | grep /dev/vd")
-            LOG.debug("fdisk output after partitioning " + str(stdout.read()))
-	    time.sleep(5)
-            buildCommand = "sudo mkfs -t ext3 " + volume + "1"
-            sleeptime = 2
-            outdata, errdata = '', ''
-            ssh_transp = ssh.get_transport()
-            chan = ssh_transp.open_session()
-            chan.setblocking(0)
-            chan.exec_command(buildCommand)
-            LOG.debug("sudo mkfs -t ext3 " + volume + "1 executed")
-            while True:  # monitoring process
-                # Reading from output streams
-                while chan.recv_ready():
-                    outdata += chan.recv(1000)
-                while chan.recv_stderr_ready():
-                    errdata += chan.recv_stderr(1000)
-                if chan.exit_status_ready():  # If completed
-                    break
-                time.sleep(sleeptime)
-                LOG.debug("sudo mkfs -t ext3  " + volume + "1 output waiting..")
-            retcode = chan.recv_exit_status()
+	self.channel = ssh.invoke_shell()	
+	for volume in volumes:	
+
+	    commands = ["sudo fdisk {}".format(volume),
+		    "n",
+		    "p",
+	            "1",
+		    "2048",
+		    "2097151",
+		    "w",
+		    "sudo fdisk -l | grep {}".format(volume),
+		    "sudo mkfs -t ext3 {}1".format(volume)]
+
+	    for command in commands:
+	    	LOG.debug("Executing: " + str(command))
+	    	self.channel.send(command + "\n")
+		time.sleep(5)
+	    	while not self.channel.recv_ready():
+		    time.sleep(3)
 	
+	   	output = self.channel.recv(9999)
+	    	LOG.debug(str(output))	
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
-        LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
-	for mount_point in mount_points:
-            stdin, stdout, stderr = ssh.exec_command("sudo mkdir " + mount_point)
-	    stdin, stdout, stderr = ssh.exec_command("sudo ls -l")
-	    LOG.debug("dir list: " + str(stdout.read()))
-	for i in range(len(volumes)):
-            buildCommand = "sudo mount " + volumes[i] + "1 " + mount_points[i]
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-	    time.sleep(8)
-	    # check mounts in df -h output
-	    stdin, stdout, stderr = ssh.exec_command("sudo df -h")
-	    output = stdout.read()
-            LOG.debug("sudo df -h after mounting " + volumes[i] + "1 :" + str(output))
-	    if str(volumes[i]+"1") in str(output):
-		LOG.debug("mounting completed for " + str(ipAddress))
-	    else:	    
-		raise Exception("Mount point failed for " + str(ipAddress))
+	LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
+	self.channel = ssh.invoke_shell()
+	for i in range(len(volumes)):
+
+	    commands = ["sudo mkdir " + mount_points[i],"sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
+                      "sudo df -h"]
+
+            for command in commands:
+                LOG.debug("Executing: " + str(command))
+                self.channel.send(command + "\n")
+                time.sleep(3)
+                while not self.channel.recv_ready():
+                    time.sleep(2)
+
+                output = self.channel.recv(9999)
+                LOG.debug(str(output))
+                time.sleep(2)
     '''
     add custom sied files on linux
     '''
@@ -1217,6 +1212,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 floatingip = str(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]][1]['addr'])
             else:
     	        floatingip = None
+	    if "security_groups" not in vm_details_list[i]['server'].keys():	
+	        security_group = None
+	    else:
+	    	security_group = vm_details_list[i]['server']['security_groups']
+
             tmp_json = { 'id': server_id,
                     'name': vm_details_list[i]['server']['name'],
                     'network_name': list(vm_details_list[i]['server']['addresses'].keys())[0],
@@ -1225,7 +1225,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'vm_status': vm_details_list[i]['server']['status'],
                     'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
                     'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
-                    'flavor_id': vm_details_list[i]['server']['flavor']['id']                    
+                    'flavor_id': vm_details_list[i]['server']['flavor']['id'],
+		    'security_groups': security_group
                     }
 	    self.vms_details.append(tmp_json)
 	return self.vms_details
@@ -1286,16 +1287,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_ports(ports)
 
     '''create_security_group'''
-    def create_security_group(self, name, secgrp_cleanup=True):
-        security_group_id = self.security_groups_client.create_security_group(name=name, description = "test_description")['security_group']['id']
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 1, to_port = 40000)
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "UDP", from_port = 1, to_port = 50000)
-	self.security_group_rules_client.create_security_group_rule(parent_group_id = str(security_group_id), ip_protocol = "TCP", from_port = 22, to_port = 22)
-        security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
-        LOG.debug(security_group_details)
+    def create_security_group(self, name, description, secgrp_cleanup=True):
+	self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
 	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
-	    self.addCleanup(self.delete_security_group, security_group_id)
-        return security_group_details
+	    self.addCleanup(self.delete_security_group, self.security_group_id)
+        return self.security_group_id
 
     '''get_security_group_details'''
     def get_security_group_details(self, security_group_id):
@@ -1834,10 +1830,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("service_dir: " +  " | " + service_dir + " | ")
                 
 	        if vault_storage_path != "":
-		    service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
-		    LOG.debug("service_dir_vault: " + str(service_dir_path))
-		if "log" not in service_dir_path:    
-		    md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
+		    if "/var/lib/cinder" not in service_dir:
+		        service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		        LOG.debug("service_dir_vault: " + str(service_dir_path))
+		if "log" not in service_dir_path:   
+		    if "/var/lib/cinder" != service_dir_path: 
+		        md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
                 stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
 
 		exit_status = stdout.channel.recv_exit_status()
@@ -2013,7 +2011,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     and "workload:get_nodes" operations in policy.json file on tvault
     '''
     def revert_changes_policyjson(self, rule):
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
 	    if rule == "admin_api":
@@ -2023,6 +2020,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("Ressign admin rule to get_nodes command : ")
                 rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
 	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+		LOG.debug("commands: " + str(commands))
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
                 stdin, stdout, stderr = ssh.exec_command(commands)
 	    elif rule == "admin_or_owner":
 	        LOG.debug("Delete backup role in policy.json : ")
@@ -2040,6 +2039,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
                            +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
+		LOG.debug("commands" + str(commands))
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2100,9 +2101,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             return False
 
+    '''
+    add security group rule
+    '''
+    def add_security_group_rule(self, parent_group_id = "", remote_group_id = "", ip_protocol="", from_port = 1, to_port= 40000):
+	LOG.debug("parent group id: {}".format(str(parent_group_id)))
+	LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
+	if remote_group_id != "":
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id),group_id=str(remote_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+	else:
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+
+    '''
+    delete some files on linux
+    '''
+    def deleteSomefilesOnLinux(self, ssh, mount_point, number):
+	self.channel = ssh.invoke_shell()
+	command = "sudo rm -rf {}/File_1.txt"
+	LOG.debug("Executing: " + str(command))
+        self.channel.send(command + "\n")
+        while not self.channel.recv_ready():
+            time.sleep(3)
+
+        output = self.channel.recv(9999)
+        LOG.debug(str(output))
+
+    '''
+    Method to fetch details of a specific workload
+    '''
     def getWorkloadDetails(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
-        workload_details = body['workload']['jobschedule']
+        workload_data = body['workload']
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
@@ -2117,5 +2146,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return policy_id_of_workload
-
-   

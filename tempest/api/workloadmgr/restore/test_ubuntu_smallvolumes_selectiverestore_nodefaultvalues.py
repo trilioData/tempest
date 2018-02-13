@@ -42,6 +42,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_ubuntu_smallvolumes_selectiverestore_nodefaultvalues(self):
 	try:
+	    if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception (str(self.exception))
+            LOG.debug("pre req completed")
+
             int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
             int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
