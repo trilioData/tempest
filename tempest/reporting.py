@@ -1,7 +1,7 @@
 from tempest import tvaultconf
 import subprocess
 
-test_results_file="Report/results.html"
+test_results_file="/home/deepanshu/tempest_work/tempest/Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
@@ -115,7 +115,7 @@ def add_sanity_results(test_step, status):
 def get_tests(suite_path):
     import glob
     print suite_path
-    print str(suite_path)+"*.py" 
+    print str(suite_path)+"/*.py" 
     for path in glob.glob(str(suite_path)+"*.py"):
 	if "__init__" not in path:
 	    with open ("test-list", "a") as f:
