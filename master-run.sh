@@ -21,7 +21,7 @@ for suite in "${SUITE_LIST[@]}"
 do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
-    python -c "from tempest import reporting; reporting.get_tests("$BASE_DIR"/tempest/api/workloadmgr/"$testname")"
+    python -c "from tempest import reporting; reporting.get_tests(\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     #tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
     sed -i '1,5d'  $TEST_LIST_FILE
     sed -i 's/\[.*\]//' $TEST_LIST_FILE
@@ -41,24 +41,6 @@ do
     
     
     done < "$TEST_LIST_FILE"
-    python -c 'from tempest import reporting; reporting.end_report_table()'
-done
-
-for test_case in "${TEST_CASES_LIST[@]}"
-do
-    python -c "from tempest import reporting; reporting.setup_report('$test_case')"
-    while read -r line
-    do
-        rm -rf /opt/lock
-        LOGS_DIR=`echo "$test_case" | sed  's/\./\//g'`
-        LOGS_DIR=logs/$LOGS_DIR
-        mkdir -p $LOGS_DIR
-        #./run_tempest.sh -V $test_case
-	if [ $? -ne 0 ]; then
-             echo "$test_case FAILED"
-        fi
-        #mv -f tempest.log $LOGS_DIR/
-    done < "$TEST_LIST"
     python -c 'from tempest import reporting; reporting.end_report_table()'
 done
 
