@@ -6,7 +6,7 @@ BASE_DIR="$(pwd)"
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
 SUITE_LIST=("tempest.api.workloadmgr.regression")
-TEST_CASES_LIST=("")
+TEST_CASES_LIST=("tempest.api.workloadmgr.regression")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
@@ -20,12 +20,6 @@ python -c 'from tempest import reporting; reporting.consolidate_report_table()'
 
 for suite in "${SUITE_LIST[@]}"
 do
-    if [[ *"snapshot"* = $suite || *"config"* = $suite || *"filesearch"* = $suite ]]; then
-	TEST_CASES_LIST=("tempest.api.workkloadmgr.snapshot.test_bootfromvol_fullsnapshot" "tempest.api.workkloadmgr.snapshot.test_snapshots" "tempest.api.workloadmgr.filesearch.test_filesearch" "config_backup.test_config_workload" "tempest.api.workloadmgr.config_backup.test_config_backup")
-    fi
-
-    echo $TEST_CASES_LIST
-
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
     tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
@@ -38,13 +32,12 @@ do
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
+	echo ""
         #./run_tempest.sh -V $line
-        if [ $? -eq 0 ]; then
-	       echo "$line PASSED" >> $TEST_RESULTS_FILE
-        else
- 	       echo "$line FAILED" >> $TEST_RESULTS_FILE
+        if [ $? -ne 0 ]; then
+ 	     echo "$line FAILED" 
         fi
-        mv -f tempest.log $LOGS_DIR/
+        #mv -f tempest.log $LOGS_DIR/
     
     
     done < "$TEST_LIST_FILE"
@@ -61,15 +54,11 @@ do
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
         #./run_tempest.sh -V $test_case
-        if [ $? -eq 0 ]; then
-               echo "$test_case PASSED" >> $TEST_RESULTS_FILE
-        else
-               echo "$test_case FAILED" >> $TEST_RESULTS_FILE
+	if [ $? -ne 0 ]; then
+             echo "$test_case FAILED"
         fi
-        mv -f tempest.log $LOGS_DIR/
+        #mv -f tempest.log $LOGS_DIR/
 
-
-    done < "$TEST_LIST_FILE"
     python -c 'from tempest import reporting; reporting.end_report_table()'
 done
 
