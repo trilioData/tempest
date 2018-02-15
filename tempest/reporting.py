@@ -112,4 +112,11 @@ def consolidate_report_table():
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
 	    f.write(str(test_step) + " " + str(status) + "\n")
-
+def get_tests(suite_path):
+    import glob
+    print suite_path
+    print str(suite_path)+"*.py" 
+    for path in glob.glob(str(suite_path)+"*.py"):
+	if "__init__" not in path:
+	    with open ("test-list", "a") as f:
+		f.write(str(path[:-3]).replace("\\",".")+"\n")
