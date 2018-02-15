@@ -6,7 +6,6 @@ BASE_DIR="$(pwd)"
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
 SUITE_LIST=("tempest.api.workloadmgr.regression")
-TEST_CASES_LIST=("tempest.api.workloadmgr.regression")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
@@ -22,7 +21,8 @@ for suite in "${SUITE_LIST[@]}"
 do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
-    tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
+    python -c "from tempest import reporting; reporting.get_tests("$BASE_DIR"tempest/api/workloadmgr/"$testname")"
+    #tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
     sed -i '1,5d'  $TEST_LIST_FILE
     sed -i 's/\[.*\]//' $TEST_LIST_FILE
 
@@ -32,7 +32,7 @@ do
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
-	echo ""
+	echo "running $line"
         #./run_tempest.sh -V $line
         if [ $? -ne 0 ]; then
  	     echo "$line FAILED" 
