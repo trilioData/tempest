@@ -58,7 +58,7 @@ do
              echo "$test_case FAILED"
         fi
         #mv -f tempest.log $LOGS_DIR/
-
+    done < "$TEST_LIST"
     python -c 'from tempest import reporting; reporting.end_report_table()'
 done
 
