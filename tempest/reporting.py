@@ -2,7 +2,6 @@ from tempest import tvaultconf
 import subprocess
 
 test_results_file="/home/deepanshu/tempest_work/tempest/Report/results.html"
-test_list_file = "/home/deepanshu/tempest_work/tempest/test-list"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
@@ -114,7 +113,7 @@ def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
 	    f.write(str(test_step) + " " + str(status) + "\n")
 
-def get_tests(suite_path):
+def get_tests(test_list_file,suite_path):
     import glob
     print suite_path
     print str(suite_path)+"/*.py" 
