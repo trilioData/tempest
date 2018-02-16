@@ -115,13 +115,8 @@ def add_sanity_results(test_step, status):
 
 def get_tests(test_list_file,suite_path):
     import glob
-    print suite_path
-    print str(suite_path)+"/*.py" 
     for path in glob.glob(str(suite_path)+"/*.py"):
-	print "inside loop"
-	print path
 	if "__init__" not in path:
-	    print test_list_file
 	    with open (test_list_file, "a") as f:
-		print "test: " + str(path[:-3]).replace("\\",".")+"\n"
-		f.write(str(path[:-3]).replace("\\",".")+"\n")
+		print "test: " + ".".join(str(path[:-3]).split("/")[6:])+"\n"
+		f.write(".".join(str(path[:-3]).split("/")[6:])+"\n")
