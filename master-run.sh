@@ -21,7 +21,8 @@ for suite in "${SUITE_LIST[@]}"
 do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
-    python -c "from tempest import test; test.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
+    touch $TEST_LIST_FILE
+    python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     while read -r line
     do  
         rm -rf /opt/lock
