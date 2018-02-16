@@ -112,4 +112,3 @@ def consolidate_report_table():
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
 	    f.write(str(test_step) + " " + str(status) + "\n")
-
