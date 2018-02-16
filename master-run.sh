@@ -21,10 +21,10 @@ for suite in "${SUITE_LIST[@]}"
 do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
-    python -c "from tempest import reporting; reporting.get_tests(\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
+    python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     #tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
-    sed -i '1,5d'  $TEST_LIST_FILE
-    sed -i 's/\[.*\]//' $TEST_LIST_FILE
+    #sed -i '1,5d'  $TEST_LIST_FILE
+    #sed -i 's/\[.*\]//' $TEST_LIST_FILE
 
     while read -r line
     do  
