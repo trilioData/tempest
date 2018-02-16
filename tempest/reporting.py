@@ -2,7 +2,7 @@ from tempest import tvaultconf
 import subprocess
 import glob
 
-test_results_file="/home/deepanshu/tempest_work/tempest/Report/results.html"
+test_results_file="Report/results.html"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
