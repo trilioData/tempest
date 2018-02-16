@@ -118,7 +118,9 @@ def get_tests(suite_path):
     print suite_path
     print str(suite_path)+"/*.py" 
     for path in glob.glob(str(suite_path)+"*.py"):
+	print path
 	if "__init__" not in path:
+	    print test_list_file
 	    with open (test_list_file, "a") as f:
 		print "test: " + str(path[:-3]).replace("\\",".")+"\n"
 		f.write(str(path[:-3]).replace("\\",".")+"\n")
