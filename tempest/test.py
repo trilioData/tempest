@@ -21,6 +21,7 @@ import sys
 import time
 import urllib
 import uuid
+import glob
 
 import fixtures
 from oslo_log import log as logging
@@ -887,7 +888,6 @@ def call_until_true(func, duration, sleep_for):
         time.sleep(sleep_for)
         now = time.time()
     return False
-
 
 def get_tests(test_list_file,suite_path):
     for path in glob.glob(str(suite_path)+"/*.py"):

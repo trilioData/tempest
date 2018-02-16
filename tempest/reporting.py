@@ -1,6 +1,5 @@
 from tempest import tvaultconf
 import subprocess
-import glob
 
 test_results_file="Report/results.html"
 sanity_results_file="test_results"
