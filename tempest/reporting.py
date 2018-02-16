@@ -117,6 +117,6 @@ def get_tests(test_list_file,suite_path):
     import glob
     for path in glob.glob(str(suite_path)+"/*.py"):
         if "__init__" not in path:
-            with open (test_list_file, "a") as f:
+            with open (test_list_file, "w") as f:
                 print "test: " + ".".join(str(path[:-3]).split("/")[6:])+"\n"
                 f.write(".".join(str(path[:-3]).split("/")[6:])+"\n")
