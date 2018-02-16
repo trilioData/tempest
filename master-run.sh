@@ -22,10 +22,6 @@ do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
     python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
-    #tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
-    #sed -i '1,5d'  $TEST_LIST_FILE
-    #sed -i 's/\[.*\]//' $TEST_LIST_FILE
-
     while read -r line
     do  
         rm -rf /opt/lock
@@ -33,12 +29,11 @@ do
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
 	echo "running $line"
-        #./run_tempest.sh -V $line
+        ./run_tempest.sh -V $line
         if [ $? -ne 0 ]; then
  	     echo "$line FAILED" 
         fi
-        #mv -f tempest.log $LOGS_DIR/
-    
+        mv -f tempest.log $LOGS_DIR/
     
     done < "$TEST_LIST_FILE"
     python -c 'from tempest import reporting; reporting.end_report_table()'
