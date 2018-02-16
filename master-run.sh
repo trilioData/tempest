@@ -5,7 +5,7 @@ source automation/openstack-build-scripts/build.properties
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
-SUITE_LIST=("tempest.api.workloadmgr.data_integrity")
+SUITE_LIST=("tempest.api.workloadmgr.regression")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
@@ -21,24 +21,19 @@ for suite in "${SUITE_LIST[@]}"
 do
     testname=$(echo $suite| cut -d'.' -f 4)
     python -c "from tempest import reporting; reporting.setup_report('$testname')"
-    tools/with_venv.sh ./run_tempest.sh --list-tests $suite > $TEST_LIST_FILE
-    sed -i '1,5d'  $TEST_LIST_FILE
-    sed -i 's/\[.*\]//' $TEST_LIST_FILE
-
+    python -c "from tempest import test; test.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     while read -r line
     do  
         rm -rf /opt/lock
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
+	echo "running $line"
         ./run_tempest.sh -V $line
-        if [ $? -eq 0 ]; then
-	       echo "$line PASSED" >> $TEST_RESULTS_FILE
-        else
- 	       echo "$line FAILED" >> $TEST_RESULTS_FILE
+        if [ $? -ne 0 ]; then
+ 	     echo "$line FAILED" 
         fi
         mv -f tempest.log $LOGS_DIR/
-    
     
     done < "$TEST_LIST_FILE"
     python -c 'from tempest import reporting; reporting.end_report_table()'
