@@ -82,8 +82,8 @@ def inplace(self):
             if(len(available_floating_ips) > 0):
                 floating_ip = self.get_floating_ips()[0]
             else:
-                reporting.add_test_step("Floating ips availability", tvaultconf.FAIL)
-                raise Exception("Floating ips not available")
+		self.exception = "Floating ips not available"
+                raise Exception(self.exception)
             self.floating_ips_list.append(floating_ip)
             self.set_floating_ip(str(floating_ip), self.workload_instances[id])
 
@@ -127,8 +127,8 @@ def inplace(self):
         self.snapshot_id=self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
-            reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
-            raise Exception("Full Snapshot Failed") 
+	    self.exception = "Full Snapshot Failed"
+            raise Exception(self.exception) 
 
         #delete Some Files on volumes
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
@@ -143,8 +143,8 @@ def inplace(self):
         self.incr_snapshot_id=self.workload_snapshot(self.workload_id, False)
         self.wait_for_workload_tobe_available(self.workload_id)
         if(self.getSnapshotStatus(self.workload_id, self.incr_snapshot_id) != "available"):
-            reporting.add_test_step("Create incremental snapshot", tvaultconf.FAIL)
-            raise Exception("Incremental Snapshot Failed")
+	    self.exception = "Incremental Snapshot Failed"
+            raise Exception(self.exception)
     except Exception as self.exception:
         LOG.error("Exception" + str(self.exception))
 
