@@ -22,37 +22,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-
+    
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_01_create_license(self):
-	reporting.add_test_script(str(__name__)+"_create_license")
-	#Create license using CLI command
-	self.cmd = command_argument_string.license_create + tvaultconf.vm_license_filename
-        LOG.debug("License create command: " + str(self.cmd))
-        rc = cli_parser.cli_returncode(self.cmd)
-        if rc != 0:
-    	    reporting.add_test_step("Execute license_create command", tvaultconf.FAIL)
-	    reporting.set_test_script_status(tvaultconf.FAIL)
-            raise Exception("Command did not execute correctly")
-        else:
-	    reporting.add_test_step("Execute license_create command", tvaultconf.PASS)
-            LOG.debug("Command executed correctly")
-           
-	#Verification
-	self.license_data = self.get_license_list()
-	LOG.debug("License data returned: " + str(self.license_data))
-	if(len(self.license_data.keys()) != 0):
-            reporting.add_test_step("License verification", tvaultconf.PASS)
-        else:
-            reporting.add_test_step("License verification", tvaultconf.FAIL)
-	    reporting.set_test_script_status(tvaultconf.FAIL)
-            raise Exception("License not added") 
-        reporting.test_case_to_write()
-
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_02_expired_license(self):
+    def test_01_expired_license(self):
 	reporting.add_test_script(str(__name__)+"_expired__license")
 	try:
             #Create license using CLI command
@@ -82,7 +55,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_03_invalid_license(self):
+    def test_02_invalid_license(self):
 	reporting.add_test_script(str(__name__)+"_invalid_license")
 	try:
 	    #Create license using CLI command
@@ -117,7 +90,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_04_license_check_vms(self):
+    def test_03_license_check_vms(self):
 	reporting.add_test_script(str(__name__) + "_license_check_vms")
 	try:
 	    #Create license using CLI command
@@ -165,7 +138,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_05_license_check_capacity(self):
+    def test_04_license_check_capacity(self):
         reporting.add_test_script(str(__name__) + "_license_check_capacity")
         try:
             #Create license using CLI command
@@ -210,7 +183,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_06_license_check_compute(self):
+    def test_05_license_check_compute(self):
         reporting.add_test_script(str(__name__) + "_license_check_compute")
         try:
             #Create license using CLI command
