@@ -21,6 +21,7 @@ import sys
 import time
 import urllib
 import uuid
+import glob
 
 import fixtures
 from oslo_log import log as logging
@@ -887,3 +888,4 @@ def call_until_true(func, duration, sleep_for):
         time.sleep(sleep_for)
         now = time.time()
     return False
+
