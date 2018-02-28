@@ -1,9 +1,10 @@
-LicenseID               	 TVAULT-e057d02e-e438-11e6-bc62-080027f16b44
-Description             	 TrilioVault License from TrilioData, Inc
-CreationDate            	 2017-01-26
-LicenseEdition          	 ENTERPRISE
-LicenseTypeName         	 EULA
-Organization            	 Cloud.ee
-LicenseExpiryDate       	 2018-01-31
-Licensed For            	 10 Compute Nodes
-License Key             	 AAABUQ0ODAoPeNp9klFvgjAUhd/7K5rsdV3aishMeDDKEheHRtH3Ui6zCRRSqJn79QOVychiH3vvd+65p32Kjha/C425izmbjvjUYZhTNkFr8ym0+ha1KjS+H3+eFTZ5AUAba+RRVLAQNfQbWppQRriLMiVBV3AAU/VVfI4+hNI1aKElBF+lMuerSgt7LTxiaHWFg0T9seAHYRRsN9vlLkBC1urUH35rqY0FtAtC/M/xm3sCdDyJaeoRcEYeYQxcEkuXE+pRyicpc2PH+TXQ89ct2HncgTmBWS6GM1p9b/wqH+qHNo/BrNN91eTTgwlDwUlkdhh9U0pFVkFnLDqXEIoc7snsV7OumOC3wvRRRvG8yEvbrBEWCVRoAZU0qhwO8SOjMlUchM1qfBPDqSlyfC00QYhnvNQSzQ1cLD74ADd+GJAfHWb7VXR5hoRyeBTTD0QRsAkwLQIUHJRLSqDDb0XSwGFFNUjPIpJpTK0CFQCjHOHI9hOwdgzVA9idS6szmSpM2A==X02go
+LicenseID               	 TVAULT-c2071ee8-118e-11e8-9134-0cc47a9fd48e 
+Description             	 TrilioVault License from TrilioData, Inc 
+CreationDate            	 2018-02-14 
+LicenseEdition          	 ENTERPRISE 
+LicenseTypeName         	 EULA 
+Organisation            	 Trilio_Eng_10_Compute 
+LicenseExpiryDate       	 2020-02-04 
+Licensed For            	 10 Compute Nodes 
+Evaluation              	 False 
+License Key             	 AAABUg0ODAoPeNp9UsGKwjAUvOcrAnvdQtKNtAo9iEYQ3Cpa3aPE9OkG2rQkrax/v9F2tZbFHHLIvHlvZl7eviDFMzhgyjAJR4PBiAXYJzREq9rIb2FhKirAjxNdQY/4HmUoUxK0hR0YqwrdKUGfQukKtNAS+E+pzKXp4sg+uZIJQ4uGzFNVPZF5nPD1aj3fcCRkpc7d4W1JZWpAGx7jf07k3j3pk4AeKPMoDcFdEHpD+sE8IiULxPCYshDuAjr6WoN3jRswZzDzaX+G60+GQUpe9o/r/ABmedxal0+H7FHEzyKrxZPvGzQTmb0LSy4lxCKHRzLbxfgPdEsrTJdKCZ4UeVk7G3GRgkVTsNKosj8kSozKVLETdVbhthk+miLHDeCCEO94riWaGLhJfPEBWn4/oCjZjbeLpFkDuHBexbQ0J6GV7afR6txzfdpTsm+9/QKMjrXAMCwCFA/DwUn4HUWb3h2ODM/9h7yCmScaAhRK/NHWr1IHZ3WwMvET8hhdhp5l4w==X02go
