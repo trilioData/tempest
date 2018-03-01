@@ -446,13 +446,13 @@ def basic_workload(self):
 	self.exception=""
         self.workload_instances = []
             
-        #Launch instance
-        self.vm_id = self.create_vm(vm_cleanup=False)
-        LOG.debug("VM ID: " + str(self.vm_id))
-
         #Create volume
         self.volume_id = self.create_volume(volume_cleanup=False)
         LOG.debug("Volume ID: " + str(self.volume_id))
+
+        #Launch instance
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("VM ID: " + str(self.vm_id))
         
         #Attach volume to the instance
         self.attach_volume(self.volume_id, self.vm_id)
