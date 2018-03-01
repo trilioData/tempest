@@ -27,25 +27,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_license(self):
-	#Create license using CLI command
-	self.cmd = command_argument_string.license_create + tvaultconf.vm_license_filename
+        #Create license using CLI command
+        self.cmd = command_argument_string.license_create + tvaultconf.vm_license_filename
         LOG.debug("License create command: " + str(self.cmd))
         rc = cli_parser.cli_returncode(self.cmd)
         if rc != 0:
-    	    reporting.add_test_step("Execute license_create command", tvaultconf.FAIL)
-	    reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step("Execute license_create command", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
-	    reporting.add_test_step("Execute license_create command", tvaultconf.PASS)
+            reporting.add_test_step("Execute license_create command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
-           
-	#Verification
-	self.license_data = self.get_license_list()
-	LOG.debug("License data returned: " + str(self.license_data))
-	if(len(self.license_data.keys()) != 0):
+
+        #Verification
+        self.license_data = self.get_license_list()
+        LOG.debug("License data returned: " + str(self.license_data))
+        if(len(self.license_data.keys()) != 0):
             reporting.add_test_step("License verification", tvaultconf.PASS)
         else:
             reporting.add_test_step("License verification", tvaultconf.FAIL)
-	    reporting.set_test_script_status(tvaultconf.FAIL)
-            raise Exception("License not added") 
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            raise Exception("License not added")
         reporting.test_case_to_write()
