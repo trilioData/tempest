@@ -50,7 +50,7 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
                                                           retention_policy_type = tvaultconf.retention_policy_type, 
                                                           description='test'
                                                          )
-            if policy_id != None:
+            if policy_id != "":
                 reporting.add_test_step("Create workload policy", tvaultconf.PASS)
                 LOG.debug("Scheduler policy id is "+str(policy_id))   
             else:
@@ -61,12 +61,12 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             #Assign workload policy to projects
             admin_project_id = CONF.identity.admin_tenant_id 
             policy_id = self.assign_workload_policy(policy_id,add_project_ids_list=[admin_project_id],remove_project_ids_list=[])
-            if policy_id != None:
+            if policy_id != "":
                 reporting.add_test_step("Assign workload policy", tvaultconf.PASS)
                 LOG.debug("Scheduler polciy is assigned to project successfully")
             else:
                 reporting.add_test_step("Assign workload policy", tvaultconf.FAIL)
-                LOG.debug("Schedulaer policy is not assigned correctly")
+                LOG.error("Schedulaer policy is not assigned correctly")
                 raise Exception("Workload policy is not assigned correctly")
  
             #Create workload with CLI command
@@ -85,7 +85,7 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
 	    time.sleep(10)
 	    wid = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(wid))
-	    if(wid != None):
+	    if(wid != ""):
 		self.wait_for_workload_tobe_available(wid)
 		if(self.getWorkloadStatus(wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
@@ -104,54 +104,16 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Workload is created with policy",tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
-            '''
-            workload_details=self.getWorkloadDetails(wid)
-            LOG.debug("Workload Details: "+str(workload_details))
-            policy_id_of_workload = str(
             
-            fullbackup_interval = str(workload_details['fullbackup_interval']).strip()
-            interval = str(workload_details['interval']).strip()
-            retention_policy_value = str(workload_details['retention_policy_value']).strip()
-            retention_policy_type = str(workload_details['retention_policy_type']).strip()
-            LOG.debug("fullbackup interval: "+str(fullbackup_interval)+", interval : "+str(interval)+"retention_policy_value : "+str(retention_policy_value))
-
-            #verify workload is created with same values that we defined in policy.(policy should apply on workload at tym of creation)
-            
-            if fullbackup_interval == tvaultconf.fullbackup_interval:
-                reporting.add_test_step("Compare Fullbackup_interval values of workload and policy",tvaultconf.PASS)
-            else:
-                reporting.add_test_step("Compare Fullbackup_interval values of workload and policy",tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            if interval == tvaultconf.interval:
-                reporting.add_test_step("Compare interval values of workload and policy",tvaultconf.PASS)
-            else:
-                reporting.add_test_step("Compare interval values of workload and policy",tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            if retention_policy_value == tvaultconf.retention_policy_value:
-                reporting.add_test_step("Compare reteniton_policy_value of workload and policy",tvaultconf.PASS)
-            else:
-                reporting.add_test_step("Compare retention policy_value of workload and policy",tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-           
-            if retention_policy_type == tvaultconf.retention_policy_type:
-                reporting.add_test_step("Compare reteniton_policy_type values of workload and policy",tvaultconf.PASS)
-            else:
-                reporting.add_test_step("Compare retention_policy_type values of workload and policy",tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            '''
-
             #LOG.debug("can not create log")
             workload_modify_command = command_argument_string.workload_modify +  " --jobschedule retention_policy_value="+"12" +" --jobschedule interval="+"4hrs" + " --jobschedule enabled=True "+ str(wid)             
             rc = cli_parser.cli_returncode(workload_modify_command)
             LOG.debug("rc value is : "+ str(rc))
             if rc ==0:
-                reporting.add_test_step("Execute workload-modify command", tvaultconf.FAIL)
+                reporting.add_test_step("Execute workload-modify command to update scheduler & retention settings", tvaultconf.FAIL)
                 raise Exception("updated scheduler settings even though policies are applied on project")
             else:
-                reporting.add_test_step("Execute workload-modify command", tvaultconf.PASS)
+                reporting.add_test_step("Execute workload-modify command to update scheduler & retention settings", tvaultconf.PASS)
                 LOG.debug("modify-workload command returns error as expected")
 
         except Exception as e:
@@ -180,6 +142,10 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             #create one more snapshot 
             snapshot_id = self.workload_snapshot(wid,True,snapshot_name=tvaultconf.snapshot_name+"_final",snapshot_cleanup=False)
             LOG.debug("Last snapshot id is : " + str(snapshot_id))
+            
+            self.wait_for_snapshot_tobe_available(wid,snapshot_id)
+            LOG.debug("wait till last snashot is in availble state")
+
             snapshots_list.append(snapshot_id)
             LOG.debug("final snapshot list is "+str(snapshots_list))
      
@@ -207,9 +173,7 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
                 if deleted_snapshot_id == snapshot_list_of_workload[i]:
                     is_first_snapshot_not_deleted = True
                     break
-                else:
-                    is_first_snapshot_not_deleted = False
-
+               
             LOG.debug("check if first snapshots is deleted : %d" %is_first_snapshot_not_deleted)
             if is_first_snapshot_not_deleted==False:
                 reporting.add_test_step("check first snapshot gets deleted", tvaultconf.PASS)
@@ -218,21 +182,30 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("first snapshot should get deleted when we are trying to execeed reteintion_policy_value")
 
+            LOG.debug("check if first snapshot is deleted from backup target media")
+            mount_path = self.get_mountpoint_path(ipAddress='192.168.1.23',userName='root',password='52T8FVYZJse')
+            LOG.debug("mount_path is : " + mount_path)
+
+            is_snapshot_exist = self.check_snapshot_exist_on_backend('192.168.1.23','root','52T8FVYZJse',mount_path,wid,deleted_snapshot_id)
+            LOG.debug("snapshot does not exist : %s" %is_snapshot_exist)
+            LOG.debug("data type : %s" %type(is_snapshot_exist))
+
+            if is_snapshot_exist == False:
+                LOG.debug("first snapshot is deleted from backend")
+                reporting.add_test_step("first snapshot is deleted from backup target media", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("first snapshot is deleted from backup target media", tvaultconf.FAIL)
+                raise Exception("First snapshot is not deleted from backup target media")
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
         finally:            
-            #Cleanup            
-            #delete vm 
-            self.delete_vm(vm_id)
-            LOG.debug("virtual machine deleted succesfully")
-
-            #delete volume
-            self.delete_volume(volume_id)
-            LOG.debug("volume deleted successfully")     
-
+            #Cleanup                       
+             
             #Delete snapshot
             for i in range(0,len(snapshot_list_of_workload)):
                 self.snapshot_delete(wid,snapshot_list_of_workload[i])
@@ -246,5 +219,12 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             is_policy_deleted = self.delete_scheduler_policy(policy_id)
             LOG.debug("Scheduler policy deleted successfull %s" % is_policy_deleted )
 	    reporting.test_case_to_write()
+  
+            #delete vm
+            self.delete_vm(vm_id)
+            LOG.debug("virtual machine deleted succesfully")
 
-
+            #delete volume
+            self.delete_volume(volume_id)
+            LOG.debug("volume deleted successfully")     
+            
