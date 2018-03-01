@@ -2045,6 +2045,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
+    '''
+    This method creats a workload policy and return policy_id
+    '''
     def create_scheduler_policy(self, policy_name, fullbackup_interval, interval, retention_policy_value, 
                                 retention_policy_type="Number of Snapshots to Keep", description='test',
                                 policy_cleanup=True):
@@ -2062,7 +2065,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   }
         resp, body = self.wlm_client.client.post("/workload_policy/", json=payload)
         policy_id = body['policy']['id']
-        print "policy id is : " + policy_id
+      
         LOG.debug("#### policyid: %s , operation:schedular_policy_create" %policy_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
@@ -2074,6 +2077,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         
         return policy_id
 
+    '''
+    This method assigns workload policy to tenants
+    '''
     def assign_workload_policy(self,policy_id,add_project_ids_list=[],remove_project_ids_list=[]):
         payload = {"policy": 
                            {
@@ -2084,13 +2090,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     
         resp, body = self.wlm_client.client.post("/workload_policy/"+policy_id+"/assign", json=payload)
         policy_id = body['policy']['id']
-        print "policy id is : " + policy_id
+
         LOG.debug("#### policyid: %s , operation:assign_schedular_policy" %policy_id)
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
         return policy_id
 
+    '''
+    This method delete workload policy
+    '''
     def delete_scheduler_policy(self, policy_id):
         try:
             resp, body = self.wlm_client.client.delete("/workload_policy/"+policy_id)
@@ -2136,8 +2145,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
-        return workload_details
+        return workload_data
 
+    '''
+    Method returns policy id of policy applied to same workload
+    '''
     def get_policy_idof_workload(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
         policy_id_of_workload = body['workload']['metadata']['policy_id']
@@ -2146,3 +2158,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return policy_id_of_workload
+
+    '''
+    Method returns mountpoint path of backup target media
+    '''
+    def get_mountpoint_path(self, ipAddress, userName, password):
+        ssh =  self.SshRemoteMachineConnection(ipAddress, userName, password) 
+        show_mountpoint_cmd = "mount | grep /var/triliovault-mounts | awk '{print $3}'"
+        stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
+        mountpoint_path = stdout.read()
+        LOG.debug("mountpoint path is : " + str(mountpoint_path))
+        print mountpoint_path
+        ssh.close()
+        return mountpoint_path
+
+    '''
+    Method returns True if snapshot dir is exists on backup target media
+    '''
+    def check_snapshot_exist_on_backend(self,ipAddress, userName, password,mount_path,workload_id,snapshot_id):
+        ssh =  self.SshRemoteMachineConnection(ipAddress, userName, password) 
+        snapshot_path = str(mount_path).strip() + "/workload_" + str(workload_id).strip() + "/snapshot_" + str(snapshot_id).strip()
+        is_snapshot_exist = "test -d " + str(snapshot_path).strip() + " && echo 'exists' ||echo 'not exists'" 
+        LOG.debug("snapshot command is : "+ str(is_snapshot_exist))
+        stdin, stdout, stderr = ssh.exec_command(is_snapshot_exist)
+        snapshot_exists = stdout.read()
+        LOG.debug("is snapshot exists command output" + str(snapshot_exists))
+        if str(snapshot_exists) == 'exists':
+           return True
+        elif str(snapshot_exists).strip() == 'not exists':
+           return False
+
