@@ -134,7 +134,7 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             global policy_id
             snapshots_list = []
             LOG.debug("wid is : "+str(wid))
-            for i in range(1, tvaultconf.number_of_snapshots_to_create+1):
+            for i in range(1, int(tvaultconf.retention_policy_value)+1):
                 snapshot_id = self.workload_snapshot(wid,True,snapshot_name=tvaultconf.snapshot_name+str(i),snapshot_cleanup=False) 
                 snapshots_list.append(snapshot_id)
             LOG.debug("snapshot id list is : "+str(snapshots_list))    

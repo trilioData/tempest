@@ -3,7 +3,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
-cleanup = False
+cleanup = True
 
 # pre requisite paramter
 pre_req = True
@@ -59,7 +59,7 @@ compute_node_password = "password"
 interval="1 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
-retention_policy_value=3
+retention_policy_value="3"
 schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
@@ -68,7 +68,6 @@ No_of_Backup=1
 # Scheduler policy parameters
 policy_name="policy2"
 fullbackup_interval="8"
-number_of_snapshots_to_create=3
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
