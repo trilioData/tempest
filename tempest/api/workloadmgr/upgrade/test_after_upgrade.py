@@ -80,7 +80,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Imported workload verification failed")
 
             #Verify workload member details of imported workload
-            self.workload_instances_data = self.getWorkloadDetails(self.workload_id_before_upgrade)['instances']
+            self.workload_instances_data = self.get_workload_details(self.workload_id_before_upgrade)['instances']
             self.workload_members_after_upgrade = []
             for instance in self.workload_instances_data:
                 self.workload_members_after_upgrade.append(instance['id'])
@@ -175,7 +175,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.selective_restored_volumes = self.get_restored_volume_list(self.selective_restore_id)
 
             #Verify workload definition after selective restore
-            self.workload_instances_after_selective_restore = self.getWorkloadDetails(self.workload_id_before_upgrade)['instances']
+            self.workload_instances_after_selective_restore = self.get_workload_details(self.workload_id_before_upgrade)['instances']
             self.workload_members_after_selective_restore = []
             for instance in self.workload_instances_after_selective_restore:
                 self.workload_members_after_selective_restore.append(instance['id'])
@@ -202,7 +202,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.oneclick_restored_volumes = self.get_restored_volume_list(self.oneclick_restore_id)
 
             #Verify workload definition after one click restore
-            self.workload_instances_after_oneclick_restore = self.getWorkloadDetails(self.workload_id_before_upgrade)['instances']
+            self.workload_instances_after_oneclick_restore = self.get_workload_details(self.workload_id_before_upgrade)['instances']
             self.workload_members_after_oneclick_restore = []
             for instance in self.workload_instances_after_oneclick_restore:
                 self.workload_members_after_oneclick_restore.append(instance['id'])

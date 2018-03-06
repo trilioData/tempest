@@ -172,6 +172,12 @@ IdentityGroup = [
     cfg.StrOpt('tenant_name',
                help="Tenant name to use for Nova API requests.",
                deprecated_for_removal=True),
+    cfg.StrOpt('tenant_id',
+               help="Tenant ID to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('admin_tenant_id',
+               help="admin tenant id to be used for authentcation "
+                    "for API tests."),
     cfg.StrOpt('admin_role',
                default='admin',
                help="Role required to administrate keystone."),
@@ -223,6 +229,12 @@ IdentityGroup = [
                help="API key to use when authenticating.",
                secret=True,
                deprecated_for_removal=True),
+    cfg.StrOpt('user_id',
+               help="ID of user to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('user_email',
+               help="Email of user to be used.",
+               deprecated_for_removal=True)
 ]
 
 identity_feature_group = cfg.OptGroup(name='identity-feature-enabled',
