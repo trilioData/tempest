@@ -179,7 +179,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    for k in result_json.keys():
 	        if('snapshot_status' in result_json[k].keys() and result_json[k]['snapshot_status'] == "available"):
 	 	    self.restore_id = self._trigger_selective_restore([result_json[k]['instances']], result_json[k]['workload'], result_json[k]['snapshot'])
-		    result_json[k]['restore'] = sellf.restore_id
+		    result_json[k]['restore'] = self.restore_id
 	    LOG.debug("Result json: " + str(result_json))
 
 	    for k in result_json.keys():
