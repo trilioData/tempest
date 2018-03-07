@@ -2160,7 +2160,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return workload_data
 
     '''
-<<<<<<< HEAD
     Method returns policy id of policy applied to same workload
     '''
     def get_policy_idof_workload(self, workload_id):
@@ -2219,7 +2218,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return list_of_project_assigned
 
    
-=======
+    '''
     Method to update trilioVault email settings
     '''
     def update_email_setings(self, setting_data, project_id=CONF.identity.admin_tenant_id, category="", is_public=False, is_hidden=False, metadata={}, type="", description=""):
@@ -2279,4 +2278,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
         return True
 
->>>>>>> 47465cb8e130c0e5b358e1af3b96cff6d1d5ddba
+
