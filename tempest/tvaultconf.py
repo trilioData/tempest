@@ -90,3 +90,16 @@ bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 recovery_flavor_ref = 3
 recovery_image_ref = "cd056509-666b-41fa-9236-86f202b3e619" 
+
+
+#Email settings data
+setting_data = {"smtp_default_recipient": "savitha.peri@trilio.io",
+                "smtp_default_sender": "trilio.build@trilio.io",
+                "smtp_port": "587",
+                "smtp_server_name": "smtp.gmail.com",
+                "smtp_server_password": tvault_dbpassword,
+                "smtp_server_username": "trilio.build@trilio.io",
+                "smtp_timeout": "10" }
+enable_email_notification = {"smtp_email_enable" : 1}
+disable_email_notification = {"smtp_email_enable" : 0}
+
