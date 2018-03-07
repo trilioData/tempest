@@ -39,23 +39,25 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             global vm_id
             global volume_id
             global policy_id
+            global admin_project_id
             vm_id = self.vm_id
             volume_id = self.volume_id
             #create scehdular policy
             policy_id = self.create_scheduler_policy(
-                                                          policy_name = tvaultconf.policy_name, 
-                                                          fullbackup_interval = tvaultconf.fullbackup_interval,
-                                                          interval = tvaultconf.interval, 
-                                                          retention_policy_value = tvaultconf.retention_policy_value,
-                                                          retention_policy_type = tvaultconf.retention_policy_type, 
-                                                          description='test'
-                                                         )
+                                                     policy_name = tvaultconf.policy_name, 
+                                                     fullbackup_interval = tvaultconf.fullbackup_interval,
+                                                     interval = tvaultconf.interval, 
+                                                     retention_policy_value = tvaultconf.retention_policy_value,
+                                                     retention_policy_type = tvaultconf.retention_policy_type, 
+                                                     description='test',
+                                                     policy_cleanup = False
+                                                    )
             if policy_id != "":
                 reporting.add_test_step("Create workload policy", tvaultconf.PASS)
                 LOG.debug("Scheduler policy id is "+str(policy_id))   
             else:
                 reporting.add_test_step("Create workload policy", tvaultconf.FAIL)
-                LOG.debug("Scheduler policy is not assigned created")
+                LOG.error("Scheduler policy is not assigned created")
                 raise Exception("Workload policy is not created")
             
             #Assign workload policy to projects
@@ -132,6 +134,7 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             global vm_id
             global volume_id
             global policy_id
+            global admin_project_id
             snapshots_list = []
             LOG.debug("wid is : "+str(wid))
             for i in range(1, int(tvaultconf.retention_policy_value)+1):
@@ -169,11 +172,9 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             LOG.debug("snapshot id of first snapshot is : "+str(deleted_snapshot_id))
            
             is_first_snapshot_not_deleted = False
-            for i in range(0,len(snapshot_list_of_workload)):
-                if deleted_snapshot_id == snapshot_list_of_workload[i]:
-                    is_first_snapshot_not_deleted = True
-                    break
-               
+            if deleted_snapshot_id in snapshot_list_of_workload:
+                is_first_snapshot_not_deleted = True
+                                
             LOG.debug("check if first snapshots is deleted : %d" %is_first_snapshot_not_deleted)
             if is_first_snapshot_not_deleted==False:
                 reporting.add_test_step("check first snapshot gets deleted", tvaultconf.PASS)
@@ -183,10 +184,10 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
                 raise Exception("first snapshot should get deleted when we are trying to execeed reteintion_policy_value")
 
             LOG.debug("check if first snapshot is deleted from backup target media")
-            mount_path = self.get_mountpoint_path(ipAddress='192.168.1.23',userName='root',password='52T8FVYZJse')
+            mount_path = self.get_mountpoint_path(ipAddress=tvaultconf.tvault_ip, userName=tvaultconf.tvault_dbusername, password=tvaultconf.tvault_dbpassword)
             LOG.debug("mount_path is : " + mount_path)
 
-            is_snapshot_exist = self.check_snapshot_exist_on_backend('192.168.1.23','root','52T8FVYZJse',mount_path,wid,deleted_snapshot_id)
+            is_snapshot_exist = self.check_snapshot_exist_on_backend(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername,  tvaultconf.tvault_dbpassword,mount_path,wid,deleted_snapshot_id)
             LOG.debug("snapshot does not exist : %s" %is_snapshot_exist)
             LOG.debug("data type : %s" %type(is_snapshot_exist))
 
@@ -214,11 +215,14 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             #Delete workload
             self.workload_delete(wid)
             LOG.debug("Workload deleted successfully")
-                     
+            
+            #Unassign Policy
+            policy_id = self.assign_workload_policy(policy_id,add_project_ids_list=[],remove_project_ids_list=[admin_project_id])            
+            LOG.debug("policy unassigned succesfully")
+
             #Delete workload policy
             is_policy_deleted = self.delete_scheduler_policy(policy_id)
-            LOG.debug("Scheduler policy deleted successfull %s" % is_policy_deleted )
-	    reporting.test_case_to_write()
+            LOG.debug("Scheduler policy deleted successfull %s" % is_policy_deleted)
   
             #delete vm
             self.delete_vm(vm_id)
@@ -227,4 +231,6 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             #delete volume
             self.delete_volume(volume_id)
             LOG.debug("volume deleted successfully")     
+            reporting.test_case_to_write()
+        
             
