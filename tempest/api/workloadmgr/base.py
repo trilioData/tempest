@@ -2073,8 +2073,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
               
         LOG.debug('PolicyCreated: %s' % policy_id)
         if(tvaultconf.cleanup == True and policy_cleanup == True):
-            self.addCleanup(self.delete_scheduler_policy, policy_id)
-        
+            self.addCleanup(self.delete_scheduler_policy, policy_id)        
         return policy_id
 
     '''
@@ -2102,12 +2101,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_scheduler_policy(self, policy_id):
         try:
+            list_of_project_assigned_to_policy = self.get_list_of_projects_assignedto_policy(policy_id)
+
+            for i in range(len(list_of_project_assigned_to_policy)):
+                self.assign_workload_policy(policy_id,remove_project_ids_list=list_of_project_assigned_to_policy[i])
+
             resp, body = self.wlm_client.client.delete("/workload_policy/"+policy_id)
             LOG.debug("#### policy id: %s , operation: workload_policy_delete" % policy_id)
             LOG.debug("Response:"+ str(resp.content))
             LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
             return True
         except Exception as e:
+            LOG.error("Exception: " + str(e))
             return False
 
     '''
@@ -2188,3 +2193,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         elif str(snapshot_exists).strip() == 'not exists':
            return False
 
+    '''
+    Method returns list of projects assigned to workload policy
+    '''
+    def get_list_of_projects_assignedto_policy(self,policy_id):
+        resp, body = self.wlm_client.client.get("/workload_policy/"+policy_id)
+        list_of_project_assigned = []
+
+        for i in range(len(body['policy']['policy_assignments'])):
+            list_of_projects_assigned1 = body['policy']['policy_assignments'][i]['project_id']
+            list_of_project_assigned.append(list_of_projects_assigned1)
+
+        LOG.debug("#### list_of_projects_assigned_to_policy: %s , operation:show_policy" % list_of_project_assigned)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return list_of_project_assigned
+
+   
