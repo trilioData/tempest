@@ -229,19 +229,17 @@ IdentityGroup = [
                help="API key to use when authenticating.",
                secret=True,
                deprecated_for_removal=True),
-<<<<<<< HEAD
+
     cfg.StrOpt('admin_tenant_id',
                help="admin tenant id to be used for authentcation "
                     "for API tests."), 
 
-=======
     cfg.StrOpt('user_id',
                help="ID of user to use for Nova API requests.",
                deprecated_for_removal=True),
     cfg.StrOpt('user_email',
                help="Email of user to be used.",
                deprecated_for_removal=True)
->>>>>>> 47465cb8e130c0e5b358e1af3b96cff6d1d5ddba
 ]
 
 identity_feature_group = cfg.OptGroup(name='identity-feature-enabled',
