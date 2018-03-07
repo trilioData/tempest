@@ -82,6 +82,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.volumes_client = cls.os.volumes_client
         else:
             cls.volumes_client = cls.os.volumes_v2_client
+
+	if CONF.identity_feature_enabled.api_v2:
+	    cls.identity_client = cls.os.identity_client
+	else:
+	    cls.identity_client = cls.os.identity_v3_client
+
+
     @classmethod
     def register_custom_config_opts(cls):
         conf = cfg.CONF
@@ -2143,7 +2150,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to fetch details of a specific workload
     '''
-    def getWorkloadDetails(self, workload_id):
+    def get_workload_details(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
         workload_data = body['workload']
         LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
@@ -2153,6 +2160,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return workload_data
 
     '''
+<<<<<<< HEAD
     Method returns policy id of policy applied to same workload
     '''
     def get_policy_idof_workload(self, workload_id):
@@ -2211,3 +2219,64 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return list_of_project_assigned
 
    
+=======
+    Method to update trilioVault email settings
+    '''
+    def update_email_setings(self, setting_data, project_id=CONF.identity.admin_tenant_id, category="", is_public=False, is_hidden=False, metadata={}, type="", description=""):
+        settings = []
+        for k,v in setting_data.items():
+            data = { "name": str(k),
+                     "category": category,
+                     "is_public": is_public,
+                     "is_hidden": is_hidden,
+                     "metadata": metadata,
+                     "type": type,
+                     "description": description,
+                     "value": str(v) }
+            settings.append(data)
+        payload_data = {"settings" : settings}
+        LOG.debug("Payload_data: " + str(payload_data))
+        resp, body = self.wlm_client.client.post("/settings", json=payload_data)
+        setting_data = body['settings']
+        LOG.debug("Update email Setting Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return setting_data
+
+    '''
+    Method to fetch trilioVault email settings
+    '''
+    def get_settings_list(self):
+        resp, body = self.wlm_client.client.post("/workloads/settings")
+        setting_list = body['settings']
+        LOG.debug("List Setting Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return setting_list
+
+    '''
+    Method to update user email in openstack
+    '''
+
+    def update_user_email(self, user_id, email_id, project_id=CONF.identity.tenant_id):
+        try:
+            if CONF.identity_feature_enabled.api_v2:
+                resp = self.identity_client.update_user(user_id, email=email_id)
+            else:
+                resp = self.identity_client.update_user(user_id, email=email_id, default_project_id=project_id)
+            return True
+        except Exception as e:
+            LOG.error("Exception in update_user(): %s" % str(e))
+            return False
+
+    '''
+    Method to fetch trilioVault email settings
+    '''
+    def delete_setting(self, setting_name):
+        resp, body = self.wlm_client.client.delete("/settings/"+str(setting_name))
+        if(resp.status_code != 200):
+            #resp.raise_for_status()
+            return False
+        return True
+
+>>>>>>> 47465cb8e130c0e5b358e1af3b96cff6d1d5ddba
