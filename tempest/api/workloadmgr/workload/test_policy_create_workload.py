@@ -159,12 +159,11 @@ class ScehdulerPolicyTest(base.BaseWorkloadmgrTest):
             #verify that numbers of snapshot created persist retention_policy_value
             LOG.debug("number of snapshots created : %d "%len(snapshot_list_of_workload))
             if int(tvaultconf.retention_policy_value) == len(snapshot_list_of_workload):
-                reporting.add_test_step("number of snapshots created not exceeding retention_policy_value", tvaultconf.PASS)
+                reporting.add_test_step("Verify number of snapshots created are equal to retention_policy_value", tvaultconf.PASS)
                 
             else:
-                reporting.add_test_step("number of snapshots created not exceeding retention_policy_value", tvaultconf.FAIL)
-                LOG.debug("verify that numbers of snapshot created are not greater than policy_retention value")
-                raise Exception("number of snapshot created should not exceed retention_policy_value")
+                reporting.add_test_step("Verify number of snapshots created are equal to retention_policy_value", tvaultconf.FAIL)
+                raise Exception("Verify number of snapshots created are equal to retention_policy_value")
                 reporting.set_test_script_status(tvaultconf.FAIL)
                
             #check if first snapshot is deleted or not 

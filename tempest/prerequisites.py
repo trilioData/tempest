@@ -12,18 +12,23 @@ from random import randint
 CONF = config.CONF
 
 def small_workload(self):
-    LOG.debug("Running prerequisites for : small_workload")
-    #Create volume
-    self.volume_id = self.create_volume(volume_cleanup=False)
-    LOG.debug("Volume ID: " + str(self.volume_id))
-    
-    #create vm
-    self.vm_id = self.create_vm(vm_cleanup=False)
-    LOG.debug("Vm ID: " + str(self.vm_id))
+    try:
+        LOG.debug("Running prerequisites for : small_workload")
 
-    #Attach volume to the instance
-    self.attach_volume(self.volume_id, self.vm_id,attach_cleanup=False)
-    LOG.debug("Volume attached")
+        #Create volume
+        self.volume_id = self.create_volume(volume_cleanup=False)
+        LOG.debug("Volume ID: " + str(self.volume_id))
+    
+        #create vm
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("Vm ID: " + str(self.vm_id))
+
+        #Attach volume to the instance
+        self.attach_volume(self.volume_id, self.vm_id,attach_cleanup=False)
+        LOG.debug("Volume attached")
+
+    except Exception as self.exception:
+        LOG.error("Exception" + str(self.exception))
 
 def inplace(self):
     try:
