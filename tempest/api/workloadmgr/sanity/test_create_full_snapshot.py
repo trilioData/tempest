@@ -173,7 +173,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
                     else:
 		        result_json[k]['snapshot_error_msg'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['error_msg']
-                        result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL + "\n" + result_json[k]['snapshot_error_msg']
+                        result_json[k]['result']['Create_Snapshot'] = tvaultconf.FAIL
             LOG.debug("Result json after snapshot complete: " + str(result_json))
 
 	    for k in result_json.keys():
@@ -191,7 +191,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         result_json[k]['result']['Selective_Restore'] = tvaultconf.PASS
                     else:
                         result_json[k]['restore_error_msg'] = (self.getRestoreDetails(result_json[k]['restore']))['error_msg']
-                        result_json[k]['result']['Selective_Restore'] = tvaultconf.FAIL + "\n" + result_json[k]['restore_error_msg']
+                        result_json[k]['result']['Selective_Restore'] = tvaultconf.FAIL
             LOG.debug("Result json after selective restore complete: " + str(result_json))
 
 	    for k in result_json.keys():
