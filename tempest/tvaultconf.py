@@ -43,7 +43,7 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
-tvault_ip = "192.168.1.116"
+tvault_ip = "192.168.1.23"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
@@ -64,6 +64,10 @@ schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
 No_of_Backup=1
+
+# Scheduler policy parameters
+policy_name="policy2"
+fullbackup_interval="8"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
