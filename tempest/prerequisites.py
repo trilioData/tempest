@@ -12,12 +12,23 @@ from random import randint
 CONF = config.CONF
 
 def small_workload(self):
-    self.workload_instances = []
-    LOG.debug("Running prerequisites for : small_workload")
-    self.vms_per_workload = 2
-    for vm in range(0,self.vms_per_workload):
-       vm_id = self.create_vm()
-       self.workload_instances.append(vm_id)
+    try:
+        LOG.debug("Running prerequisites for : small_workload")
+
+        #Create volume
+        self.volume_id = self.create_volume(volume_cleanup=False)
+        LOG.debug("Volume ID: " + str(self.volume_id))
+    
+        #create vm
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("Vm ID: " + str(self.vm_id))
+
+        #Attach volume to the instance
+        self.attach_volume(self.volume_id, self.vm_id,attach_cleanup=False)
+        LOG.debug("Volume attached")
+
+    except Exception as self.exception:
+        LOG.error("Exception" + str(self.exception))
 
 def inplace(self):
     try:
@@ -441,13 +452,13 @@ def basic_workload(self):
 	self.exception=""
         self.workload_instances = []
             
-        #Launch instance
-        self.vm_id = self.create_vm(vm_cleanup=False)
-        LOG.debug("VM ID: " + str(self.vm_id))
-
         #Create volume
         self.volume_id = self.create_volume(volume_cleanup=False)
         LOG.debug("Volume ID: " + str(self.volume_id))
+
+        #Launch instance
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("VM ID: " + str(self.vm_id))
         
         #Attach volume to the instance
         self.attach_volume(self.volume_id, self.vm_id)

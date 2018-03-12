@@ -2053,6 +2053,76 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception: " + str(e))
 
     '''
+    This method creats a workload policy and return policy_id
+    '''
+    def create_scheduler_policy(self, policy_name, fullbackup_interval, interval, retention_policy_value, 
+                                retention_policy_type="Number of Snapshots to Keep", description='test',
+                                policy_cleanup=True):
+        payload = {"workload_policy": {
+                                       "field_values": {
+                                                        "fullbackup_interval": fullbackup_interval, 
+                                                        "retention_policy_type": retention_policy_type, 
+                                                        "interval": interval,
+                                                        "retention_policy_value": retention_policy_value
+                                                       }, 
+                                       "display_name": policy_name, 
+                                       "display_description": description, 
+                                       "metadata": {}
+                                      }
+                  }
+        resp, body = self.wlm_client.client.post("/workload_policy/", json=payload)
+        policy_id = body['policy']['id']
+      
+        LOG.debug("#### policyid: %s , operation:schedular_policy_create" %policy_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+              
+        LOG.debug('PolicyCreated: %s' % policy_id)
+        if(tvaultconf.cleanup == True and policy_cleanup == True):
+            self.addCleanup(self.delete_scheduler_policy, policy_id)        
+        return policy_id
+
+    '''
+    This method assigns workload policy to tenants
+    '''
+    def assign_workload_policy(self,policy_id,add_project_ids_list=[],remove_project_ids_list=[]):
+        payload = {"policy": 
+                           {
+                             "remove_projects": remove_project_ids_list, 
+                             "add_projects": add_project_ids_list
+                           }
+                  } 
+    
+        resp, body = self.wlm_client.client.post("/workload_policy/"+policy_id+"/assign", json=payload)
+        policy_id = body['policy']['id']
+
+        LOG.debug("#### policyid: %s , operation:assign_schedular_policy" %policy_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return policy_id
+
+    '''
+    This method delete workload policy
+    '''
+    def delete_scheduler_policy(self, policy_id):
+        try:
+            list_of_project_assigned_to_policy = self.get_list_of_projects_assignedto_policy(policy_id)
+
+            for i in range(len(list_of_project_assigned_to_policy)):
+                self.assign_workload_policy(policy_id,remove_project_ids_list=list_of_project_assigned_to_policy[i])
+
+            resp, body = self.wlm_client.client.delete("/workload_policy/"+policy_id)
+            LOG.debug("#### policy id: %s , operation: workload_policy_delete" % policy_id)
+            LOG.debug("Response:"+ str(resp.content))
+            LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
+            return True
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            return False
+
+    '''
     add security group rule
     '''
     def add_security_group_rule(self, parent_group_id = "", remote_group_id = "", ip_protocol="", from_port = 1, to_port= 40000):
@@ -2089,6 +2159,65 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         return workload_data
 
+    '''
+    Method returns policy id of policy applied to same workload
+    '''
+    def get_policy_idof_workload(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        policy_id_of_workload = body['workload']['metadata']['policy_id']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % policy_id_of_workload)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return policy_id_of_workload
+
+    '''
+    Method returns mountpoint path of backup target media
+    '''
+    def get_mountpoint_path(self, ipAddress, userName, password):
+        ssh =  self.SshRemoteMachineConnection(ipAddress, userName, password) 
+        show_mountpoint_cmd = "mount | grep /var/triliovault-mounts | awk '{print $3}'"
+        stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
+        mountpoint_path = stdout.read()
+        LOG.debug("mountpoint path is : " + str(mountpoint_path))
+        print mountpoint_path
+        ssh.close()
+        return mountpoint_path
+
+    '''
+    Method returns True if snapshot dir is exists on backup target media
+    '''
+    def check_snapshot_exist_on_backend(self,ipAddress, userName, password,mount_path,workload_id,snapshot_id):
+        ssh =  self.SshRemoteMachineConnection(ipAddress, userName, password) 
+        snapshot_path = str(mount_path).strip() + "/workload_" + str(workload_id).strip() + "/snapshot_" + str(snapshot_id).strip()
+        is_snapshot_exist = "test -d " + str(snapshot_path).strip() + " && echo 'exists' ||echo 'not exists'" 
+        LOG.debug("snapshot command is : "+ str(is_snapshot_exist))
+        stdin, stdout, stderr = ssh.exec_command(is_snapshot_exist)
+        snapshot_exists = stdout.read()
+        LOG.debug("is snapshot exists command output" + str(snapshot_exists))
+        if str(snapshot_exists) == 'exists':
+           return True
+        elif str(snapshot_exists).strip() == 'not exists':
+           return False
+
+    '''
+    Method returns list of projects assigned to workload policy
+    '''
+    def get_list_of_projects_assignedto_policy(self,policy_id):
+        resp, body = self.wlm_client.client.get("/workload_policy/"+policy_id)
+        list_of_project_assigned = []
+
+        for i in range(len(body['policy']['policy_assignments'])):
+            list_of_projects_assigned1 = body['policy']['policy_assignments'][i]['project_id']
+            list_of_project_assigned.append(list_of_projects_assigned1)
+
+        LOG.debug("#### list_of_projects_assigned_to_policy: %s , operation:show_policy" % list_of_project_assigned)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return list_of_project_assigned
+
+   
     '''
     Method to update trilioVault email settings
     '''
@@ -2160,5 +2289,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
             resp.raise_for_status()
         return restore_details
-
 

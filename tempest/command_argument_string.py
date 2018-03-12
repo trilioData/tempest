@@ -6,7 +6,7 @@ workload_create = "workloadmgr workload-create --workload-type-id "+tvaultconf.w
                   " --display-name "+tvaultconf.workload_name+\
                   " --source-platform "+tvaultconf.source_platform
 workload_delete = "workloadmgr workload-delete "
-workload_modify = "workloadmgr workload-modify --instance instance-id="
+workload_modify = "workloadmgr workload-modify "
 workload_unlock = "workloadmgr workload-unlock "
 workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
