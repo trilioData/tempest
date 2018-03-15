@@ -651,7 +651,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                 }
                            }
                      }
-            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             resp, body = self.wlm_client.client.post("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores",json=payload)
             restore_id = body['restore']['id']
             LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, snapshot_id, restore_id))
@@ -2278,4 +2278,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
         return True
 
+    '''
+    Method returns restore details
+    '''
+    def getRestoreDetails(self, restore_id):
+        resp, body = self.wlm_client.client.get("/restores/"+restore_id)
+        restore_details = body['restore']
+        LOG.debug("#### restoreid: %s , operation:show_restore" % (restore_id))
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return restore_details
 
