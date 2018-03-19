@@ -104,6 +104,51 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	     LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
 	     f.write("scheduler_settings=" + str(self.scheduler_settings))
 
+             #Update user email in openstack
+             self.update_user_email = self.update_user_email(CONF.identity.user_id, CONF.identity.user_email, CONF.identity.tenant_id)
+             f.write("update_user_email_in_openstack=" + str(self.update_user_email) + "\n")
+             if self.update_user_email:
+                 reporting.add_test_step("Update email for user in openstack", tvaultconf.PASS)
+
+                 #Fetch existing settings
+                 self.existing_setting = self.get_settings_list()
+                 LOG.debug("Existing setting list: " + str(self.existing_setting))
+                 #Delete any existing settings
+                 flag = False
+                 if(self.existing_setting != {}):
+                     for k,v in self.existing_setting.items():
+                         if (self.delete_setting(k) == False):
+                             flag = True
+                 if flag:
+                     reporting.add_test_step("Delete existing setting", tvaultconf.FAIL)
+                 else:
+                     #Update trilioVault email settings
+                     self.settings_resp = self.update_email_setings(tvaultconf.setting_data)
+                     f.write("settings_list=" + str(self.settings_resp) + "\n")
+                     self.setting_data_from_resp = {}
+                     for i in range(0,len(self.settings_resp)):
+                         self.setting_data_from_resp[self.settings_resp[i]['name']] = self.settings_resp[i]['value']
+                     LOG.debug("Settings data from response: " + str(self.setting_data_from_resp) + " ; original setting data: " + str(tvaultconf.setting_data))
+
+                     if(cmp(self.setting_data_from_resp, tvaultconf.setting_data) == 0):
+                         reporting.add_test_step("Update email settings", tvaultconf.PASS)
+
+                         #Enable email notification for project
+                         self.enable_email_resp = self.update_email_setings(tvaultconf.enable_email_notification)[0]
+                         f.write("email_enabled_settings=" + str(self.enable_email_resp) + "\n")
+                         if((str(self.enable_email_resp['name']) == 'smtp_email_enable') and (str(self.enable_email_resp['value']) == '1')):
+                             reporting.add_test_step("Enable email notification for project", tvaultconf.PASS)
+                         else:
+                             reporting.add_test_step("Enable email notification for project", tvaultconf.FAIL)
+                             reporting.set_test_script_status(tvaultconf.FAIL)
+                     else:
+                         reporting.add_test_step("Update email settings", tvaultconf.FAIL)
+                         reporting.set_test_script_status(tvaultconf.FAIL)
+
+             else:
+                 reporting.add_test_step("Update email for user in openstack", tvaultconf.FAIL)
+                 reporting.set_test_script_status(tvaultconf.FAIL)
+
              f.close()
 	     reporting.test_case_to_write()
 
