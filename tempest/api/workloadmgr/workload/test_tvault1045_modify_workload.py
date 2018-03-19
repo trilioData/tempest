@@ -135,6 +135,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Execute workload-modify scheduler disable", tvaultconf.PASS)
 		LOG.debug("Command executed correctly")
+###########################
+	    #Modify workload scheduler to disable using CLI command
+            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=False"
+            rc = cli_parser.cli_returncode(workload_modify_command)
+            if rc != 0:
+                reporting.add_test_step("Execute workload-modify scheduler disable", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step("Execute workload-modify scheduler disable", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
 
 	    #Verify workload scheduler changed to disable
 	    status = self.getSchedulerStatus(self.wid)
@@ -244,6 +254,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Execute workload-modify scheduler enable", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+##########################
+	    #Modify workload scheduler to enable
+            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True"
+            rc = cli_parser.cli_returncode(workload_modify_command)
+            if rc != 0:
+                reporting.add_test_step("Execute workload-modify scheduler enable", tvaultconf.FAIL)
+                raise Exception ("Command did not execute correctly")
+            else:
+                reporting.add_test_step("Execute workload-modify scheduler enable", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
 
             #Verify workload scheduler changed to enable
 	    self.wait_for_workload_tobe_available(self.wid)
@@ -286,6 +306,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.FAIL)
                 raise Exception ("Interval and Next snapshot run time values are incorrect")
+
+	    #Delete workload
+            status = self.workload_delete(self.wid)
+            if status:
+                reporting.add_test_step("Workload delete", tvaultconf.PASS)
+                LOG.debug("workload deleted successfully")
+            else:
+                reporting.add_test_step("Workload delete", tvaultconf.FAIL)
+                raise Exception ("workload deleted unsuccessfully")
+            time.sleep(10)
 
 	    reporting.test_case_to_write()
 
