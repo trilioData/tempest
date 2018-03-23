@@ -52,3 +52,9 @@ config_workload_show = "workloadmgr config-workload-show"
 config_backup = "workloadmgr config-backup"
 config_backup_show = "workloadmgr config-backup-show"
 config_backup_delete = "workloadmgr config-backup-delete"
+
+#Workload policy commands
+policy_create = "workloadmgr policy-create --policy-fields "
+policy_update = "workloadmgr policy-update --policy-fields "
+policy_assign = "workloadmgr policy-assign --add_project "
+policy_delete = "workloadmgr policy-delete "
