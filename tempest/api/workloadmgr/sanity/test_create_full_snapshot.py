@@ -157,7 +157,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(self.workload_status == "available"):
                     result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
                 else:
-                    result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL
+		    result_json[k]['workload_error_msg'] = (self.getWorkloadDetails(result_json[k]['workload']))['error_msg']
+                    result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + "\nERROR " + result_json[k]['workload_error_msg']
                     continue
 
                 self._create_full_snapshot()
