@@ -140,7 +140,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    status = self.getSchedulerStatus(self.wid)
 	    if status:
 		reporting.add_test_step("Verify workload scheduler disabled", tvaultconf.FAIL)
-		raise Exception ("workload scheduler disabled unsuccessfully")
+		LOG.debug("workload scheduler disabled unsuccessfully")
 	    else:
 		reporting.add_test_step("Verify workload scheduler disabled", tvaultconf.PASS)
                 LOG.debug("workload scheduler disabled successfully")
@@ -253,7 +253,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("workload scheduler enabled successfully")
 	    else:
                 reporting.add_test_step("Verify workload scheduler enabled", tvaultconf.FAIL)
-                raise Exception ("workload scheduler enabled unsuccessfully")
+                LOG.debug("workload scheduler enabled unsuccessfully")
 
 	    #Verify interval value and nest_snapshot_run values
 	    schedule_details = self.getSchedulerDetails(self.wid)
