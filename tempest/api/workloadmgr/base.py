@@ -2290,3 +2290,47 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         return restore_details
 
+    def getTenantChargeback(self):
+        try:
+	    resp, body = self.wlm_client.client.get("/workloads/metrics/tenant_chargeback")
+            LOG.debug("Chargeback API Response:"+ str(resp.content))
+            LOG.debug("Chargeback API Body:"+ str(body))
+            if(resp.status_code != 200):
+                   resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False
+    
+    def getVMProtected(self):
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/vms_protected")
+            LOG.debug("Get Protected VM Response:"+ str(resp.content))
+            LOG.debug("Get Protected VM Body:"+ str(body))
+            if(resp.status_code != 200):
+                resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False 
+       
+    
+    def getTenantUsage(self):
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
+            LOG.debug("Get Tenant Usage Response:"+ str(resp.content))
+            LOG.debug("Get Tenant Usage Body:"+ str(body))
+            if(resp.status_code != 200):
+                resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False
+
+    def getEnvVariable(self):
+        body = os.environ
+        Tenant_id = body['OS_TENANT_ID']
+        LOG.debug("Env Info:"+ str(body))
+        LOG.debug("Env Tenant ID:"+ Tenant_id)
+        return body
+ 
