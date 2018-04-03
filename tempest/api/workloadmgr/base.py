@@ -2161,9 +2161,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         return restore_details
 
+    '''
+    Method to get tenant chargeback API
+    '''
     def getTenantChargeback(self):
         try:
-	    resp, body = self.wlm_client.client.get("/workloads/metrics/tenant_chargeback")
+	    resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_chargeback")
             LOG.debug("Chargeback API Response:"+ str(resp.content))
             LOG.debug("Chargeback API Body:"+ str(body))
             if(resp.status_code != 200):
@@ -2172,7 +2175,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception: "+str(e))
             return False
-    
+
+    '''
+    Method to get vm protected API
+    '''
     def getVMProtected(self):
         try:
             resp, body = self.wlm_client.client.get("/workloads/metrics/vms_protected")
@@ -2185,7 +2191,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception: "+str(e))
             return False 
        
-    
+    '''
+    Method to get tenant usage API
+    '''
     def getTenantUsage(self):
         try:
             resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
@@ -2198,6 +2206,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception: "+str(e))
             return False
 
+    '''
+    Method to get environmental variable 
+    '''
     def getEnvVariable(self):
         body = os.environ
         Tenant_id = body['OS_TENANT_ID']

@@ -1,6 +1,3 @@
-import sys
-import os
-sys.path.append(os.getcwd())
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
@@ -8,10 +5,6 @@ from tempest import prerequisites
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
-import time
-from tempest import command_argument_string
-from tempest.util import cli_parser
-from tempest.util import query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -31,7 +24,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_tenants_usage(self):
         try:
             # Run getTenantUsage API
-            # 
+             
             Tenant_Usage = self.getTenantUsage()
             global_usage_total_vms = Tenant_Usage['global_usage']['total_vms']
             LOG.debug(" Total VM In Openstack  : "+ str(global_usage_total_vms))
@@ -64,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else :
                 LOG.debug(" Total vms in openstack is incorrect" )
                 reporting.add_test_step("Verify total vms in openstack", tvaultconf.FAIL)
+		raise Exception(" Verification for total vms in openstack failed ")
                   
             # Verify Global Usage
             if ( ( tenants_usage_vms_protected + 1 )  == tenants_usage_vms_protected_after_pre_req ):
@@ -72,6 +66,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else :
                 LOG.debug(" No. of total protected vms in tenant is incorrect" )
                 reporting.add_test_step(" Verify total protected vms in tenant", tvaultconf.FAIL)
+	        raise Exception(" Verification for protected vms in tenant failed ")
 
             reporting.test_case_to_write()         
  

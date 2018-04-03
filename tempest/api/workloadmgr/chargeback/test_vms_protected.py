@@ -1,16 +1,10 @@
-import sys
-import os
-sys.path.append(os.getcwd())
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
-import time
-from tempest import command_argument_string
-from tempest.util import cli_parser
-from tempest.util import query_data
+
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -63,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(" Verified Instance ID ", tvaultconf.PASS)
             else :
                 reporting.add_test_step(" Verified Instance ID ", tvaultconf.FAIL)  
+                raise Exception(" Verification for instance id failed ")
             reporting.test_case_to_write()     
         
         except Exception as e:

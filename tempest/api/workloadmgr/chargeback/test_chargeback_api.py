@@ -1,16 +1,10 @@
-import sys
-import os
-sys.path.append(os.getcwd())
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
-import time
-from tempest import command_argument_string
-from tempest.util import cli_parser
-from tempest.util import query_data
+
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -60,9 +54,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     LOG.debug(" Workload ID : "+ wid)
                     workload_found = True
             if ( workload_found == True ) :
-                reporting.add_test_step(" Verified workload ID ", tvaultconf.PASS)
+                reporting.add_test_step(" Verified workload id ", tvaultconf.PASS)
             else :
-                reporting.add_test_step(" Verified workload ID ", tvaultconf.FAIL)
+                reporting.add_test_step(" Verified workload id ", tvaultconf.FAIL)
+		raise Exception(" Verification for workload id failed ")
 
             #Verify Instance ID 
             openstack_instance_ids = chargeback_info[Tenant_id]['workloads'][wid]['protected_vms'].keys()
@@ -72,9 +67,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     LOG.debug(" VM ID : "+ instance_id)
                     instance_found = True
             if ( instance_found == True ) :
-                reporting.add_test_step(" Verified Instance ID ", tvaultconf.PASS)
+                reporting.add_test_step(" Verified instance id ", tvaultconf.PASS)
             else :
-                reporting.add_test_step(" Verified Instance ID ", tvaultconf.FAIL)
+                reporting.add_test_step(" Verified instance id ", tvaultconf.FAIL)
+		raise Exception(" Varification for instance id failed ")
 
 	    reporting.test_case_to_write()
 	            
