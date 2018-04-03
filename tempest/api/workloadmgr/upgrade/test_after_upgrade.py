@@ -66,6 +66,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
+            #Verify if email settings are imported after upgrade
+            self.settings_after_upgrade = self.get_settings_list()
+            LOG.debug("Setting list after upgrade: " + str(self.settings_after_upgrade))
+            LOG.debug("Setting list before upgrade: " + str(upgrade_data_conf.settings_list))
+
+
             #Get list of workloads imported
             self.workloads = self.getWorkloadList()
             LOG.debug("Workload list after import: " + str(self.workloads))

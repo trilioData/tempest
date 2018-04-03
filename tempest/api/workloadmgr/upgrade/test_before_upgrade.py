@@ -24,6 +24,7 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
+import time
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -59,8 +60,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                   self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
 	          f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
-             #Create workload
-             self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
+	     #Create workload
+             self.start_date = time.strftime("%x")
+             self.start_time = time.strftime("%X")
+             self.jobschedule = { "fullbackup_interval": "-1",
+                                  "retention_policy_type": tvaultconf.retention_policy_type,
+                                  "enabled": True,
+                                  "start_date": self.start_date,
+                                  "start_time": self.start_time,
+                                  "interval": tvaultconf.interval,
+                                  "retention_policy_value": tvaultconf.retention_policy_value }
+             self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, self.jobschedule, workload_cleanup=False)
              if(self.wait_for_workload_tobe_available(self.workload_id)):
                   reporting.add_test_step("Create Workload", tvaultconf.PASS)
              else:
@@ -102,7 +112,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	     #Fetch workload scheduler and retention settings
 	     self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
 	     LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
-	     f.write("scheduler_settings=" + str(self.scheduler_settings))
+	     f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
 
              #Update user email in openstack
              self.update_user_email = self.update_user_email(CONF.identity.user_id, CONF.identity.user_email, CONF.identity.tenant_id)
