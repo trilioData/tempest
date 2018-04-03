@@ -69,8 +69,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             #Verify if email settings are imported after upgrade
             self.settings_after_upgrade = self.get_settings_list()
             LOG.debug("Setting list after upgrade: " + str(self.settings_after_upgrade))
-            LOG.debug("Setting list before upgrade: " + str(upgrade_data_conf.settings_list))
-
+            self.tmp_settings=upgrade_data_conf.settings_list
+            self.tmp_settings.append(upgrade_data_conf.email_enabled_settings)
+            LOG.debug("tmp_settings: " + str(self.tmp_settings))
+            self.settings_before_upgrade={}
+            for setting in self.tmp_settings:
+                self.settings_before_upgrade[setting['name']]=setting['value']
+            LOG.debug("Setting list before upgrade: " + str(self.settings_before_upgrade))
+            for key in self.settings_before_upgrade.keys():
+                if(self.settings_after_upgrade[key] == self.settings_before_upgrade[key]):
+                    reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Get list of workloads imported
             self.workloads = self.getWorkloadList()
