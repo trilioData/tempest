@@ -66,6 +66,70 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Global job scheduler setting preserve", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
+            #Verify if license is imported correctly
+            self.license_check_flag=True
+            self.license_after_upgrade = self.get_license_list()
+            LOG.debug("License imported on upgrade: " + str(self.license_after_upgrade))
+            LOG.debug("License before upgrade: " + str(upgrade_data_conf.license_details))
+            for key in upgrade_data_conf.license_details.keys():
+                if self.license_after_upgrade:
+                    if(key == "metadata"):
+                        for k in upgrade_data_conf.license_details[key][0].keys():
+                            if(k in ('id', 'created_at')):
+                                pass
+                            elif(upgrade_data_conf.license_details[key][0][k] == self.license_after_upgrade[key][0][k]):
+                                LOG.debug("License metadata '" + str(k) + "' imported correctly")
+                            else:
+                                self.license_check_flag=False
+                                reporting.add_test_step("License metadata '" + str(k) + "' not imported correctly", tvaultconf.FAIL)
+                                reporting.set_test_script_status(tvaultconf.FAIL)
+                    elif(self.license_after_upgrade[key] == upgrade_data_conf.license_details[key]):
+                        LOG.debug("License data '" + str(key) + "' imported correctly")
+                    else:
+                        self.license_check_flag=False
+                        reporting.add_test_step("License data '" + str(key) + "' not imported correctly", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                else:
+                    self.license_check_flag=False
+                    reporting.add_test_step("License details not imported", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if self.license_check_flag:
+                reporting.add_test_step("License details imported correctly", tvaultconf.PASS)
+
+            #Verify if trust is imported correctly
+            self.trust_check_flag=True
+            self.trust_after_upgrade = self.get_trust_list()
+            LOG.debug("Trust imported on upgrade: " + str(self.trust_after_upgrade))
+            LOG.debug("Trust before upgrade: " + str(upgrade_data_conf.trust_details))
+            for i in range(0, len(upgrade_data_conf.trust_details)):
+                for key in upgrade_data_conf.trust_details[i].keys():
+                    if self.trust_after_upgrade:
+                        if(key == "metadata"):
+                            for j in range(0, len(upgrade_data_conf.trust_details[i][key])):
+                                for k in upgrade_data_conf.trust_details[i][key][j].keys():
+                                    if(k in ('id', 'created_at')):
+                                        pass
+                                    elif(upgrade_data_conf.trust_details[i][key][j][k] == self.trust_after_upgrade[i][key][j][k]):
+                                        LOG.debug("Trust metadata '" + str(k) + "' imported correctly")
+                                    else:
+                                        self.trust_check_flag=False
+                                        reporting.add_test_step("Trust metadata '" + str(k) + "' not imported correctly", tvaultconf.FAIL)
+                                        reporting.set_test_script_status(tvaultconf.FAIL)
+                        elif(upgrade_data_conf.trust_details[i][key] == self.trust_after_upgrade[i][key]):
+                            LOG.debug("Trust data '" + str(key) + "' imported correctly")
+                        else:
+                            self.trust_check_flag=False
+                            reporting.add_test_step("Trust data '" + str(key) + "' not imported correctly", tvaultconf.FAIL)
+                            reporting.set_test_script_status(tvaultconf.FAIL)
+                    else:
+                        self.trust_check_flag=False
+                        reporting.add_test_step("Trust details not imported", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if self.trust_check_flag:
+                reporting.add_test_step("Trust imported correctly", tvaultconf.PASS)
+
             #Verify if email settings are imported after upgrade
             self.settings_after_upgrade = self.get_settings_list()
             LOG.debug("Setting list after upgrade: " + str(self.settings_after_upgrade))
@@ -76,12 +140,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for setting in self.tmp_settings:
                 self.settings_before_upgrade[setting['name']]=setting['value']
             LOG.debug("Setting list before upgrade: " + str(self.settings_before_upgrade))
-            for key in self.settings_before_upgrade.keys():
-                if(self.settings_after_upgrade[key] == self.settings_before_upgrade[key]):
-                    reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.PASS)
-                else:
-                    reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
+            if self.settings_after_upgrade:
+                for key in self.settings_before_upgrade.keys():
+                    if(self.settings_after_upgrade[key] == self.settings_before_upgrade[key]):
+                        reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Email settings not imported", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Get list of workloads imported
             self.workloads = self.getWorkloadList()

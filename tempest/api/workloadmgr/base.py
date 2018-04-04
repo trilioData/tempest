@@ -2366,3 +2366,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         return workload_data
 
+    '''
+    Method to fetch trust list
+    '''
+    def get_trust_list(self):
+        resp, body = self.wlm_client.client.get("/trusts")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        data = body['trust']
+        return data
+
