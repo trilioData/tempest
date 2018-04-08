@@ -143,7 +143,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if self.settings_after_upgrade:
                 for key in self.settings_before_upgrade.keys():
                     if(self.settings_after_upgrade[key] == self.settings_before_upgrade[key]):
-                        reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.PASS)
+                        LOG.debug("Email setting '" + str(key) + "' preserved correctly")
                     else:
                         reporting.add_test_step("Email setting '" + str(key) + "' preserve", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
