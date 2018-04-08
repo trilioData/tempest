@@ -52,7 +52,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              f = open("tempest/upgrade_data_conf.py", "w")
              #Get global job scheduler status
              self.scheduler_status = self.get_global_job_scheduler_status()
-             if(tvaultconf.global_job_scheduler == 'true'):
+             if tvaultconf.global_job_scheduler:
                  self.scheduler_status = self.enable_global_job_scheduler()
                  if (self.scheduler_status == 'false'):
                      reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
