@@ -143,9 +143,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                   "retention_policy_value": tvaultconf.retention_policy_value }
              self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, self.jobschedule, workload_cleanup=False)
              if(self.wait_for_workload_tobe_available(self.workload_id)):
-                  reporting.add_test_step("Create Workload", tvaultconf.PASS)
+                  reporting.add_test_step("Create Workload with scheduler enabled", tvaultconf.PASS)
              else:
-                  reporting.add_test_step("Create Workload", tvaultconf.FAIL)
+                  reporting.add_test_step("Create Workload with scheduler enabled", tvaultconf.FAIL)
                   raise Exception("Workload creation failed")
              f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
 
