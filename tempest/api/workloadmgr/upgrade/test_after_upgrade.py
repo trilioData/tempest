@@ -102,6 +102,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.trust_after_upgrade = self.get_trust_list()
             LOG.debug("Trust imported on upgrade: " + str(self.trust_after_upgrade))
             LOG.debug("Trust before upgrade: " + str(upgrade_data_conf.trust_details))
+	    if len(upgrade_data_conf.trust_details) == 0:
+		self.trust_check_flag=False
             for i in range(0, len(upgrade_data_conf.trust_details)):
                 for key in upgrade_data_conf.trust_details[i].keys():
                     if self.trust_after_upgrade:
@@ -124,11 +126,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             reporting.set_test_script_status(tvaultconf.FAIL)
                     else:
                         self.trust_check_flag=False
-                        reporting.add_test_step("Trust details not imported", tvaultconf.FAIL)
-                        reporting.set_test_script_status(tvaultconf.FAIL)
 
             if self.trust_check_flag:
                 reporting.add_test_step("Trust imported correctly", tvaultconf.PASS)
+	    else:
+		reporting.add_test_step("Trust not imported correctly", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Verify if email settings are imported after upgrade
             self.settings_after_upgrade = self.get_settings_list()
