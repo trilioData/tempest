@@ -52,24 +52,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              f = open("tempest/upgrade_data_conf.py", "w")
              #Get global job scheduler status
              self.scheduler_status = self.get_global_job_scheduler_status()
-             if(self.scheduler_status == tvaultconf.global_job_scheduler):
-                LOG.debug("Global job scheduler status before upgrade: " + str(self.scheduler_status))
-                reporting.add_test_step("Global job scheduler " + str(self.scheduler_status), tvaultconf.PASS)
+             if(tvaultconf.global_job_scheduler == 'true'):
+                 self.scheduler_status = self.enable_global_job_scheduler()
+                 if (self.scheduler_status == 'false'):
+                     reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
+                     raise Exception("Enable global job scheduler failed")
+                 else:
+                     reporting.add_test_step("Enable global job scheduler", tvaultconf.PASS)
              else:
-                if(tvaultconf.global_job_scheduler == 'true'):
-                    self.scheduler_status = self.enable_global_job_scheduler()
-                    if (self.scheduler_status == 'false'):
-                        reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
-                        raise Exception("Enable global job scheduler failed")
-                    else:
-                        reporting.add_test_step("Enable global job scheduler", tvaultconf.PASS)
-                else:
-                    self.scheduler_status = self.disable_global_job_scheduler()
-                    if (self.scheduler_status == 'true'):
-                        reporting.add_test_step("Disable global job scheduler", tvaultconf.FAIL)
-                        raise Exception("Disable global job scheduler failed")
-                    else:
-                        reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
+                 self.scheduler_status = self.disable_global_job_scheduler()
+                 if (self.scheduler_status == 'true'):
+                     reporting.add_test_step("Disable global job scheduler", tvaultconf.FAIL)
+                     raise Exception("Disable global job scheduler failed")
+                 else:
+                     reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
 
              #Fetch license details
              self.license_details = self.get_license_list()
@@ -167,6 +163,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
              LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
              f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
+
+             #Fetch trust details
+             self.trust_details = self.get_trust_list()
+             LOG.debug("Trust details: " + str(self.trust_details))
+             f.write("trust_details=" + str(self.trust_details) + "\n")
 
              f.close()
              reporting.test_case_to_write()
