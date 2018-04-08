@@ -122,6 +122,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                  reporting.add_test_step("Update email for user in openstack", tvaultconf.FAIL)
                  reporting.set_test_script_status(tvaultconf.FAIL)
 
+	     #Create workload-1
              for vm in range(0,self.vms_per_workload):
                   volume_id1 = self.create_volume()
                   self.workload_volumes.append(volume_id1)
@@ -131,7 +132,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                   self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
                   f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
-             #Create workload
              self.start_date = time.strftime("%x")
              self.start_time = time.strftime("%X")
              self.jobschedule = { "fullbackup_interval": "-1",
@@ -153,16 +153,55 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
              self.wait_for_workload_tobe_available(self.workload_id)
              if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-                  reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
+                  reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
              else:
-                  reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
+                  reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                   raise Exception("Snapshot creation failed")
              f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
 
-             #Fetch workload scheduler and retention settings
+             #Fetch workload scheduler and retention settings for workload-1
              self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
              LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
              f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
+
+             #Create workload-2
+	     self.volumes = []
+	     self.instances = []
+             self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id)
+             self.set_volume_as_bootable(self.volume_id)
+             self.block_mapping_details = [{ "source_type": "volume",
+                   "delete_on_termination": "false",
+                   "boot_index": 0,
+                   "uuid": self.volume_id,
+                   "destination_type": "volume"}]
+             self.volumes.append(self.volume_id)
+	     f.write("volume_ids_2=" + str(self.volumes) + "\n")
+             self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+	     self.instances.append(self.vm_id)
+	     f.write("instance_id_2=" + str(self.instances) + "\n")
+
+             self.workload_id=self.workload_create(self.instances,tvaultconf.parallel, workload_cleanup=False)
+             if(self.wait_for_workload_tobe_available(self.workload_id)):
+                  reporting.add_test_step("Create Workload with scheduler disabled", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create Workload with scheduler disabled", tvaultconf.FAIL)
+                  raise Exception("Workload creation failed")
+             f.write("workload_id_2=\"" + str(self.workload_id) + "\"\n")
+
+	     #Create full snapshot for workload-2
+             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
+             self.wait_for_workload_tobe_available(self.workload_id)
+             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
+                  reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
+                  raise Exception("Snapshot creation failed")
+             f.write("full_snapshot_id_2=\"" + str(self.snapshot_id) + "\"\n")
+
+             #Fetch workload scheduler and retention settings for workload-1
+             self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
+             LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
+             f.write("scheduler_settings_2=" + str(self.scheduler_settings) + "\n")
 
              #Fetch trust details
              self.trust_details = self.get_trust_list()
