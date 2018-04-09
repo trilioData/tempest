@@ -79,8 +79,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	try:
 	    global policy_id
             # Update workload policy by admin user
-            updated_status = self.workload_policy_update(policy_id, policy_name='policy_update', fullbackup_interval='7',
-                              interval='7 hrs', retention_policy_value='7')
+            updated_status = self.workload_policy_update(policy_id, policy_name='policy_update', fullbackup_interval='8',
+                              interval='8 hrs', retention_policy_value='8')
             if updated_status:
                 reporting.add_test_step("Update workload policy by admin user", tvaultconf.PASS)
                 LOG.debug("Workload policy has been updated by admin user")
@@ -95,7 +95,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify workload policy parameters updated", tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
-                if 'policy_update'==details[0] and '7 hrs'==details[1]['interval'] and '7'==details[1]['retention_policy_value'] and '7'==details[1]['fullbackup_interval']:
+                if 'policy_update'==details[0] and '8 hrs'==details[1]['interval'] and '8'==details[1]['retention_policy_value'] and '8'==details[1]['fullbackup_interval']:
                     reporting.add_test_step("Verify workload policy parameters updated", tvaultconf.PASS)
                     LOG.debug("Policy updated successfully")
                 else:
@@ -146,6 +146,30 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Verify policy assigned by admin user", tvaultconf.FAIL)
                 raise Exception("Workload policy not assigned to project by admin user unsuccessfully")
+
+	    # Update workload policy which is assigned to tenant
+            updated_status = self.workload_policy_update(policy_id, policy_name='policy_update', fullbackup_interval='7',
+                              interval='7 hrs', retention_policy_value='7')
+            if updated_status:
+                reporting.add_test_step("Update workload policy which is assigned to tenant", tvaultconf.PASS)
+                LOG.debug("Assigned workload policy has been updated")
+            else:
+                reporting.add_test_step("Update workload policy which is assigned to tenantr", tvaultconf.FAIL)
+                raise Exception("Assigned workload policy not updated by admin user")
+
+            # Verify workload policy which has assigned to tenant is updated with parameters
+            # Below function returns list as [policy_name, {field_values}, policy_id, description, [list_of_project_assigned]]
+            details  = self.get_policy_details(policy_id)
+            if not details:
+                reporting.add_test_step("Verify workload policy parameters updated", tvaultconf.FAIL)
+                raise Exception("Workload policy not updated")
+            else:
+                if 'policy_update'==details[0] and '7 hrs'==details[1]['interval'] and '7'==details[1]['retention_policy_value'] and '7'==details[1]['fullbackup_interval']:
+                    reporting.add_test_step("Verify workload policy parameters updated", tvaultconf.PASS)
+                    LOG.debug("Policy updated successfully")
+                else:
+                    reporting.add_test_step("Verify workload policy parameters updated", tvaultconf.FAIL)
+                    raise Exception("Workload policy updated incorrect")
 
 	    # Deassign workload policy to projects by admin user
             status = self.assign_unassign_workload_policy(policy_id,add_project_ids_list=[],remove_project_ids_list=[admin_project_id])
@@ -230,6 +254,36 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		reporting.add_test_step("Create workload with policy", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
+	    # Verify that workload is created with same policy ID
+	    workload_details = self.get_workload_details(workload_id)
+	    policyid_from_workload_metadata = workload_details["metadata"]["policy_id"]
+	    if policyid_from_workload_metadata == policy_id:
+	        reporting.add_test_step("Verfiy that same policy id is assigned in workload-metadata", tvaultconf.PASS)
+                LOG.debug("Same policy id is assigned in workload-metadata")
+	    else:
+		reporting.add_test_step("Verfiy that same policy id is assigned in workload-metadata", tvaultconf.FAIL)
+                raise Exception("policy id not assigned properly in workload-metadata")
+
+	    # Verify that workload is created with same policy settings
+	    key_list = ["fullbackup_interval","retention_policy_type","interval","retention_policy_value"]
+	    same_policy_settings = True
+	    policy_details  = self.get_policy_details(policy_id)
+            if not policy_details:
+                reporting.add_test_step("Get policy details", tvaultconf.FAIL)
+                raise Exception("Get policy details failed")
+            else:
+		field_values =  policy_details[1]
+	    for i in key_list:
+                if workload_details["jobschedule"][i] != field_values[i]:
+		    same_policy_settings = False
+		    break
+	    if same_policy_settings:
+		reporting.add_test_step("Verify that workload is created with same policy settings", tvaultconf.PASS)
+		LOG.debug("Workload is created with same policy settings")
+	    else:
+		reporting.add_test_step("Verify that workload is created with same policy settings", tvaultconf.FAIL)
+		LOG.debug("Workload is not created with same policy settings")
+	    
 	    # Launch second instance
             self.vm_id2 = self.create_vm()
             LOG.debug("VM ID2: " + str(self.vm_id2))
@@ -361,10 +415,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    # Policy delete when it is not in use
 	    delete_status = self.workload_policy_delete(policy_id)
             if delete_status:
-                reporting.add_test_step("Delete policy by admin user", tvaultconf.PASS)
+                reporting.add_test_step("Delete policy which is assigned to tenant by admin user", tvaultconf.PASS)
                 LOG.debug("Policy deleted")
             else:
-                reporting.add_test_step("Delete policy by admin user", tvaultconf.FAIL)
+                reporting.add_test_step("Delete policy which is assigned to tenant by admin user", tvaultconf.FAIL)
                 raise Exception ("Policy not deleted")
 
 	    # Verify policy is deleted
