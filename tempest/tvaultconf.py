@@ -57,9 +57,12 @@ compute_node_password = "password"
 # Scheduler parameter
 
 interval="1 hrs"
+interval_update = "7 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
+retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
+retention_policy_value_update = "7"
 schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
@@ -67,7 +70,9 @@ No_of_Backup=1
 
 # Scheduler policy parameters
 policy_name="policy2"
+policy_name_update = "policy_update"
 fullbackup_interval="8"
+fullbackup_interval_update = "7"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
