@@ -43,23 +43,26 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
-tvault_ip = "192.168.1.23"
+tvault_ip = "192.168.7.3"
 tvault_dbusername = "root"
 tvault_dbpassword = "52T8FVYZJse"
 tvault_dbname = "workloadmgr"
 
 
 no_of_compute_nodes = 1
-compute_node_ip = "192.168.1.189"
+compute_node_ip = "192.168.6.21"
 compute_node_username = "root"
-compute_node_password = "password"
+compute_node_password = "Password1!"
 
 # Scheduler parameter
 
 interval="1 hrs"
+interval_update = "7 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
+retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
+retention_policy_value_update = "7"
 schedule_report_file="scheduleReport.txt"
 sched=BlockingScheduler()
 count=0
@@ -67,7 +70,9 @@ No_of_Backup=1
 
 # Scheduler policy parameters
 policy_name="policy2"
+policy_name_update = "policy_update"
 fullbackup_interval="8"
+fullbackup_interval_update = "7"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
@@ -90,16 +95,4 @@ bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 recovery_flavor_ref = 3
 recovery_image_ref = "cd056509-666b-41fa-9236-86f202b3e619" 
-
-
-#Email settings data
-setting_data = {"smtp_default_recipient": "savitha.peri@trilio.io",
-                "smtp_default_sender": "trilio.build@trilio.io",
-                "smtp_port": "587",
-                "smtp_server_name": "smtp.gmail.com",
-                "smtp_server_password": tvault_dbpassword,
-                "smtp_server_username": "trilio.build@trilio.io",
-                "smtp_timeout": "10" }
-enable_email_notification = {"smtp_email_enable" : 1}
-disable_email_notification = {"smtp_email_enable" : 0}
 
