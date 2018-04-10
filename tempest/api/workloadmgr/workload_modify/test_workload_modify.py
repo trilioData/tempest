@@ -28,7 +28,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_tvault1045_modify_workload(self):
+    def test_1_modify_workload_tvault1045_add_instance(self):
+	reporting.add_test_script(str(__name__) + "_tvault1045_add_instance")
 	try:
 	    #Prerequisites
             self.created = False
@@ -48,7 +49,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #Create workload with scheduler enabled
             self.workload_instances.append(self.vm_id)
-            self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=False)
+            self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(self.wid))
         
             #Launch second instance
@@ -82,6 +83,40 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
  	        reporting.add_test_step("Verification with DB", tvaultconf.FAIL)
                 raise Exception ("Vm has not been added")
 
+	    reporting.test_case_to_write()
+
+	except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
+    
+    @test.attr(type='smoke')
+    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    def test_2_modify_workload_scheduler_disable(self):
+        reporting.add_test_script(str(__name__) + "_scheduler_disable")
+        try:
+	    #Prerequisites
+            self.created = False
+            self.workload_instances = []
+
+            #Launch instance
+            self.vm_id = self.create_vm()
+            LOG.debug("VM ID-2: " + str(self.vm_id))
+
+            #Create volume
+            self.volume_id = self.create_volume()
+            LOG.debug("Volume ID-2: " + str(self.volume_id))
+
+            #Attach volume to the instance
+            self.attach_volume(self.volume_id, self.vm_id)
+            LOG.debug("Volume attached-2")
+
+            #Create workload with scheduler enabled
+            self.workload_instances.append(self.vm_id)
+            self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=True)
+            LOG.debug("Workload ID-2: " + str(self.wid))
+
 	    #Verify workload created with scheduler enable
 	    status = self.getSchedulerStatus(self.wid)
 	    if status:
@@ -108,13 +143,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 	    #Modify workload scheduler to disable
 	    workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=False"
-	    rc = cli_parser.cli_returncode(workload_modify_command)
-            if rc != 0:
+	    error = cli_parser.cli_error(workload_modify_command)
+	    if error and str(error.strip('\n')) == "ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.":
                 reporting.add_test_step("Does not execute workload-modify scheduler disable", tvaultconf.PASS)
-		LOG.debug("Command executed correctly")
-	    else:
-		reporting.add_test_step("Does not execute workload-modify scheduler disable", tvaultconf.FAIL)
-		raise Exception("Command did not execute correctly")
+                LOG.debug("Command executed correctly")
+                reporting.add_test_step("Throws proper message", tvaultconf.PASS)
+                LOG.debug("Error message :" + str(error))
+            else:
+                reporting.add_test_step("Does not execute workload-modify scheduler disable", tvaultconf.FAIL)
+                reporting.add_test_step("Throws proper message", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
 
 	    #Change global job scheduler to enable
             LOG.debug("Change Global job scheduler to enable")
@@ -156,15 +194,34 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.FAIL)
 	        raise Exception ("Interval and Next snapshot run time values are incorrect")
 
-	    #Delete workload
-	    status = self.workload_delete(self.wid)
-	    if status:
-		reporting.add_test_step("Workload delete", tvaultconf.PASS)
-		LOG.debug("workload deleted successfully")
-	    else:
-		reporting.add_test_step("Workload delete", tvaultconf.FAIL)
-		raise Exception ("workload deleted unsuccessfully")
-	    time.sleep(10)
+	    reporting.test_case_to_write()
+	
+	except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
+
+    @test.attr(type='smoke')
+    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    def test_3_modify_workload_scheduler_enable(self):
+        reporting.add_test_script(str(__name__) + "_scheduler_enable")
+        try:
+            #Prerequisites
+            self.created = False
+            self.workload_instances = []
+
+            #Launch instance
+            self.vm_id = self.create_vm()
+            LOG.debug("VM ID-3: " + str(self.vm_id))
+
+            #Create volume
+            self.volume_id = self.create_volume()
+            LOG.debug("Volume ID-3: " + str(self.volume_id))
+
+            #Attach volume to the instance
+            self.attach_volume(self.volume_id, self.vm_id)
+            LOG.debug("Volume attached-3")
 
 	    #Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id) + " --jobschedule enabled=False"
@@ -178,7 +235,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 	    time.sleep(10)
 	    self.wid = query_data.get_workload_id(tvaultconf.workload_name)
-            LOG.debug("Workload ID: " + str(self.wid))
+            LOG.debug("Workload ID-3: " + str(self.wid))
 	    if(self.wid != None):
 		self.wait_for_workload_tobe_available(self.wid)
 		if(self.getWorkloadStatus(self.wid) == "available"):
@@ -217,12 +274,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #Modify workload scheduler to enable
             workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True"
-            rc = cli_parser.cli_returncode(workload_modify_command)
-            if rc != 0:
+	    error = cli_parser.cli_error(workload_modify_command)
+            if error and str(error.strip('\n')) == "ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.":
                 reporting.add_test_step("Does not execute workload-modify scheduler enable", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+		reporting.add_test_step("Throws proper message", tvaultconf.PASS)
+    		LOG.debug("Error message :" + str(error))
             else:
                 reporting.add_test_step("Does not execute workload-modify scheduler enable", tvaultconf.FAIL)
+		reporting.add_test_step("Throws proper message", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
 
             #Change global job scheduler to enable
@@ -287,16 +347,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.FAIL)
                 raise Exception ("Interval and Next snapshot run time values are incorrect")
 
-	    #Delete workload
-            status = self.workload_delete(self.wid)
-            if status:
-                reporting.add_test_step("Workload delete", tvaultconf.PASS)
-                LOG.debug("workload deleted successfully")
-            else:
-                reporting.add_test_step("Workload delete", tvaultconf.FAIL)
-                raise Exception ("workload deleted unsuccessfully")
-            time.sleep(10)
-
 	    reporting.test_case_to_write()
 
         except Exception as e:
@@ -304,4 +354,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-
+	finally:
+	    #Delete workload
+            status = self.workload_delete(self.wid)
+            time.sleep(10)
+        
