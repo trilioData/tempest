@@ -2207,16 +2207,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method to get environmental variable 
-    '''
-    def getEnvVariable(self):
-        body = os.environ
-        Tenant_id = body['OS_TENANT_ID']
-        LOG.debug("Env Info:"+ str(body))
-        LOG.debug("Env Tenant ID:"+ Tenant_id)
-        return body
- 
-    '''
     This method creats a workload policy and return policy_id
     '''
     def workload_policy_create(self, policy_name=tvaultconf.policy_name, fullbackup_interval=tvaultconf.fullbackup_interval,

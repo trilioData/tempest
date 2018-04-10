@@ -28,9 +28,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             Tenant_Usage = self.getTenantUsage()
             global_usage_total_vms = Tenant_Usage['global_usage']['total_vms']
             LOG.debug(" Total VM In Openstack  : "+ str(global_usage_total_vms))
-            env_info = self.getEnvVariable()
-            Tenant_id = env_info['OS_TENANT_ID']
-            tenants_usage_vms_protected = Tenant_Usage['tenants_usage'][Tenant_id]['vms_protected']
+            tenants_usage_vms_protected = Tenant_Usage['tenants_usage'][str(CONF.identity.tenant_id)]['vms_protected']
             LOG.debug(" VM Procted in Tenant : "+ str(tenants_usage_vms_protected))
 
             # Run Prereqisite 

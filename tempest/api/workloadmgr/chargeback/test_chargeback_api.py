@@ -39,9 +39,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	        raise Exception("Verified Chargeback API Failed")
 	    else:
 	        reporting.add_test_step("Verified Chargeback API", tvaultconf.PASS)
-            env_info = self.getEnvVariable()
-            Tenant_id = env_info['OS_TENANT_ID']
-            workload_id_chargeback = chargeback_info[Tenant_id]['tenant_name']
+            workload_id_chargeback = chargeback_info[str(CONF.identity.tenant_id)]['tenant_name']
             LOG.debug(" Env Tenant ID: "+ Tenant_id)
             LOG.debug(" Instance ID : "+ vm_id)
        
