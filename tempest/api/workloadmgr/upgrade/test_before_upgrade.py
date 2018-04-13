@@ -72,11 +72,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
              LOG.debug("License details: " + str(self.license_details))
              f.write("license_details=" + str(self.license_details) + "\n")
 
-             #Fetch trust details
-             self.trust_details = self.get_trust_list()
-             LOG.debug("Trust details: " + str(self.trust_details))
-             f.write("trust_details=" + str(self.trust_details) + "\n")
-
              #Update user email in openstack
              self.update_user_email = self.update_user_email(CONF.identity.user_id, CONF.identity.user_email, CONF.identity.tenant_id)
              f.write("update_user_email_in_openstack=" + str(self.update_user_email) + "\n")
@@ -143,26 +138,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                   "retention_policy_value": tvaultconf.retention_policy_value }
              self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, self.jobschedule, workload_cleanup=False)
              if(self.wait_for_workload_tobe_available(self.workload_id)):
-                  reporting.add_test_step("Create Workload with scheduler enabled", tvaultconf.PASS)
+                  reporting.add_test_step("Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.PASS)
              else:
-                  reporting.add_test_step("Create Workload with scheduler enabled", tvaultconf.FAIL)
+                  reporting.add_test_step("Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.FAIL)
                   raise Exception("Workload creation failed")
              f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
-
-             #Create full snapshot
-             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
-             self.wait_for_workload_tobe_available(self.workload_id)
-             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-                  reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-             else:
-                  reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
-                  raise Exception("Snapshot creation failed")
-             f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
-
-             #Fetch workload scheduler and retention settings for workload-1
-             self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
-             LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
-             f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
 
              #Create workload-2
 	     self.volumes = []
@@ -180,28 +160,41 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	     self.instances.append(self.vm_id)
 	     f.write("instance_id_2=" + str(self.instances) + "\n")
 
-             self.workload_id=self.workload_create(self.instances,tvaultconf.parallel, workload_cleanup=False)
-             if(self.wait_for_workload_tobe_available(self.workload_id)):
-                  reporting.add_test_step("Create Workload with scheduler disabled", tvaultconf.PASS)
+             self.workload_id2=self.workload_create(self.instances,tvaultconf.parallel, jobschedule={'enabled': False}, workload_cleanup=False)
+             if(self.wait_for_workload_tobe_available(self.workload_id2)):
+                  reporting.add_test_step("Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.PASS)
              else:
-                  reporting.add_test_step("Create Workload with scheduler disabled", tvaultconf.FAIL)
+                  reporting.add_test_step("Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.FAIL)
                   raise Exception("Workload creation failed")
-             f.write("workload_id_2=\"" + str(self.workload_id) + "\"\n")
+             f.write("workload_id_2=\"" + str(self.workload_id2) + "\"\n")
 
-	     #Create full snapshot for workload-2
-             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
-             self.wait_for_workload_tobe_available(self.workload_id)
-             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-                  reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-             else:
-                  reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
-                  raise Exception("Snapshot creation failed")
-             f.write("full_snapshot_id_2=\"" + str(self.snapshot_id) + "\"\n")
+             #Fetch workload scheduler and retention settings for workloads
+	     self.workloads = [self.workload_id, self.workload_id2]
+	     for i in range(0, len(self.workloads)):
+	          self.scheduler_settings = self.getSchedulerDetails(self.workloads[i])
+        	  LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
+		  if(i == 0):
+		       f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
+		  else:
+		       f.write("scheduler_settings_2=" + str(self.scheduler_settings) + "\n")
 
-             #Fetch workload scheduler and retention settings for workload-1
-             self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
-             LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
-             f.write("scheduler_settings_2=" + str(self.scheduler_settings) + "\n")
+             #Create full snapshots for workloads 1 & 2
+	     self.snapshots = []
+	     for i in range(0, len(self.workloads)):
+		  self.snapshot_id=self.workload_snapshot(self.workloads[i], True, snapshot_cleanup=False)
+		  self.snapshots.append(self.snapshot_id)
+	 	  if(i == 0):
+		       f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
+		  else:
+		       f.write("full_snapshot_id_2=\"" + str(self.snapshot_id) + "\"\n")
+                 
+	     for i in range(0, len(self.workloads)):
+		  self.wait_for_workload_tobe_available(self.workloads[i])
+	          if(self.getSnapshotStatus(self.workloads[i], self.snapshots[i]) == "available"):
+                       reporting.add_test_step("Create full snapshot for workload " + str(i+1), tvaultconf.PASS)
+                  else:
+                       reporting.add_test_step("Create full snapshot for workload " + str(i+1), tvaultconf.FAIL)
+		       reporting.set_test_script_status(tvaultconf.FAIL)
 
              #Fetch trust details
              self.trust_details = self.get_trust_list()
