@@ -23,7 +23,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_1_wlm_api_restart(self):
+    def test_1_tvault1157_1153_1154_1155_wlm_api_restart(self):
 	reporting.add_test_script(str(__name__))
 	try: 
 	    # Change global job scheduler to disable using API
