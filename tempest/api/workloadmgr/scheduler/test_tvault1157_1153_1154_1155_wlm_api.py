@@ -36,15 +36,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		raise Exception ("Global job scheduler not disabled")
 
 	    # Execute wlm-api service restart
-	    ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
-	    commands = "service wlm-api restart"
-            stdin, stdout, stderr = ssh.exec_command(commands) 
-	    time.sleep(3)
-	    commands = "service wlm-api status | grep 'Active'"
-            stdin, stdout, stderr = ssh.exec_command(commands)
-	    status_update = stdout.read()
-	    ssh.close()
-
+	    status_update = self.restart_wlm_api_service()
 	    if "active (running)" in str(status_update):
 		reporting.add_test_step("verify wlm-api service is up and running after restart", tvaultconf.PASS)
 		LOG.debug("wlm-api service is up and running")
@@ -71,15 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Global job scheduler not enabled")
 
 	    # Execute wlm-api service restart
-            ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
-            commands = "service wlm-api restart"
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            time.sleep(3)
-            commands = "service wlm-api status | grep 'Active'"
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            status_update = stdout.read()
-            ssh.close()
-
+            status_update = self.restart_wlm_api_service() 
             if "active (running)" in str(status_update):
                 reporting.add_test_step("verify wlm-api service is up and running after restart", tvaultconf.PASS)
                 LOG.debug("wlm-api service is up and running")
