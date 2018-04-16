@@ -2162,6 +2162,51 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return restore_details
 
     '''
+    Method to get tenant chargeback API
+    '''
+    def getTenantChargeback(self):
+        try:
+	    resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_chargeback")
+            LOG.debug("Chargeback API Response:"+ str(resp.content))
+            LOG.debug("Chargeback API Body:"+ str(body))
+            if(resp.status_code != 200):
+                   resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False
+
+    '''
+    Method to get vm protected API
+    '''
+    def getVMProtected(self):
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/vms_protected")
+            LOG.debug("Get Protected VM Response:"+ str(resp.content))
+            LOG.debug("Get Protected VM Body:"+ str(body))
+            if(resp.status_code != 200):
+                resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False 
+       
+    '''
+    Method to get tenant usage API
+    '''
+    def getTenantUsage(self):
+        try:
+            resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
+            LOG.debug("Get Tenant Usage Response:"+ str(resp.content))
+            LOG.debug("Get Tenant Usage Body:"+ str(body))
+            if(resp.status_code != 200):
+                resp.raise_for_status()
+            return body
+        except Exception as e:
+            LOG.debug("Exception: "+str(e))
+            return False
+
+    '''
     This method creats a workload policy and return policy_id
     '''
     def workload_policy_create(self, policy_name=tvaultconf.policy_name, fullbackup_interval=tvaultconf.fullbackup_interval,
@@ -2353,3 +2398,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 	except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
+
+    '''
+    Method to return details of given workload
+    '''
+    def getWorkloadDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/"+workload_id)
+        workload_data = body['workload']
+        LOG.debug("#### workloadid: %s , operation:show_workload" % workload_id)
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return workload_data
+
