@@ -111,12 +111,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	#Trigger selective restore
         self.restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
-                                                        instance_details=self.instance_details, network_details=self.network_details)
+                                                        instance_details=self.instance_details, network_details=self.network_details,
+							restore_cleanup=False)
 	return self.restore_id
 
 
     def _delete_restore(self, workload_id, snapshot_id, restore_id):
 	return self.restore_delete(workload_id, snapshot_id, restore_id)
+
+
+    def _delete_restored_vms(self, restore_id):
+	restored_vms = self.get_restored_vm_list(restore_id)
+        restored_volumes = self.get_restored_volume_list(restore_id)
+	self.delete_restored_vms(restored_vms, restored_volumes)
 
 
     def _delete_snapshot(self, workload_id, snapshot_id):
@@ -201,6 +208,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                    result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
 		   result_json[k]['restore_status'] = self.getRestoreStatus(result_json[k]['workload'], result_json[k]['snapshot'], result_json[k]['restore'])
                    if(result_json[k]['workload_status'] == "available" and result_json[k]['restore_status'] in ("available", "error")):
+		       self._delete_restored_vms(result_json[k]['restore'])
                        result_json[k]['restore_delete_response'] = self._delete_restore(result_json[k]['workload'], result_json[k]['snapshot'], result_json[k]['restore'])
                        #if(result_json[k]['restore_delete_response']):
                        #    result_json[k]['result']['Delete_Restore'] = tvaultconf.PASS
