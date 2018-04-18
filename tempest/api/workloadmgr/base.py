@@ -2421,4 +2421,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         data = body['trust']
         return data
+      
+    '''
+    Method to restart wlm-api service on tvault
+    '''
+    def restart_wlm_api_service(self):
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        command = "service wlm-api restart"
+        stdin, stdout, stderr = ssh.exec_command(command)
+        time.sleep(3)
+        command = "service wlm-api status | grep 'Active'"
+        stdin, stdout, stderr = ssh.exec_command(command)
+        status_update = stdout.read()
+        ssh.close()
+        return status_update
 
