@@ -24,6 +24,7 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
+import time
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -46,63 +47,30 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.volume_size=1
         self.workload_instances = []
         self.workload_volumes = []
-	self.test_json = {}
 
-	try:
-	     f = open("tempest/upgrade_data_conf.py", "w")
-             for vm in range(0,self.vms_per_workload):
-	          volume_id1 = self.create_volume()
-                  self.workload_volumes.append(volume_id1)
-                  vm_id = self.create_vm(vm_cleanup=False)
-                  self.workload_instances.append(vm_id)
-	          f.write("instance_id=" + str(self.workload_instances) + "\n") 
-                  self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
-	          f.write("volume_ids=" + str(self.workload_volumes) + "\n")
-
-             #Create workload
-             self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, workload_cleanup=False)
-             if(self.wait_for_workload_tobe_available(self.workload_id)):
-                  reporting.add_test_step("Create Workload", tvaultconf.PASS)
+        try:
+             f = open("tempest/upgrade_data_conf.py", "w")
+             #Get global job scheduler status
+             self.scheduler_status = self.get_global_job_scheduler_status()
+             if tvaultconf.global_job_scheduler:
+                 self.scheduler_status = self.enable_global_job_scheduler()
+                 if (self.scheduler_status == 'false'):
+                     reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
+                     raise Exception("Enable global job scheduler failed")
+                 else:
+                     reporting.add_test_step("Enable global job scheduler", tvaultconf.PASS)
              else:
-                  reporting.add_test_step("Create Workload", tvaultconf.FAIL)
-                  raise Exception("Workload creation failed")
-	     f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
+                 self.scheduler_status = self.disable_global_job_scheduler()
+                 if (self.scheduler_status == 'true'):
+                     reporting.add_test_step("Disable global job scheduler", tvaultconf.FAIL)
+                     raise Exception("Disable global job scheduler failed")
+                 else:
+                     reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
 
-             #Create full snapshot
-             self.snapshot_id=self.workload_snapshot(self.workload_id, True, snapshot_cleanup=False)
-             self.wait_for_workload_tobe_available(self.workload_id)
-             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-                  reporting.add_test_step("Create Snapshot", tvaultconf.PASS)
-             else:
-                  reporting.add_test_step("Create Snapshot", tvaultconf.FAIL)
-                  raise Exception("Snapshot creation failed")
-	     f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
-
-	     #Get global job scheduler status
-	     self.scheduler_status = self.get_global_job_scheduler_status()
-	     if(self.scheduler_status == tvaultconf.global_job_scheduler):
-		LOG.debug("Global job scheduler status before upgrade: " + str(self.scheduler_status))
-		reporting.add_test_step("Global job scheduler " + str(self.scheduler_status), tvaultconf.PASS)
-	     else:
-	        if(tvaultconf.global_job_scheduler == 'true'):
-		    self.scheduler_status = self.enable_global_job_scheduler()
-		    if (self.scheduler_status == 'false'):
-			reporting.add_test_step("Enable global job scheduler", tvaultconf.FAIL)
-			raise Exception("Enable global job scheduler failed")
-		    else:
-			reporting.add_test_step("Enable global job scheduler", tvaultconf.PASS)
-		else:
-                    self.scheduler_status = self.disable_global_job_scheduler()
-                    if (self.scheduler_status == 'true'):
-                        reporting.add_test_step("Disable global job scheduler", tvaultconf.FAIL)
-                        raise Exception("Disable global job scheduler failed")
-                    else:
-                        reporting.add_test_step("Disable global job scheduler", tvaultconf.PASS)
-
-	     #Fetch workload scheduler and retention settings
-	     self.scheduler_settings = self.getSchedulerDetails(self.workload_id)
-	     LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
-	     f.write("scheduler_settings=" + str(self.scheduler_settings))
+             #Fetch license details
+             self.license_details = self.get_license_list()
+             LOG.debug("License details: " + str(self.license_details))
+             f.write("license_details=" + str(self.license_details) + "\n")
 
              #Update user email in openstack
              self.update_user_email = self.update_user_email(CONF.identity.user_id, CONF.identity.user_email, CONF.identity.tenant_id)
@@ -149,10 +117,94 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                  reporting.add_test_step("Update email for user in openstack", tvaultconf.FAIL)
                  reporting.set_test_script_status(tvaultconf.FAIL)
 
-             f.close()
-	     reporting.test_case_to_write()
+	     #Create workload-1
+             for vm in range(0,self.vms_per_workload):
+                  volume_id1 = self.create_volume()
+                  self.workload_volumes.append(volume_id1)
+                  vm_id = self.create_vm(vm_cleanup=False)
+                  self.workload_instances.append(vm_id)
+                  f.write("instance_id=" + str(self.workload_instances) + "\n")
+                  self.attach_volume(volume_id1, vm_id, device="/dev/vdb")
+                  f.write("volume_ids=" + str(self.workload_volumes) + "\n")
 
-	except Exception as e:
-	    LOG.error("Exception: " + str(e))
-	    reporting.set_test_script_status(tvaultconf.FAIL)
+             self.start_date = time.strftime("%x")
+             self.start_time = time.strftime("%X")
+             self.jobschedule = { "fullbackup_interval": "-1",
+                                  "retention_policy_type": tvaultconf.retention_policy_type,
+                                  "enabled": True,
+                                  "start_date": self.start_date,
+                                  "start_time": self.start_time,
+                                  "interval": tvaultconf.interval,
+                                  "retention_policy_value": tvaultconf.retention_policy_value }
+             self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel, self.jobschedule, workload_cleanup=False)
+             if(self.wait_for_workload_tobe_available(self.workload_id)):
+                  reporting.add_test_step("Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.FAIL)
+                  raise Exception("Workload creation failed")
+             f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
+
+             #Create workload-2
+	     self.volumes = []
+	     self.instances = []
+             self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id)
+             self.set_volume_as_bootable(self.volume_id)
+             self.block_mapping_details = [{ "source_type": "volume",
+                   "delete_on_termination": "false",
+                   "boot_index": 0,
+                   "uuid": self.volume_id,
+                   "destination_type": "volume"}]
+             self.volumes.append(self.volume_id)
+	     f.write("volume_ids_2=" + str(self.volumes) + "\n")
+             self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+	     self.instances.append(self.vm_id)
+	     f.write("instance_id_2=" + str(self.instances) + "\n")
+
+             self.workload_id2=self.workload_create(self.instances,tvaultconf.parallel, jobschedule={'enabled': False}, workload_cleanup=False)
+             if(self.wait_for_workload_tobe_available(self.workload_id2)):
+                  reporting.add_test_step("Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.PASS)
+             else:
+                  reporting.add_test_step("Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.FAIL)
+                  raise Exception("Workload creation failed")
+             f.write("workload_id_2=\"" + str(self.workload_id2) + "\"\n")
+
+             #Fetch workload scheduler and retention settings for workloads
+	     self.workloads = [self.workload_id, self.workload_id2]
+	     for i in range(0, len(self.workloads)):
+	          self.scheduler_settings = self.getSchedulerDetails(self.workloads[i])
+        	  LOG.debug("Workload scheduler settings: " + str(self.scheduler_settings))
+		  if(i == 0):
+		       f.write("scheduler_settings=" + str(self.scheduler_settings) + "\n")
+		  else:
+		       f.write("scheduler_settings_2=" + str(self.scheduler_settings) + "\n")
+
+             #Create full snapshots for workloads 1 & 2
+	     self.snapshots = []
+	     for i in range(0, len(self.workloads)):
+		  self.snapshot_id=self.workload_snapshot(self.workloads[i], True, snapshot_cleanup=False)
+		  self.snapshots.append(self.snapshot_id)
+	 	  if(i == 0):
+		       f.write("full_snapshot_id=\"" + str(self.snapshot_id) + "\"\n")
+		  else:
+		       f.write("full_snapshot_id_2=\"" + str(self.snapshot_id) + "\"\n")
+                 
+	     for i in range(0, len(self.workloads)):
+		  self.wait_for_workload_tobe_available(self.workloads[i])
+	          if(self.getSnapshotStatus(self.workloads[i], self.snapshots[i]) == "available"):
+                       reporting.add_test_step("Create full snapshot for workload " + str(i+1), tvaultconf.PASS)
+                  else:
+                       reporting.add_test_step("Create full snapshot for workload " + str(i+1), tvaultconf.FAIL)
+		       reporting.set_test_script_status(tvaultconf.FAIL)
+
+             #Fetch trust details
+             self.trust_details = self.get_trust_list()
+             LOG.debug("Trust details: " + str(self.trust_details))
+             f.write("trust_details=" + str(self.trust_details) + "\n")
+
+             f.close()
+             reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
