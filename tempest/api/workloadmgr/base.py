@@ -2412,6 +2412,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return workload_data
 
     '''
+    Method to fetch trust list
+    '''
+    def get_trust_list(self):
+        resp, body = self.wlm_client.client.get("/trusts")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        data = body['trust']
+        return data
+
+    '''
     Method to restart wlm-api service on tvault
     '''
     def restart_wlm_api_service(self):
