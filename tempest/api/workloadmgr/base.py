@@ -2421,7 +2421,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()
         data = body['trust']
         return data
-
+      
     '''
     Method to restart wlm-api service on tvault
     '''
@@ -2435,3 +2435,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         status_update = stdout.read()
         ssh.close()
         return status_update
+
