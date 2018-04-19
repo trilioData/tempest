@@ -1378,30 +1378,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return workload_list
 
     '''
-    Method to login to tvault landing page
-    '''
-    def login_tvault_landing_page(self, tvaultip, username, pwd):
-	auth = {'username': str(username), 'password': str(pwd)}
-        data = json.dumps(auth)
-	headers = {'Content-Type':'application/json', 'Accept':'application/json'}
-	url = "https://" + str(tvaultip) + "/login"
-	r = requests.post(url, data=data, headers=headers, verify=False)
-	if r.status_code != 201:
-            LOG.debug("Login response: " + str(r.text))
-	return r.text
-
-    '''
-    Method to reinitialize tvault
-    '''
-    def reinitialize_tvault(self, tvaultip, username, pwd):
-	auth = self.login_tvault_landing_page(tvaultip, username, pwd)
-        url = "https://" + str(tvaultip) + "/reinitialize"
-        r = requests.post(url, verify=False)
-        if r.status_code != 201:
-            LOG.debug("Reinitialize response: " + str(r.text))
-        return r.status_code
-	
-    '''
     Method to fetch global job scheduler status
     '''
     def get_global_job_scheduler_status(self):
