@@ -505,6 +505,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def workload_delete(self, workload_id):
         try:
+	    # Delete snapshot
+            snapshot_list_of_workload = self.getSnapshotList(workload_id)
+
+            if len(snapshot_list_of_workload)>0:
+		for i in range(0,len(snapshot_list_of_workload)):
+                    self.snapshot_delete(workload_id,snapshot_list_of_workload[i])
+
             resp, body = self.wlm_client.client.delete("/workloads/"+workload_id)
             LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
             LOG.debug("Response:"+ str(resp.content))
@@ -586,7 +593,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         self.wait_for_workload_tobe_available(workload_id)
-        LOG.debug('SnapshotDeleted: %s' % workload_id)
+        LOG.debug('SnapshotDeleted: %s' % snapshot_id)
 	return True
 
     '''
