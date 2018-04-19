@@ -39,26 +39,38 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 
     def _attached_volume_prerequisite(self, volume_type):
-        if(volume_type == "LVM"):
-            self.volume_id = self.create_volume(volume_type_id=CONF.volume.volume_type_id_1)
-        else:
-            self.volume_id = self.create_volume()
-	self.vm_id = self.create_vm()
-        self.attach_volume(self.volume_id, self.vm_id, device=tvaultconf.volumes_parts[0])
+        try:
+            if(volume_type == "LVM"):
+                self.volume_id = self.create_volume(volume_type_id=CONF.volume.volume_type_id_1)
+            else:
+                self.volume_id = self.create_volume()
+            self.vm_id = self.create_vm()
+            self.attach_volume(self.volume_id, self.vm_id, device=tvaultconf.volumes_parts[0])
+            return True
+        except Exception as e:
+            LOG.error("Exception in _attached_volume_prerequisite : " + str(e))
+            return False
 
 
     def _boot_from_volume_prerequisite(self, volume_type):
-        if(volume_type == "LVM"):
-            self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id_1)
-        else:
-            self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id)
-	self.set_volume_as_bootable(self.volume_id)
-        self.block_mapping_details = [{ "source_type": "volume", 
-    		   "delete_on_termination": "false",
-    		   "boot_index": 0,
-    		   "uuid": self.volume_id,
-    		   "destination_type": "volume"}]
-        self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+        try:
+            if(volume_type == "LVM"):
+                self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref,
+                                                    volume_type_id=CONF.volume.volume_type_id_1)
+            else:
+                self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref,
+                                                    volume_type_id=CONF.volume.volume_type_id)
+            self.set_volume_as_bootable(self.volume_id)
+            self.block_mapping_details = [{ "source_type": "volume",
+                   "delete_on_termination": "false",
+                   "boot_index": 0,
+                   "uuid": self.volume_id,
+                   "destination_type": "volume"}]
+            self.vm_id = self.create_vm(image_id="", block_mapping_data=self.block_mapping_details)
+            return True
+        except Exception as e:
+            LOG.error("Exception in _boot_from_volume_prerequisite : " + str(e))
+            return False
 
 
     def _create_workload(self, workload_instances):
@@ -144,39 +156,59 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Result json: " + str(result_json))
 
             for k in result_json.keys():
-	        result_json[k]['result'] = {}
+                result_json[k]['result'] = {}
                 if(k.find("Attach") != -1):
                    if(k.find("Ceph") != -1):
-                       self._attached_volume_prerequisite("Ceph")
+                       if self._attached_volume_prerequisite("Ceph"):
+                           result_json[k]['Prerequisite'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['Prerequisite'] = tvaultconf.FAIL
                    else:
-                       self._attached_volume_prerequisite("LVM")
-		elif(k.find("Boot") != -1):
+                       if self._attached_volume_prerequisite("LVM"):
+                           result_json[k]['Prerequisite'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['Prerequisite'] = tvaultconf.FAIL
+                elif(k.find("Boot") != -1):
                    if(k.find("Ceph") != -1):
-                       self._boot_from_volume_prerequisite("Ceph")
+                       if self._boot_from_volume_prerequisite("Ceph"):
+                           result_json[k]['Prerequisite'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['Prerequisite'] = tvaultconf.FAIL
                    else:
-                       self._boot_from_volume_prerequisite("LVM")
+                       if self._boot_from_volume_prerequisite("LVM"):
+                           result_json[k]['Prerequisite'] = tvaultconf.PASS
+                       else:
+                           result_json[k]['Prerequisite'] = tvaultconf.FAIL
 
-                result_json[k]['instances'] = self.vm_id
-                result_json[k]['volumes'] = self.volume_id
-                self._create_workload([self.vm_id])
-                result_json[k]['workload'] = self.workload_id
-                result_json[k]['workload_status'] = self.workload_status
-                if(self.workload_status == "available"):
-                    result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
+                if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
+                    result_json[k]['instances'] = self.vm_id
+                    result_json[k]['volumes'] = self.volume_id
+                    self._create_workload([self.vm_id])
+                    result_json[k]['workload'] = self.workload_id
+                    result_json[k]['workload_status'] = self.workload_status
+                    if(self.workload_status == "available"):
+                        result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
+                    else:
+                        result_json[k]['workload_error_msg'] = (self.getWorkloadDetails(result_json[k]['workload']))['error_msg']
+                        result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + "\nERROR " + result_json[k]['workload_error_msg']
+                        continue
+
+                    self._create_full_snapshot()
+                    result_json[k]['snapshot'] = self.snapshot_id
+                    result_json[k]['snapshot_status'] = self.snapshot_status
                 else:
-		    result_json[k]['workload_error_msg'] = (self.getWorkloadDetails(result_json[k]['workload']))['error_msg']
-                    result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + "\nERROR " + result_json[k]['workload_error_msg']
+		    result_json[k]['result']['Prerequisite'] = tvaultconf.FAIL
                     continue
-
-                self._create_full_snapshot()
-                result_json[k]['snapshot'] = self.snapshot_id
-                result_json[k]['snapshot_status'] = self.snapshot_status
             LOG.debug("Result json after trigger full snapshot: " + str(result_json))
 
             for k in result_json.keys():
 		if('snapshot_status' in result_json[k].keys()):
                     result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
 		    result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
+                    result_json[k]['snapshot_size'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['size']
+                    result_json[k]['snapshot_restore_size'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['restore_size']
+                    result_json[k]['snapshot_time_taken'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['time_taken']
+                    result_json[k]['snapshot_uploaded_size'] = (self.getSnapshotDetails(result_json[k]['workload'], result_json[k]['snapshot']))['uploaded_size']
                     if(result_json[k]['snapshot_status'] == "available"):
                         result_json[k]['result']['Create_Snapshot'] = tvaultconf.PASS
                     else:
@@ -195,6 +227,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     result_json[k]['snapshot_status'] = self._wait_for_workload(result_json[k]['workload'], result_json[k]['snapshot'])
                     result_json[k]['workload_status'] = self.getWorkloadStatus(result_json[k]['workload'])
 		    result_json[k]['restore_status'] = self.getRestoreStatus(result_json[k]['workload'], result_json[k]['snapshot'], result_json[k]['restore'])
+                    result_json[k]['restore_size'] = (self.getRestoreDetails(result_json[k]['restore']))['size']
+                    result_json[k]['restore_time_taken'] = (self.getRestoreDetails(result_json[k]['restore']))['time_taken']
+                    result_json[k]['restore_uploaded_size'] = (self.getRestoreDetails(result_json[k]['restore']))['uploaded_size']
 		    if(result_json[k]['restore_status'] == "available"):
                         result_json[k]['result']['Selective_Restore'] = tvaultconf.PASS
                     else:
