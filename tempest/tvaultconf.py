@@ -92,7 +92,7 @@ config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "orchestration": ["/etc/heat/", "/var/log/heat/"]}
 additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
 bootfromvol_vol_size = 4
-volumes_parts = ["/dev/vdb", "/dev/vdc"]
+volumes_parts = ["/dev/vdb", "/dev/vdc", "/dev/vdd", "/dev/vde", "/dev/vdf", "/dev/vdg", "/dev/vdh", "/dev/vdi", "/dev/vdj", "/dev/vdk"]
 recovery_flavor_ref = 3
 recovery_image_ref = "cd056509-666b-41fa-9236-86f202b3e619" 
 
