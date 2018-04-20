@@ -27,7 +27,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 	try:
 	    self.total_volumes = 10
 	    self.volumes_ids = []
-	    volumes = tvaultconf.volumes_parts
+	    volumes = tvaultconf.volumes_10_parts
 	    self.instances_ids = []
 	    self.instance_details = []
             self.network_details = []
@@ -71,15 +71,14 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
 	    # Create instance details for restore.json
-            for i in range(len(self.instances_ids)):
-                vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
-                temp_instance_data = { 'id': self.instances_ids[i],
-                                       'include': True,
-                                       'restore_boot_disk': True,
-                                       'name': vm_name,
-                                       'vdisks':[]
-                                     }
-                self.instance_details.append(temp_instance_data)
+            vm_name = "tempest_test_vm_restored"
+            temp_instance_data = { 'id': self.instances_ids[0],
+                                   'include': True,
+                                   'restore_boot_disk': True,
+                                   'name': vm_name,
+                                   'vdisks':[]
+                                 }
+            self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(self.instance_details))
 
             # Create network details for restore.json
@@ -96,7 +95,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("Network details for restore: " + str(self.network_details))
 
 	    # Trigger selective restore
-            self.restore_id=self.snapshot_selective_restore(self.wid, self.snapshot_id, restore_name=tvaultconf.restore_name, instance_details=self.instance_details, 								  network_details=self.network_details)
+            self.restore_id=self.snapshot_selective_restore(self.wid, self.snapshot_id, restore_name=tvaultconf.restore_name, instance_details=self.instance_details, network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
