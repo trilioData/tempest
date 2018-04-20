@@ -175,6 +175,9 @@ IdentityGroup = [
     cfg.StrOpt('tenant_id',
                help="Tenant ID to use for Nova API requests.",
                deprecated_for_removal=True),
+    cfg.StrOpt('tenant_id_1',
+               help="Tenant_1 ID to use for Nova API requests.",
+               deprecated_for_removal=True),
     cfg.StrOpt('admin_tenant_id',
                help="admin tenant id to be used for authentcation "
                     "for API tests."),
