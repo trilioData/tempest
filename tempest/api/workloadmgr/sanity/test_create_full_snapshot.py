@@ -98,7 +98,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         #Create instance details for restore.json
         for i in range(len(workload_instances)):
-            vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
+            vm_name = str(workload_instances[i])+"_restored"
             temp_instance_data = { 'id': workload_instances[i],
                                    'include': True,
                                    'restore_boot_disk': True,
