@@ -636,7 +636,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method creates selective restore for a given snapshot and returns the restore id
     '''
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], restore_cleanup=True, sec_group_cleanup = False):
+    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], network_restore_flag=False, restore_cleanup=True, sec_group_cleanup=False):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name == ""):
             restore_name = "Tempest_test_restore"
@@ -653,7 +653,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
-                            'networks_mapping': { 'networks': network_details }
+                            'networks_mapping': { 'networks': network_details, 'restore_topology': network_restore_flag }
                                      }
                                 }
                            }
