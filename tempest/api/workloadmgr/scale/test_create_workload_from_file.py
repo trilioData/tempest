@@ -1,4 +1,3 @@
-[root@control-internal scale]# cat  test_create_workload_from_file.py
 # Copyright 2014 IBM Corp.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
