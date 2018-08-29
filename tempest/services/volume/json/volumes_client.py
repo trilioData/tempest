@@ -26,7 +26,7 @@ class BaseVolumesClient(service_client.ServiceClient):
     """
 
     create_resp = 200
-    volume_create_resp=200
+    volume_create_resp=202
 
     def __init__(self, auth_provider, service, region,
                  default_volume_size=1, **kwargs):
