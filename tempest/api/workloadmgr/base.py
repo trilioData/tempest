@@ -82,6 +82,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.volumes_client = cls.os.volumes_client
         else:
             cls.volumes_client = cls.os.volumes_v2_client
+	    cls.volumes_client.service = 'volumev2'
 
 	if CONF.identity_feature_enabled.api_v2:
 	    cls.identity_client = cls.os.identity_client
