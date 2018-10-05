@@ -101,3 +101,11 @@ Repo for automation build, test etc.
     - Chargeback tests
     - Sanity tests
     - Scheduler tests
+
+* NOTES
+
+* There is need for workloadmgr client installation when the test case is testing CLI. For sanity tests example, all the tests are API based, so it'll not be necessary to install workloadmgr client in virtual env. Install it by adding workloadmgr client to requirement.txt.
+
+* Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases.
+
+* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 
