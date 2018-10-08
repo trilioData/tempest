@@ -108,4 +108,12 @@ Repo for automation build, test etc.
 
 * Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases.
 
-* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 
+* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. Please use license file provided at tempest/test_licenses/tvault_license_10VM.txt for Sanity test.
+
+* For running Sanity Test scenario - 
+
+      ./run_tempest.sh tempest.api.workloadmgr.sanity.test_create_full_snapshot
+      
+      Test Results - test_results
+      
+      Test Log - tempest.log 
