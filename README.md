@@ -88,7 +88,7 @@ Repo for automation build, test etc.
     - Licensing tests
     - Workload tests
     - Snapshot tests
-    - Restore tests
+    - Restore tests (Note - This needs min. 2 Floating IPs configureed on Openstack)
         - One click restore
         - Selective restore
         - In-place restore
@@ -106,7 +106,17 @@ Repo for automation build, test etc.
 
 * There is need for workloadmgr client installation when the test case is testing CLI. For sanity tests example, all the tests are API based, so it'll not be necessary to install workloadmgr client in virtual env. Install it by adding workloadmgr client to requirement.txt.
 
-* Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases.
+* Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases. 
+
+Following env variables are needed for workloadmgr test cases to work:
+
+    OS_TENANT_ID
+    OS_TENANT_NAME
+    OS_PROJECT_DOMAIN_NAME
+    OS_DOMAIN_ID
+    OS_DOMAIN_NAME
+    OS_USER_DOMAIN_ID
+
 
 * Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. Please use license file provided at tempest/test_licenses/tvault_license_10VM.txt for Sanity test.
 
