@@ -50,7 +50,7 @@ Subject: Tempest Testrun Report - %s
 """ % (build_version, result_table)
 
 username = 'trilio.build@gmail.com'
-password = '52T8FVYZJse'
+password = 'password'
 
 try:
   server = smtplib.SMTP('smtp.gmail.com:587')
