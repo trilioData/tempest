@@ -1,5 +1,6 @@
 from tempest import tvaultconf
 import subprocess
+import datetime
 
 test_results_file="Report/results.html"
 sanity_results_file="test_results"
@@ -120,3 +121,35 @@ def get_tests(test_list_file,suite_path):
             if "__init__" not in path:
                 print "test: " + ".".join(str(path[:-3]).split("/")[6:])+"\n"
                 f.write(".".join(str(path[:-3]).split("/")[6:])+"\n")
+
+def add_sanity_results_to_tempest_report():
+    result_table = """ <table border="1"><tr><th>TestName</th><th>Result</th></tr>"""
+    with open(sanity_results_file, "r") as f:
+        for line in f:
+            if(line == "\n"):
+                pass
+            else:
+                row = line.split()
+                test_name = str(row[0])
+                test_result = str(row[1])
+                if(line.startswith("ERROR")):
+                    text_color = "red"
+                    test_result = line[6:]
+                elif(test_result == "FAILED"):
+                    text_color = "red"
+                else:
+                    text_color = "green"
+                result_table+="""<tr>
+                    <td><font color="%s">%s</font></td>
+                    <td><font color="%s">%s</font></td>
+                    </tr> """ % (text_color, test_name, text_color, test_result)
+
+    html_file=open(test_results_file, "a")
+    result_table+="""</table>"""
+    html_file.write("Date : " + str(datetime.datetime.now()))
+    html_file.write("<br/>")
+    html_file.write("<b>Sanity Test Results</b>")
+    html_file.write("<br/><br/>")
+    html_file.write(result_table)
+    html_file.close()
+ 
