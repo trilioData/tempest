@@ -490,8 +490,8 @@ class Manager(manager.Manager):
 	    authurl = CONF.identity.uri_v3
 	    endpoint = CONF.identity.v3_endpoint_type
 	self.wlm_client = client.Client(1,
-                                        CONF.auth.admin_username,
-                                        CONF.auth.admin_password,
+                                        CONF.identity.username,
+                                        CONF.identity.password,
                                         CONF.identity.tenant_name,
                                         authurl,
                                         CONF.identity.admin_domain_id,
