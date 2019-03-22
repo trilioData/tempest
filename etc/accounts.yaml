@@ -11,3 +11,4 @@
 - username: 'demo'
   tenant_name: 'demo'
   password: '49fb412572a64d2a'
+  domain_name: 'default'
