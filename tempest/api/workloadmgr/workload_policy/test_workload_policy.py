@@ -773,7 +773,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		raise Exception("Listing policies assigned to specific tenant failed")
 		
 	    # Single policy to multiple tenant
-            project_id = CONF.identity.tenant_id
+            project_id = CONF.identity.tenant_id_1
 	    admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(self.policy_id,add_project_ids_list=[project_id],remove_project_ids_list=[])
 	    # below function returns list as [policy_name, field_values, policy_id, description, list_of_project_assigned]
