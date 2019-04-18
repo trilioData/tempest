@@ -27,11 +27,11 @@ Repo for automation build, test etc.
         - vm_availability_zone = nova → Nova availability zone for instance launch
         - [volume]
         - volume_availability_zone = nova → Cinder availability zone for volume creation
-        - volume_type = ceph → Volume type for volume creation
-        - volume_type_id = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of volume type specified in volume_type field
+        - volume_type = ceph → Ceph Volume type name for volume creation 
+        - volume_type_id = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of Ceph volume type specified in volume_type field
         - volume_size = 1 → Size of the volume
-        - volume_type_1 = lvm → Volume type for volume creation
-        - volume_type_id_1 = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of volume type specified in volume_type_1 field
+        - volume_type_1 = lvm → LVM Volume type name for volume creation
+        - volume_type_id_1 = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of LVM volume type specified in volume_type_1 field
                 
         - [identity]
         - auth_version = v3 → Keystone version, v2 or v3
@@ -89,15 +89,28 @@ Repo for automation build, test etc.
         - Run below:
             - python tools/install_venv.py
     - To run a single test:
+        - Edit run_tempest.sh and add below at the starting of the file.
+            source /root/wlmadminrc 
+        - This rc file is required for executing Workloadmanager CLI commands. Make sure to provide absolute path of the rc file.
         - Execute run_tempest.sh file with required script as argument
             - ./run_tempest.sh tempest.api.workloadmgr.workload.test_tvault1033_create_workload
         - Log file "tempest.log" would be available
     - To run a sanity tests:
+        - Update below field in tempest/tvaultconf.py file as per the volume types available on the openstack setup.
+             - If openstack setup has only LVM cinder type configured:
+               enabled_tests = ["Attached_Volume_LVM","Boot_from_Volume_LVM"] 
+             - If openstack setup has only Ceph cinder type configured:
+               enabled_tests = ["Attached_Volume_Ceph","Boot_from_Volume_Ceph"] 
+             - If openstack setup has both LVM and Ceph cinder types configured:
+               enabled_tests = ["Attached_Volume_LVM","Attached_Volume_Ceph","Boot_from_Volume_LVM","Boot_from_Volume_Ceph"] 
         - Run below:
             - chmod +x sanity-run.sh 
             - ./sanity-run.sh 
-        - Log will be available in tempest.log
+        - Log file will be available in "logs/" directory
     - To run a suite:
+        - Edit master-run.sh and add below at the starting of the file.
+            source /root/wlmadminrc 
+        - This rc file is required for executing Workloadmanager CLI commands. Make sure to provide absolute path of the rc file.
         - Update master-run.sh file with required suite details:
             - SUITE_LIST=("tempest.api.workloadmgr.workload") 
         - Now run below:
