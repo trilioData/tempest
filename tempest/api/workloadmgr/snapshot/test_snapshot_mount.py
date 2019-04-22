@@ -43,8 +43,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    global instances_ids
 	    global snapshot_ids 
-	    global date_from
-            global date_to
 	    global wid
 	    global security_group_id
 	    global volumes_ids

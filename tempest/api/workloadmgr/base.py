@@ -2419,36 +2419,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         status_update = stdout.read()
         ssh.close()
         return status_update
-
-    '''
-    Method returns the Instance ID of a new VM instance created
-    '''
-    def create_file_manager_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
-                        key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.fvm_image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
-        if(vm_name == ""):
-            ts = str(datetime.now())
-            vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
-        if(tvaultconf.vms_from_file and self.is_vm_available()):
-            server_id=self.read_vm_id()
-        else:
-            if (len(block_mapping_data) > 0 and key_pair != ""):
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
-                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-            elif (len(block_mapping_data) > 0 and key_pair == ""):
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-            elif (key_pair != ""):
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
-            else:
-                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
-            server_id= server['server']['id']
-            waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
-        if(tvaultconf.cleanup == True and vm_cleanup == True):
-            self.addCleanup(self.delete_vm, server_id)
-        return server_id
-
+      
     '''
     connet to fvm , validate that snapshot is mounted on fvm
     '''
