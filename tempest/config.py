@@ -278,6 +278,9 @@ ComputeGroup = [
                help="Valid secondary image reference to be used in tests. "
                     "This is a required option, but if only one image is "
                     "available duplicate the value of image_ref above"),
+    cfg.StrOpt('fvm_image_ref',
+               help="Valid file manager image reference to be used in snasphot mount tests. "
+                    "This is a required option"),
     cfg.StrOpt('flavor_ref',
                default="1",
                help="Valid primary flavor to use in tests."),

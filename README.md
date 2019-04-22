@@ -32,6 +32,7 @@ Repo for automation build, test etc.
         - volume_size = 1 → Size of the volume
         - volume_type_1 = lvm → LVM Volume type name for volume creation
         - volume_type_id_1 = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of LVM volume type specified in volume_type_1 field
+        - fvm_image_ref = a7cceecf-a5b8-4b32-995f-3a1e1271df23 -> ID of file manager instance(FVM), reqiured to run snapshot mount tc.
                 
         - [identity]
         - auth_version = v3 → Keystone version, v2 or v3

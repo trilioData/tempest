@@ -661,3 +661,108 @@ def nested_security(self):
 
     except Exception as self.exception:
         LOG.error("Exception" + str(self.exception))
+
+def snapshot_mount(self):
+    try:
+	self.exception=""
+        self.filecount_in_snapshots = {}
+        volumes = ["/dev/vdb"]
+        mount_points = ["mount_data_b"]
+        self.snapshot_ids = []
+        self.instances_ids = []
+        self.volumes_ids = []
+        self.date_from = ""
+        self.date_to = ""
+        self.total_vms = 1
+        self.total_volumes_per_vm = 1
+        self.fvm_id = ""
+
+        # Create key_pair and get available floating IP's
+        self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
+        ts = str(datetime.datetime.now()).replace('.','-')
+        self.security_group_id = self.create_security_group("sec_group_{}".format(tvaultconf.security_group_name+ts)," security group {}".format("test_sec"), secgrp_cleanup=False)
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
+        self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
+        floating_ips_list = self.get_floating_ips()   
+
+        # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
+        # Partitioning and  formatting and mounting the attached disks
+        for i in range(0, self.total_vms):
+            vm_name = "Test_Tempest_Vm" + str(i+1)
+            j = i + i
+            for n in range(0, self.total_volumes_per_vm):
+                self.volumes_ids.append(self.create_volume(volume_cleanup=False))
+                LOG.debug("Volume-"+ str(n+j+1) +" ID: " + str(self.volumes_ids[n+j]))
+            self.instances_ids.append(self.create_vm(vm_cleanup=False, vm_name=vm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id))
+            LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
+            self.attach_volume(self.volumes_ids[j], self.instances_ids[i], volumes[0])
+            time.sleep(10)
+            #self.attach_volume(self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
+            #time.sleep(10)
+            LOG.debug("one Volume attached")
+            self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
+            time.sleep(15)
+         
+        #create file manager instance
+        fvm_name="Test_tempest_fvm_1"
+        self.fvm_id =  self.create_file_manager_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id)
+        time.sleep()
+        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
+
+        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+        self.execute_command_disk_create(self.ssh, floating_ips_list[i], volumes, mount_points)
+        self.ssh.close()
+
+        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+        self.execute_command_disk_mount(self.ssh, floating_ips_list[i], volumes, mount_points)
+        self.ssh.close()                
+       
+        # Add two files to vm1 to path /opt
+        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+        self.addCustomSizedfilesOnLinux(self.ssh, "//opt", 2)
+        self.ssh.close()
+
+        # Add one  file to vm1 to path /home/ubuntu/mount_data_b
+        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+        self.addCustomSizedfilesOnLinux(self.ssh, "//home/ubuntu/mount_data_b", 1)
+        self.ssh.close()
+        
+        # Create workload
+        self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=False)
+        LOG.debug("Workload ID: " + str(self.wid))
+        workload_available = self.wait_for_workload_tobe_available(self.wid)
+ 
+        # Create full snapshot
+	self.snapshot_id=self.workload_snapshot(self.wid, True, snapshot_cleanup=False)
+        self.wait_for_workload_tobe_available(self.wid)
+        if(self.getSnapshotStatus(self.wid, self.snapshot_id) != "available"):
+            self.exception = "Create full snapshot"
+            raise Exception(str(self.exception)) 
+
+	self.snapshot_ids.append(self.snapshot_id)
+
+        LOG.debug("Snapshot ID-1: " + str(self.snapshot_ids[0]))
+        time_now = time.time()
+        self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
+
+        # Add two files to vm1 to path /opt
+        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
+        self.addCustomSizedfilesOnLinux(self.ssh, "//opt", 2)
+        self.ssh.close()
+
+        # Create incremental-1 snapshot
+	self.snapshot_id=self.workload_snapshot(self.wid, False, snapshot_cleanup=False)
+        self.wait_for_workload_tobe_available(self.wid)
+        if(self.getSnapshotStatus(self.wid, self.snapshot_id) != "available"):
+            self.exception = "Create incremental-1 snapshot"
+            raise Exception(str(self.exception))
+
+	self.snapshot_ids.append(self.snapshot_id)
+        LOG.debug("Snapshot ID-2: " + str(self.snapshot_ids[1]))    
+
+        time_now = time.time()
+        self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
+
+    except Exception as self.exception:
+        LOG.error("Exception" + str(self.exception))
