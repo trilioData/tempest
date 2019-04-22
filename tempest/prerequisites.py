@@ -670,9 +670,7 @@ def snapshot_mount(self):
         mount_points = ["mount_data_b"]
         self.snapshot_ids = []
         self.instances_ids = []
-        self.volumes_ids = []
-        self.date_from = ""
-        self.date_to = ""
+        self.volumes_ids = []      
         self.total_vms = 1
         self.total_volumes_per_vm = 1
         self.fvm_id = ""
@@ -698,15 +696,14 @@ def snapshot_mount(self):
             LOG.debug("VM-"+ str(i+1) +" ID: " + str(self.instances_ids[i]))
             self.attach_volume(self.volumes_ids[j], self.instances_ids[i], volumes[0])
             time.sleep(10)
-            #self.attach_volume(self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
-            #time.sleep(10)
+            
             LOG.debug("one Volume attached")
             self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
             time.sleep(15)
          
         #create file manager instance
         fvm_name="Test_tempest_fvm_1"
-        self.fvm_id =  self.create_file_manager_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id)
+        self.fvm_id =  self.create_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id,image_id=CONF.compute.fvm_image_ref)
         time.sleep()
         self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
