@@ -17,9 +17,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
 
     instances_ids = []
-    snapshot_ids = []
-    date_from = ""
-    date_to = ""
+    snapshot_ids = []    
     wid = ""
     security_group_id = ""
     volumes_ids = []
@@ -47,16 +45,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    global security_group_id
 	    global volumes_ids
             global fvm_id
+            global floating_ips_list
 	    instances_ids = self.instances_ids
-            snapshot_ids = self.snapshot_ids
-	    date_from = self.date_from
-	    date_to = self.date_to
+            snapshot_ids = self.snapshot_ids	  
 	    wid = self.wid
 	    volumes_ids = self.volumes_ids
             security_group_id = self.security_group_id
 	    fvm_id = self.fvm_id
 	    full_snapshot_id = snapshot_ids[0]
-	  
+	    floating_ips_list = self.floating_ips_list
+
 	    LOG.debug("mount snasphot of a full snapshot")
             is_mounted = self.mount_snapshot(wid, full_snapshot_id, fvm_id)
             LOG.debug("VALUE OF is_mounted: " + str(is_mounted))

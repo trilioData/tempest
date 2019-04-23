@@ -3,7 +3,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
-cleanup = True
+cleanup = False
 
 # pre requisite paramter
 pre_req = True
@@ -43,15 +43,15 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
-tvault_ip = "192.168.1.23"
+tvault_ip = "192.168.12.145"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
-tvault_dbpassword = "sample-password"
+tvault_dbpassword = "52T8FVYZJse"
 
 no_of_compute_nodes = 1
-compute_node_ip = "192.168.1.189"
+compute_node_ip = "192.168.13.21"
 compute_node_username = "root"
-compute_node_password = "password"
+compute_node_password = "Password1!"
 
 # Scheduler parameter
 
@@ -106,5 +106,4 @@ setting_data = {"smtp_default_recipient": "savitha.peri@trilio.io",
                 "smtp_timeout": "10" }
 enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
-
 

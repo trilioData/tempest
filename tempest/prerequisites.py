@@ -664,8 +664,7 @@ def nested_security(self):
 
 def snapshot_mount(self):
     try:
-	self.exception=""
-        self.filecount_in_snapshots = {}
+	self.exception=""        
         volumes = ["/dev/vdb"]
         mount_points = ["mount_data_b"]
         self.snapshot_ids = []
@@ -674,6 +673,7 @@ def snapshot_mount(self):
         self.total_vms = 1
         self.total_volumes_per_vm = 1
         self.fvm_id = ""
+        self.floating_ips_list = []
 
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
@@ -682,8 +682,8 @@ def snapshot_mount(self):
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="UDP", from_port = "1", to_port= randint(1, 65535))
         self.add_security_group_rule(parent_group_id = self.security_group_id, ip_protocol="TCP", from_port = 22, to_port= 22)
-        floating_ips_list = self.get_floating_ips()   
-
+        self.floating_ips_list = self.get_floating_ips()   
+        floating_ips_list = self.floating_ips_list
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
         for i in range(0, self.total_vms):
@@ -704,7 +704,7 @@ def snapshot_mount(self):
         #create file manager instance
         fvm_name="Test_tempest_fvm_1"
         self.fvm_id =  self.create_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id,image_id=CONF.compute.fvm_image_ref)
-        time.sleep()
+        time.sleep(10)
         self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
@@ -740,9 +740,6 @@ def snapshot_mount(self):
 	self.snapshot_ids.append(self.snapshot_id)
 
         LOG.debug("Snapshot ID-1: " + str(self.snapshot_ids[0]))
-        time_now = time.time()
-        self.date_from = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
-
         # Add two files to vm1 to path /opt
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
         self.addCustomSizedfilesOnLinux(self.ssh, "//opt", 2)
@@ -757,9 +754,6 @@ def snapshot_mount(self):
 
 	self.snapshot_ids.append(self.snapshot_id)
         LOG.debug("Snapshot ID-2: " + str(self.snapshot_ids[1]))    
-
-        time_now = time.time()
-        self.date_to = datetime.datetime.utcfromtimestamp(time_now).strftime("%Y-%m-%dT%H:%M:%S")
 
     except Exception as self.exception:
         LOG.error("Exception" + str(self.exception))
