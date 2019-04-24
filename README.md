@@ -24,7 +24,8 @@ Repo for automation build, test etc.
         - [compute]
         - flavor_ref = 1 → Flavor ID to be used for instance launch
         - image_ref = fd54c426-caa5-4b0e-85ec-5fd50b4358bc → ID of image to be used for instance launch
-        - vm_availability_zone = nova → Nova availability zone for instance launch
+        - vm_availability_zone = nova → Nova availability zone for instance launch        
+        - fvm_image_ref = a7cceecf-a5b8-4b32-995f-3a1e1271df23 -> ID of file manager instance(FVM), reqiured to run snapshot mount tc.
         - [volume]
         - volume_availability_zone = nova → Cinder availability zone for volume creation
         - volume_type = ceph → Ceph Volume type name for volume creation 
