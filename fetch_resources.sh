@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 ADMIN_USERNAME=cloudadmin
 ADMIN_PASSWORD=Password1!
