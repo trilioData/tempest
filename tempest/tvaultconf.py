@@ -107,3 +107,4 @@ setting_data = {"smtp_default_recipient": "savitha.peri@trilio.io",
 enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 
+
