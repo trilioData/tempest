@@ -4,7 +4,7 @@ from tempest import tvaultconf
 import paramiko
 
 def get_db_credentials(hostip=tvaultconf.tvault_ip,user=tvaultconf.tvault_dbusername,
-			pwd=tvaultconf.tvault_dbpassword):
+			pwd=tvaultconf.tvault_password):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.load_system_host_keys()
