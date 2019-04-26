@@ -2419,4 +2419,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         status_update = stdout.read()
         ssh.close()
         return status_update
+      
+    '''
+    connet to fvm , validate that snapshot is mounted on fvm
+    '''
+    def validate_snapshot_mount(self, ssh, mount_path="/dev/vdb1", file_path="/home/ubuntu", file_name="File_1.txt"):
+        try:
+            LOG.debug("build command data population")
+            buildCommand = "mount | grep " + mount_path + "; find" + file_path +"-name " + file_name 
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(20)
+            return stdout
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
 
