@@ -494,7 +494,7 @@ class Manager(manager.Manager):
                                         CONF.identity.password,
                                         CONF.identity.tenant_name,
                                         authurl,
-                                        CONF.identity.admin_domain_id,
+                                        CONF.identity.domain_name,
                                         insecure=CONF.wlm.insecure,
                                         region_name=CONF.identity.region,
                                         tenant_id=CONF.wlm.os_tenant_id,
@@ -506,7 +506,8 @@ class Manager(manager.Manager):
                                         cacert=CONF.wlm.os_cacert)
         try:
             self.wlm_client.authenticate()
-        except Exception:
+        except Exception as e:
+            LOG.error("Exception in _set_workloadmgr_clients(): " + str(e))
             pass
 
 
