@@ -42,7 +42,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             #Launch instance
             self.vm_id = self.create_vm()
-            LOG.debug("Original VM ID: " + str(self.vm_id))
+            LOG.debug("Original VM ID : " + str(self.vm_id))
             reporting.add_test_script(str(__name__)+ "_create_workload")
 
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)
@@ -58,7 +58,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.wid = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             if(self.wid != None):
-                import pdb; pdb.set_trace()
                 self.wait_for_workload_tobe_available(self.wid)
                 if(self.getWorkloadStatus(self.wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
@@ -72,8 +71,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             workload_id = self.wid
             vm_id = self.vm_id 
-            LOG.debug("workload is--------->:" + str(workload_id))
-            LOG.debug("vm id--------->: " + str(vm_id))
+            LOG.debug("workload is : " + str(workload_id))
+            LOG.debug("vm id : " + str(vm_id))
             reporting.test_case_to_write() 
 
         except Exception as e:
@@ -88,7 +87,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global snapshot_id
             global vm_id 
             reporting.add_test_script(str(__name__)+ "_create_full_snapshot")
-            LOG.debug("\npointer##########################################################################\n")
             LOG.debug("workload is:" + str(workload_id))
             LOG.debug("vm id: " + str(vm_id))
 
@@ -212,7 +210,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             network_details = [ { 'snapshot_network': snapshot_network,
                                        'target_network': target_network } ]
             LOG.debug("Network details for restore: " + str(network_details))
-            LOG.debug("ssssssssssssssssssssnapshot id : " + str(snapshot_id))
+            LOG.debug("Snapshot id : " + str(snapshot_id))
             #Trigger selective restore
             restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
                                                             instance_details=instance_details, network_details=network_details)
