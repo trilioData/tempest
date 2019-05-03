@@ -26,6 +26,7 @@ TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:=/opt/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
+OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 
 function ini_has_option {
     local xtrace
@@ -311,4 +312,17 @@ function configure_tempest
 }
 
 
+if [ -d $OPENSTACK_CLI_VENV ]
+then
+   rm -rf $OPENSTACK_CLI_VENV
+fi
+
+echo "creating virtual env for openstack client"
+virtualenv $OPENSTACK_CLI_VENV
+. $OPENSTACK_CLI_VENV/bin/activate
+pip install openstacksdk==0.9.1
+pip install os-client-config==1.18.0
+pip install python-openstackclient==2.6.0
 configure_tempest
+deactivate
+echo "cleaning up openstack client virtual env"
