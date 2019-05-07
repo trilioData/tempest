@@ -212,6 +212,8 @@ function configure_tempest
                 lvm*|iscsi*) type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                 ceph*) type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
             esac
+            volume_type=$type
+            volume_type_id=$type_id
             ;;
         *)
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
