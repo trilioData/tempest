@@ -76,8 +76,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
            
-            LOG.debug("\nppppppointerrrrrrrrrrrrrrrrrrrr111111111111111111\n")
- 
             workload_id = self.workload_id
             snapshot_id = self.snapshot_id
             volume_id = self.volume_id
