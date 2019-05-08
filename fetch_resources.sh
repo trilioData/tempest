@@ -28,6 +28,13 @@ TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:=/opt/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 
+if [[ "$AUTH_URL" =~ "https" ]]
+then
+    OPENSTACK_CMD="openstack --insecure"
+else
+    OPENSTACK_CMD="openstack"
+fi
+
 function ini_has_option {
     local xtrace
     xtrace=$(set +o | grep xtrace)
@@ -88,7 +95,7 @@ $option = $value
 
 function image_size_in_gib {
     local size
-    size=$(openstack image show $1 -c size -f value)
+    size=$($OPENSTACK_CMD image show $1 -c size -f value)
     echo $size | python -c "import math; print int(math.ceil(float(int(raw_input()) / 1024.0 ** 3)))"
 }
 
@@ -117,11 +124,11 @@ function configure_tempest
     export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
 
-    admin_domain_id=$(openstack domain list | awk "/ $ADMIN_DOMAIN_NAME / { print \$2 }")
-    test_domain_id=$(openstack domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
-    test_project_id=$(openstack project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
-    test_alt_project_id=$(openstack project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
-    service_project_id=$(openstack project list | awk "/service*/ { print \$2 }")
+    admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $ADMIN_DOMAIN_NAME / { print \$2 }")
+    test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
+    test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
+    test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
+    service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
  
 
     # Glance should already contain images to be used in tempest
@@ -140,7 +147,7 @@ function configure_tempest
             image_uuid_alt="$IMAGE_UUID"
         fi
         images+=($IMAGE_UUID)
-    done < <(openstack image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
 
     case "${#images[*]}" in
         0)
@@ -164,12 +171,12 @@ function configure_tempest
     # Compute
     # If ``DEFAULT_INSTANCE_TYPE`` is not declared, use the new behavior
     # Tempest creates its own instance types
-      available_flavors=$(openstack flavor list)
+      available_flavors=$($OPENSTACK_CMD flavor list)
     if  [[ -z "$DEFAULT_INSTANCE_TYPE" ]]; then
         if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
             # Determine the flavor disk size based on the image size.
             disk=$(image_size_in_gib $image_uuid)
-            openstack flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
+            $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
         fi
         flavor_ref=42
     else
@@ -194,14 +201,14 @@ function configure_tempest
         fi
         flavor_ref=${flavors[0]}
     fi
-    compute_az=$(openstack availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
+    compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
 
     # Volume
-    volume_az=$(openstack availability zone list --volume | awk "/ available / { print \$2 }")
+    volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
             echo "No volume type available to use!"
@@ -210,20 +217,20 @@ function configure_tempest
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
             case "$type" in
-                lvm*|iscsi*) type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-                ceph*) type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                lvm*|iscsi*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                ceph*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
             esac
             volume_type=$type
             volume_type_id=$type_id
             ;;
         *)
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
-                type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
+                type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
                 case $type in
                     lvm*|iscsi*) volume_type_alt=$type
-                                 volume_type_id_alt=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                                 volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                     ceph*) volume_type=$type
-                           volume_type_id=$(openstack volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                           volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                 esac
             done
     esac
@@ -274,7 +281,7 @@ function configure_tempest
             network_id_alt="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
-    done < <(openstack network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
 
     case "${#networks[*]}" in
         0)
@@ -336,3 +343,4 @@ pip install python-openstackclient==2.6.0
 configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
+rm -rf $OPENSTACK_CLI_VENV
