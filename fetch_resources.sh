@@ -121,7 +121,8 @@ function configure_tempest
     test_domain_id=$(openstack domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$(openstack project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$(openstack project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
-    
+    service_project_id=$(openstack project list | awk "/service*/ { print \$2 }")
+ 
 
     # Glance should already contain images to be used in tempest
     # testing. Here we simply look for images stored in Glance
@@ -258,6 +259,14 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth test_accounts_file $TEMPEST_ACCOUNTS
     iniset $TEMPEST_CONFIG auth allow_tenant_isolation True
 
+    #Set test user credentials
+    export OS_USERNAME=$TEST_USERNAME
+    export OS_PASSWORD=$TEST_PASSWORD
+    export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
+    export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
+    export OS_PROJECT_NAME=$TEST_PROJECT_NAME
+    export OS_TENANT_ID=$test_project_id
+
     # network
     while read -r NETWORK_TYPE NETWORK_UUID; do
         if [ "$NETWORK_TYPE" = "Internal" ]; then
@@ -302,7 +311,6 @@ function configure_tempest
     iniset $TEMPEST_CONFIG dashboard dashboard_url $dashboard_url
 
     # wlm
-    service_project_id=$(openstack project list | awk "/service*/ { print \$2 }")
     iniset $TEMPEST_CONFIG wlm os_tenant_id $service_project_id
     iniset $TEMPEST_CONFIG wlm insecure False
 
