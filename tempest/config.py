@@ -188,6 +188,10 @@ IdentityGroup = [
                help="API key to use when authenticating.",
                secret=True,
                deprecated_for_removal=True),
+    cfg.StrOpt('domain_id',
+               help="Domain id for authentication (Keystone V3)."
+                    "The same domain applies to user and project",
+               deprecated_for_removal=True),
     cfg.StrOpt('domain_name',
                help="Domain name for authentication (Keystone V3)."
                     "The same domain applies to user and project",
