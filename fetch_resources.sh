@@ -255,6 +255,7 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
+    iniset $TEMPEST_CONFIG identity domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity default_domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity uri_v3 $OS_AUTH_URL
     iniset $TEMPEST_CONFIG identity v3_endpoint_type $DEFAULT_ENDPOINT_TYPE
