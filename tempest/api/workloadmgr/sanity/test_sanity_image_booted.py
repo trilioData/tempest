@@ -16,6 +16,7 @@ from tempest.util import query_data
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
+
 class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -61,7 +62,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wait_for_workload_tobe_available(self.wid)
                 if(self.getWorkloadStatus(self.wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
-                    #reporting.set_test_script_status(tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -124,8 +124,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-
-
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_create_incremental_snapshot(self):
         try:
@@ -160,15 +158,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Incremental snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload incremental snapshot did not get created")
 
-
             reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
-
-
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_4_selective_restore(self):
@@ -186,14 +181,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
             #Create instance details for restore.json
-            
-
             vm_name = "tempest_test_vm_"+vm_id+"_restored"
-            temp_instance_data = { 'id': vm_id,
-                   'availability_zone':CONF.compute.vm_availability_zone,
-                                   'include': True,
-                                   'restore_boot_disk': True,
-                                   'name': vm_name
+            temp_instance_data = {  'id': vm_id,
+                                    'availability_zone':CONF.compute.vm_availability_zone,
+                                    'include': True,
+                                    'restore_boot_disk': True,
+                                    'name': vm_name
                                     }
             instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
@@ -283,8 +276,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     'networks': []
                 }
             },
-            'restore_type': 'inplace',
-            'type': 'openstack'
+                'restore_type': 'inplace',
+                'type': 'openstack'
     })
             LOG.debug("restore.json for inplace restore: " + str(restore_json))
             #Create Restore.json
@@ -341,7 +334,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug("Instance deleted successfully for one click restore : "+str(vm_id))
-        
         
             #Create one-click restore using CLI command
             restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
@@ -403,5 +395,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
-
-
