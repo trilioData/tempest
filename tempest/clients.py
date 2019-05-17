@@ -181,14 +181,13 @@ class Manager(manager.Manager):
 
     def __init__(self, credentials=None, service=None):
         super(Manager, self).__init__(credentials=credentials)
-
         self._set_compute_clients()
         self._set_database_clients()
         self._set_identity_clients()
         self._set_volume_clients()
         self._set_object_storage_clients()
         self._set_workloadmgr_clients()
-
+        
         self.baremetal_client = BaremetalClient(
             self.auth_provider,
             CONF.baremetal.catalog_type,
@@ -483,13 +482,14 @@ class Manager(manager.Manager):
         self.object_client = ObjectClient(self.auth_provider, **params)
 
     def _set_workloadmgr_clients(self):
-	if CONF.identity.auth_version == 'v2':
-	    authurl = CONF.identity.uri
-	    endpoint = CONF.identity.public_endpoint_type
-	elif CONF.identity.auth_version == 'v3':
-	    authurl = CONF.identity.uri_v3
-	    endpoint = CONF.identity.v3_endpoint_type
-	self.wlm_client = client.Client(1,
+
+        if CONF.identity.auth_version == 'v2':
+	        authurl = CONF.identity.uri
+	        endpoint = CONF.identity.public_endpoint_type
+        elif CONF.identity.auth_version == 'v3':
+	        authurl = CONF.identity.uri_v3
+	        endpoint = CONF.identity.v3_endpoint_type
+	        self.wlm_client = client.Client(1,
                                         CONF.identity.username,
                                         CONF.identity.password,
                                         CONF.identity.tenant_name,
@@ -506,7 +506,8 @@ class Manager(manager.Manager):
                                         cacert=CONF.wlm.os_cacert)
         try:
             self.wlm_client.authenticate()
-        except Exception:
+        except Exception as e:
+            LOG.error("Exception in _set_workloadmgr_clients(): " + str(e))
             pass
 
 
