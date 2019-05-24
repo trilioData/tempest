@@ -217,24 +217,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def create_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
 			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
-	if(vm_name == ""):
-	    ts = str(datetime.now())
-	    vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
+        if(vm_name == ""):
+            ts = str(datetime.now())
+            vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-	    if (len(block_mapping_data) > 0 and key_pair != ""):
-		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
+            if (len(block_mapping_data) > 0 and key_pair != ""):
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
                         flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-	    elif (len(block_mapping_data) > 0 and key_pair == ""):
-		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                        flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-	    elif (key_pair != ""):
-	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
+            elif (len(block_mapping_data) > 0 and key_pair == ""):
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+                            flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
+            elif (key_pair != ""):
+                server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+                flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
             else:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-			flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
+                flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
@@ -1008,11 +1008,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
-	    if(flag == True):
-		break
+            if(flag == True):
+                break
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-		flag = True
+                flag = True
             except Exception as e:
                 time.sleep(20)
                 if i == 29:
@@ -1022,32 +1022,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 break
         return ssh
 
+
     '''
     layout creation and formatting the disks
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
-	self.channel = ssh.invoke_shell()	
-	for volume in volumes:	
+        self.channel = ssh.invoke_shell()
+        for volume in volumes:
+            commands = ["sudo fdisk {}".format(volumes[0]),"n","p","1","2048","2097151","w","sudo fdisk -l | grep {}".format(volume),"sudo mkfs -t ext3 {}1".format(volume)]
 
-	    commands = ["sudo fdisk {}".format(volume),
-		    "n",
-		    "p",
-	            "1",
-		    "2048",
-		    "2097151",
-		    "w",
-		    "sudo fdisk -l | grep {}".format(volume),
-		    "sudo mkfs -t ext3 {}1".format(volume)]
-
-	    for command in commands:
-	    	LOG.debug("Executing: " + str(command))
-	    	self.channel.send(command + "\n")
-		time.sleep(5)
-	    	while not self.channel.recv_ready():
-		    time.sleep(3)
+        for command in commands:
+            LOG.debug("Executing: " + str(command))
+            self.channel.send(command + "\n")
+            time.sleep(5)
+            while not self.channel.recv_ready():
+                time.sleep(3)
 	
-	   	output = self.channel.recv(9999)
-	    	LOG.debug(str(output))	
+            output = self.channel.recv(9999)
+            LOG.debug(str(output))	
+    
     '''
     disks mounting
     '''
@@ -1077,24 +1070,35 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(fileCount))
             for count in range(fileCount):
-                buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-		stdin, stdout, stderr = ssh.exec_command(buildCommand)
-		time.sleep(20)
+                buildCommand="sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
+                stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                time.sleep(20)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
+
+    def addCustomfilesOnLinuxVM(self, ssh, dirPath, fileCount):
+        try:
+            LOG.debug("build command data population : " + str(dirPath)+ " number of files : " + str(fileCount))
+            for count in range(fileCount):
+                buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + time.strftime("%H%M%S") + " bs=2M count=10"
+                LOG.debug("Executing command -> "+buildCommand)
+                stdin, stdout, stderr = ssh.exec_command(buildCommand)
+                time.sleep(23)
+        except Exception as e:
+            LOG.debug("Exception : "+str(e))           
     '''
     calculate md5 checksum
     '''
     def calculatemmd5checksum(self, ssh, dirPath): 
         local_md5sum = ""
-        buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
-	LOG.debug("build command for md5 checksum calculation" + str(buildCommand))
+        buildCommand = "sudo find " + str(dirPath) + "/ -type f -exec md5sum {} +"
+        LOG.debug("build command for md5 checksum calculation" + str(buildCommand))
         stdin, stdout, stderr = ssh.exec_command(buildCommand)
         time.sleep(15)
-	output = stdout.readlines()
-	LOG.debug("command executed: " + str(output))
-        for line in  output:
+        output = stdout.readlines()
+        LOG.debug("command executed: " + str(output))
+        for line in output:
             local_md5sum += str(line.split(" ")[0])
         return local_md5sum
 
