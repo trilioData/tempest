@@ -78,16 +78,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.os.security_group_default_rules_client)
         cls.versions_client = cls.os.compute_versions_client
 
-    if CONF.volume_feature_enabled.api_v1:
+	if CONF.volume_feature_enabled.api_v1:
             cls.volumes_client = cls.os.volumes_client
         else:
             cls.volumes_client = cls.os.volumes_v2_client
-        cls.volumes_client.service = 'volumev2'
+	    cls.volumes_client.service = 'volumev2'
 
-    if CONF.identity_feature_enabled.api_v2:
-        cls.identity_client = cls.os.identity_client
-    else:
-        cls.identity_client = cls.os.identity_v3_client
+	if CONF.identity_feature_enabled.api_v2:
+	    cls.identity_client = cls.os.identity_client
+	else:
+	    cls.identity_client = cls.os.identity_v3_client
 
 
     @classmethod
@@ -216,29 +216,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
-            key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
-    if(vm_name == ""):
-        ts = str(datetime.now())
-        vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
+			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
+	if(vm_name == ""):
+	    ts = str(datetime.now())
+	    vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id=self.read_vm_id()
         else:
-        if (len(block_mapping_data) > 0 and key_pair != ""):
-        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
+	    if (len(block_mapping_data) > 0 and key_pair != ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
                         flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-        elif (len(block_mapping_data) > 0 and key_pair == ""):
-        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+	    elif (len(block_mapping_data) > 0 and key_pair == ""):
+		server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
                         flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
-        elif (key_pair != ""):
-            server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-            flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
+	    elif (key_pair != ""):
+	        server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
+			flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
             else:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-            flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
+			flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
             server_id= server['server']['id']
             waiters.wait_for_server_status(self.servers_client, server_id, status='ACTIVE')
         if(tvaultconf.cleanup == True and vm_cleanup == True):
-        self.addCleanup(self.delete_vm, server_id)
+	    self.addCleanup(self.delete_vm, server_id)
         return server_id
 
     '''
@@ -271,7 +271,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_vm(self, server_id):
         try:
-        self.delete_port(server_id)
+	    self.delete_port(server_id)
             body = self.servers_client.show_server(server_id)['server']
             self.servers_client.delete_server(server_id)
             waiters.wait_for_server_termination(self.servers_client, server_id)
@@ -285,7 +285,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         totalVms = len(instances)
         for vm in range(0,totalVms):
             try:
-        self.delete_vm(instances[vm])
+		self.delete_vm(instances[vm])
             except Exception as e:
                 pass
         LOG.debug('DeletedVms: %s' % instances)
@@ -300,18 +300,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(flag != 0):
                 volume_id=self.read_volume_id()
             else:
-        if(image_id != ""):
+		if(image_id != ""):
                      volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
-        else:
-             volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
+		else:
+		     volume = self.volumes_client.create_volume(size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
                 volume_id= volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
         else:
-        if(image_id != ""):
-         volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
-        else:
-         volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
+	    if(image_id != ""):
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+	    else:
+		 volume = self.volumes_client.create_volume(size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id= volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                        volume_id, 'available')
@@ -324,10 +324,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def delete_volume(self, volume_id):
         try:
-        volume_snapshots = self.get_volume_snapshots(volume_id)
-        LOG.debug("Volumes snapshots for: " + str(volume_id) + ": " + str(volume_snapshots))
-        self.delete_volume_snapshots(volume_snapshots)
-        LOG.debug("Deletion of volume: " + str(volume_id) + "started")
+	    volume_snapshots = self.get_volume_snapshots(volume_id)
+	    LOG.debug("Volumes snapshots for: " + str(volume_id) + ": " + str(volume_snapshots))
+	    self.delete_volume_snapshots(volume_snapshots)
+	    LOG.debug("Deletion of volume: " + str(volume_id) + "started")
             self.volumes_extensions_client.delete_volume(volume_id)
         except Exception as e:
             return
@@ -399,7 +399,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.delete_volume(volume)
                 LOG.debug('Volume delete operation completed %s' % volume)
             except Exception as e:
-        LOG.debug("Exception" + str(e))
+		LOG.debug("Exception" + str(e))
                 pass
 
     '''
@@ -474,7 +474,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             in_list = []
             if(workload_name == ""):
-        ts=str(datetime.now())
+		ts=str(datetime.now())
                 workload_name = "tempest"+ ts.replace('.','-')
             for id in instances:
                 in_list.append({'instance-id':id})
@@ -506,18 +506,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def workload_delete(self, workload_id):
         try:
-        # Delete snapshot
+	    # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(workload_id)
 
             if len(snapshot_list_of_workload)>0:
-        for i in range(0,len(snapshot_list_of_workload)):
+		for i in range(0,len(snapshot_list_of_workload)):
                     self.snapshot_delete(workload_id,snapshot_list_of_workload[i])
 
             resp, body = self.wlm_client.client.delete("/workloads/"+workload_id)
             LOG.debug("#### workloadid: %s , operation: workload_delete" % workload_id)
             LOG.debug("Response:"+ str(resp.content))
-        LOG.debug('WorkloadDeleted: %s' % workload_id)
-        return True
+	    LOG.debug('WorkloadDeleted: %s' % workload_id)
+	    return True
         except Exception as e:
             return False
 
@@ -568,11 +568,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if ( self.getWorkloadStatus(workload_id) == 'error'):
                 LOG.debug('workload status is: %s , workload create failed' % self.getWorkloadStatus(workload_id))
                 #raise Exception("Workload creation failed")
-        return False
+		return False
             LOG.debug('workload status is: %s , sleeping for 30 sec' % self.getWorkloadStatus(workload_id))
             time.sleep(30)
         LOG.debug('workload status of workload %s: %s' % (workload_id, self.getWorkloadStatus(workload_id)))
-    return True
+	return True
 
     '''
     Method to check if snapshot is successful
@@ -595,7 +595,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         self.wait_for_workload_tobe_available(workload_id)
         LOG.debug('SnapshotDeleted: %s' % snapshot_id)
-    return True
+	return True
 
     '''
     Method creates one click restore for a given snapshot and returns the restore id
@@ -607,9 +607,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         payload={"restore": {"options": {"description": "Tempest test restore",
                                            "vmware": {},
                                            "openstack": {"instances": [], "zone": ""},
-                       "restore_type": "oneclick",
+					   "restore_type": "oneclick",
                                            "type": "openstack",
-                       "oneclickrestore": "True",
+					   "oneclickrestore": "True",
                                            "restore_options": {},
                                            "name": restore_name},
                 "name": restore_name,
@@ -625,11 +625,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-    self.restored_vms = self.get_restored_vm_list(restore_id)
+	self.restored_vms = self.get_restored_vm_list(restore_id)
         self.restored_volumes = self.get_restored_volume_list(restore_id)
         if(tvaultconf.cleanup == True and restore_cleanup == True):
             #self.restored_vms = self.get_restored_vm_list(restore_id)
-        #self.restored_volumes = self.get_restored_volume_list(restore_id)
+	    #self.restored_volumes = self.get_restored_volume_list(restore_id)
             self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         return restore_id
@@ -650,7 +650,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'name': restore_name,
                         'description': restore_desc,
                         'type': 'openstack',
-                        'oneclickrestore': False,
+                  		'oneclickrestore': False,
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
@@ -668,13 +668,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             LOG.debug('Restore of snapshot %s scheduled succesffuly' % snapshot_id)
             if(tvaultconf.cleanup == True and restore_cleanup == True):
-        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+		self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(restore_id)
-        self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
-        if sec_group_cleanup == True:
-            self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
-            self.addCleanup(self.delete_security_group, self.restored_security_group_id)
+		self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id)
+		if sec_group_cleanup == True:
+		    self.restored_security_group_id = self.get_security_group_id_by_name("snap_of_" + tvaultconf.security_group_name)
+		    self.addCleanup(self.delete_security_group, self.restored_security_group_id)
                 self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
         else:
             restore_id = 0
@@ -707,8 +707,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for instance in instances:
             LOG.debug("instance:"+ instance['id'])
             if len(self.get_attached_volumes(instance['id'])) > 0:
-        for volume in self.get_attached_volumes(instance['id']):
-            restored_volumes.append(volume)
+		for volume in self.get_attached_volumes(instance['id']):
+		    restored_volumes.append(volume)
         LOG.debug("restored volume list:"+ str(restored_volumes))
         return restored_volumes
 
@@ -716,9 +716,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given restored VMs and volumes
     '''
     def delete_restored_vms(self, restored_vms, restored_volumes):
-    LOG.debug("Deletion of retored vms started.")
+	LOG.debug("Deletion of retored vms started.")
         self.delete_vms(restored_vms)
-    LOG.debug("Deletion of restored volumes started.")
+	LOG.debug("Deletion of restored volumes started.")
         self.delete_volumes(restored_volumes)
 
     '''
@@ -1008,11 +1008,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
-        if(flag == True):
-        break
+	    if(flag == True):
+		break
             try:
                 ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
-        flag = True
+		flag = True
             except Exception as e:
                 time.sleep(20)
                 if i == 29:
@@ -1026,38 +1026,38 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     layout creation and formatting the disks
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
-    self.channel = ssh.invoke_shell()   
-    for volume in volumes:  
+	self.channel = ssh.invoke_shell()	
+	for volume in volumes:	
 
-        commands = ["sudo fdisk {}".format(volume),
-            "n",
-            "p",
-                "1",
-            "2048",
-            "2097151",
-            "w",
-            "sudo fdisk -l | grep {}".format(volume),
-            "sudo mkfs -t ext3 {}1".format(volume)]
+	    commands = ["sudo fdisk {}".format(volume),
+		    "n",
+		    "p",
+	            "1",
+		    "2048",
+		    "2097151",
+		    "w",
+		    "sudo fdisk -l | grep {}".format(volume),
+		    "sudo mkfs -t ext3 {}1".format(volume)]
 
-        for command in commands:
-            LOG.debug("Executing: " + str(command))
-            self.channel.send(command + "\n")
-        time.sleep(5)
-            while not self.channel.recv_ready():
-            time.sleep(3)
-    
-        output = self.channel.recv(9999)
-            LOG.debug(str(output))  
+	    for command in commands:
+	    	LOG.debug("Executing: " + str(command))
+	    	self.channel.send(command + "\n")
+		time.sleep(5)
+	    	while not self.channel.recv_ready():
+		    time.sleep(3)
+	
+	   	output = self.channel.recv(9999)
+	    	LOG.debug(str(output))	
     '''
     disks mounting
     '''
     def execute_command_disk_mount(self, ssh, ipAddress, volumes,  mount_points):
-    LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
+	LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
-    self.channel = ssh.invoke_shell()
-    for i in range(len(volumes)):
+	self.channel = ssh.invoke_shell()
+	for i in range(len(volumes)):
 
-        commands = ["sudo mkdir " + mount_points[i],"sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
+	    commands = ["sudo mkdir " + mount_points[i],"sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
                       "sudo df -h"]
 
             for command in commands:
@@ -1078,11 +1078,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build command data population : " + str(dirPath)+ "number of files: " + str(fileCount))
             for count in range(fileCount):
                 buildCommand = "sudo openssl rand -out " + str(dirPath) + "/" + "File" +"_"+str(count+1) + ".txt -base64 $(( 2**25 * 3/4 ))"
-        stdin, stdout, stderr = ssh.exec_command(buildCommand)
-        time.sleep(20)
+		stdin, stdout, stderr = ssh.exec_command(buildCommand)
+		time.sleep(20)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
-
     '''
     add custom sied files on linux using dd command
     '''
@@ -1097,17 +1096,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception : "+str(e))
 
+
     '''
     calculate md5 checksum
     '''
     def calculatemmd5checksum(self, ssh, dirPath): 
         local_md5sum = ""
         buildCommand = "sudo find " + str(dirPath) + """/ -type f -exec md5sum {} +"""
-    LOG.debug("build command for md5 checksum calculation" + str(buildCommand))
+	LOG.debug("build command for md5 checksum calculation" + str(buildCommand))
         stdin, stdout, stderr = ssh.exec_command(buildCommand)
         time.sleep(15)
-    output = stdout.readlines()
-    LOG.debug("command executed: " + str(output))
+	output = stdout.readlines()
+	LOG.debug("command executed: " + str(output))
         for line in  output:
             local_md5sum += str(line.split(" ")[0])
         return local_md5sum
@@ -1130,13 +1130,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.md5sums = ""
             LOG.debug("setting floating ip" + (floating_ips_list[id].encode('ascii','ignore')))
             for mount_point in mount_points:
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.addCustomSizedfilesOnLinux(ssh, mount_point+"/", files_count)
-        ssh.close()
-        for mount_point in mount_points:
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
+		ssh.close()
+	    for mount_point in mount_points:
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-            ssh.close()
+	    	ssh.close()
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
             LOG.debug("before backup md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
 
@@ -1154,11 +1154,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             # md5sums_dir_after = {}
             ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
             self.execute_command_disk_mount(ssh, floating_ips_list[id],volumes, mount_points)
-        ssh.close()
+	    ssh.close()
             for mount_point in mount_points:
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
+		ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ips_list[id])
                 self.md5sums+=(self.calculatemmd5checksum(ssh, mount_point))
-        ssh.close()
+		ssh.close()
             md5sums_dir_after[str(floating_ips_list[id])] = self.md5sums
 
             LOG.debug("after md5sum for " + floating_ips_list[id].encode('ascii','ignore') + " " +str(self.md5sums))
@@ -1185,15 +1185,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.write(str(privatekey))
         os.chmod(str(keypair_name) + ".pem", stat.S_IRWXU)
         LOG.debug("keypair fingerprint : " + str(fingerprint))
-    if(tvaultconf.cleanup == True and keypair_cleanup == True):
-        self.addCleanup(self.delete_key_pair, keypair_name)
+	if(tvaultconf.cleanup == True and keypair_cleanup == True):
+	    self.addCleanup(self.delete_key_pair, keypair_name)
         return fingerprint
 
     '''
     Method to disassociate floating ip to a server
     '''
     def disassociate_floating_ip_from_server(self, floating_ip, server_id):
-    LOG.debug("Disassociation of " + str(floating_ip) + " from " + str(server_id) + " started.")
+	LOG.debug("Disassociation of " + str(floating_ip) + " from " + str(server_id) + " started.")
         set_response = self.servers_client.action(server_id, "removeFloatingIp", address=str(floating_ip))
         return set_response
 
@@ -1201,12 +1201,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to fetch id of given floating ip
     '''
     def get_floatingip_id(self, floating_ip):
-    floatingip_id = None
+	floatingip_id = None
         floatingips = self.network_client.list_floatingips()
         for i in range(len(floatingips['floatingips'])):
             if(str(floatingips['floatingips'][i]['floating_ip_address']) == str(floating_ip)):
                 floatingip_id = floatingips['floatingips'][i]['id']
-        LOG.debug("floating ip id for :" + str(floating_ip) +" is: " + str(floatingip_id))
+		LOG.debug("floating ip id for :" + str(floating_ip) +" is: " + str(floatingip_id))
         return floatingip_id
 
     '''
@@ -1218,7 +1218,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for i in range(len(floatingips['floatingips'])):
             if(str(floatingips['floatingips'][i]['floating_ip_address']) == str(floating_ip)):
                 port_id = floatingips['floatingips'][i]['port_id']
-        LOG.debug("port id for :" + str(floating_ip) +" is: " + str(port_id))
+		LOG.debug("port id for :" + str(floating_ip) +" is: " + str(port_id))
         return port_id
 
 
@@ -1234,17 +1234,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''Fetch required details of the instances'''
     def get_vms_details_list(self, vm_details_list):
-    self.vms_details = []
-    for i in range(len(vm_details_list)):
+	self.vms_details = []
+	for i in range(len(vm_details_list)):
             server_id = vm_details_list[i]['server']['id']
             if len(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]]) == 2:
                 floatingip = str(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]][1]['addr'])
             else:
-                floatingip = None
-        if "security_groups" not in vm_details_list[i]['server'].keys():    
-            security_group = None
-        else:
-            security_group = vm_details_list[i]['server']['security_groups']
+    	        floatingip = None
+	    if "security_groups" not in vm_details_list[i]['server'].keys():	
+	        security_group = None
+	    else:
+	    	security_group = vm_details_list[i]['server']['security_groups']
 
             tmp_json = { 'id': server_id,
                     'name': vm_details_list[i]['server']['name'],
@@ -1255,10 +1255,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
                     'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
                     'flavor_id': vm_details_list[i]['server']['flavor']['id'],
-            'security_groups': security_group
+		    'security_groups': security_group
                     }
-        self.vms_details.append(tmp_json)
-    return self.vms_details
+	    self.vms_details.append(tmp_json)
+	return self.vms_details
 
     '''floating ip availability'''
     def get_floating_ip_status(self, ip):
@@ -1286,16 +1286,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''delete security group'''
     def delete_security_group(self, security_group_id):
-    try:
+	try:
             self.security_groups_client.delete_security_group(security_group_id)
-    except lib_exc.NotFound:
+	except lib_exc.NotFound:
             return
 
     '''delete flavor'''
     def delete_flavor(self, flavor_id):
-    try:
+	try:
             self.flavors_client.delete_flavor(flavor_id)
-    except lib_exc.NotFound:
+	except lib_exc.NotFound:
             return
 
     '''get port_id from floating_ip'''
@@ -1312,14 +1312,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         internal_network_name = str((self.get_vm_details(server_id)['server']['addresses'].keys()[0]))
         fixed_ip = str((self.get_vm_details(server_id)['server']['addresses'][internal_network_name][0]['addr']))
         ports.append(self.get_port_id(fixed_ip))
-    LOG.debug("Port deletion for " + str(ports) + " started.")
+	LOG.debug("Port deletion for " + str(ports) + " started.")
         self.delete_ports(ports)
 
     '''create_security_group'''
     def create_security_group(self, name, description, secgrp_cleanup=True):
-    self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
-    if(tvaultconf.cleanup == True and secgrp_cleanup == True):
-        self.addCleanup(self.delete_security_group, self.security_group_id)
+	self.security_group_id = self.security_groups_client.create_security_group(name=name, description = description)['security_group']['id']
+	if(tvaultconf.cleanup == True and secgrp_cleanup == True):
+	    self.addCleanup(self.delete_security_group, self.security_group_id)
         return self.security_group_id
 
     '''get_security_group_details'''
@@ -1327,39 +1327,39 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         security_group_details = (self.security_groups_client.show_security_group(str(security_group_id)))
         LOG.debug(security_group_details)
         return security_group_details
-    
-    
+	
+	
     '''get_security_group_id_by_name'''
     def get_security_group_id_by_name(self, security_group_name):
-    security_group_id = ""
-    security_groups_list = self.security_groups_client.list_security_groups()['security_groups']
-    LOG.debug("Security groups list" + str(security_groups_list))
-    for security_group in security_groups_list:
-        if security_group['name'] == security_group_name:
-        security_group_id = security_group['id']
-    if security_group_id!= "":
-        return security_group_id
-    else:
-        return None
+	security_group_id = ""
+	security_groups_list = self.security_groups_client.list_security_groups()['security_groups']
+	LOG.debug("Security groups list" + str(security_groups_list))
+	for security_group in security_groups_list:
+	    if security_group['name'] == security_group_name:
+		security_group_id = security_group['id']
+	if security_group_id!= "":
+	    return security_group_id
+	else:
+	    return None
 
     '''create_flavor'''
     def create_flavor(self, name, flavor_cleanup=True):
         flavor_id = self.flavors_client.create_flavor(name=name, disk = 20, vcpus = 4  , ram = 4096 )['flavor']['id']
         LOG.debug("flavor id" + str(flavor_id))
-    if(tvaultconf.cleanup == True and flavor_cleanup == True):
-        self.addCleanup(self.delete_flavor, flavor_id)
+	if(tvaultconf.cleanup == True and flavor_cleanup == True):
+	    self.addCleanup(self.delete_flavor, flavor_id)
         return flavor_id
 
     '''
     Method to get the flavor id corresponding to the given flavor name
     '''
     def get_flavor_id(self, flavor_name):
-    flavor_id = 0
+	flavor_id = 0
         flavor_list = self.flavors_client.list_flavors()['flavors']
         LOG.debug("Flavor list: " + str(flavor_list))
-    for i in range(0, len(flavor_list)):
-         if(flavor_list[i]['name'] == flavor_name):
-              flavor_id = flavor_list[i]['id']
+	for i in range(0, len(flavor_list)):
+	     if(flavor_list[i]['name'] == flavor_name):
+	          flavor_id = flavor_list[i]['id']
         return flavor_id
 
     '''Fetch flavor details of particular flavor id'''
@@ -1378,7 +1378,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''Set a volume as bootable'''
     def set_volume_as_bootable(self, volume_id, bootable=True):
         vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable)
-    LOG.debug("Volume bootable response: " + str(vol_resp))
+	LOG.debug("Volume bootable response: " + str(vol_resp))
         return vol_resp
 
     '''Get list of workloads available'''
@@ -1400,7 +1400,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()
-    status = body['global_job_scheduler']
+	status = body['global_job_scheduler']
         return status
 
     '''
@@ -1490,7 +1490,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.get("/workloads/metrics/license_check")
             LOG.debug("Response:"+ str(resp.content))
-        msg = body['message']
+	    msg = body['message']
         except Exception as e:
             LOG.error("Exception: " + str(e))
             flag = False
@@ -1545,11 +1545,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = json.loads(resp.content)
         snapshot_wise_filecount = {}
         path1=""
-    if "*" in path:
+	if "*" in path:
             path1= path.strip("*")
-    elif "?" in path:
+	elif "?" in path:
             path1 = path.split("?")[0]
-    else:
+	else:
             path1=path
         for k, v in resp["file_search"].items():
             if k == "json_resp":
@@ -1605,7 +1605,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to mount snapshot and return the status
     '''
     def mount_snapshot(self, workload_id, snapshot_id, vm_id, mount_cleanup = True):
-    is_successful = True
+	is_successful = True
         payload={"mount": {"mount_vm_id": vm_id,
                            "options": {}}}
         resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/mount", json=payload)
@@ -1614,13 +1614,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         LOG.debug("Getting snapshot mount status")
         while(self.getSnapshotStatus(workload_id, snapshot_id)!= "mounted"):
-        if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
-            LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
-            is_successful = False
-        return is_successful
+	    if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
+	        LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
+	        is_successful = False
+		return is_successful
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
-    if(tvaultconf.cleanup == True and mount_cleanup == True):
+	if(tvaultconf.cleanup == True and mount_cleanup == True):
             self.addCleanup(self.unmount_snapshot, snapshot_id)
         return is_successful
 
@@ -1633,10 +1633,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/dismount")
             LOG.debug("#### snapshotid: %s , operation: unmount_snapshot" % snapshot_id)
             LOG.debug("Response status code:"+ str(resp.status_code))
-        LOG.debug('Snapshot unmounted: %s' % snapshot_id)
-        return True
+	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
+	    return True
         except Exception as e:
-        LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
+	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
             return False
 
     '''
@@ -1646,21 +1646,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def change_policyjson_file(self, role, rule, policy_changes_cleanup = True):
         ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
-    try:
-        if role == "newadmin":
+	try:
+	    if role == "newadmin":
                 LOG.debug("Add new_admin role in policy.json : " + str(role))
                 role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(rule, role)
-            LOG.debug("Assign new_admin rule to workload storage usage command : " + str(rule))
+	        LOG.debug("Assign new_admin rule to workload storage usage command : " + str(rule))
                 rule_assign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:admin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-            LOG.debug("Assign new_admin rule to get_nodes command : " + str(rule))
+	        LOG.debug("Assign new_admin rule to get_nodes command : " + str(rule))
                 rule_assign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:admin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-            commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2
+	        commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2
                 stdin, stdout, stderr = ssh.exec_command(commands)
-            if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
-            self.addCleanup(self.revert_changes_policyjson, "admin_api")
-            self.ssh.close()
-        elif role == "backup":
-        LOG.debug("Add backup role in policy.json : " + str(role))
+	        if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
+		    self.addCleanup(self.revert_changes_policyjson, "admin_api")
+	        self.ssh.close()
+	    elif role == "backup":
+		LOG.debug("Add backup role in policy.json : " + str(role))
                 role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(rule, role)
                 LOG.debug("Assign backup_api rule to snapshot_create  command : " + str(rule))
                 rule_assign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:admin_or_owner"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
@@ -1675,7 +1675,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug("Assign backup_api rule to restore_delete  command : " + str(rule))
                 rule_assign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:admin_or_owner"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 commands = role_add_command +"; "+ rule_assign_command1 +"; "+ rule_assign_command2 +"; "+ rule_assign_command3 +"; "+ rule_assign_command4 \
-               +"; "+ rule_assign_command5 +"; "+ rule_assign_command6
+			   +"; "+ rule_assign_command5 +"; "+ rule_assign_command6
                 stdin, stdout, stderr = ssh.exec_command(commands)
                 if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
                     self.addCleanup(self.revert_changes_policyjson, "admin_or_owner")
@@ -1693,17 +1693,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
-        if rule == "admin_api":
-            LOG.debug("Delete new_admin role in policy.json : ")
+	    if rule == "admin_api":
+	        LOG.debug("Delete new_admin role in policy.json : ")
                 LOG.debug("Reassign admin rule to workload storage usage command : ")
                 rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Ressign admin rule to get_nodes command : ")
                 rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
-            commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
                 stdin, stdout, stderr = ssh.exec_command(commands)
-        elif rule == "admin_or_owner":
-            LOG.debug("Delete backup role in policy.json : ")
-        LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+	    elif rule == "admin_or_owner":
+	        LOG.debug("Delete backup role in policy.json : ")
+		LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
                 rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
                 rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
@@ -1745,26 +1745,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         channel.send(config_user_check_command + "\n")
         output = channel.recv(9999)  # read in
-    LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
+	LOG.debug("config_user_check_command: " + str(config_user_check_command) + " | output | " + str(output) + " | ")
         if "/bin/bash" in str(output):
             user_exist = True
-        LOG.debug("****config_user exists****")
+	    LOG.debug("****config_user exists****")
 
         time.sleep(0.1)
         if not user_exist:
-        LOG.debug("config_user doesn't exist, Creating config user.")
+	    LOG.debug("config_user doesn't exist, Creating config user.")
             commands = ["useradd {}".format(config_user),
                         "passwd {}".format(config_user),
                         "echo {}".format(config_pass), "echo {}".format(config_pass),
                         "cat /etc/passwd",
                         "echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
                         "cat /etc/sudoers",
-                "su {}".format(config_user),
+		        "su {}".format(config_user),
                         "ssh-keygen -t rsa", "\n", "\n", "\n",
                         "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(config_user),
                         "cat /home/{}/.ssh/authorized_keys".format(config_user),
                         "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
-        
+	    
             for command in commands:
                 channel.send(command + "\n")
                 while not channel.recv_ready():  # Wait for the server to read and respond
@@ -1792,19 +1792,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         yaml_dir = {'databases':{'database1':{'host':str(ip[0]), 'password':str(db_password), 'port':None, 'user':str(user)}}, 'trusted_user':{'username':config_user}} 
 
         if added_dir != "":
-        LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
-        yaml_dir.update(added_dir)
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    yaml_dir.update(added_dir)
 
-    import yaml 
+   	import yaml 
         with open("yaml_file.yaml", 'w') as f:
             yaml.dump(yaml_dir, f, default_flow_style=False)
 
     def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir="", vault_storage_path="", compute_hostname=""):
 
-    ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
 
-    ssh = paramiko.SSHClient()
+	ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         LOG.debug("connecting")
@@ -1812,66 +1812,66 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("connected")
 
 
-    config_yaml = tvaultconf.config_yaml
+	config_yaml = tvaultconf.config_yaml
 
-    if added_dir != "":
-        LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
-        config_yaml.update(added_dir)
+	if added_dir != "":
+	    LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
+	    config_yaml.update(added_dir)
     
-    LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
+	LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
         
         tree = lambda: collections.defaultdict(tree)
         md5_sum_config_backup = tree()
     
         for service, service_dirs in config_yaml.items():
-        service_dirs_list = {}
+	    service_dirs_list = {}
             for service_dir in service_dirs:
-        service_md5_list = {}
-        service_dir_path = service_dir
-        md5_calculate_command = ""
-            LOG.debug("vault_storage_path: " + " | " + vault_storage_path + " | ")
+		service_md5_list = {}
+		service_dir_path = service_dir
+		md5_calculate_command = ""
+	        LOG.debug("vault_storage_path: " + " | " + vault_storage_path + " | ")
                 LOG.debug("service: " + " | " + service + " | ")
                 LOG.debug("compute_hostname: " + " | " + compute_hostname + " | ")
                 LOG.debug("service_dir: " +  " | " + service_dir + " | ")
                 
-            if vault_storage_path != "":
-            if "/var/lib/cinder" not in service_dir:
-                service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
-                LOG.debug("service_dir_vault: " + str(service_dir_path))
-        if "log" not in service_dir_path:   
-            if "/var/lib/cinder" != service_dir_path: 
-                md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
+	        if vault_storage_path != "":
+		    if "/var/lib/cinder" not in service_dir:
+		        service_dir_path = "{0}/{1}/{2}{3}".format(vault_storage_path, service, compute_hostname, service_dir)
+		        LOG.debug("service_dir_vault: " + str(service_dir_path))
+		if "log" not in service_dir_path:   
+		    if "/var/lib/cinder" != service_dir_path: 
+		        md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(service_dir_path)
                 stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
 
-        exit_status = stdout.channel.recv_exit_status()
-        if exit_status == 0:
-                LOG.debug("command {} completed".format(md5_calculate_command))
-        else:
-                LOG.debug("Error", exit_status)
-            output = stdout.readlines()
-        LOG.debug("md5 calculate output: " + str(output))
+		exit_status = stdout.channel.recv_exit_status()
+		if exit_status == 0:
+    		    LOG.debug("command {} completed".format(md5_calculate_command))
+		else:
+    		    LOG.debug("Error", exit_status)
+	        output = stdout.readlines()
+		LOG.debug("md5 calculate output: " + str(output))
                 for line in output:
-            LOG.debug("line: " + str(line))
-            if "triliovault-mounts" in str(line.split()[1]):
-            service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find(str(service_dir)):]:str(line.split()[0])})
-            else:
-            service_md5_list.update({str(line.split()[1]):str(line.split()[0])})
-            
-        LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
+		    LOG.debug("line: " + str(line))
+		    if "triliovault-mounts" in str(line.split()[1]):
+			service_md5_list.update({str(line.split()[1])[str(line.split()[1]).find(str(service_dir)):]:str(line.split()[0])})
+		    else:
+			service_md5_list.update({str(line.split()[1]):str(line.split()[0])})
+	        
+		LOG.debug("service_md5_list: " + str(service_dir) + str(service_md5_list))
 
-            if "log" not in str(service_dir):
-            service_dirs_list.update({str(service_dir):service_md5_list})
+	        if "log" not in str(service_dir):
+		    service_dirs_list.update({str(service_dir):service_md5_list})
 
-        LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
-        
-        #channel.close()
+		LOG.debug("service_dirs_list: " + str(service_dir) + str(service_dirs_list))
+		
+	    #channel.close()
             time.sleep(0.1)
     
             md5_sum_config_backup[service] = service_dirs_list
         
-    ssh.close()
+	ssh.close()
         LOG.debug("md5_sum_config_backup : " + str(md5_sum_config_backup))
-    return md5_sum_config_backup
+	return md5_sum_config_backup
 
 
     def get_config_workload(self):
@@ -1882,19 +1882,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return body
 
     def create_config_backup(self,config_backup_cleanup=False):
-    payload = {"backup": {"name": "Config backup", "description": "Test description"}}
+	payload = {"backup": {"name": "Config backup", "description": "Test description"}}
         resp, body = self.wlm_client.client.post("/config_backup", json=payload)
         LOG.debug("Response:"+ str(resp.content))
         if resp.status_code != 202:
            resp.raise_for_status()
-    config_backup_id = body['config_backup']['id']
-    self.wait_for_config_backup_tobe_available(config_backup_id)
-    if(tvaultconf.cleanup == True and config_backup_cleanup == True):
+	config_backup_id = body['config_backup']['id']
+	self.wait_for_config_backup_tobe_available(config_backup_id)
+	if(tvaultconf.cleanup == True and config_backup_cleanup == True):
             self.addCleanup(self.delete_config_backup,config_backup_id)
         return config_backup_id
 
     def wait_for_config_backup_tobe_available(self, config_backup_id):
-    status = "available"
+	status = "available"
         LOG.debug('Checking config backup status')
         while (status != self.show_config_backup(config_backup_id)['config_backup']['status']):
             if(self.show_config_backup(config_backup_id)['config_backup']['status'] == 'error'):
@@ -1903,10 +1903,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('Config backup status is: %s' % self.show_config_backup(config_backup_id)['config_backup']['status'])
             time.sleep(30)
         LOG.debug('Final Status of Config backup : %s' % (self.show_config_backup(config_backup_id)['config_backup']['status']))
-        return status   
+        return status	
 
     def get_config_backup_list(self):
-    body = ""
+	body = ""
         resp, body = self.wlm_client.client.get("/config_backups")
         LOG.debug("#### config_backup_list" + (str(body)))
         LOG.debug("Response:"+ str(resp.content))
@@ -1929,12 +1929,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
-        return False
+	    return False
         else:
-        return True 
+	    return True 
 
     def sudo_access_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, access=True):
-    ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
+	ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
         LOG.debug("ip" + str(ip))
 
         ssh = paramiko.SSHClient()
@@ -1951,35 +1951,35 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         time.sleep(1)
 
         if not access:
-        commands = ["sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user), "cat /etc/sudoers"]
-    else:
-        commands = ["echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
+	    commands = ["sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user), "cat /etc/sudoers"]
+	else:
+	    commands = ["echo '{0}' {1}".format(config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
 
         for command in commands:
             channel.send(command + "\n")
             time.sleep(3)  # wait enough for writing to (hopefully) be finished
             output = channel.recv(9999)  # read in
-        LOG.debug(str(output))
+	    LOG.debug(str(output))
 
-    channel.close()
-    ssh.close()
+	channel.close()
+	ssh.close()
 
     def get_compute_hostname(self, compute_node_ip = tvaultconf.compute_node_ip, compute_node_username=tvaultconf.compute_node_username, compute_node_password=tvaultconf.compute_node_password):
-    
-    ssh = paramiko.SSHClient()
+	
+	ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.load_system_host_keys()
         LOG.debug("connecting")
         ssh.connect(hostname=compute_node_ip, username=compute_node_username, password=compute_node_password)
         LOG.debug("connected")
 
-    buildCommand ="hostname"
+	buildCommand ="hostname"
         stdin, stdout, stderr = ssh.exec_command(buildCommand)
         hostname = stdout.read()
-    LOG.debug("compute: " + str(compute_node_ip) + ": hostname: "+ str(hostname))
+	LOG.debug("compute: " + str(compute_node_ip) + ": hostname: "+ str(hostname))
         ssh.close()
-    
-    return hostname
+	
+	return hostname
   
     def delete_config_user(self,config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
         ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
@@ -2018,19 +2018,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def revert_changes_policyjson(self, rule):
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
-        if rule == "admin_api":
-            LOG.debug("Delete new_admin role in policy.json : ")
+	    if rule == "admin_api":
+	        LOG.debug("Delete new_admin role in policy.json : ")
                 LOG.debug("Reassign admin rule to workload storage usage command : ")
                 rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Ressign admin rule to get_nodes command : ")
                 rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
-            commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
-        LOG.debug("commands: " + str(commands))
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
+		LOG.debug("commands: " + str(commands))
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
                 stdin, stdout, stderr = ssh.exec_command(commands)
-        elif rule == "admin_or_owner":
-            LOG.debug("Delete backup role in policy.json : ")
-        LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+	    elif rule == "admin_or_owner":
+	        LOG.debug("Delete backup role in policy.json : ")
+		LOG.debug("Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
                 rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
                 rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
@@ -2044,8 +2044,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
                 commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
                            +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
-        LOG.debug("commands" + str(commands))
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+		LOG.debug("commands" + str(commands))
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2054,20 +2054,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     add security group rule
     '''
     def add_security_group_rule(self, parent_group_id = "", remote_group_id = "", ip_protocol="", from_port = 1, to_port= 40000):
-    LOG.debug("parent group id: {}".format(str(parent_group_id)))
-    LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
-    if remote_group_id != "":
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id),group_id=str(remote_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
-    else:
-        self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+	LOG.debug("parent group id: {}".format(str(parent_group_id)))
+	LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
+	if remote_group_id != "":
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id),group_id=str(remote_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
+	else:
+	    self.security_group_rules_client.create_security_group_rule(parent_group_id = str(parent_group_id), ip_protocol = ip_protocol, from_port = from_port, to_port = to_port)
 
     '''
     delete some files on linux
     '''
     def deleteSomefilesOnLinux(self, ssh, mount_point, number):
-    self.channel = ssh.invoke_shell()
-    command = "sudo rm -rf {}/File_1.txt"
-    LOG.debug("Executing: " + str(command))
+	self.channel = ssh.invoke_shell()
+	command = "sudo rm -rf {}/File_1.txt"
+	LOG.debug("Executing: " + str(command))
         self.channel.send(command + "\n")
         while not self.channel.recv_ready():
             time.sleep(3)
@@ -2164,7 +2164,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def getTenantChargeback(self):
         try:
-        resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_chargeback")
+	    resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_chargeback")
             LOG.debug("Chargeback API Response:"+ str(resp.content))
             LOG.debug("Chargeback API Body:"+ str(body))
             if(resp.status_code != 200):
@@ -2239,27 +2239,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method updates workload policy and return status
     '''
     def workload_policy_update(self, policy_id, policy_name='policy_update', fullbackup_interval=tvaultconf.fullbackup_interval,
-                   interval=tvaultconf.interval, retention_policy_value=tvaultconf.retention_policy_value, 
-                   retention_policy_type=tvaultconf.retention_policy_type, description='description'):
+			       interval=tvaultconf.interval, retention_policy_value=tvaultconf.retention_policy_value, 
+	 		       retention_policy_type=tvaultconf.retention_policy_type, description='description'):
         try:
-        payload = {"policy": {
-                      "field_values": {
-                           "fullbackup_interval": fullbackup_interval, 
-                           "retention_policy_type": retention_policy_type, 
-                           "interval": interval, "retention_policy_value": retention_policy_value
-                              }, 
-                      "display_name": policy_name, 
-                      "display_description": description
-                     }
-                  }
+	    payload = {"policy": {
+			          "field_values": {
+					       "fullbackup_interval": fullbackup_interval, 
+					       "retention_policy_type": retention_policy_type, 
+					       "interval": interval, "retention_policy_value": retention_policy_value
+					          }, 
+			          "display_name": policy_name, 
+		   	          "display_description": description
+			         }
+	              }
             resp, body = self.wlm_client.client.put("/workload_policy/"+policy_id, json=payload)
             LOG.debug("Response:"+ str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)
             return True
-    except Exception as e:
-        LOG.debug('Policyupdate failed: %s' % policy_id)
+	except Exception as e:
+	    LOG.debug('Policyupdate failed: %s' % policy_id)
             return False
 
     '''
@@ -2268,15 +2268,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_policy_delete(self, policy_id):
         try:
             details = self.get_policy_details(policy_id)
-        list_of_project_assigned_to_policy = details[4]
+	    list_of_project_assigned_to_policy = details[4]
             for i in range(len(list_of_project_assigned_to_policy)):
                 self.assign_unassign_workload_policy(policy_id,remove_project_ids_list=list_of_project_assigned_to_policy[i])
 
             resp, body = self.wlm_client.client.delete("/workload_policy/"+policy_id)
             LOG.debug("#### policy id: %s , operation: workload_policy_delete" % policy_id)
             LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 202):
-            resp.raise_for_status()
+	    if(resp.status_code != 202):
+	        resp.raise_for_status()
             LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
             return True
         except Exception as e:
@@ -2287,7 +2287,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method assign/unassign workload policy to tenants
     '''
     def assign_unassign_workload_policy(self, policy_id,add_project_ids_list=[], remove_project_ids_list=[]):
-    try:
+	try:
             payload = {"policy": 
                            {
                              "remove_projects": remove_project_ids_list, 
@@ -2301,34 +2301,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(resp.status_code != 202):
                 resp.raise_for_status()
             return True
-    except Exception as e:
+	except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
-    
+	
     '''
     Method to get policy details
     #return name, {retention_policy_type, interval, retention_policy_value, fullbackup_interval}, [list_of_project_assigned], id and description in one list
     '''
     def get_policy_details(self,policy_id):
-    try:
+	try:
             resp, body = self.wlm_client.client.get("/workload_policy/"+policy_id)
-        LOG.debug("Response:"+ str(resp.content))
+	    LOG.debug("Response:"+ str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
-        list_of_project_assigned = []
-        policy_name = body['policy']['name']
-        field_values = {}
-        for i in range(len(body['policy']['field_values'])):
+	    list_of_project_assigned = []
+	    policy_name = body['policy']['name']
+	    field_values = {}
+	    for i in range(len(body['policy']['field_values'])):
                 key = body['policy']['field_values'][i]['policy_field_name']
                 value = body['policy']['field_values'][i]['value']
                 field_values[key] = value 
-        policy_id = body['policy']['id']
-        description = body['policy']['description']
-        for i in range(len(body['policy']['policy_assignments'])):
+	    policy_id = body['policy']['id']
+	    description = body['policy']['description']
+	    for i in range(len(body['policy']['policy_assignments'])):
                 list_of_projects_assigned1 = body['policy']['policy_assignments'][i]['project_id']
                 list_of_project_assigned.append(list_of_projects_assigned1)
-        return [policy_name, field_values, policy_id, description, list_of_project_assigned]
-    except Exception as e:
+	    return [policy_name, field_values, policy_id, description, list_of_project_assigned]
+	except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
 
@@ -2336,17 +2336,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to return policy-list, returns id's
     '''
     def get_policy_list(self):
-    try:
-        resp, body = self.wlm_client.client.get("/workload_policy/")
-        LOG.debug("Response:"+ str(resp.content))
+	try:
+	    resp, body = self.wlm_client.client.get("/workload_policy/")
+	    LOG.debug("Response:"+ str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
-        policy_list = []
-        for i in range(len(body['policy_list'])):
+	    policy_list = []
+	    for i in range(len(body['policy_list'])):
                 policy_id = body['policy_list'][i]['id']
                 policy_list.append(policy_id)
             return policy_list
-    except Exception as e:
+	except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
 
@@ -2393,7 +2393,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 policy_id = body['policies'][i]['policy_id']
                 project_list_assigned_policies.append(policy_id)
             return project_list_assigned_policies
-    except Exception as e:
+	except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
 
