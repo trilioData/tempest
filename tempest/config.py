@@ -389,7 +389,25 @@ ComputeGroup = [
                     'pool.'),
     cfg.StrOpt('vm_availability_zone',
                default='nova',
-               help="Compute availability zone for instance launch")
+               help="Compute availability zone for instance launch"),
+    cfg.StrOpt('flavor_name',
+               default='',
+               help="Flavor name"),
+    cfg.IntOpt('flavor_ram',
+               default=4096,
+               help="RAM for the flavor"),
+    cfg.IntOpt('flavor_disk',
+               default=10,
+               help="Disk size for the flavor"),
+    cfg.IntOpt('flavor_swap',
+               default=1024,
+               help="Swap disk size for the flavor"),
+    cfg.IntOpt('flavor_ephemeral',
+               default=2,
+               help="Ephemeral disk size for the flavor"),
+    cfg.IntOpt('flavor_vcpus',
+               default=4,
+               help="VCPUS for the flavor") 
 ]
 
 compute_features_group = cfg.OptGroup(name='compute-feature-enabled',
