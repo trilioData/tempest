@@ -206,7 +206,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_5_create_incremental_snapshot(self):
-    #def abc(self):
         try:
             global workload_id
             global incr_snapshot_id
@@ -247,7 +246,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_3_selective_restore(self):
-    #def defg(self):
         try:
             global snapshot_id
             global workload_id
@@ -482,7 +480,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_6_oneclick_restore(self):
-    #def xyz(self):
         try:
             global workload_id
             global incr_snapshot_id
