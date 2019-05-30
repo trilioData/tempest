@@ -1631,7 +1631,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     and "workload:get_nodes" operations in policy.json file on tvault
     '''
     def change_policyjson_file(self, role, rule, policy_changes_cleanup = True):
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
 	try:
 	    if role == "newadmin":
                 LOG.debug("Add new_admin role in policy.json : " + str(role))
@@ -1676,7 +1676,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     and "workload:get_nodes" operations in policy.json file on tvault
     '''
     def revert_changes_policyjson(self, rule):
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
 	    if rule == "admin_api":
@@ -2012,7 +2012,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule) 
 	        commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2
 		LOG.debug("commands: " + str(commands))
-		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
 	    elif rule == "admin_or_owner":
 	        LOG.debug("Delete backup role in policy.json : ")
@@ -2031,7 +2031,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 commands = role_delete_command +"; "+ rule_reassign_command1 +"; "+ rule_reassign_command2 +"; "+ rule_reassign_command3 +"; "+ rule_reassign_command4 \
                            +"; "+ rule_reassign_command5 +"; "+ rule_reassign_command6
 		LOG.debug("commands" + str(commands))
-		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+		ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2410,7 +2410,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to restart wlm-api service on tvault
     '''
     def restart_wlm_api_service(self):
-        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_dbpassword)
+        ssh = self.SshRemoteMachineConnection(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
         command = "service wlm-api restart"
         stdin, stdout, stderr = ssh.exec_command(command)
         time.sleep(3)
