@@ -61,7 +61,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_1_fullsnapshot(self):
+    def test_1_create_workload(self):
         try:
             global vm_id
             global workload_id
