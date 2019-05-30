@@ -63,6 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_create_workload(self):
         try:
+            import pdb;pdb.set_trace()
             global vm_id
             global workload_id
             global snapshot_id
@@ -387,7 +388,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global vm_id
             global mount_points
             global md5sums_dir_before
-            global volume_idi
+            global volume_id
             global floating_ip
             global workload_id
             reporting.add_test_script(str(__name__)+ "_in-place_restore")
