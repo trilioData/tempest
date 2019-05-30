@@ -30,7 +30,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     kp = None
     volumes = None
     md5sums_dir_before = None
-    counter = None
     volume_snapshots = None
 
     @classmethod
@@ -64,7 +63,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_fullsnapshot(self):
         try:
-            global counter
             global vm_id
             global workload_id
             global snapshot_id
@@ -76,8 +74,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global mount_points
             global floating_ip
             global kp
-            counter=1
-            x="a"
             mount_points = ["mount_data_a", "mount_data_b"]
             md5sums_dir_before = {}
 
@@ -122,17 +118,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             md5sums_dir_before = self.calcmd5sum(floating_ip, mount_points[0])
             LOG.debug("MD5sums for directory on original vm : "+str(md5sums_dir_before))
 
-            reporting.add_test_script(str(counter)+". "+str(__name__).split('.')[-1]+ "_create_workload_")
+            reporting.add_test_script(str(__name__)+ "_create_workload_")
 
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
-                reporting.add_test_step("{}. Execute workload-create command".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Execute workload-create command", tvaultconf.FAIL)
                 raise Exception("Workload-create command did not execute correctly")
             else:
-                reporting.add_test_step("{}. Execute workload-create command".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Execute workload-create command", tvaultconf.PASS)
                 LOG.debug("Workload-create command executed correctly")
-            x=chr(ord(x)+1)
 
             time.sleep(10)
             workload_id = query_data.get_workload_id(tvaultconf.workload_name)
@@ -140,16 +135,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if(workload_id != None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
-                    reporting.add_test_step("{}. Create workload".format(x), tvaultconf.PASS)
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
-                    reporting.add_test_step("{}. Create workload".format(x), tvaultconf.FAIL)
+                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                reporting.add_test_step("{}. Create workload".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             reporting.test_case_to_write()
-            counter+=1            
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -159,14 +153,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_2_create_full_snapshot(self):
         try:
-            global counter
             global workload_id
             global snapshot_id
             global vm_id
             global floating_ip
             global mount_points
-            x="a"
-            reporting.add_test_script(str(counter)+". "+str(__name__).split('.')[-1]+ "_create_full_snapshot")
+            reporting.add_test_script(str(__name__)+ "_create_full_snapshot")
             LOG.debug("workload is:" + str(workload_id))
             LOG.debug("vm id: " + str(vm_id))
             self.created = False
@@ -178,24 +170,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Create snapshot command: " + str(create_snapshot))
             rc = cli_parser.cli_returncode(create_snapshot)
             if rc != 0:
-                reporting.add_test_step("{}. Execute workload-snapshot command with --full".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Execute workload-snapshot command with --full", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly for full snapshot")
             else:
-                reporting.add_test_step("{}. Execute workload-snapshot command with --full".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Execute workload-snapshot command with --full", tvaultconf.PASS)
                 LOG.debug("Command executed correctly for full snapshot")
-            x=chr(ord(x)+1)
 
             snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
             LOG.debug("Snapshot ID: " + str(snapshot_id))
             wc = self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if (str(wc) == "available"):
-                reporting.add_test_step("{}. Full snapshot".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Full snapshot", tvaultconf.PASS)
                 self.created = True
             else:
                 if (str(wc) == "error"):
                     pass
             if (self.created == False):
-                reporting.add_test_step("{}. Full snapshot".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Full snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload snapshot did not get created")
 
             LOG.debug("Sleeping for 40s")
@@ -217,11 +208,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_5_create_incremental_snapshot(self):
     #def abc(self):
         try:
-            global counter
             global workload_id
             global incr_snapshot_id
-            x="a"
-            reporting.add_test_script(str(counter)+". "+str(__name__)+ "_create_incremental_snapshot")
+            reporting.add_test_script(str(__name__)+ "_create_incremental_snapshot")
             self.created = False
             LOG.debug("workload is:" + str(workload_id))
 
@@ -230,27 +219,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Create snapshot command: " + str(create_snapshot))
             rc = cli_parser.cli_returncode(create_snapshot)
             if rc != 0:
-                reporting.add_test_step("{}. Execute workload-snapshot command".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Execute workload-snapshot command", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
-                reporting.add_test_step("{}. Execute workload-snapshot command".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Execute workload-snapshot command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-            x=chr(ord(x)+1)
 
             incr_snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
             LOG.debug("Incremental Snapshot ID: " + str(incr_snapshot_id))
             #Wait for incremental snapshot to complete
             wc = self.wait_for_snapshot_tobe_available(workload_id, incr_snapshot_id)
             if (str(wc) == "available"):
-                reporting.add_test_step("{}. Incremental snapshot".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Incremental snapshot", tvaultconf.PASS)
                 LOG.debug("Workload incremental snapshot successfully completed")
                 self.created = True
             if (self.created == False):
-                reporting.add_test_step("{}. Incremental snapshot".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Incremental snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload incremental snapshot did not get created")
 
             reporting.test_case_to_write()
-            counter+=1
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -262,7 +249,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_3_selective_restore(self):
     #def defg(self):
         try:
-            global counter
             global snapshot_id
             global workload_id
             global volume_id
@@ -272,8 +258,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             restored_vm_details_list = []
             vms_details_after_restore = []
             temp_vdisks_data = []
-            x="a"
-            reporting.add_test_script(str(counter)+". "+str(__name__)+ "_selective_restore")
+            reporting.add_test_script(str(__name__)+ "_selective_restore")
 
             int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
@@ -318,11 +303,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                             instance_details=instance_details, network_details=network_details)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
-                reporting.add_test_step("{}. Selective restore".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
-                reporting.add_test_step("{}. Selective restore".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Selective restore", tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
-            x=chr(ord(x)+1)
 
             #Fetch instance details after restore
             restored_vm_details_list = []
@@ -346,12 +330,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             if md5sums_dir_before[str(floating_ip)] == md5sums_dir_after[str(fl_ip)]:
                 LOG.debug("***MDSUMS MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            x=chr(ord(x)+1)
 
             for id in range(len(vm_list)):
                 restored_vm_details_list.append(self.get_vm_details(vm_list[id]))
@@ -362,11 +345,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Compare the data before and after restore
             for i in range(len(vms_details_after_restore)):
                 if(vms_details_after_restore[i]['network_name'] == int_net_1_name):
-                    reporting.add_test_step("{}. Network verification for instance-".format(x) + str(i+1), tvaultconf.PASS)
+                    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
                     LOG.error("Restored network: " + str(vms_details_after_restore[i]['network_name']))
-                    reporting.add_test_step("{}. Network verification for instance-".format(x) + str(i+1), tvaultconf.FAIL)
+                    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
 
 
@@ -393,7 +376,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot Restore(selective) deleted successfully")
 
             reporting.test_case_to_write()
-            counter+=1
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -403,7 +385,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_inplace_restore(self):
         try:
-            global counter
             global snapshot_id
             global vm_id
             global mount_points
@@ -411,8 +392,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volume_idi
             global floating_ip
             global workload_id
-            x="a"
-            reporting.add_test_script(str(counter)+". "+str(__name__)+ "_in-place_restore")
+            reporting.add_test_script(str(__name__)+ "_in-place_restore")
             #Create in-place restore with CLI command
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(snapshot_id)
 
@@ -443,12 +423,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 f.write(str(json.loads(restore_json)))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
-                reporting.add_test_step("{}. Triggering In-Place restore via CLI".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
-                reporting.add_test_step("{}. Triggering In-Place restore via CLI".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-            x=chr(ord(x)+1)
 
             #get restore id from database
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
@@ -456,11 +435,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #get in-place restore status
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
-                reporting.add_test_step("{}. In-place restore".format(x), tvaultconf.PASS)
+                reporting.add_test_step("In-place restore", tvaultconf.PASS)
             else:
-                reporting.add_test_step("{}. In-place restore".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("In-place restore", tvaultconf.FAIL)
                 raise Exception("In-place restore failed")
-            x=chr(ord(x)+1)
 
             #Fetch instance details after restore
             restored_vm_details_list = []
@@ -482,10 +460,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             if md5sums_dir_before[str(floating_ip)] == md5sums_dir_after[str(floating_ip)]:
                 LOG.debug("***MDSUMS MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             self.restore_delete(workload_id, snapshot_id, restore_id)
@@ -496,7 +474,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Incremental snapshot deleted successfully")
 
             reporting.test_case_to_write()
-            counter+=1
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -516,9 +493,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volumes
             global boot_volume_id
             global kp
-            global counter
-            x="a"
-            reporting.add_test_script(str(counter)+". "+str(__name__)+ "_one-click_restore")
+            reporting.add_test_script(str(__name__)+ "_one-click_restore")
 
             mdb = self.calcmd5sum(floating_ip, mount_points[0])
             LOG.debug("MD5SUMS before deleting the instance for one click restore : "+str(mdb))
@@ -542,12 +517,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             restore_command = command_argument_string.oneclick_restore + " " + incr_snapshot_id
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
-                reporting.add_test_step("{}. Execute snapshot-oneclick-restore command".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
-                reporting.add_test_step("{}. Execute snapshot-oneclick-restore command".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-            x=chr(ord(x)+1)
+
             wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name,incr_snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
             while (str(wc) != "available" or str(wc)!= "error"):
@@ -556,16 +531,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Snapshot restore status: " + str(wc))
                 if (str(wc) == "available"):
                     LOG.debug("Snapshot Restore successfully completed")
-                    reporting.add_test_step("{}. Snapshot one-click restore verification with DB".format(x), tvaultconf.PASS)
+                    reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.PASS)
                     self.created = True
                     break
                 else:
                     if (str(wc) == "error"):
                         break
             if (self.created == False):
-                reporting.add_test_step("{}. Snapshot one-click restore verification with DB".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.FAIL)
                 raise Exception ("Snapshot Restore did not get created")
-            x=chr(ord(x)+1)
 
             LOG.debug("Snapshot ID :"+str(incr_snapshot_id))
             restore_id = query_data.get_snapshot_restore_id(incr_snapshot_id)
@@ -585,10 +559,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             if mdb[str(floating_ip)] == mda[str(floating_ip)]:
                 LOG.debug("***MDSUMS MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.PASS)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
-                reporting.add_test_step("{}. Md5 Verification for volume".format(x), tvaultconf.FAIL)
+                reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
 
