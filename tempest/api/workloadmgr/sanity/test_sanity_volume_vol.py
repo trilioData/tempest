@@ -63,7 +63,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_create_workload(self):
         try:
-            import pdb;pdb.set_trace()
             global vm_id
             global workload_id
             global snapshot_id
@@ -164,7 +163,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("vm id: " + str(vm_id))
             self.created = False
 
-            #import pdb;pdb.set_trace()
 
             #Create snapshot with CLI command
             create_snapshot = command_argument_string.snapshot_create + workload_id
