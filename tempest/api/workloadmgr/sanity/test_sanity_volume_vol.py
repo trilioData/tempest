@@ -244,7 +244,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_3_selective_restore(self):
+    def test_4_selective_restore(self):
         try:
             global snapshot_id
             global workload_id
@@ -380,7 +380,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_4_inplace_restore(self):
+    def test_3_inplace_restore(self):
         try:
             global snapshot_id
             global vm_id
@@ -391,6 +391,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global workload_id
             reporting.add_test_script(str(__name__)+ "_in-place_restore")
             #Create in-place restore with CLI command
+            import pdb;pdb.set_trace()
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(snapshot_id)
 
             LOG.debug("inplace restore cli command: " + str(restore_command))
@@ -468,9 +469,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #Delete snapshot
             self.snapshot_delete(workload_id, snapshot_id)
-            LOG.debug("Incremental snapshot deleted successfully")
+            LOG.debug("Full snapshot deleted successfully")
 
             reporting.test_case_to_write()
+            LOG.debug("Sleeping for 120s")
+            time.sleep(120)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -581,7 +584,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #Delete snapshot
             self.snapshot_delete(workload_id, incr_snapshot_id)
-            LOG.debug("Full snapshot deleted successfully")
+            LOG.debug("Incremental snapshot deleted successfully")
 
             #Delete workload
             self.workload_delete(workload_id)
