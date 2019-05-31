@@ -40,13 +40,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global snapshot_id
             global incr_snapshot_id
             self.created = False
-            
             #Launch instance
-            self.vm_id = self.create_vm()
-            LOG.debug("Original VM ID : " + str(self.vm_id))
+            vm_id = self.create_vm()
+            LOG.debug("Original VM ID : " + str(vm_id))
             reporting.add_test_script(str(__name__)+ "_create_workload")
 
-            workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.vm_id)
+            workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step("Execute workload-create command", tvaultconf.FAIL)
@@ -56,11 +55,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload-create command executed correctly")
 
             time.sleep(10)
-            self.wid = query_data.get_workload_id(tvaultconf.workload_name)
-            LOG.debug("Workload ID: " + str(self.wid))
-            if(self.wid != None):
-                self.wait_for_workload_tobe_available(self.wid)
-                if(self.getWorkloadStatus(self.wid) == "available"):
+            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(workload_id))
+            if(workload_id != None):
+                self.wait_for_workload_tobe_available(workload_id)
+                if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
@@ -69,11 +68,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             
-            workload_id = self.wid
-            vm_id = self.vm_id 
             LOG.debug("workload is : " + str(workload_id))
             LOG.debug("vm id : " + str(vm_id))
-            reporting.test_case_to_write() 
+            reporting.test_case_to_write()
+            time.sleep(40)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -85,7 +83,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global workload_id
             global snapshot_id
-            global vm_id 
+            global vm_id
             reporting.add_test_script(str(__name__)+ "_create_full_snapshot")
             LOG.debug("workload is:" + str(workload_id))
             LOG.debug("vm id: " + str(vm_id))
@@ -103,10 +101,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Execute workload-snapshot command with --full", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            self.snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
-            LOG.debug("Snapshot ID: " + str(self.snapshot_id))
-            snapshot_id = self.snapshot_id
-            wc = self.wait_for_snapshot_tobe_available(workload_id,self.snapshot_id)
+            snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
+            LOG.debug("Snapshot ID: " + str(snapshot_id))
+            wc = self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if (str(wc) == "available"):
                 reporting.add_test_step("Full snapshot", tvaultconf.PASS)
                 self.created = True
@@ -127,10 +124,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_create_incremental_snapshot(self):
         try:
-            reporting.add_test_script(str(__name__)+ "_create_incremental_snapshot")
-            
             global workload_id
             global incr_snapshot_id
+            reporting.add_test_script(str(__name__)+ "_create_incremental_snapshot")
             self.created = False
             LOG.debug("workload is:" + str(workload_id))
 
@@ -145,11 +141,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Execute workload-snapshot command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            self.incr_snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
-            LOG.debug("Incremental Snapshot ID: " + str(self.incr_snapshot_id))
-            incr_snapshot_id = self.incr_snapshot_id
+            incr_snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
+            LOG.debug("Incremental Snapshot ID: " + str(incr_snapshot_id))
             #Wait for incremental snapshot to complete
-            wc = self.wait_for_snapshot_tobe_available(workload_id, self.incr_snapshot_id)
+            wc = self.wait_for_snapshot_tobe_available(workload_id, incr_snapshot_id)
             if (str(wc) == "available"):
                 reporting.add_test_step("Incremental snapshot", tvaultconf.PASS)
                 LOG.debug("Workload incremental snapshot successfully completed")
@@ -168,9 +163,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_4_selective_restore(self):
         try:
-            reporting.add_test_script(str(__name__)+ "_selective_restore")
             global snapshot_id            
             global workload_id
+            reporting.add_test_script(str(__name__)+ "_selective_restore")
             instance_details = []
             network_details  = []
             restored_vm_details_list = []
@@ -257,10 +252,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_5_inplace_restore(self):
         try:
             
-            reporting.add_test_script(str(__name__)+ "_in-place_restore")
             global incr_snapshot_id
             global vm_id
-	        #Create in-place restore with CLI command
+            reporting.add_test_script(str(__name__)+ "_in-place_restore")
+	    #Create in-place restore with CLI command
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(incr_snapshot_id)
 
             LOG.debug("inplace restore cli command: " + str(restore_command))
@@ -326,11 +321,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_6_oneclick_restore(self):
         try:
-            reporting.add_test_script(str(__name__)+ "_one-click_restore")            
             global workload_id
             global snapshot_id
-            global vm_id     
-                
+            global vm_id
+            reporting.add_test_script(str(__name__)+ "_one-click_restore")    
             #Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug("Instance deleted successfully for one click restore : "+str(vm_id))
