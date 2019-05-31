@@ -5,7 +5,7 @@ source automation/openstack-build-scripts/build.properties
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
-SUITE_LIST=("tempest.api.workloadmgr.regression")
+SUITE_LIST=("tempest.api.workloadmgr.sanity")
 REPORT_DIR="$BASE_DIR/Report"
 
 #Clean old files
@@ -15,7 +15,7 @@ rm -rf logs
 
 mkdir -p $REPORT_DIR
 sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
-python -c 'from tempest import reporting; reporting.consolidate_report_table()'
+#python -c 'from tempest import reporting; reporting.consolidate_report_table()'
 
 for suite in "${SUITE_LIST[@]}"
 do
