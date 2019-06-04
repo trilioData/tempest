@@ -228,10 +228,7 @@ function configure_tempest
             ;;
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
-            case "$type" in
-                lvm*|iscsi*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-                ceph*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-            esac
+            type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
             ;;
@@ -241,8 +238,8 @@ function configure_tempest
                 case $type in
                     lvm*|iscsi*) volume_type_alt=$type
                                  volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-                    ceph*) volume_type=$type
-                           volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                    *) volume_type=$type
+                       volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                 esac
             done
     esac
