@@ -2423,13 +2423,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     connet to fvm , validate that snapshot is mounted on fvm
     '''
-    def validate_snapshot_mount(self, ssh, mount_path="/dev/vdb1", file_path="/home/ubuntu", file_name="File_1.txt"):
+    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1.txt"):
         try:
-            LOG.debug("build command data population")
-            buildCommand = "mount | grep " + mount_path + "; find" + file_path +"-name " + file_name 
+            LOG.debug("build comand to serach file")
+            buildCommand = "find " + file_path_to_search +" -name " + file_name
+            LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(stdout.read())
             time.sleep(20)
             return stdout
         except Exception as e:
             LOG.debug("Exception: " + str(e))
-
+    
+    '''
+    Method to dismount snapshot
+    '''
+    def dismount_snapshot(self,snapshot_id):
+        resp, body = self.wlm_client.client.post("/snapshots/"+ snasphot_id +"/dismount")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()        
+        else:
+           return True
