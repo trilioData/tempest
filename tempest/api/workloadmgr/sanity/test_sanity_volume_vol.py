@@ -391,7 +391,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global workload_id
             reporting.add_test_script(str(__name__)+ "_in-place_restore")
             #Create in-place restore with CLI command
-            import pdb;pdb.set_trace()
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(snapshot_id)
 
             LOG.debug("inplace restore cli command: " + str(restore_command))
