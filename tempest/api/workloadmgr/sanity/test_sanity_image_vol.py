@@ -143,8 +143,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("vm id: " + str(vm_id))
             self.created = False
 
-            #import pdb;pdb.set_trace()
-
             #Create snapshot with CLI command
             create_snapshot = command_argument_string.snapshot_create + workload_id
             LOG.debug("Create snapshot command: " + str(create_snapshot))
