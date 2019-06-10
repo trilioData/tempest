@@ -31,6 +31,7 @@ OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 if [[ "$AUTH_URL" =~ "https" ]]
 then
     OPENSTACK_CMD="openstack --insecure"
+    sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
 else
     OPENSTACK_CMD="openstack"
 fi
@@ -104,6 +105,15 @@ function configure_tempest
     # Save IFS
     ifs=$IFS
 	
+    if [[ "$AUTH_URL" =~ "https" ]]
+    then
+        iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation True
+        iniset $TEMPEST_CONFIG wlm insecure True
+    else
+        iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation False
+        iniset $TEMPEST_CONFIG wlm insecure False
+    fi
+
     # Oslo
     iniset $TEMPEST_CONFIG DEFAULT use_stderr False
     iniset $TEMPEST_CONFIG DEFAULT use_syslog False
@@ -123,6 +133,8 @@ function configure_tempest
     export OS_AUTH_URL=$AUTH_URL
     export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
+    export OS_ENDPOINT_TYPE=$DEFAULT_ENDPOINT_TYPE
+    export OS_INTERFACE=$DEFAULT_ENDPOINT_TYPE
 
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $ADMIN_DOMAIN_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
@@ -216,10 +228,7 @@ function configure_tempest
             ;;
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
-            case "$type" in
-                lvm*|iscsi*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-                ceph*) type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-            esac
+            type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
             ;;
@@ -229,8 +238,8 @@ function configure_tempest
                 case $type in
                     lvm*|iscsi*) volume_type_alt=$type
                                  volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
-                    ceph*) volume_type=$type
-                           volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                    *) volume_type=$type
+                       volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                 esac
             done
     esac
@@ -260,7 +269,6 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity uri_v3 $OS_AUTH_URL
     iniset $TEMPEST_CONFIG identity v3_endpoint_type $DEFAULT_ENDPOINT_TYPE
     iniset $TEMPEST_CONFIG identity region $OS_REGION_NAME
-    iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation False
 
     # Auth
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
@@ -320,7 +328,6 @@ function configure_tempest
 
     # wlm
     iniset $TEMPEST_CONFIG wlm os_tenant_id $service_project_id
-    iniset $TEMPEST_CONFIG wlm insecure False
 
     # accounts.yaml
     sed -i '/tenant_name/c \  tenant_name: '\'$TEST_PROJECT_NAME\' $TEMPEST_ACCOUNTS
