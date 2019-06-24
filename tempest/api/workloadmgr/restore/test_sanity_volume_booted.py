@@ -178,7 +178,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             LOG.debug("Snapshot id : " + str(snapshot_id))
             #Trigger selective restore
-            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
+            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id, restore_cleanup=False, restore_name=tvaultconf.restore_name,
                                                             instance_details=instance_details, network_details=network_details)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):

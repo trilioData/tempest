@@ -41,7 +41,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global incr_snapshot_id
             self.created = False
             #Launch instance
-            vm_id = self.create_vm()
+            vm_id = self.create_vm(vm_cleanup=False)
             LOG.debug("Original VM ID : " + str(vm_id))
             reporting.add_test_script(str(__name__)+ "_create_workload")
 
@@ -200,19 +200,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Network details for restore: " + str(network_details))
             LOG.debug("Snapshot id : " + str(snapshot_id))
             #Trigger selective restore
-            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
+            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id, restore_cleanup=False, restore_name=tvaultconf.restore_name,
                                                             instance_details=instance_details, network_details=network_details)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
+                LOG.debug("Selective restore passed")
             else:
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
+                LOG.debug("Selective restore failed")
                 raise Exception("Selective restore failed")
+            LOG.debug("selective restore complete")
 
             #Fetch instance details after restore
             restored_vm_details_list = []
             vm_list  =  self.get_restored_vm_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+
 
             for id in range(len(vm_list)):
                 restored_vm_details_list.append(self.get_vm_details(vm_list[id]))
@@ -357,7 +361,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (self.created == False):
                 reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.FAIL)
                 raise Exception ("Snapshot Restore did not get created")
-            
+     
             LOG.debug("Snapshot ID :"+str(snapshot_id)) 
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
             LOG.debug("Restore ID: " + str(restore_id))
