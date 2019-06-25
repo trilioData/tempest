@@ -41,7 +41,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def assign_floating_ips(self, vm_id):
         fip = self.get_floating_ips()
         LOG.debug("\nAvailable floating ips are : \n".join(fip))
-        self.set_floating_ip(str(fip[0]),vm_id)
+        self.set_floating_ip(str(fip[0]),vm_id,floatingip_cleanup=False)
         return(fip[0])
 
     def data_ops(self, flo_ip, mount_point, file_count):
@@ -101,7 +101,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
-            self.attach_volume(volume_id, vm_id)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
             LOG.debug("Volume attached")
 
             #Assign floating IP
@@ -244,7 +244,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_4_selective_restore(self):
+    def test_3_selective_restore(self):
         try:
             global snapshot_id
             global workload_id
@@ -296,7 +296,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot id : " + str(snapshot_id))
 
             #Trigger selective restore
-            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
+            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name, restore_cleanup=False,
                                                             instance_details=instance_details, network_details=network_details)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
@@ -380,7 +380,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_3_inplace_restore(self):
+    def test_4_inplace_restore(self):
         try:
             global snapshot_id
             global vm_id
