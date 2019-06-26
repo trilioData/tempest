@@ -10,7 +10,8 @@ test_step_to_write =""
 passed_count = 0
 failed_count = 0
 total_tests_count = passed_count + failed_count
-
+steps_count = 0
+case_count = 0
 def setup_report(testname):
     head = """<table border="1">
             <tr bgcolor="#b3e6ff">
@@ -23,6 +24,8 @@ def setup_report(testname):
 
 def add_test_script(script):
     global test_script_name
+    global steps_count
+    steps_count = 0
     test_script_name = script
 
 def set_test_script_status(status):
@@ -41,16 +44,18 @@ def test_case_to_write():
     else:
         color = "red"
 	failed_count += 1
+    global case_count
+    case_count+=1
     total_tests_count = passed_count + failed_count
     test_case_to_write = """
 	<tr>
-		<td colspan="1"><b>{0}</b></td>
+		<td colspan="1"><b>{3}. {0}</b></td>
 		<td> <font color={1}><b>{2}</b></font> </td>
         </tr>
-	""".format(test_script_name, color, test_script_status)
+	""".format(test_script_name, color, test_script_status, case_count)
     with open(test_results_file, "a") as f:
         f.write(test_case_to_write)
-	f.write(test_step_to_write)
+        f.write(test_step_to_write)
     test_step_to_write = ""
     test_script_status = tvaultconf.PASS
     cmd1 = "sed -i -e '9s/passed_count = [0-9]*/passed_count = {0}/' tempest/reporting.py".format(passed_count)
@@ -67,11 +72,13 @@ def add_test_step(teststep, status):
         global test_script_status
         test_script_status = "FAIL"
     global test_step_to_write
+    global steps_count
+    steps_count+=1
     test_step_to_write += """<tr>
-                    <td> <font color={1}>{0}</font> </td>
+                    <td> <font color={1}>{3}. {0}</font> </td>
                     <td> <font color={1}>{2}</font> </td>
 		 </tr>
-                """.format(teststep, color, status)
+                """.format(teststep, color, status, steps_count)
 
 def end_report_table():
     with open(test_results_file, "a") as f:
@@ -82,6 +89,8 @@ def end_report_table():
     cmd = cmd1+"; " +cmd2+"; "+cmd3
     p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
     p.wait()
+    global case_count
+    case_count = 0
 
 def consolidate_report_table():
     global passed_count
@@ -135,7 +144,7 @@ def add_sanity_results_to_tempest_report():
                 if(line.startswith("ERROR")):
                     text_color = "red"
                     test_result = line[6:]
-                elif(test_result == "FAILED"):
+                elif(test_result.startswith("FAIL")):
                     text_color = "red"
                 else:
                     text_color = "green"
@@ -143,7 +152,6 @@ def add_sanity_results_to_tempest_report():
                     <td><font color="%s">%s</font></td>
                     <td><font color="%s">%s</font></td>
                     </tr> """ % (text_color, test_name, text_color, test_result)
-
     html_file=open(test_results_file, "a")
     result_table+="""</table>"""
     html_file.write("Date : " + str(datetime.datetime.now()))
