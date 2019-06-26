@@ -46,7 +46,7 @@ global_job_scheduler=False
 tvault_ip = "192.168.1.23"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
-tvault_dbpassword = "sample-password"
+tvault_password = "sample-password"
 
 no_of_compute_nodes = 1
 compute_node_ip = "192.168.1.189"
@@ -101,7 +101,7 @@ setting_data = {"smtp_default_recipient": "savitha.peri@trilio.io",
                 "smtp_default_sender": "trilio.build@trilio.io",
                 "smtp_port": "587",
                 "smtp_server_name": "smtp.gmail.com",
-                "smtp_server_password": tvault_dbpassword,
+                "smtp_server_password": tvault_password,
                 "smtp_server_username": "trilio.build@trilio.io",
                 "smtp_timeout": "10" }
 enable_email_notification = {"smtp_email_enable" : 1}

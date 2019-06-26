@@ -748,9 +748,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		LOG.debug("first snapshot deleted after retension value exceeds")
 
 	    # Check first snapshot is deleted from backup target when retension value exceed
-            mount_path = self.get_mountpoint_path(ipaddress=tvaultconf.tvault_ip, username=tvaultconf.tvault_dbusername, password=tvaultconf.tvault_dbpassword)
+            mount_path = self.get_mountpoint_path(ipaddress=tvaultconf.tvault_ip, username=tvaultconf.tvault_dbusername, password=tvaultconf.tvault_password)
             LOG.debug("Backup target mount_path is : " + mount_path)
-            is_snapshot_exist = self.check_snapshot_exist_on_backend(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername,  tvaultconf.tvault_dbpassword,mount_path,self			.workload_id,deleted_snapshot_id)
+            is_snapshot_exist = self.check_snapshot_exist_on_backend(tvaultconf.tvault_ip, tvaultconf.tvault_dbusername,  tvaultconf.tvault_password,mount_path,self			.workload_id,deleted_snapshot_id)
             LOG.debug("Snapshot does not exist : %s" %is_snapshot_exist)
             if is_snapshot_exist == False:
                 LOG.debug("First snapshot is deleted from backup target")
