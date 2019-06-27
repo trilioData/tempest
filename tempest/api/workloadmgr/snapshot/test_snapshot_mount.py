@@ -99,13 +99,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
     def test_2_umount_snapshot(self):
         reporting.add_test_script(str(__name__) + "_umount_snapshot")
-        try:
-            if self.exception != "":
-                LOG.debug("pre req failed")
-                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
-                raise Exception (str(self.exception))
-            LOG.debug("pre req completed")
-
+        try:            
             global instances_ids
             global snapshot_ids
             global wid
@@ -122,7 +116,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             dismount_snapshot_id = snapshot_ids[0]
             floating_ips_list = self.floating_ips_list
 
-            LOG.debug("dismount snasphot of a  snapshot")
+            LOG.debug("umount snapshot")
             is_dismounted = self.dismount_snapshot(dismount_snapshot_id)
             LOG.debug("VALUE OF is_dismounted: " + str(is_dismounted))
             if is_dismounted == True:
@@ -139,23 +133,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             output_list = self.validate_snapshot_mount(self.ssh)
             self.ssh.close()
             
-            for i in output_list:
-                if '/home/ubuntu/mount_data_b' not in i:
-                   LOG.debug("connect to fvm and check mountpoint is unmounted from FVM instance")
-                   reporting.add_test_step("Verify that mountpoint is unmounted from FVM instance", tvaultconf.PASS)
-                   reporting.test_case_to_write()
-                else:
-                   LOG.debug("mount snapshot with full snapshot is unsuccessful on FVM")
-                   reporting.add_test_step("Verify that mountpoint is unmounted from FVM instance", tvaultconf.FAIL)
-                   raise Exception ("mountpoint is not showing on FVM instance")
-                if 'File_1.txt' not in i:
-                   LOG.debug("check that file is exist on mounted snapshot")
-                   reporting.add_test_step("Verification of file exist on moutned snapshot", tvaultconf.PASS)
-                   reporting.test_case_to_write()
-                else:
-                   LOG.debug("file does not found on FVM instacne")
-                   reporting.add_test_step("Verification of file exist on moutned snapshot")
-		   raise Exception ("file does not found on FVM instacne")
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
@@ -165,13 +142,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
     def test_3_snapshot_mount_incremental(self):
         reporting.add_test_script(str(__name__) + "_incremental_snasphot")
-        try:
-            if self.exception != "":
-                LOG.debug("pre req failed")
-                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
-                raise Exception (str(self.exception))
-            LOG.debug("pre req completed")
-
+        try:           
             global instances_ids
             global snapshot_ids
             global wid
@@ -188,7 +159,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             incremental_snapshot_id = snapshot_ids[1]
             floating_ips_list = self.floating_ips_list
 
-            LOG.debug("mount snasphot of a incremental snapshot")
+            LOG.debug("mount incremental snapshot")
             is_mounted = self.mount_snapshot(wid, incremental_snapshot_id, fvm_id)
             LOG.debug("VALUE OF is_mounted: " + str(is_mounted))
             if is_mounted == True:
