@@ -63,6 +63,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volumes_extensions_client = cls.os.volumes_extensions_client
         cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
         cls.network_client = cls.os.network_client
+        cls.networks_client = cls.os.networks_client
         cls.interfaces_client = cls.os.interfaces_client
         cls.fixed_ips_client = cls.os.fixed_ips_client
         cls.availability_zone_client = cls.os.availability_zone_client
@@ -2465,3 +2466,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            resp.raise_for_status()        
         else:
            return True
+
+    '''
+    Method to fetch the list of network ports
+    '''
+    def get_port_list_by_network_id(self,network_id):
+        port_list = self.network_client.list_ports(network_id=network_id)
+        capture_port_list=[]
+        for details in port_list['ports']:
+            capture_port_list.append(details['id'])
+        LOG.debug("Port List by network_id: " + str(capture_port_list))
+        return capture_port_list 
+      
+    '''
+    Method to delete list of ports
+    '''
+    def delete_network(self, network_id):
+        ports_list = []
+        ports_list = self.get_port_list_by_network_id(network_id)
+        self.delete_ports(ports_list)
+        network_delete = self.networks_client.delete_network(network_id)
+        LOG.debug("Network status %s" % str(network_delete))
