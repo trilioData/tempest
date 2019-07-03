@@ -33,9 +33,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_1_volume_booted(self):
         try:
             ### Create vm ###
-
+            deleted = 0
             reporting.add_test_script(str(__name__))
-
 
             volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
             self.set_volume_as_bootable(volume_id)
@@ -244,6 +243,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             #Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug("Instance deleted successfully for one click restore : "+str(vm_id))
+            deleted = 1
             time.sleep(10)
             self.delete_volume(volume_id)
             LOG.debug("Volume deleted successfully for one click restore : "+str(volume_id))
@@ -284,8 +284,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
-            self.delete_vm(vm_id)
-            time.sleep(10)
-            self.delete_volume(volume_id)
+            if (deleted == 0):
+                self.delete_vm(vm_id)
+                time.sleep(10)
+                self.delete_volume(volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()

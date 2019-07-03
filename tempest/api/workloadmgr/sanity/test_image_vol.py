@@ -55,6 +55,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_image_volume(self):
         try:
             global volumes
+            deleted = 0
             reporting.add_test_script(str(__name__))
 
             ## VM and Workload ###
@@ -377,7 +378,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Delete volume attached to original instance
             self.delete_volume(volume_id)
             LOG.debug("Volumes deleted successfully for one click restore : "+str(volume_id))
-
+            deleted = 1
 
             #Create one-click restore using CLI command
             restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
@@ -438,10 +439,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
-            self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
-            self.detach_volume(vm_id, volume_id)
-            self.delete_vm(vm_id)
-            time.sleep(10)
-            self.delete_volume(volume_id)
+            if (deleted == 0):
+                self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
+                self.detach_volume(vm_id, volume_id)
+                self.delete_vm(vm_id)
+                time.sleep(10)
+                self.delete_volume(volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
