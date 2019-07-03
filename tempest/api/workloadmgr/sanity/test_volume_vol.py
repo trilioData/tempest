@@ -95,7 +95,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Assign floating IP
             floating_ip_1 = self.assign_floating_ips(vm_id, False)
             LOG.debug("Assigned floating IP : "+str(floating_ip_1))
-            raise Exception("something")
             LOG.debug("Sleeping for 40 sec")
             time.sleep(40)
 
