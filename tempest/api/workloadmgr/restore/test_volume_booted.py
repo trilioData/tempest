@@ -284,5 +284,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            self.delete_vm(vm_id)
+            time.sleep(10)
+            self.delete_volume(volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()

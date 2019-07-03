@@ -457,5 +457,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
+            self.detach_volume(vm_id, volume_id)
+            self.delete_vm(vm_id)
+            time.sleep(10)
+            self.delete_volume(volume_id)
+            self.delete_volume(boot_volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
