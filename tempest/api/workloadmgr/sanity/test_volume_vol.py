@@ -59,6 +59,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__))
 
+            deleted = 0
             global volumes
             mount_points = ["mount_data_a", "mount_data_b"]
             md5sums_dir_before = {}
@@ -94,7 +95,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Assign floating IP
             floating_ip_1 = self.assign_floating_ips(vm_id, False)
             LOG.debug("Assigned floating IP : "+str(floating_ip_1))
-
+            raise Exception("something")
             LOG.debug("Sleeping for 40 sec")
             time.sleep(40)
 
@@ -399,6 +400,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_volume(volume_id)
             LOG.debug("Volumes deleted successfully for one click restore : "+str(volume_id))
 
+            deleted = 1
+
             #Create one-click restore using CLI command
             restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
             rc = cli_parser.cli_returncode(restore_command)
@@ -457,11 +460,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
-            self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
-            self.detach_volume(vm_id, volume_id)
-            self.delete_vm(vm_id)
-            time.sleep(10)
-            self.delete_volume(volume_id)
-            self.delete_volume(boot_volume_id)
+            if (deleted == 0):
+                self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
+                self.detach_volume(vm_id, volume_id)
+                self.delete_vm(vm_id)
+                time.sleep(10)
+                self.delete_volume(volume_id)
+                self.delete_volume(boot_volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()

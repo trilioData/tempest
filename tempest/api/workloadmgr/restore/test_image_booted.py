@@ -31,7 +31,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_image_booted(self):
         try:
             ### Create vm and workload ###
-
+            deleted = 0
             reporting.add_test_script(str(__name__))            
             
             self.created = False
@@ -263,7 +263,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug("Instance deleted successfully for one click restore : "+str(vm_id))
-        
+            deleted = 1
+ 
             #Create one-click restore using CLI command
             restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
             rc = cli_parser.cli_returncode(restore_command)
@@ -300,6 +301,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            if (deleted == 0):
+                self.delete_vm(vm_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
-            self.delete_vm(vm_id)
             reporting.test_case_to_write()
