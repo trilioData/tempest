@@ -22,14 +22,7 @@ CONF = config.CONF
 class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
-    workload_id = None
-    snapshot_id = None
-    vm_id = None
-    volume_id = None
-    floating_ip = None
-    kp = None
     volumes = None
-    md5sums_dir_before = None
 
     @classmethod
     def setup_clients(cls):
@@ -37,10 +30,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
     
-    def assign_floating_ips(self, vm_id):
+    def assign_floating_ips(self, vm_id, cleanup):
         fip = self.get_floating_ips()
-        LOG.debug("\nAvailable floating ips are : \n".join(fip))
-        self.set_floating_ip(str(fip[0]),vm_id)
+        LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
+        self.set_floating_ip(str(fip[0]),vm_id,floatingip_cleanup=cleanup)
         return(fip[0])        
 
     def data_ops(self, flo_ip, mount_point, file_count):
@@ -59,20 +52,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         return mdb
  
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_1_create_workload(self):
+    def test_1_image_volume(self):
         try:
-            global vm_id
-            global volume_id
-            global workload_id
-            global floating_ip
-            global kp
             global volumes
-            global md5sums_dir_before
-            global mount_points
+            deleted = 0
+            reporting.add_test_script(str(__name__))
+
+            ## VM and Workload ###
+
             mount_points = ["mount_data_a", "mount_data_b"] 
             md5sums_dir_before = {}
             LOG.debug("******************")            
-            kp = self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
+            kp = self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=True)
             LOG.debug("Key_pair : "+str(kp))            
 
             vm_id = self.create_vm(key_pair=kp, vm_cleanup=False)
@@ -82,22 +73,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
     
-            self.attach_volume(volume_id, vm_id)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
             LOG.debug("Volume attached")
         
-            floating_ip = self.assign_floating_ips(vm_id)
-            LOG.debug("Assigned floating IP : "+str(floating_ip))
+            floating_ip_1 = self.assign_floating_ips(vm_id, False)
+            LOG.debug("Assigned floating IP : "+str(floating_ip_1))
 
             LOG.debug("Sleeping for 40 sec")
             time.sleep(40)
 
-            self.data_ops(floating_ip, mount_points[0], 3)
+            self.data_ops(floating_ip_1, mount_points[0], 3)
             LOG.debug("Created disk and mounted the attached volume")            
 
-            md5sums_dir_before = self.calcmd5sum(floating_ip, mount_points[0])
+            md5sums_dir_before = self.calcmd5sum(floating_ip_1, mount_points[0])
             LOG.debug("MD5sums for directory on original vm : "+str(md5sums_dir_before))
 
-            reporting.add_test_script(str(__name__)+ "_create_workload_")
             
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
@@ -122,25 +112,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            reporting.test_case_to_write()
+            if (tvaultconf.cleanup == True):
+                self.addCleanup(self.workload_delete, workload_id)
 
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            ### Full snapshot ###
 
-
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_2_create_full_snapshot(self):
-        try:
-            global workload_id
-            global snapshot_id
-            global vm_id
-            global floating_ip
-            global mount_points
-            reporting.add_test_script(str(__name__)+ "_create_full_snapshot")
-            LOG.debug("workload is:" + str(workload_id))
-            LOG.debug("vm id: " + str(vm_id))
             self.created = False
 
             #Create snapshot with CLI command
@@ -166,30 +142,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (self.created == False):
                 reporting.add_test_step("Full snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload snapshot did not get created")
+
+            if (tvaultconf.cleanup == True):
+                self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+
             
             #Add some more data to files on VM
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
             self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 2)
             ssh.close()
 
-            reporting.test_case_to_write()
 
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            ### Incremental snapshot ###
 
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_5_create_incremental_snapshot(self):
-        try:
-            global workload_id
-            global incr_snapshot_id
-            reporting.add_test_script(str(__name__)+ "_create_incremental_snapshot")
             self.created = False
-            LOG.debug("workload is:" + str(workload_id))
 
-        #Create incremental snapshot using CLI command
+            #Create incremental snapshot using CLI command
             create_snapshot = command_argument_string.incr_snapshot_create + workload_id
             LOG.debug("Create snapshot command: " + str(create_snapshot))
             rc = cli_parser.cli_returncode(create_snapshot)
@@ -212,26 +181,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Incremental snapshot", tvaultconf.FAIL)
                 raise Exception ("Workload incremental snapshot did not get created")
 
-            reporting.test_case_to_write()
+            if (tvaultconf.cleanup == True):
+                self.addCleanup(self.snapshot_delete,workload_id, incr_snapshot_id)
 
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            ### Selective restore ###
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
-    def test_3_selective_restore(self):
-        try:
-            global snapshot_id
-            global workload_id
-            global volume_id
-            global volumes 
             instance_details = []
             network_details  = []
-            restored_vm_details_list = []
+            restored_vm_details = []
             vms_details_after_restore = []
             temp_vdisks_data = []
-            reporting.add_test_script(str(__name__)+ "_selective_restore")
 
             int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
@@ -244,7 +203,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                     }])
 
             LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
-
 
 
             #Create instance details for restore.json
@@ -274,36 +232,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot id : " + str(snapshot_id))
 
             #Trigger selective restore
-            restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
+            restore_id_1=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name, restore_cleanup=True,
                                                             instance_details=instance_details, network_details=network_details)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-            if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
+            if(self.getRestoreStatus(workload_id, snapshot_id, restore_id_1) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
             #Fetch instance details after restore
-            restored_vm_details_list = []
-            vm_list  =  self.get_restored_vm_list(restore_id)
+            vm_list  =  self.get_restored_vm_list(restore_id_1)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
 
             time.sleep(40)
-            fl_ip = self.assign_floating_ips(vm_list[0])
-            LOG.debug("Floating ip assigned to selective restore vm -> "+str(fl_ip))
+            floating_ip_2 = self.assign_floating_ips(vm_list[0], True)
+            LOG.debug("Floating ip assigned to selective restore vm -> "+str(floating_ip_2))
             md5sums_dir_after = {}
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(fl_ip))
-            self.execute_command_disk_mount(ssh, str(fl_ip), [volumes[0]], [mount_points[0]])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_2))
+            self.execute_command_disk_mount(ssh, str(floating_ip_2), [volumes[0]], [mount_points[0]])
             time.sleep(5)
-            md5sums_dir_after = self.calcmd5sum(fl_ip, mount_points[0])
+            md5sums_dir_after = self.calcmd5sum(floating_ip_2, mount_points[0])
             ssh.close()
 
             LOG.debug("md5sums_dir_before")
-            LOG.debug(md5sums_dir_before[str(floating_ip)])
+            LOG.debug(md5sums_dir_before[str(floating_ip_1)])
             LOG.debug("md5sums_dir_after")
-            LOG.debug(md5sums_dir_after[str(fl_ip)])
+            LOG.debug(md5sums_dir_after[str(floating_ip_2)])
 
-            if md5sums_dir_before[str(floating_ip)] == md5sums_dir_after[str(fl_ip)]:
+            if md5sums_dir_before[str(floating_ip_1)] == md5sums_dir_after[str(floating_ip_2)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
@@ -312,10 +269,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             for id in range(len(vm_list)):
-                restored_vm_details_list.append(self.get_vm_details(vm_list[id]))
-            LOG.debug("Restored vm details list: " + str(restored_vm_details_list))
+                restored_vm_details.append(self.get_vm_details(vm_list[id]))
+            LOG.debug("Restored vm details list: " + str(restored_vm_details))
 
-            vms_details_after_restore = self.get_vms_details_list(restored_vm_details_list)
+            vms_details_after_restore = self.get_vms_details_list(restored_vm_details)
             LOG.debug("VM details after restore: " + str(vms_details_after_restore))
 
             #Compare the data before and after restore
@@ -328,47 +285,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
 
+            ### In-place Restore ###
 
-            # Disassociate floating ip
-            resp = self.disassociate_floating_ip_from_server(fl_ip, vm_list[0])
-            LOG.debug("Disassociated floating ip {}  from server {}.".format(fl_ip, vm_list[0]))
-            time.sleep(10)
-
-            restored_volumes_list = self.get_restored_volume_list(restore_id)
-            LOG.debug("Restored volumes : ")
-            LOG.debug(restored_volumes_list)
-
-            #Delete VM
-            self.delete_vm(vm_list[0])
-            LOG.debug("Deleted selectively restored vm successfully")
-            time.sleep(10)
-
-            self.delete_volume(restored_volumes_list[0])
-
-            #Delete restore for snapshot
-            self.restore_delete(workload_id, snapshot_id, restore_id)
-            LOG.debug("Snapshot Restore(selective) deleted successfully")
-
-            reporting.test_case_to_write()
-
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
-
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_4_inplace_restore(self):
-        try:
-            global snapshot_id
-            global vm_id
-            global mount_points
-            global md5sums_dir_before
-            global volume_idi
-            global floating_ip
-            global workload_id
-            reporting.add_test_script(str(__name__)+ "_in-place_restore") 
             #Create in-place restore with CLI command
-            restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(snapshot_id)
+            restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(incr_snapshot_id)
 
             LOG.debug("inplace restore cli command: " + str(restore_command))
             restore_json = json.dumps({
@@ -403,35 +323,34 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             #get restore id from database
-            restore_id = query_data.get_snapshot_restore_id(snapshot_id)
-            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            restore_id_2 = query_data.get_snapshot_restore_id(incr_snapshot_id)
+            self.wait_for_snapshot_tobe_available(workload_id, incr_snapshot_id)
 
             #get in-place restore status
-            if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
+            if(self.getRestoreStatus(workload_id, incr_snapshot_id, restore_id_2) == "available"):
                 reporting.add_test_step("In-place restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("In-place restore", tvaultconf.FAIL)
                 raise Exception("In-place restore failed")
 
             #Fetch instance details after restore
-            restored_vm_details_list = []
-            vm_list  =  self.get_restored_vm_list(restore_id)
+            vm_list  =  self.get_restored_vm_list(restore_id_2)
             LOG.debug("Restored vm(In-place) ID : " + str(vm_list))
 
             time.sleep(40)
             md5sums_dir_after = {}
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-            self.execute_command_disk_mount(ssh, str(floating_ip), [volumes[0]], [mount_points[0]])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
+            self.execute_command_disk_mount(ssh, str(floating_ip_1), [volumes[0]], [mount_points[0]])
             time.sleep(5)
-            md5sums_dir_after = self.calcmd5sum(floating_ip, mount_points[0])
+            md5sums_dir_after = self.calcmd5sum(floating_ip_1, mount_points[0])
             ssh.close()
 
             LOG.debug("<----md5sums_dir_before---->")
-            LOG.debug(md5sums_dir_before[str(floating_ip)])
+            LOG.debug(md5sums_dir_before[str(floating_ip_1)])
             LOG.debug("<----md5sums_dir_after---->")
-            LOG.debug(md5sums_dir_after[str(floating_ip)])
+            LOG.debug(md5sums_dir_after[str(floating_ip_1)])
 
-            if md5sums_dir_before[str(floating_ip)] == md5sums_dir_after[str(floating_ip)]:
+            if md5sums_dir_before[str(floating_ip_1)] == md5sums_dir_after[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
@@ -439,36 +358,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL) 
 
-            self.restore_delete(workload_id, snapshot_id, restore_id)
-            LOG.debug("Snapshot Restore(inplace) deleted successfully")
+            if (tvaultconf.cleanup == True):
+                self.addCleanup(self.restore_delete, workload_id, incr_snapshot_id, restore_id_2)
+                LOG.debug("Snapshot Restore(in-place) deleted successfully")
 
-            #Delete snapshot
-            self.snapshot_delete(workload_id, snapshot_id)
-            LOG.debug("Incremental snapshot deleted successfully")
+            ### One-click restore ###
 
-            reporting.test_case_to_write()
-
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
-
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_6_oneclick_restore(self):
-        try:
-            global workload_id
-            global incr_snapshot_id
-            global vm_id
-            global floating_ip
-            global volume_id
-            global mount_points
-            global volumes
-            global kp
-            reporting.add_test_script(str(__name__)+ "_one-click_restore")
-
-            mdb = self.calcmd5sum(floating_ip, mount_points[0])
+            mdb = self.calcmd5sum(floating_ip_1, mount_points[0])
             LOG.debug("MD5SUMS before deleting the instance for one click restore : "+str(mdb)) 
             
+            self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
+            self.detach_volume(vm_id, volume_id)
 
             #Delete the original instance
             self.delete_vm(vm_id)
@@ -478,10 +378,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Delete volume attached to original instance
             self.delete_volume(volume_id)
             LOG.debug("Volumes deleted successfully for one click restore : "+str(volume_id))
-
+            deleted = 1
 
             #Create one-click restore using CLI command
-            restore_command = command_argument_string.oneclick_restore + " " + incr_snapshot_id
+            restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
@@ -490,41 +390,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Execute snapshot-oneclick-restore command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name,incr_snapshot_id)
+            wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name, snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
-            while (str(wc) != "available" or str(wc)!= "error"):
-                time.sleep (5)
-                wc = query_data.get_snapshot_restore_status(tvaultconf.restore_name, incr_snapshot_id)
-                LOG.debug("Snapshot restore status: " + str(wc))
-                if (str(wc) == "available"):
-                    LOG.debug("Snapshot Restore successfully completed")
-                    reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.PASS)
-                    self.created = True
-                    break
-                else:
-                    if (str(wc) == "error"):
-                        break
-            if (self.created == False):
-                reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.FAIL)
-                raise Exception ("Snapshot Restore did not get created")
 
-            LOG.debug("Snapshot ID :"+str(incr_snapshot_id))
-            restore_id = query_data.get_snapshot_restore_id(incr_snapshot_id)
-            LOG.debug("Restore ID: " + str(restore_id))
+            restore_id_3 = query_data.get_snapshot_restore_id(snapshot_id)
+            LOG.debug("Restore ID: " + str(restore_id_3))
+
+            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            if(self.getRestoreStatus(workload_id, snapshot_id, restore_id_3) == "available"):
+                reporting.add_test_step("One-click restore", tvaultconf.PASS)
+                LOG.debug("One-click restore passed")
+            else:
+                reporting.add_test_step("One-click restore", tvaultconf.FAIL)
+                LOG.debug("One-click restore failed")
+                raise Exception("One-click restore failed")
+            LOG.debug("One-click restore complete")
 
             #Fetch instance details after restore
-            restored_vm_details_list = []
-            vm_list  =  self.get_restored_vm_list(restore_id)
+            vm_list  =  self.get_restored_vm_list(restore_id_3)
             LOG.debug("Restored vms : " + str(vm_list))
 
             mda = {}
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-            self.execute_command_disk_mount(ssh, str(floating_ip), [volumes[0]], [mount_points[0]])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
+            self.execute_command_disk_mount(ssh, str(floating_ip_1), [volumes[0]], [mount_points[0]])
             time.sleep(5)
-            mda = self.calcmd5sum(floating_ip, mount_points[0])
+            mda = self.calcmd5sum(floating_ip_1, mount_points[0])
+            LOG.debug("MD5SUMS after deleting the instance for one click restore : "+str(mda))
             ssh.close()
 
-            if mdb[str(floating_ip)] == mda[str(floating_ip)]:
+            if mdb[str(floating_ip_1)] == mda[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
             else:
@@ -533,35 +427,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
 
-            restored_volumes_list = self.get_restored_volume_list(restore_id)
+            restored_volumes = self.get_restored_volume_list(restore_id_3)
             LOG.debug("Restored volumes : ")
-            LOG.debug(restored_volumes_list)
+            LOG.debug(restored_volumes)
 
-            #Delete the restored instance
-            self.delete_vm(vm_list[0])
-            LOG.debug("Restored instance deleted successfully")
-            time.sleep(10)
-
-            self.delete_volume(restored_volumes_list[0])
-
-            #Delete restore for snapshot
-            self.restore_delete(workload_id, incr_snapshot_id, restore_id)
-            LOG.debug("Snapshot Restore(one-click) deleted successfully")
-
-            #Delete snapshot
-            self.snapshot_delete(workload_id, incr_snapshot_id)
-            LOG.debug("Full snapshot deleted successfully")
-
-            #Delete workload
-            self.workload_delete(workload_id)
-            LOG.debug("Workload deleted successfully")
-            
-            #Delete Keypair
-            self.delete_key_pair(tvaultconf.key_pair_name)
+            if (tvaultconf.cleanup == True):
+                self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id_3)
+                self.addCleanup(self.delete_restored_vms, vm_list, restored_volumes)
 
             reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            if (deleted == 0):
+                self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
+                self.detach_volume(vm_id, volume_id)
+                self.delete_vm(vm_id)
+                time.sleep(10)
+                self.delete_volume(volume_id)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
