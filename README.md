@@ -74,12 +74,8 @@ Repo for automation build, test etc.
         
     - Update tempest/tvaultconf.py and provide below:
         - tvault_ip = "192.168.1.113" → IP of TrilioVault appliance configured with respective openstack
-        - tvault_dbpassword = "sample-password" → TrilioVault appliance root password
-        - compute_node_ip = "192.168.1.189" → Compute node IP for config backup verification
-        - compute_node_username = "root" → Compute node username for config backup verification
-        - compute_node_password = "password" → Compute node password for config backup verification
+        - tvault_password = "sample password" → TrilioVault appliance root password
                 
-
 * How to run tests:
 
     - All tempest tests are run on virtual environment.

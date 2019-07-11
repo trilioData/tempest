@@ -144,11 +144,11 @@ def add_sanity_results_to_tempest_report():
                 if(line.startswith("ERROR")):
                     text_color = "red"
                     test_result = line[6:]
-                elif(test_result == "FAILED"):
+                elif(test_result.startswith("FAIL")):
                     text_color = "red"
                 else:
                     text_color = "green"
-                    result_table+="""<tr>
+                result_table+="""<tr>
                     <td><font color="%s">%s</font></td>
                     <td><font color="%s">%s</font></td>
                     </tr> """ % (text_color, test_name, text_color, test_result)
