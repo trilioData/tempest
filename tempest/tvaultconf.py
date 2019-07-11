@@ -46,6 +46,7 @@ global_job_scheduler=False
 tvault_ip = "192.168.16.254"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
+tvault_password = "52T8FVYZJse"
 tvault_dbpassword = "52T8FVYZJse"
 
 no_of_compute_nodes = 1
