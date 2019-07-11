@@ -8,7 +8,7 @@
 # Networks can be specified to tell tempest which network it should use when
 # creating servers with an account
 
-- username: 'triliomember'
-  tenant_name: 'trilio_project'
-  password: 'openstack'
-  domain_name: 'trilio_domain'
+- username: 'demo'
+  tenant_name: 'demo'
+  password: '49fb412572a64d2a'
+  domain_name: 'default'
