@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+source /root/Nikhil/tempest/triliodomainrc
 
 BASE_DIR="$(pwd)"
 

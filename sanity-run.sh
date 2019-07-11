@@ -32,5 +32,5 @@ do
    mv -f tempest.log $LOGS_DIR/
 
 done < "$TEST_LIST_FILE"
-python -c 'from tempest import reporting; reporting.add_sanity_results_to_tempest_report()'
+#python -c 'from tempest import reporting; reporting.add_sanity_results_to_tempest_report()'
 
