@@ -144,7 +144,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    #Modify workload scheduler to disable
 	    workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=False"
 	    error = cli_parser.cli_error(workload_modify_command)
-	    if error and str(error.strip('\n')) == "ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.":
+            if error and (str(error.strip('\n')).find("ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
                 reporting.add_test_step("Does not execute workload-modify scheduler disable", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
                 reporting.add_test_step("Throws proper message", tvaultconf.PASS)
@@ -275,7 +275,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Modify workload scheduler to enable
             workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True"
 	    error = cli_parser.cli_error(workload_modify_command)
-            if error and str(error.strip('\n')) == "ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.":
+            if error and (str(error.strip('\n')).find("ERROR: Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
                 reporting.add_test_step("Does not execute workload-modify scheduler enable", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 		reporting.add_test_step("Throws proper message", tvaultconf.PASS)

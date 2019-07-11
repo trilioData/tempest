@@ -76,8 +76,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    else:
 	        raise Exception("Workload status update failed")
         
-            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-            LOG.debug("Snapshot is available")
+            try:
+                self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+                LOG.debug("Snapshot is available")
+            except Exception as e:
+                LOG.error("Snapshot is in error state")
             reporting.test_case_to_write()
 
         except Exception as e:
