@@ -188,6 +188,10 @@ IdentityGroup = [
                help="API key to use when authenticating.",
                secret=True,
                deprecated_for_removal=True),
+    cfg.StrOpt('domain_id',
+               help="Domain id for authentication (Keystone V3)."
+                    "The same domain applies to user and project",
+               deprecated_for_removal=True),
     cfg.StrOpt('domain_name',
                help="Domain name for authentication (Keystone V3)."
                     "The same domain applies to user and project",
@@ -236,7 +240,9 @@ IdentityGroup = [
     cfg.StrOpt('admin_tenant_id',
                help="admin tenant id to be used for authentcation "
                     "for API tests."), 
-
+    cfg.StrOpt('user_id_1',
+               help="ID of user to use for Nova API requests.",
+               deprecated_for_removal=True),
     cfg.StrOpt('user_id',
                help="ID of user to use for Nova API requests.",
                deprecated_for_removal=True),
