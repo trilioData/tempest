@@ -2468,7 +2468,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
            return True
 
     '''
-    Method to fetch the list of network ports
+    Method to fetch the list of network ports by network_id
     '''
     def get_port_list_by_network_id(self,network_id):
         port_list = self.network_client.list_ports(network_id=network_id)
@@ -2477,13 +2477,39 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             capture_port_list.append(details['id'])
         LOG.debug("Port List by network_id: " + str(capture_port_list))
         return capture_port_list 
-      
+
+    '''
+    Method to fetch the list of router ids 
+    '''
+    def get_router_ids(self):
+        router_list = self.network_client.list_routers()
+        capture_router_list=[]
+        for details in router_list['routers']:
+            capture_router_list.append(details['id'])
+        LOG.debug("router ids: " + str(capture_router_list))
+        return capture_router_list
+
+    '''
+    Delete routers
+    '''
+    def delete_routers(self,router_list):
+       for router_id in router_list:
+            self.network_client.delete_router(router_id)
+       LOG.debug("delete router")
+   
     '''
     Method to delete list of ports
     '''
     def delete_network(self, network_id):
         ports_list = []
+        router_id_list = []
+        router_id_list = self.get_router_ids()
+        self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
         network_delete = self.networks_client.delete_network(network_id)
         LOG.debug("Network status %s" % str(network_delete))
+        if(int(network_delete['status']) != 204 or int(network_delete['status']) != 200):
+           resp.raise_for_status()
+        else:
+           return True
