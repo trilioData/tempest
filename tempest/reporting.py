@@ -1,8 +1,12 @@
 from tempest import tvaultconf
 import subprocess
 import datetime
+import os
+import pickle
 
 test_results_file="Report/results.html"
+test_results_temp = "Report/temp_results"
+test_reports_file = "Report/test_reports"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
@@ -47,6 +51,7 @@ def test_case_to_write():
     global case_count
     case_count+=1
     total_tests_count = passed_count + failed_count
+    consolidate_report_table()
     test_case_to_write = """
 	<tr>
 		<td colspan="1"><b>{3}. {0}</b></td>
@@ -92,32 +97,60 @@ def end_report_table():
     global case_count
     case_count = 0
 
+def gather_reports():
+    with open(test_results_temp, 'rb') as f1:
+        ogdata = pickle.load(f1)
+    if os.path.exists(test_reports_file):
+        with open(test_reports_file, 'rb') as f2:
+            data = pickle.load(f2)
+            data = data + ogdata
+        with open(test_reports_file, 'wb') as f3:
+            pickle.dump(data, f3)
+    else:
+        with open(test_reports_file, 'wb') as f4:
+            pickle.dump(ogdata, f4)
+
+def consolidate_report():
+    with open(test_reports_file,'rb') as f1:
+        vals = pickle.load(f1)
+        valscopy = [vals[i:i + 3] for i in xrange(0, len(vals), 3)]
+        results = [sum(i) for i in zip(*valscopy)]
+        consolidate_table = """
+        <table border="2">
+            <col width="150">
+            <col width="150">
+                <col width="150">
+                <tr bgcolor="#b3ffff">
+                        <th colspan="4">Consolidated Report</th>
+                </tr>
+                <tr>
+                        <th>Total</th>
+                        <th>Passed</th>
+                        <th>Failed</th>
+                </tr>
+                <tr align="center"> <td>{0}</td>
+                     <td><font color=green><b>{1}</b></td>
+                     <td><font color=red><b>{2}</b></td>
+                </tr>
+            </table>
+        <br>
+            """.format(results[0], results[1], results[2])
+    with open(test_results_file, 'r') as f2:
+        ogcontent = f2.read()
+    with open(test_results_file,'w') as f3:
+        f3.write(consolidate_table)
+    with open(test_results_file,'a') as f4:
+        f4.write(ogcontent)
+    os.remove(test_results_temp)
+    os.remove(test_reports_file)
+
 def consolidate_report_table():
     global passed_count
     global failed_count
     global total_tests_count
-    consolidate_table = """
-	<table border="2">
-	    <col width="150">
-  	    <col width="150">
-            <col width="150">
-            <tr bgcolor="#b3ffff">
-                    <th colspan="4">Consolidate Report</th>
-            </tr>
-            <tr>
-                    <th>Total</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-            </tr>
-            <tr align="center"> <td>{0}</td>
-                 <td><font color=green><b>{1}</b></td>
-                 <td><font color=red><b>{2}</b></td>
-            </tr>
-        </table>
-	<br>
-        """.format(total_tests_count, passed_count, failed_count)
-    with open(test_results_file, "w+") as f:
-        f.write(consolidate_table) 
+    with open(test_results_temp, 'wb') as f:
+        data = [total_tests_count, passed_count, failed_count]
+        pickle.dump(data, f)
 
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
