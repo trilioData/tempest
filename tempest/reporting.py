@@ -121,7 +121,7 @@ def consolidate_report():
             <col width="150">
                 <col width="150">
                 <tr bgcolor="#b3ffff">
-                        <th colspan="4">Consolidate Report</th>
+                        <th colspan="4">Consolidated Report</th>
                 </tr>
                 <tr>
                         <th>Total</th>
