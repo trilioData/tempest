@@ -19,8 +19,8 @@ case_count = 0
 def setup_report(testname):
     head = """<table border="1">
             <tr bgcolor="#b3e6ff">
-                    <th>{0}</th>
-                    <th>Result</th>
+                    <th style="font-size:20px">{0}</th>
+                    <th style="font-size:20px">Result</th>
             </tr>
             """.format(testname)
     with open(test_results_file, "a") as f:
@@ -54,8 +54,8 @@ def test_case_to_write():
     consolidate_report_table()
     test_case_to_write = """
 	<tr>
-		<td colspan="1"><b>{3}. {0}</b></td>
-		<td> <font color={1}><b>{2}</b></font> </td>
+		<td colspan="1" style="font-size:15px"><b>{3}. {0}</b></td>
+		<td> <font color={1} style="font-size:15px"><b>{2}</b></font> </td>
         </tr>
 	""".format(test_script_name, color, test_script_status, case_count)
     with open(test_results_file, "a") as f:
@@ -80,8 +80,8 @@ def add_test_step(teststep, status):
     global steps_count
     steps_count+=1
     test_step_to_write += """<tr>
-                    <td> <font color={1}>{3}. {0}</font> </td>
-                    <td> <font color={1}>{2}</font> </td>
+                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px"><i>{3}. {0}</pre></font> </td>
+                    <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
                 """.format(teststep, color, status, steps_count)
 
@@ -121,16 +121,16 @@ def consolidate_report():
             <col width="150">
                 <col width="150">
                 <tr bgcolor="#b3ffff">
-                        <th colspan="4">Consolidated Report</th>
+                        <th colspan="4" style="font-size:19px">Consolidated Report</th>
                 </tr>
                 <tr>
-                        <th>Total</th>
-                        <th>Passed</th>
-                        <th>Failed</th>
+                        <th style="font-size:17px">Total</th>
+                        <th style="font-size:17px">Passed</th>
+                        <th style="font-size:17px">Failed</th>
                 </tr>
-                <tr align="center"> <td>{0}</td>
-                     <td><font color=green><b>{1}</b></td>
-                     <td><font color=red><b>{2}</b></td>
+                <tr align="center"> <td style="font-size:17px">{0}</td>
+                     <td><font color=green style="font-size:17px"><b>{1}</b></td>
+                     <td><font color=red style="font-size:17px"><b>{2}</b></td>
                 </tr>
             </table>
         <br>
@@ -182,8 +182,8 @@ def add_sanity_results_to_tempest_report():
                 else:
                     text_color = "green"
                 result_table+="""<tr>
-                    <td><font color="%s">%s</font></td>
-                    <td><font color="%s">%s</font></td>
+                    <td><font color="%s" style="font-size:15px">%s</font></td>
+                    <td><font color="%s" style="font-size:15px">%s</font></td>
                     </tr> """ % (text_color, test_name, text_color, test_result)
     html_file=open(test_results_file, "a")
     result_table+="""</table>"""
