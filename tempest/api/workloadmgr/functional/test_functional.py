@@ -94,7 +94,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             mdsum = ""
             fip = ""
             if len(vms[each][1]) !=0:
-                fip = self.assign_floating_ips(each)
+                fip = self.assign_floating_ips(each, False)
                 fips.append((each, fip))
                 vms[each].append(fip)
                 for i in range(0, len(vms[each][1])):
@@ -105,9 +105,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 pass
         return(mdsums_original)
 
-    def assign_floating_ips(self, vm_id):
+    def assign_floating_ips(self, vm_id, fipcleanup):
         fip = self.get_floating_ips()
-        self.set_floating_ip(str(fip[0]),vm_id, floatingip_cleanup=True)
+        self.set_floating_ip(str(fip[0]),vm_id, floatingip_cleanup=fipcleanup)
         return(fip[0])
 
     def data_ops(self, flo_ip, key_name, volumes_part, mount_point, file_count):
@@ -126,7 +126,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     
     def multiple_workloads(self, vms):
         wls = {}
-        wln=len(vms)/4
+        wln=len(vms)/3
         vmscopy = []
         vmscopy = vms.keys()
         LOG.debug("\nvms : {}\n".format(vms))
@@ -170,7 +170,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_count = tvaultconf.vm_count
             key_pairs = self.create_kps(vm_count/3)
             LOG.debug("\nKey pairs : {}\n".format(key_pairs))
-            sec_groups = self.create_sec_groups(vm_count/4)
+            sec_groups = self.create_sec_groups(vm_count/3)
             LOG.debug("\nSecurity Groups: {}\n".format(sec_groups))
             vms,boot_vols = self.multiple_vms(vm_count, key_pairs, sec_groups)
             LOG.debug("\nVMs : {}\n".format(vms))
@@ -216,6 +216,34 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 else:
                     pass
 
+            ### Calculate md5sum after filling the data
+            mdsums_original2 = {}
+            for vm in vms.keys():
+                mdsum = ""
+                fip = ""
+                j = 0
+                vmvols = self.get_attached_volumes(vm)
+                LOG.debug("\nvmvols : {}\n".format(vmvols))
+                if len(vmvols)>0:
+                    for vol in vmvols:
+                        if self.volumes_client.show_volume(vol)['volume']['bootable'] == 'true':
+                            vmvols.remove(vol)
+                        else:
+                            pass
+                else:
+                    pass
+                if len(vmvols)>0:
+                    fip = vms[vm][2]
+                    key = vms[vm][0]
+                    for avolume in vmvols:
+                        LOG.debug("\navolume : {} & j {}\n".format(avolume,j))
+                        mdsum = mdsum + self.calcmd5sum(fip, key, mount_points[j])
+                        j+=1
+                        mdsums_original2[vm] = mdsum
+                else:
+                    pass
+
+
             ### Incremental snapshot ###
 
             incrsnaps = {}
@@ -227,7 +255,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getSnapshotStatus(workload_id, incr_snapshot_id) == "available"):
                     reporting.add_test_step("Create incremental snapshot-{}".format(i), tvaultconf.PASS)
-                    LOG.debug("Full snapshot available!!")
+                    LOG.debug("Incremental snapshot available!!")
                 else:
                     reporting.add_test_step("Create incremental snapshot-{}".format(i), tvaultconf.FAIL)
                     raise Exception("Snapshot creation failed")
@@ -262,6 +290,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot id : " + str(snapshot_id))
           
             mdsums_sr = {} 
+            instances_details = {}
             workloads = wls.items() 
             for workload in workloads:
                 i+=1
@@ -299,6 +328,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         instance_details.append(temp_instance_data)
 
                 LOG.debug("Instance details for restore: " + str(instance_details))
+                instances_details[wid]=instance_details
 
                 #Trigger selective restore
                 restore_id_1=self.snapshot_selective_restore(wid, snapshotid,restore_name=tvaultconf.restore_name, restore_cleanup=True,
@@ -326,19 +356,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     rvmvols = self.get_attached_volumes(rvm)
                     LOG.debug("\nrvmvols : {}\n".format(rvmvols))
                     if len(rvmvols)>0:
-                        fip = self.assign_floating_ips(rvm)
-                        key = vms[rvmname][0]
-                        for rvolume in rvmvols:
-                            if self.volumes_client.show_volume(rvolume)['volume']['bootable'] == 'false':
-                                LOG.debug("\nrvolume : {} & j {}\n".format(rvolume,j))
-                                ssh = self.SshRemoteMachineConnectionWithRSAKeyName(str(fip), key)
-                                self.execute_command_disk_mount(ssh, str(fip), [volumes_parts[j]], [mount_points[j]])
-                                ssh.close()
-                                mdsum = mdsum + self.calcmd5sum(fip, key, mount_points[j])
-                                j+=1
+                        for rvol in rvmvols:
+                            if self.volumes_client.show_volume(rvol)['volume']['bootable'] == 'true':
+                                rvmvols.remove(rvol)
                             else:
                                 pass
-                        mdsums_sr[rvmname] = mdsum
+                    if len(rvmvols)>0:
+                        fip = self.assign_floating_ips(rvm, True)
+                        key = vms[rvmname][0]
+                        for rvolume in rvmvols:
+                            LOG.debug("\nrvolume : {} & j {}\n".format(rvolume,j))
+                            ssh = self.SshRemoteMachineConnectionWithRSAKeyName(str(fip), key)
+                            self.execute_command_disk_mount(ssh, str(fip), [volumes_parts[j]], [mount_points[j]])
+                            ssh.close()
+                            mdsum = mdsum + self.calcmd5sum(fip, key, mount_points[j])
+                            j+=1
+                            mdsums_sr[rvmname] = mdsum
                     else:
                         pass
 
@@ -353,7 +386,100 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL) 
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            ### In-place restore ###
+
+            k=1
+            workloads = wls.items()
+            for workload in workloads:
+                wid = workload[0]
+                incrsnapid = incrsnaps[wid]
+
+                payload={
+                    "restore": {
+                        "options": {
+                            'name': "inplace-{}".format(wid),
+                            'description': "",
+                            'type': 'openstack',
+                                    'oneclickrestore': False,
+                            'restore_type': 'inplace',
+                            'openstack': {
+                                'instances': instances_details[wid],
+                                'networks_mapping': { 'networks': []}
+                                         }
+                                    }
+                               }
+                         }
+                #self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+                resp, body = self.wlm_client.client.post("/workloads/"+wid+"/snapshots/"+incrsnapid+"/restores",json=payload)
+                restore_id_2 = body['restore']['id']
+                LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (workload_id, incrsnapid, restore_id_2))
+                LOG.debug("Response:"+ str(resp.content))
+                if(resp.status_code != 202):
+                    resp.raise_for_status()
+                LOG.debug('Restore of snapshot %s scheduled succesffuly' % incrsnapid)
+                if(tvaultconf.cleanup == True):
+                    self.wait_for_snapshot_tobe_available(workload_id, incrsnapid)
+                    self.restored_vms = self.get_restored_vm_list(restore_id_2)
+                    self.restored_volumes = self.get_restored_volume_list(restore_id_2)
+                    self.addCleanup(self.restore_delete, workload_id, incrsnapid, restore_id_2)
+                    self.addCleanup(self.delete_restored_vms, self.restored_vms, self.restored_volumes)
+
+                self.wait_for_snapshot_tobe_available(wid, incrsnapid)
+                if(self.getRestoreStatus(wid, incrsnapid, restore_id_2) == "available"):
+                    reporting.add_test_step("In-place restore-{}".format(k), tvaultconf.PASS)
+                    LOG.debug('In-place restore passed')
+                else:
+                    reporting.add_test_step("In-place restore-{}".format(k), tvaultconf.FAIL)
+                    LOG.debug('In-place restore failed')
+                    raise Exception("In-place restore failed")
+                k+=1
+                restores[restore_id_2] = [wid, incrsnapid]
+
+                mdsums_ipr = {}
+                restored_vms = self.get_restored_vm_list(restore_id_2)
+                LOG.debug("\nRestored vms : {}\n".format(restored_vms))
+                for rvm in vms.keys():
+                    mdsum = ""
+                    fip = ""
+                    j = 0
+                    rvmvols = self.get_attached_volumes(rvm)
+                    LOG.debug("\nrvmvols : {}\n".format(rvmvols))
+                    if len(rvmvols)>0:
+                        for rvol in rvmvols:
+                            if self.volumes_client.show_volume(rvol)['volume']['bootable'] == 'true':
+                                rvmvols.remove(rvol)
+                            else:
+                                pass
+                    else:
+                        pass
+                    if len(rvmvols)>0:
+                        fip = vms[rvm][2]
+                        key = vms[rvm][0]
+                        for rvolume in rvmvols:
+                            LOG.debug("\nrvolume : {} & j {}\n".format(rvolume,j))
+                            ssh = self.SshRemoteMachineConnectionWithRSAKeyName(str(fip), key)
+                            self.execute_command_disk_mount(ssh, str(fip), [volumes_parts[j]], [mount_points[j]])
+                            ssh.close()
+                            mdsum = mdsum + self.calcmd5sum(fip, key, mount_points[j])
+                            j+=1
+                            mdsums_ipr[rvm] = mdsum
+                    else:
+                        pass
+
+            LOG.debug("MD5SUMS before restore")
+            LOG.debug(mdsums_original2)
+            LOG.debug("MD5SUMS after restore")
+            LOG.debug(mdsums_ipr)
+
+            if cmp(mdsums_original2, mdsums_ipr) == 0 :
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH***")
+                reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             reporting.test_case_to_write()
 
