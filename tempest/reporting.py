@@ -4,7 +4,7 @@ import datetime
 import os
 import pickle
 
-test_results_file="/home/tempest/Report/results.html"
+test_results_file="Report/results.html"
 test_results_temp = "Report/temp_results"
 test_reports_file = "Report/test_reports"
 sanity_results_file="test_results"
