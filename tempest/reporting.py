@@ -78,7 +78,7 @@ def add_test_step(teststep, status):
     global steps_count
     steps_count+=1
     test_step_to_write += """<tr>
-                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px"><i>    {3}. {0}</pre></font> </td>
+                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px; height: 17px"><i>    {3}. {0}</pre></font> </td>
                     <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
                 """.format(teststep, color, status, steps_count)
