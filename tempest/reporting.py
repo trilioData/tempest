@@ -5,8 +5,6 @@ import os
 import pickle
 
 test_results_file="Report/results.html"
-test_results_temp = "Report/temp_results"
-test_reports_file = "Report/test_reports"
 sanity_results_file="test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
@@ -54,10 +52,10 @@ def test_case_to_write():
     consolidate_report_table()
     test_case_to_write = """
 	<tr>
-		<td colspan="1" style="font-size:15px"><b>{3}. {0}</b></td>
+		<td colspan="1" style="font-size:15px"><b>{0}</b></td>
 		<td> <font color={1} style="font-size:15px"><b>{2}</b></font> </td>
         </tr>
-	""".format(test_script_name, color, test_script_status, case_count)
+	""".format(test_script_name, color, test_script_status)
     with open(test_results_file, "a") as f:
         f.write(test_case_to_write)
         f.write(test_step_to_write)
@@ -80,7 +78,7 @@ def add_test_step(teststep, status):
     global steps_count
     steps_count+=1
     test_step_to_write += """<tr>
-                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px"><i>{3}. {0}</pre></font> </td>
+                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px"><i>    {3}. {0}</pre></font> </td>
                     <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
                 """.format(teststep, color, status, steps_count)
@@ -97,25 +95,20 @@ def end_report_table():
     global case_count
     case_count = 0
 
-def gather_reports():
-    with open(test_results_temp, 'rb') as f1:
-        ogdata = pickle.load(f1)
-    if os.path.exists(test_reports_file):
-        with open(test_reports_file, 'rb') as f2:
-            data = pickle.load(f2)
-            data = data + ogdata
-        with open(test_reports_file, 'wb') as f3:
-            pickle.dump(data, f3)
-    else:
-        with open(test_reports_file, 'wb') as f4:
-            pickle.dump(ogdata, f4)
-
 def consolidate_report():
-    with open(test_reports_file,'rb') as f1:
-        vals = pickle.load(f1)
-        valscopy = [vals[i:i + 3] for i in xrange(0, len(vals), 3)]
-        results = [sum(i) for i in zip(*valscopy)]
-        consolidate_table = """
+    pass_count = 0
+    fail_count = 0
+    with open(test_results_file, 'r') as html_file:
+        for line in html_file:
+            if 'PASS' in line:
+                if '<b>' in line:
+                    pass_count+=1
+            if 'FAIL' in line:
+                if '<b>' in line:
+                    fail_count+=1
+    total_count = pass_count + fail_count
+
+    consolidate_table = """
         <table border="2">
             <col width="150">
             <col width="150">
@@ -134,23 +127,13 @@ def consolidate_report():
                 </tr>
             </table>
         <br>
-            """.format(results[0], results[1], results[2])
-    with open(test_results_file, 'r') as f2:
+            """.format(total_count, pass_count, fail_count)
+    with open(test_results_file,'r') as f2:
         ogcontent = f2.read()
     with open(test_results_file,'w') as f3:
         f3.write(consolidate_table)
     with open(test_results_file,'a') as f4:
         f4.write(ogcontent)
-    os.remove(test_results_temp)
-    os.remove(test_reports_file)
-
-def consolidate_report_table():
-    global passed_count
-    global failed_count
-    global total_tests_count
-    with open(test_results_temp, 'wb') as f:
-        data = [total_tests_count, passed_count, failed_count]
-        pickle.dump(data, f)
 
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
