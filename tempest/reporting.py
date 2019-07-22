@@ -49,7 +49,6 @@ def test_case_to_write():
     global case_count
     case_count+=1
     total_tests_count = passed_count + failed_count
-    consolidate_report_table()
     test_case_to_write = """
 	<tr>
 		<td colspan="1" style="font-size:15px"><b>{0}</b></td>
