@@ -37,7 +37,7 @@ do
         mv -f tempest.log $LOGS_DIR/
     
     done < "$TEST_LIST_FILE"
-    python -c 'from tempest import reporting; reporting.end_report_table(); reporting.gather_reports()'
+    python -c 'from tempest import reporting; reporting.end_report_table()'
 done
 python -c 'from tempest import reporting; reporting.consolidate_report()'
 
