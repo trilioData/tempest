@@ -144,8 +144,6 @@ def consolidate_report():
     with open(test_results_file, "wb") as f_output:
         f_output.write(soup.encode('utf8'))
 
-
-
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
 	    f.write(str(test_step) + " " + str(status) + "\n")
