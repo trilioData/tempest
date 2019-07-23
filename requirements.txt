@@ -28,3 +28,4 @@ stevedore>=1.5.0 # Apache-2.0
 requests>=2.3
 apscheduler>=3.3.0
 mysql-connector-python
+bs4
