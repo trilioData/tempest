@@ -13,14 +13,14 @@ passed_count = 0
 failed_count = 0
 total_tests_count = passed_count + failed_count
 steps_count = 0
-case_count = 0
+
 def setup_report(testname):
     head = """<table border="1">
             <tr bgcolor="#b3e6ff">
                     <th style="font-size:20px">{0}</th>
                     <th style="font-size:20px">Result</th>
             </tr>
-            """.format(testname)
+            """.format(testname.capitalize())
     with open(test_results_file, "a") as f:
             f.write(head)
 
@@ -46,8 +46,6 @@ def test_case_to_write():
     else:
         color = "red"
 	failed_count += 1
-    global case_count
-    case_count+=1
     total_tests_count = passed_count + failed_count
     test_case_to_write = """
 	<tr>
@@ -80,7 +78,7 @@ def add_test_step(teststep, status):
                     <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px; height: 17px"><i>    {3}. {0}</pre></font> </td>
                     <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
-                """.format(teststep, color, status, steps_count)
+                """.format(teststep.capitalize(), color, status, steps_count)
 
 def end_report_table():
     with open(test_results_file, "a") as f:
@@ -91,8 +89,6 @@ def end_report_table():
     cmd = cmd1+"; " +cmd2+"; "+cmd3
     p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
     p.wait()
-    global case_count
-    case_count = 0
 
 def consolidate_report():
     pass_count = 0
@@ -133,6 +129,22 @@ def consolidate_report():
         f3.write(consolidate_table)
     with open(test_results_file,'a') as f4:
         f4.write(ogcontent)
+
+    from bs4 import BeautifulSoup
+    with open(test_results_file, 'r') as f:
+        soup = BeautifulSoup(f, 'html.parser')
+    l1 = soup.findAll('table', {'border': '1'})
+    for each in l1:
+        i = 1
+        children = each.findChildren('b')
+        for child in children:
+            if child.string != 'FAIL' and child.string != 'PASS':
+                child.string = "{}. ".format(i) + child.string
+                i+=1
+    with open(test_results_file, "wb") as f_output:
+        f_output.write(soup.encode('utf8'))
+
+
 
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
