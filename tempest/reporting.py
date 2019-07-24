@@ -127,7 +127,20 @@ def consolidate_report():
         ogcontent = f2.read()
     with open(test_results_file,'w') as f3:
         f3.write(consolidate_table)
+    styl = '''
+    <style>
+         pre {
+            overflow-x: auto;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+            white-space: -pre-wrap;
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+         }
+      </style>
+    '''
     with open(test_results_file,'a') as f4:
+        f4.write(styl)
         f4.write(ogcontent)
 
     from bs4 import BeautifulSoup
