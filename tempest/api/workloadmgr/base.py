@@ -2550,12 +2550,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ports_list = []
         router_id_list = []
         router_id_list = self.get_router_ids()
+        for router in router_id_list:
+            self.delete_router_interfaces(router)
         self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
         network_delete = self.networks_client.delete_network(network_id)
-        LOG.debug("Network status %s" % str(network_delete))
-        if(int(network_delete['status']) != 204 or int(network_delete['status']) != 200):
-           resp.raise_for_status()
-        else:
-           return True
+
+    '''
+    Method to delete router interface
+    '''
+    def delete_router_interfaces(self, router_id):
+        interfaces = self.network_client.list_router_interfaces(router_id)['ports']
+        for interface in interfaces:
+            self.network_client.remove_router_interface_with_port_id(router_id,interface['id'])
