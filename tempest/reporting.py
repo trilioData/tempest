@@ -1,6 +1,8 @@
 from tempest import tvaultconf
 import subprocess
 import datetime
+import os
+import pickle
 
 test_results_file="Report/results.html"
 sanity_results_file="test_results"
@@ -11,14 +13,14 @@ passed_count = 0
 failed_count = 0
 total_tests_count = passed_count + failed_count
 steps_count = 0
-case_count = 0
+
 def setup_report(testname):
     head = """<table border="1">
             <tr bgcolor="#b3e6ff">
-                    <th>{0}</th>
-                    <th>Result</th>
+                    <th style="font-size:20px">{0}</th>
+                    <th style="font-size:20px">Result</th>
             </tr>
-            """.format(testname)
+            """.format(testname.capitalize())
     with open(test_results_file, "a") as f:
             f.write(head)
 
@@ -44,15 +46,13 @@ def test_case_to_write():
     else:
         color = "red"
 	failed_count += 1
-    global case_count
-    case_count+=1
     total_tests_count = passed_count + failed_count
     test_case_to_write = """
 	<tr>
-		<td colspan="1"><b>{3}. {0}</b></td>
-		<td> <font color={1}><b>{2}</b></font> </td>
+		<td colspan="1" style="font-size:15px"><b>{0}</b></td>
+		<td> <font color={1} style="font-size:15px"><b>{2}</b></font> </td>
         </tr>
-	""".format(test_script_name, color, test_script_status, case_count)
+	""".format(test_script_name, color, test_script_status)
     with open(test_results_file, "a") as f:
         f.write(test_case_to_write)
         f.write(test_step_to_write)
@@ -75,10 +75,10 @@ def add_test_step(teststep, status):
     global steps_count
     steps_count+=1
     test_step_to_write += """<tr>
-                    <td> <font color={1}>{3}. {0}</font> </td>
-                    <td> <font color={1}>{2}</font> </td>
+                    <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px; height: 17px"><i>    {3}. {0}</pre></font> </td>
+                    <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
-                """.format(teststep, color, status, steps_count)
+                """.format(teststep.capitalize(), color, status, steps_count)
 
 def end_report_table():
     with open(test_results_file, "a") as f:
@@ -89,35 +89,73 @@ def end_report_table():
     cmd = cmd1+"; " +cmd2+"; "+cmd3
     p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
     p.wait()
-    global case_count
-    case_count = 0
 
-def consolidate_report_table():
-    global passed_count
-    global failed_count
-    global total_tests_count
+def consolidate_report():
+    pass_count = 0
+    fail_count = 0
+    with open(test_results_file, 'r') as html_file:
+        for line in html_file:
+            if 'PASS' in line:
+                if '<b>' in line:
+                    pass_count+=1
+            if 'FAIL' in line:
+                if '<b>' in line:
+                    fail_count+=1
+    total_count = pass_count + fail_count
+
     consolidate_table = """
-	<table border="2">
-	    <col width="150">
-  	    <col width="150">
+        <table border="2">
             <col width="150">
-            <tr bgcolor="#b3ffff">
-                    <th colspan="4">Consolidate Report</th>
-            </tr>
-            <tr>
-                    <th>Total</th>
-                    <th>Passed</th>
-                    <th>Failed</th>
-            </tr>
-            <tr align="center"> <td>{0}</td>
-                 <td><font color=green><b>{1}</b></td>
-                 <td><font color=red><b>{2}</b></td>
-            </tr>
-        </table>
-	<br>
-        """.format(total_tests_count, passed_count, failed_count)
-    with open(test_results_file, "w+") as f:
-        f.write(consolidate_table) 
+            <col width="150">
+                <col width="150">
+                <tr bgcolor="#b3ffff">
+                        <th colspan="4" style="font-size:19px">Consolidated Report</th>
+                </tr>
+                <tr>
+                        <th style="font-size:17px">Total</th>
+                        <th style="font-size:17px">Passed</th>
+                        <th style="font-size:17px">Failed</th>
+                </tr>
+                <tr align="center"> <td style="font-size:17px">{0}</td>
+                     <td><font color=green style="font-size:17px"><b>{1}</b></td>
+                     <td><font color=red style="font-size:17px"><b>{2}</b></td>
+                </tr>
+            </table>
+        <br>
+            """.format(total_count, pass_count, fail_count)
+    with open(test_results_file,'r') as f2:
+        ogcontent = f2.read()
+    with open(test_results_file,'w') as f3:
+        f3.write(consolidate_table)
+    styl = '''
+    <style>
+         pre {
+            overflow-x: auto;
+            white-space: pre-wrap;
+            white-space: -moz-pre-wrap;
+            white-space: -pre-wrap;
+            white-space: -o-pre-wrap;
+            word-wrap: break-word;
+         }
+      </style>
+    '''
+    with open(test_results_file,'a') as f4:
+        f4.write(styl)
+        f4.write(ogcontent)
+
+    from bs4 import BeautifulSoup
+    with open(test_results_file, 'r') as f:
+        soup = BeautifulSoup(f, 'html.parser')
+    l1 = soup.findAll('table', {'border': '1'})
+    for each in l1:
+        i = 1
+        children = each.findChildren('b')
+        for child in children:
+            if child.string != 'FAIL' and child.string != 'PASS':
+                child.string = "{}. ".format(i) + child.string
+                i+=1
+    with open(test_results_file, "wb") as f_output:
+        f_output.write(soup.encode('utf8'))
 
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
@@ -149,8 +187,8 @@ def add_sanity_results_to_tempest_report():
                 else:
                     text_color = "green"
                 result_table+="""<tr>
-                    <td><font color="%s">%s</font></td>
-                    <td><font color="%s">%s</font></td>
+                    <td><font color="%s" style="font-size:15px">%s</font></td>
+                    <td><font color="%s" style="font-size:15px">%s</font></td>
                     </tr> """ % (text_color, test_name, text_color, test_result)
     html_file=open(test_results_file, "a")
     result_table+="""</table>"""

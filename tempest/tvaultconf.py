@@ -3,7 +3,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
-cleanup = True
+cleanup = True 
 
 # pre requisite paramter
 pre_req = True
@@ -27,7 +27,7 @@ workloads_from_file=False
 workload_type_id="f82ce76f-17fe-438b-aa37-7a023058e50d"
 workload_name="clitest"
 source_platform="openstack"
-snapshot_name = "test2-snapshot"
+snapshot_name = "test-snapshot"
 snapshot_type_full = "full"
 restore_name = "test-oneclick-restore"
 selective_restore_name = "test-selective-restore"
@@ -43,15 +43,15 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
-tvault_ip = "192.168.1.23"
+tvault_ip = "192.168.16.254"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
 
 no_of_compute_nodes = 1
-compute_node_ip = "192.168.1.189"
+compute_node_ip = "192.168.16.75"
 compute_node_username = "root"
-compute_node_password = "password"
+compute_node_password = "Password1!"
 
 # Scheduler parameter
 
@@ -75,7 +75,7 @@ fullbackup_interval_update = "7"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
-instance_username = "ubuntu"
+instance_username = "cirros"
 snapshot_restore_name = "Tempest Test Restore"
 restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
@@ -90,7 +90,7 @@ config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
                        "orchestration": ["/etc/heat/", "/var/log/heat/"]}
 additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
-bootfromvol_vol_size = 4
+bootfromvol_vol_size = 1
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 recovery_flavor_ref = 3
 recovery_image_ref = "cd056509-666b-41fa-9236-86f202b3e619" 
@@ -108,3 +108,5 @@ enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 
 
+#Parameter for multiple vm workloads etc
+vm_count = 15
