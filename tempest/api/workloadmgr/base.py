@@ -64,6 +64,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volumes_extensions_client = cls.os.volumes_extensions_client
         cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
         cls.network_client = cls.os.network_client
+        cls.networks_client = cls.os.networks_client
         cls.interfaces_client = cls.os.interfaces_client
         cls.fixed_ips_client = cls.os.fixed_ips_client
         cls.availability_zone_client = cls.os.availability_zone_client
@@ -227,7 +228,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self, vm_cleanup=True, vm_name="", security_group_id = "default", flavor_id =CONF.compute.flavor_ref, \
-			key_pair = "", networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
+			key_pair = "", key_name=tvaultconf.key_pair_name, networkid=[{'uuid':CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
         if(vm_name == ""):
             ts = str(datetime.now())
             vm_name = "Tempest_Test_Vm" + ts.replace('.','-')
@@ -236,13 +237,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             if (len(block_mapping_data) > 0 and key_pair != ""):
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef="", \
-                        flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
+                        flavorRef=flavor_id, networks=networkid, key_name=key_name, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
             elif (len(block_mapping_data) > 0 and key_pair == ""):
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
                             flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data,availability_zone=a_zone)
             elif (key_pair != ""):
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
-                flavorRef=flavor_id, networks=networkid, key_name=tvaultconf.key_pair_name,availability_zone=a_zone)
+                flavorRef=flavor_id, networks=networkid, key_name=key_name,availability_zone=a_zone)
             else:
                 server=self.servers_client.create_server(name=vm_name,security_groups = [{"name":security_group_id}], imageRef=image_id, \
                 flavorRef=flavor_id, networks=networkid,availability_zone=a_zone)
@@ -569,6 +570,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
 
     '''
+    Method to do workload reassign
+    '''
+    def workload_reassign(self, new_tenant_id, workload_ids, user_id):
+        try:
+                payload=[{"workload_ids": [workload_ids], "migrate_cloud": False, "old_tenant_ids": [], "user_id": user_id, "new_tenant_id":new_tenant_id}]
+                resp, body = self.wlm_client.client.post("/workloads/reasign_workloads", json=payload)
+                reassignstatus = body['workloads']['reassigned_workloads'][0]['status']
+                LOG.debug("Response:"+ str(resp.content))
+                if(resp.status_code != 200):
+                    resp.raise_for_status()
+                else:
+                    if reassignstatus == "available":
+                        return(0)
+        except Exception as e:
+            LOG.debug("Exception: " + str(e))
+
+    '''
     Method to wait until the workload is available
     '''
     def wait_for_workload_tobe_available(self, workload_id):
@@ -599,6 +617,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes a given snapshot
     '''
     def snapshot_delete(self, workload_id, snapshot_id):
+        LOG.debug("Deleting snapshot {}".format(snapshot_id))
         resp, body = self.wlm_client.client.delete("/snapshots/"+str(snapshot_id))
         LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
@@ -727,9 +746,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method deletes the given restored VMs and volumes
     '''
     def delete_restored_vms(self, restored_vms, restored_volumes):
-	LOG.debug("Deletion of retored vms started.")
+	LOG.debug("Deletion of retored vms {} started.".format(restored_vms))
         self.delete_vms(restored_vms)
-	LOG.debug("Deletion of restored volumes started.")
+	LOG.debug("Deletion of restored volumes {} started.".format(restored_volumes))
         self.delete_volumes(restored_volumes)
 
     '''
@@ -795,14 +814,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete a given restore
     '''
     def restore_delete(self, workload_id, snapshot_id, restore_id):
+        LOG.debug("Deletion of restore {0} of snapshot {1} started".format(restore_id, snapshot_id))
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         resp, body = self.wlm_client.client.delete("/workloads/"+workload_id+"/snapshots/"+snapshot_id+"/restores/"+restore_id)
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (workload_id, snapshot_id))
+        LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: restore_delete" % (workload_id, snapshot_id))
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        LOG.debug('SnapshotDeleted: %s' % workload_id)
+        LOG.debug('RestoreDeleted: %s' % workload_id)
 
     '''
     Method to check if VM details are available in file
@@ -1033,6 +1053,32 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 break
         return ssh
 
+    '''
+    Method to create SSH connection using RSA Private key and its name
+    '''
+    def SshRemoteMachineConnectionWithRSAKeyName(self, ipAddress, key_name, username=tvaultconf.instance_username):
+        key_file = key_name + ".pem"
+        ssh=paramiko.SSHClient()
+        private_key = paramiko.RSAKey.from_private_key_file(key_file)
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.load_system_host_keys()
+        flag = False
+        for i in range(0, 30, 1):
+            LOG.debug("Trying to connect to " + str(ipAddress))
+            if(flag == True):
+                break
+            try:
+                ssh.connect(hostname=ipAddress, username=username ,pkey=private_key, timeout = 20)
+                flag = True
+            except Exception as e:
+                time.sleep(20)
+                if i == 29:
+                    raise
+                LOG.debug("Got into Exception.." + str(e))
+            else:
+                break
+        return ssh
+
 
     '''
     layout creation and formatting the disks
@@ -1097,7 +1143,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + time.strftime("%H%M%S") + " bs=2M count=10"
                 LOG.debug("Executing command -> "+buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                time.sleep(23)
+                time.sleep(9*fileCount)
         except Exception as e:
             LOG.debug("Exception : "+str(e))           
     '''
@@ -1282,6 +1328,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''delete key'''
     def delete_key_pair(self, keypair_name):
+        LOG.debug("Deleting key pair {}".format(keypair_name))
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
         for key in key_pairs:
@@ -2445,13 +2492,77 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     connet to fvm , validate that snapshot is mounted on fvm
     '''
-    def validate_snapshot_mount(self, ssh, mount_path="/dev/vdb1", file_path="/home/ubuntu", file_name="File_1.txt"):
+    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1.txt"):
         try:
-            LOG.debug("build command data population")
-            buildCommand = "mount | grep " + mount_path + "; find" + file_path +"-name " + file_name 
+            LOG.debug("build comand to serach file")
+            buildCommand = "find " + file_path_to_search +" -name " + file_name
+            LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(stdout.read())
             time.sleep(20)
             return stdout
         except Exception as e:
             LOG.debug("Exception: " + str(e))
+    
+    '''
+    Method to dismount snapshot
+    '''
+    def dismount_snapshot(self,snapshot_id):
+        resp, body = self.wlm_client.client.post("/snapshots/"+ snasphot_id +"/dismount")
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()        
+        else:
+           return True
 
+    '''
+    Method to fetch the list of network ports by network_id
+    '''
+    def get_port_list_by_network_id(self,network_id):
+        port_list = self.network_client.list_ports(network_id=network_id)
+        capture_port_list=[]
+        for details in port_list['ports']:
+            capture_port_list.append(details['id'])
+        LOG.debug("Port List by network_id: " + str(capture_port_list))
+        return capture_port_list 
+
+    '''
+    Method to fetch the list of router ids 
+    '''
+    def get_router_ids(self):
+        router_list = self.network_client.list_routers()
+        capture_router_list=[]
+        for details in router_list['routers']:
+            capture_router_list.append(details['id'])
+        LOG.debug("router ids: " + str(capture_router_list))
+        return capture_router_list
+
+    '''
+    Delete routers
+    '''
+    def delete_routers(self,router_list):
+       for router_id in router_list:
+            self.network_client.delete_router(router_id)
+       LOG.debug("delete router")
+   
+    '''
+    Method to delete list of ports
+    '''
+    def delete_network(self, network_id):
+        ports_list = []
+        router_id_list = []
+        router_id_list = self.get_router_ids()
+        for router in router_id_list:
+            self.delete_router_interfaces(router)
+        self.delete_routers(router_id_list)
+        ports_list = self.get_port_list_by_network_id(network_id)
+        self.delete_ports(ports_list)
+        network_delete = self.networks_client.delete_network(network_id)
+
+    '''
+    Method to delete router interface
+    '''
+    def delete_router_interfaces(self, router_id):
+        interfaces = self.network_client.list_router_interfaces(router_id)['ports']
+        for interface in interfaces:
+            self.network_client.remove_router_interface_with_port_id(router_id,interface['id'])

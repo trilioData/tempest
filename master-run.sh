@@ -39,6 +39,7 @@ do
     done < "$TEST_LIST_FILE"
     python -c 'from tempest import reporting; reporting.end_report_table()'
 done
+python -c 'from tempest import reporting; reporting.consolidate_report()'
 
 echo "Test results are written in $TEST_RESULTS_FILE"
 sed -i -e '9s/passed_count = [0-9]*/passed_count = 0/' tempest/reporting.py
