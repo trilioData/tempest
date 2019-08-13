@@ -59,6 +59,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.quotas_client = cls.os.quotas_client
         cls.quota_classes_client = cls.os.quota_classes_client
         cls.compute_networks_client = cls.os.compute_networks_client
+        cls.networks_client = cls.os.networks_client
         cls.limits_client = cls.os.limits_client
         cls.volumes_extensions_client = cls.os.volumes_extensions_client
         cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
@@ -1269,7 +1270,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get network name  by id'''
     def get_net_name(self, network_id):
-        return str(self.compute_networks_client.show_network(network_id).items()[0][1]['label'])
+        net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
+        return net_name
 
     '''get subnet id'''
     def get_subnet_id(self, network_id):
