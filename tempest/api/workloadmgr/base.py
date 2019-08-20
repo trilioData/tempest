@@ -2564,3 +2564,91 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         interfaces = self.network_client.list_router_interfaces(router_id)['ports']
         for interface in interfaces:
             self.network_client.remove_router_interface_with_port_id(router_id,interface['id'])
+
+    '''
+    Method to delete entire network topology
+    This method won't delete public network
+    '''
+    def delete_network_topology(self):
+        LOG.debug("Deleting the existing networks")
+        networkslist = self.networks_client.list_networks()['networks']
+
+        for network in networkslist:
+            if network['router:external'] == False:
+                self.delete_network(network['id'])
+            else:
+                pass
+
+    '''
+    Method to create network topology for network restore
+    Here specific network topology will be created in order to test the possible scenarios for network restore
+    '''
+    def create_network(self):
+        routers = {}
+        subnets = {}
+        nets = {}
+        for x in range(1,7):
+            if x != 7:
+                net = self.networks_client.create_network(**{'name':"Private-{}".format(x)})
+                nets[net['network']['name']] = net['network']['id']
+                subnetconfig = {'ip_version': 4, 'network_id':net['network']['id'], 'name': "PS-{}".format(x), 'gateway_ip': '10.10.{}.1'.format(x), 'cidr': '10.10.{}.0/24'.format(x)}
+                subnet = self.subnets_client.create_subnet(**subnetconfig)
+                subnets[subnet['subnet']['name']] = subnet['subnet']['id']
+            else:
+                net = self.networks_client.create_network(**{'name':"Private-{}".format(x), 'admin_state_up':'False', 'shared':'True'})
+                nets[net['network']['name']] = net['network']['id']
+
+        for x in range(1,6):
+            if x != 4:
+                router = self.network_client.create_router(**{'name':"Router-{}".format(x)})
+            else:
+                router = self.network_client.create_router(**{'name':"Router-{}".format(x), 'admin_state_up':'False'})
+            routers[router['router']['name']] = router['router']['id']
+
+        networkslist = self.networks_client.list_networks()['networks']
+        self.network_client.add_router_interface_with_subnet_id(routers['Router-1'], subnets['PS-1'])
+        self.network_client.add_router_interface_with_subnet_id(routers['Router-1'], subnets['PS-2'])
+        self.network_client.add_router_interface_with_subnet_id(routers['Router-3'], subnets['PS-3'])
+        self.network_client.add_router_interface_with_subnet_id(routers['Router-2'], subnets['PS-4'])
+        portid1 = self.network_client.create_port(**{'network_id':nets['Private-2'], 'fixed_ips': [{'ip_address':'10.10.2.4'}]})['port']['id']
+        self.network_client.add_router_interface_with_port_id(routers['Router-2'], portid1)
+        portid2 = self.network_client.create_port(**{'network_id':nets['Private-2'], 'fixed_ips': [{'ip_address':'10.10.2.5'}]})['port']['id']
+        portid3 = self.network_client.create_port(**{'network_id':nets['Private-2'], 'fixed_ips': [{'ip_address':'10.10.2.6'}]})['port']['id']
+        self.network_client.add_router_interface_with_port_id(routers['Router-4'], portid2)
+        self.network_client.add_router_interface_with_port_id(routers['Router-5'], portid3)
+        self.network_client.add_router_interface_with_subnet_id(routers['Router-4'], subnets['PS-5'])
+        portid4 = self.network_client.create_port(**{'network_id':nets['Private-5'], 'fixed_ips': [{'ip_address':'10.10.5.3'}]})['port']['id']
+        self.network_client.add_router_interface_with_port_id(routers['Router-5'], portid4)
+
+    '''
+    Get network topology details
+    Here only specific values which are fixed are extracted out because for network topology comparison we can't compare values which are dynamic for ex. ids, created_at, updated_at etc.
+    '''
+    def get_topology_details(self):
+            networkslist = self.networks_client.list_networks()['networks']
+            nws = [x['id'] for x in networkslist]
+            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id')} for x in networkslist]
+            networks = {}
+            for each_network in nt:
+                networks[each_network['name']] = each_network
+
+            sbnt = self.subnets_client.list_subnets()['subnets']
+            sbnts = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'id')} for x in sbnt]
+            subnets = {}
+            for each_subnet in sbnts:
+                subnets[each_subnet['name']] = each_subnet
+
+
+            rs = self.network_client.list_routers()['routers']
+            rts = [{str(i):str(j) for i,j in x.items() if i not in ('external_gateway_info', 'created_at', 'updated_at', 'id')} for x in rs]
+            routers = {}
+            for each_router in rts:
+                routers[each_router['name']] = each_router
+
+            interfaces = {}
+            for router in self.get_router_ids():
+                interfaceslist = self.network_client.list_router_interfaces(router)['ports']
+                intrfs = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'mac_address', 'fixed_ips', 'id', 'device_id', 'security_groups', 'port_security_enabled', 'revision_number')} for x in interfaceslist]
+                interfaces[self.network_client.show_router(router)['router']['name']] = intrfs
+            return(networks, subnets, routers, interfaces)
+
