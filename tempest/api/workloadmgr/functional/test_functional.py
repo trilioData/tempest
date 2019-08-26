@@ -53,7 +53,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_id = self.create_vm(security_group_id=random.choice(sec_groups), key_pair=kptouple[1], key_name=kptouple[0], vm_cleanup=True)
                 vms[vm_id] = [kptouple[0]]
             else:
-                boot_volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=True)
+                boot_volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=True)
                 boot_vols.append(boot_volume_id)
                 self.set_volume_as_bootable(boot_volume_id)
                 LOG.debug("Bootable Volume ID : "+str(boot_volume_id))
