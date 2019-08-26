@@ -75,7 +75,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Retention didn't work!!")
                 raise Exception("Retention failed")
             if (tvaultconf.cleanup == True):
-                for sanpshot in snapshotlist:
+                for snapshot in snapshotlist:
                     self.addCleanup(self.snapshot_delete,workload_id, snapshot)
 
             reporting.test_case_to_write()
