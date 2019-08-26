@@ -69,7 +69,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Key_pair : "+str(kp))
 
             #Create bootable volume
-            boot_volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=False)
+            boot_volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
             self.set_volume_as_bootable(boot_volume_id)
             LOG.debug("Bootable Volume ID : "+str(boot_volume_id))
 

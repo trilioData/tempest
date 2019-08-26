@@ -27,7 +27,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-    
+        reporting.add_test_script(str(__name__))    
  
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_retention(self):
@@ -66,8 +66,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create full snapshot-{}".format(i+1), tvaultconf.FAIL)
                     raise Exception("Snapshot creation failed")
 
-            sl = self.getSnapshotList(workload_id=workload_id)
-            if len(sl) == rpv:
+            snapshotlist = self.getSnapshotList(workload_id=workload_id)
+            if len(snapshotlist) == rpv:
                 reporting.add_test_step("Retention", tvaultconf.PASS)
                 LOG.debug("Retention worked!!")
             else:
@@ -75,8 +75,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Retention didn't work!!")
                 raise Exception("Retention failed")
             if (tvaultconf.cleanup == True):
-                for each in sl:
-                    self.addCleanup(self.snapshot_delete,workload_id, each)
+                for sanpshot in snapshotlist:
+                    self.addCleanup(self.snapshot_delete,workload_id, snapshot)
 
             reporting.test_case_to_write()
 
