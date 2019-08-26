@@ -2566,6 +2566,48 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.network_client.remove_router_interface_with_port_id(router_id,interface['id'])
 
     '''
+    Method returns the auditlog information
+    '''
+    def getAuditLog(self, time_in_minutes="1440"):
+        resp, body = self.wlm_client.client.get("/workloads/audit/auditlog?time_in_minutes="+ time_in_minutes)
+        LOG.debug("Audit Log Response: "+ str(resp))
+        LOG.debug("Audit Log Content:"+ str(body))
+        audit_log_list = []
+        audit_log_list=body['auditlog']
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return audit_log_list
+
+    '''
+    Method returns the storage usage information
+    '''
+    def getStorageUsage(self):
+        resp, body = self.wlm_client.client.get("/workloads/metrics/storage_usage")
+        LOG.debug("Storage Usage Response:"+ str(resp))
+        LOG.debug("Storage Usage Content :"+ str(body))
+        storage_usage_list = []
+        storage_usage_list=body['storage_usage']
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return storage_usage_list
+
+    '''
+    Method returns the tenant usage information
+    '''
+    def getTenantUsage(self):
+        resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
+        LOG.debug("Tenant Usage Response:"+ str(resp))
+        LOG.debug("Tenant Usage Content :"+ str(body))
+        tenant_usage_list = []
+        tenant_usage_list=body['global_usage']
+        LOG.debug("Response:"+ str(resp.content))
+        if(resp.status_code != 200):
+           resp.raise_for_status()
+        return tenant_usage_list
+
+    '''
     Method to delete entire network topology
     This method won't delete public network
     '''
