@@ -32,8 +32,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     
     def test_workload_reset(self):
         try:
-            global volumes
-            reporting.add_test_script(str(__name__))
 
             ## VM and Workload ###
 
