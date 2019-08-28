@@ -66,7 +66,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### Full snapshot ###
 
-            self.created = False
 
             snapshot_id = self.workload_snapshot(workload_id, True, snapshot_name="Snap1", snapshot_cleanup=True)
 
@@ -87,7 +86,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_reset(workload_id)
  
             
-            self.created = False
 
             snapshot_id_1 = self.workload_snapshot(workload_id, True, snapshot_name="Snap2", snapshot_cleanup=True)
 
