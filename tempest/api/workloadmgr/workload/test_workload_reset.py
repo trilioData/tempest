@@ -22,7 +22,6 @@ CONF = config.CONF
 class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
-    volumes = None
 
     @classmethod
     def setup_clients(cls):
@@ -32,10 +31,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     
     def test_workload_reset(self):
         try:
-
+            reporting.add_test_script(str(__name__))
             ## VM and Workload ###
-
-            mount_points = ["mount_data_a", "mount_data_b"] 
 
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("VM ID : "+str(vm_id))
@@ -55,17 +52,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if(workload_id != None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
-                    reporting.add_test_step("Create workload-{}".format(i), tvaultconf.PASS)
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
-                    reporting.add_test_step("Create workload-{}".format(i), tvaultconf.FAIL)
+                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                reporting.add_test_step("Create workload-{}".format(i), tvaultconf.FAIL)
+                reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
 
             ### Full snapshot ###
 
+            self.created = False
 
             snapshot_id = self.workload_snapshot(workload_id, True, snapshot_name="Snap1", snapshot_cleanup=True)
 
@@ -84,9 +82,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nVolume snapshots after full snapshot : {}\n".format(volsnaps_before))
            
             self.workload_reset(workload_id)
- 
-            
 
+            time.sleep(10)
+            volsnaps_after = self.get_volume_snapshots(volume_id) 
+            if len(volsnaps_after) == 0:
+                pass
+            else:
+                LOG.debug("Workload reset failed")
+                raise Exception("Workload reset failed")
+            
             snapshot_id_1 = self.workload_snapshot(workload_id, True, snapshot_name="Snap2", snapshot_cleanup=True)
 
             time.sleep(5)
@@ -98,10 +102,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create full snapshot-{}".format(i), tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
+            import pdb;pdb.set_trace()
+            resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id_1)
+            if body['snapshot']['snapshot_type'] == "full":
+                LOG.debug("Workload reset passed")
+                reporting.add_test_step("Workload reset", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+            else:
+                LOG.debug("Workload reset failed")
+                reporting.add_test_step("Workload reset", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
-            volsnaps_after = self.get_volume_snapshots(volume_id)
-            LOG.debug("\nVolume snapshots after full snapshot : {}\n".format(volsnaps_after))
-        
             reporting.test_case_to_write()
 
         except Exception as e:
