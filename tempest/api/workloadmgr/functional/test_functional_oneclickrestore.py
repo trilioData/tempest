@@ -53,7 +53,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_id = self.create_vm(security_group_id=random.choice(sec_groups), key_pair=kptouple[1], key_name=kptouple[0], vm_cleanup=False)
                 vms[vm_id] = [kptouple[0]]
             else:
-                boot_volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=True)
+                boot_volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=True)
                 boot_vols.append(boot_volume_id)
                 self.set_volume_as_bootable(boot_volume_id)
                 LOG.debug("Bootable Volume ID : "+str(boot_volume_id))
@@ -167,6 +167,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ### VM and Workload ###
 
             reporting.add_test_script(str(__name__))
+            deleted = 0
             vm_count = tvaultconf.vm_count
             key_pairs = self.create_kps(vm_count/3)
             LOG.debug("\nKey pairs : {}\n".format(key_pairs))
@@ -181,7 +182,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nMD5 sums before snapshots : {}\n".format(mdsums_original))
             wls = self.multiple_workloads(vms)
             LOG.debug("\nWorkloads created : {}\n".format(wls))
-            deleted = 0
 
             ### Full snapshot ###
 
