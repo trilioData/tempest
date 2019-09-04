@@ -102,9 +102,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create full snapshot-{}".format(i), tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
-            import pdb;pdb.set_trace()
-            resp, body = self.wlm_client.client.get("/workloads/"+workload_id+"/snapshots/"+snapshot_id_1)
-            if body['snapshot']['snapshot_type'] == "full":
+            isfull = self.getSnapshotDetails(workload_id, snapshot_id_1)['snapshot_type']
+            if isfull == "full":
                 LOG.debug("Workload reset passed")
                 reporting.add_test_step("Workload reset", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
