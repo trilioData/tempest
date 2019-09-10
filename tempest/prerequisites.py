@@ -703,7 +703,7 @@ def snapshot_mount(self):
          
         #create file manager instance
         fvm_name="Test_tempest_fvm_1"
-        self.fvm_id =  self.create_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id,image_id=CONF.compute.fvm_image_ref)
+        self.fvm_id =  self.create_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id,image_id=CONF.compute.fvm_image_ref, flavor_id=CONF.compute.flavor_ref_alt)
         time.sleep(10)
         self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
