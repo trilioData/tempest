@@ -180,6 +180,14 @@ function configure_tempest
             ;;
     esac
 
+    #Check if File recovery manager image is already available. If not, create the image
+    fvm_image_uuid=`$OPENSTACK_CMD image list | grep fvm | cut -d '|' -f2`
+    if [[ -z $fvm_image_uuid ]]
+    then
+        echo "File recovery manager instance not available, exiting\n"
+        exit 1
+    fi
+
     # Compute
     # If ``DEFAULT_INSTANCE_TYPE`` is not declared, use the new behavior
     # Tempest creates its own instance types
@@ -189,6 +197,12 @@ function configure_tempest
             # Determine the flavor disk size based on the image size.
             disk=$(image_size_in_gib $image_uuid)
             $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
+        fi
+        flavor_ref_alt=45
+        if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]]; then
+            # Determine the flavor disk size based on the image size.
+            disk_fvm=$(image_size_in_gib $fvm_image_uuid)
+            $OPENSTACK_CMD flavor create --id 45 --ram 4096 --disk $disk_fvm --vcpus 2 m1.fvm
         fi
         flavor_ref=42
     else
@@ -216,7 +230,9 @@ function configure_tempest
     compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
+    iniset $TEMPEST_CONFIG compute fvm_image_ref $fvm_image_uuid
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
+    iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
 
     # Volume
