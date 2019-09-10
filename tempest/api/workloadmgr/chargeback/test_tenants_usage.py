@@ -45,7 +45,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             Tenant_Usage_after_prereqisite = self.getTenantUsage()
             global_usage_total_vms_after_pre_req =  Tenant_Usage_after_prereqisite['global_usage']['total_vms']
             LOG.debug(" Total vms in opensatck after prereqisite run : "+ str(global_usage_total_vms_after_pre_req))
-            tenants_usage_vms_protected_after_pre_req = Tenant_Usage_after_prereqisite['tenants_usage'][Tenant_id]['vms_protected']
+            tenants_usage_vms_protected_after_pre_req = Tenant_Usage_after_prereqisite['tenants_usage'][CONF.identity.tenant_id]['vms_protected']
             LOG.debug(" No. of vms protected after prerequisite : "+ str(tenants_usage_vms_protected_after_pre_req))
 
             # Verify Global Usage

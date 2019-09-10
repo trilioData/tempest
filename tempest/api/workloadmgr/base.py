@@ -2596,20 +2596,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return storage_usage_list
 
     '''
-    Method returns the tenant usage information
-    '''
-    def getTenantUsage(self):
-        resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
-        LOG.debug("Tenant Usage Response:"+ str(resp))
-        LOG.debug("Tenant Usage Content :"+ str(body))
-        tenant_usage_list = []
-        tenant_usage_list=body['global_usage']
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()
-        return tenant_usage_list
-
-    '''
     Method to delete entire network topology
     This method won't delete public network
     '''
