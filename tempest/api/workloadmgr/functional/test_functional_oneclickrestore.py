@@ -158,15 +158,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-        reporting.add_test_script(str(__name__))
     
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_functional(self):
         try:
-
             ### VM and Workload ###
-
-            reporting.add_test_script(str(__name__))
+            reporting.add_test_script('tempest.api.workloadmgr.test_functional_oneclick_restore')
+            status = 0
             deleted = 0
             vm_count = tvaultconf.vm_count
             key_pairs = self.create_kps(vm_count/3)
@@ -280,16 +278,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if cmp(mdsums_original, mdsums_oc) == 0 :
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
+                status=1
+                reporting.set_test_script_status(tvaultconf.PASS)
+                reporting.test_case_to_write()
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
+                reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             if deleted == 0:
-                self.delete_vms(vms.keys())
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+                try:
+                    self.delete_vms(vms.keys())
+                except:
+                    pass
+            if status !=1:
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()

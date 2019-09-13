@@ -38,6 +38,7 @@ do
     
     done < "$TEST_LIST_FILE"
     python -c 'from tempest import reporting; reporting.end_report_table()'
+    ./run_tempest.sh -V test_cleaner
 done
 python -c 'from tempest import reporting; reporting.consolidate_report()'
 

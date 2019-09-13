@@ -16,7 +16,6 @@ from tempest.util import query_data
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
-
 class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -25,19 +24,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-        reporting.add_test_script(str(__name__))
 
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_image_booted(self):
         try:
             ### Create vm and workload ###
             deleted = 0
-            reporting.add_test_script(str(__name__))            
-            
+            tests = [['tempest.api.workloadmgr.restore.test_image_booted_selective-restore',0], ['tempest.api.workloadmgr.restore.test_image_booted_Inplace-restore',0], ['tempest.api.workloadmgr.restore.test_image_booted_oneclick_restore',0]]
+            reporting.add_test_script(tests[0][0])
             self.created = False
             vm_id = self.create_vm(vm_cleanup=False)
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
-
+            
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
@@ -56,10 +54,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    raise Exception("Workload creation failed")
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Workload creation failed")
             
             LOG.debug("\nworkload id : {}\n".format(str(workload_id)))
             LOG.debug("\nvm id : {}\n".format(str(vm_id)))
@@ -128,7 +126,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.addCleanup(self.snapshot_delete,workload_id, incr_snapshot_id)
 
             ### Selective restore ###
-
+            
             instance_details = []
             network_details  = []
             restored_vm_details_list = []
@@ -195,15 +193,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             for i in range(len(vms_details_after_restore)):
                 if(vms_details_after_restore[i]['network_name'] == int_net_1_name):
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
+                    tests[0][1] = 1
+                    reporting.set_test_script_status(tvaultconf.PASS)
+                    reporting.test_case_to_write()
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
                     LOG.error("Restored network: " + str(vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
-            
+                    reporting.test_case_to_write()                    
+
             ### In-place restore ###
 
-	    #Create in-place restore with CLI command
+    	    #Create in-place restore with CLI command
+            reporting.add_test_script(tests[1][0]) 
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(incr_snapshot_id)
 
             LOG.debug("inplace restore cli command: " + str(restore_command))
@@ -246,7 +249,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("In-place restore", tvaultconf.FAIL)
                 raise Exception("In-place restore failed")	
-
+            tests[1][1] = 1
+            reporting.set_test_script_status(tvaultconf.PASS)
+            reporting.test_case_to_write()
             #Fetch instance details after restore
             restored_vm_details_list = []
             vm_list  =  self.get_restored_vm_list(restore_id_2)
@@ -260,6 +265,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### One-click Restore ###
 
+            reporting.add_test_script(tests[2][0])
             #Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug("Instance deleted successfully for one click restore : "+str(vm_id))
@@ -297,11 +303,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (tvaultconf.cleanup == True):
                 self.addCleanup(self.restore_delete, workload_id, snapshot_id, restore_id_3)
                 self.addCleanup(self.delete_restored_vms, vm_list, restored_volumes)
+
+            tests[2][1] = 1
+            reporting.set_test_script_status(tvaultconf.PASS)
             reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            for test in tests:
+                if test[1] !=1:
+                    reporting.add_test_script(test[0])
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.test_case_to_write()
             if (deleted == 0):
-                self.delete_vm(vm_id)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+                try:
+                    self.delete_vm(vm_id)
+                except:
+                    pass
