@@ -1,32 +1,14 @@
 #!/bin/bash
-
-ADMIN_USERNAME=cloudadmin
-ADMIN_PASSWORD=Password1!
-ADMIN_DOMAIN_NAME=clouddomain
-ADMIN_USER_DOMAIN_NAME=clouddomain
-ADMIN_PROJECT_NAME=cloudproject
-ADMIN_PROJECT_ID=d03cb88119fb40d7977b105e33886be2
-TEST_USERNAME=triliouser2
-TEST_PASSWORD=password
-TEST_DOMAIN_NAME=triliodomain1
-TEST_USER_DOMAIN_NAME=triliodomain1
-TEST_PROJECT_NAME=trilioproject1
-TEST_ALT_PROJECT_NAME=trilioproject2
-AUTH_URL=http://192.168.6.100:5000/v3
-REGION_NAME=TestRegion
-IDENTITY_API_VERSION=3
-
-DEFAULT_IMAGE_NAME=cirros
-DEFAULT_VOLUME_SIZE=1
-CINDER_BACKENDS_ENABLED=(ceph iscsi)
-DEFAULT_ENDPOINT_TYPE=publicURL
+source openstack-setup.conf
 
 TEMPEST_DIR=$PWD
 TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:=/opt/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
+TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+git checkout run_tempest.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
 then
@@ -124,37 +106,43 @@ function configure_tempest
     mkdir -p $TEMPEST_STATE_PATH
 
     # Set cloud admin credentials
-    export OS_USERNAME=$ADMIN_USERNAME
-    export OS_PASSWORD=$ADMIN_PASSWORD
-    export OS_PROJECT_DOMAIN_NAME=$ADMIN_DOMAIN_NAME
-    export OS_USER_DOMAIN_NAME=$ADMIN_USER_DOMAIN_NAME
-    export OS_PROJECT_NAME=$ADMIN_PROJECT_NAME
-    export OS_TENANT_ID=$ADMIN_PROJECT_ID
+    export OS_USERNAME=$CLOUDADMIN_USERNAME
+    export OS_PASSWORD=$CLOUDADMIN_PASSWORD
+    export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
+    export OS_USER_DOMAIN_NAME=$CLOUDADMIN_USER_DOMAIN_NAME
+    export OS_PROJECT_NAME=$CLOUDADMIN_PROJECT_NAME
+    export OS_TENANT_ID=$CLOUDADMIN_PROJECT_ID
     export OS_AUTH_URL=$AUTH_URL
     export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
-    export OS_ENDPOINT_TYPE=$DEFAULT_ENDPOINT_TYPE
-    export OS_INTERFACE=$DEFAULT_ENDPOINT_TYPE
+    export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE
+    export OS_INTERFACE=$ENDPOINT_TYPE
 
-    admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $ADMIN_DOMAIN_NAME / { print \$2 }")
+    admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
     service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
- 
-
+    wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
+    if [[ "$wlm_endpoint" =~ "https" ]]
+    then
+        git checkout tempest/command_argument_string.py
+        sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
+        iniset $TEMPEST_CONFIG wlm insecure True
+    fi
+    
     # Glance should already contain images to be used in tempest
     # testing. Here we simply look for images stored in Glance
     # and set the appropriate variables for use in the tempest config
     # We ignore ramdisk and kernel images, look for the default image
-    # ``DEFAULT_IMAGE_NAME``. If not found, we set the ``image_uuid`` to the
+    # ``TEST_IMAGE_NAME``. If not found, we set the ``image_uuid`` to the
     # first image returned and set ``image_uuid_alt`` to the second,
     # if there is more than one returned...
     # ... Also ensure we only take active images, so we don't get snapshots in process
     declare -a images
 
     while read -r IMAGE_NAME IMAGE_UUID; do
-        if [ "$IMAGE_NAME" = "$DEFAULT_IMAGE_NAME" ]; then
+        if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
             image_uuid="$IMAGE_UUID"
             image_uuid_alt="$IMAGE_UUID"
         fi
@@ -181,11 +169,11 @@ function configure_tempest
     esac
 
     #Check if File recovery manager image is already available. If not, create the image
-    fvm_image_uuid=`$OPENSTACK_CMD image list | grep fvm | cut -d '|' -f2`
+    fvm_image_uuid=`$OPENSTACK_CMD image list | grep $FVM_IMAGE_NAME | cut -d '|' -f2`
     if [[ -z $fvm_image_uuid ]]
     then
-        echo "File recovery manager instance not available, exiting\n"
-        exit 1
+        echo "File recovery manager instance not available"
+        #exit 1
     fi
 
     # Compute
@@ -228,6 +216,7 @@ function configure_tempest
         flavor_ref=${flavors[0]}
     fi
     compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
+    no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
     iniset $TEMPEST_CONFIG compute fvm_image_ref $fvm_image_uuid
@@ -265,16 +254,16 @@ function configure_tempest
     iniset $TEMPEST_CONFIG volume volume_type_id $volume_type_id
     iniset $TEMPEST_CONFIG volume volume_type_1 $volume_type_alt
     iniset $TEMPEST_CONFIG volume volume_type_id_1 $volume_type_id_alt
-    iniset $TEMPEST_CONFIG volume volume_size $DEFAULT_VOLUME_SIZE
+    iniset $TEMPEST_CONFIG volume volume_size $VOLUME_SIZE
 
     # Identity
     iniset $TEMPEST_CONFIG identity auth_version v3
-    iniset $TEMPEST_CONFIG identity admin_domain_name $ADMIN_DOMAIN_NAME
+    iniset $TEMPEST_CONFIG identity admin_domain_name $CLOUDADMIN_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
-    iniset $TEMPEST_CONFIG identity admin_tenant_id $ADMIN_PROJECT_ID
-    iniset $TEMPEST_CONFIG identity admin_tenant_name $ADMIN_PROJECT_NAME
-    iniset $TEMPEST_CONFIG identity admin_password $ADMIN_PASSWORD
-    iniset $TEMPEST_CONFIG identity admin_username $ADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
+    iniset $TEMPEST_CONFIG identity admin_tenant_name $CLOUDADMIN_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity admin_password $CLOUDADMIN_PASSWORD
+    iniset $TEMPEST_CONFIG identity admin_username $CLOUDADMIN_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
@@ -283,7 +272,7 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity default_domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity uri_v3 $OS_AUTH_URL
-    iniset $TEMPEST_CONFIG identity v3_endpoint_type $DEFAULT_ENDPOINT_TYPE
+    iniset $TEMPEST_CONFIG identity v3_endpoint_type $ENDPOINT_TYPE
     iniset $TEMPEST_CONFIG identity region $OS_REGION_NAME
 
     # Auth
@@ -298,6 +287,17 @@ function configure_tempest
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
     export OS_TENANT_ID=$test_project_id
+
+    #Add wlm rc paramerters to run_tempest.sh
+    sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
+    sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
+    sed -i "2i export OS_TENANT_ID=$test_project_id" run_tempest.sh
+    sed -i "2i export OS_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
+    sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh
+    sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
+    sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
+    sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
 
     # network
     while read -r NETWORK_TYPE NETWORK_UUID; do
@@ -350,6 +350,10 @@ function configure_tempest
     sed -i '/username/c - username: '\'$TEST_USERNAME\' $TEMPEST_ACCOUNTS
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
+
+    # tvaultconf.py
+    sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
+    sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
 }
 
 
@@ -364,7 +368,9 @@ virtualenv $OPENSTACK_CLI_VENV
 pip install openstacksdk==0.9.1
 pip install os-client-config==1.18.0
 pip install python-openstackclient==2.6.0
+pip install python-cinderclient==4.2.0
+
 configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
-rm -rf $OPENSTACK_CLI_VENV
+#rm -rf $OPENSTACK_CLI_VENV
