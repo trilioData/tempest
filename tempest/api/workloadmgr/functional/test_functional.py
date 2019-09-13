@@ -144,7 +144,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload-{}".format(i), tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload-{}".format(i), tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step("Create workload-{}".format(i), tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
@@ -158,15 +157,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-        reporting.add_test_script(str(__name__))
     
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_functional(self):
         try:
 
             ### VM and Workload ###
-
-            reporting.add_test_script(str(__name__))
+            tests = [['tempest.api.workloadmgr.test_functional_Selective-restore',0], ['tempest.api.workloadmgr.test_functional_Inplace-restore',0]]
+            reporting.add_test_script(tests[0][0])
             vm_count = tvaultconf.vm_count
             key_pairs = self.create_kps(vm_count/3)
             LOG.debug("\nKey pairs : {}\n".format(key_pairs))
@@ -383,13 +381,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if cmp(mdsums_original, mdsums_sr) == 0 :
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
+                tests[0][1] = 1
+                reporting.set_test_script_status(tvaultconf.PASS)
+                reporting.test_case_to_write()
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             ### In-place restore ###
 
+            reporting.add_test_script(tests[1][0])
             k=1
             workloads = wls.items()
             for workload in workloads:
@@ -476,14 +479,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if cmp(mdsums_original2, mdsums_ipr) == 0 :
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
+                tests[1][1] = 1
+                reporting.set_test_script_status(tvaultconf.PASS)
+                reporting.test_case_to_write()
+
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
+                reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            for test in tests:
+                if test[1] != 1:
+                    reporting.add_test_script(test[0])
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.test_case_to_write()
