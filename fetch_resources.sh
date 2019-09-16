@@ -173,7 +173,6 @@ function configure_tempest
     if [[ -z $fvm_image_uuid ]]
     then
         echo "File recovery manager instance not available"
-        #exit 1
     fi
 
     # Compute
@@ -186,11 +185,11 @@ function configure_tempest
             disk=$(image_size_in_gib $image_uuid)
             $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
         fi
-        flavor_ref_alt=45
-        if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]]; then
+        if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]] && [[ -z "$fvm_image_uuid" ]]; then
             # Determine the flavor disk size based on the image size.
             disk_fvm=$(image_size_in_gib $fvm_image_uuid)
             $OPENSTACK_CMD flavor create --id 45 --ram 4096 --disk $disk_fvm --vcpus 2 m1.fvm
+            flavor_ref_alt=45
         fi
         flavor_ref=42
     else
