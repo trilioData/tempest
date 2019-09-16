@@ -59,6 +59,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.quotas_client = cls.os.quotas_client
         cls.quota_classes_client = cls.os.quota_classes_client
         cls.compute_networks_client = cls.os.compute_networks_client
+        cls.networks_client = cls.os.networks_client
         cls.limits_client = cls.os.limits_client
         cls.volumes_extensions_client = cls.os.volumes_extensions_client
         cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
@@ -1315,7 +1316,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get network name  by id'''
     def get_net_name(self, network_id):
-        return str(self.compute_networks_client.show_network(network_id).items()[0][1]['label'])
+        net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
+        return net_name
 
     '''get subnet id'''
     def get_subnet_id(self, network_id):
@@ -2592,20 +2594,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 200):
            resp.raise_for_status()
         return storage_usage_list
-
-    '''
-    Method returns the tenant usage information
-    '''
-    def getTenantUsage(self):
-        resp, body = self.wlm_client.client.get("/workloads/metrics/tenants_usage")
-        LOG.debug("Tenant Usage Response:"+ str(resp))
-        LOG.debug("Tenant Usage Content :"+ str(body))
-        tenant_usage_list = []
-        tenant_usage_list=body['global_usage']
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()
-        return tenant_usage_list
 
     '''
     Method to delete entire network topology
