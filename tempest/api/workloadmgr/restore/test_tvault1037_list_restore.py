@@ -54,7 +54,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             #Create snapshot
             self.snapshot_id = self.workload_snapshot(self.wid, True, tvaultconf.snapshot_name)
             LOG.debug("Snapshot ID: " + str(self.snapshot_id))
-               
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)   
+
             #Delete instance
             self.delete_vm(self.vm_id)
             LOG.debug("Instance deleted successfully")

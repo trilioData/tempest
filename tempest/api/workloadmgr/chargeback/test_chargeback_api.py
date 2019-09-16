@@ -40,12 +40,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    else:
 	        reporting.add_test_step("Verified Chargeback API", tvaultconf.PASS)
             workload_id_chargeback = chargeback_info[str(CONF.identity.tenant_id)]['tenant_name']
-            LOG.debug(" Env Tenant ID: "+ Tenant_id)
+            LOG.debug(" Env Tenant ID: "+ CONF.identity.tenant_id)
             LOG.debug(" Instance ID : "+ vm_id)
        
             
             #Verify workload ID
-            openstack_workload_ids = chargeback_info[Tenant_id]['workloads'].keys()
+            openstack_workload_ids = chargeback_info[CONF.identity.tenant_id]['workloads'].keys()
             LOG.debug(" Workload ID : "+ openstack_workload_ids[1])
             for worklad_id in openstack_workload_ids:
                 if ( worklad_id == wid ):
@@ -58,7 +58,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 		raise Exception(" Verification for workload id failed ")
 
             #Verify Instance ID 
-            openstack_instance_ids = chargeback_info[Tenant_id]['workloads'][wid]['protected_vms'].keys()
+            openstack_instance_ids = chargeback_info[CONF.identity.tenant_id]['workloads'][wid]['protected_vms'].keys()
             LOG.debug(" VM Name : " + openstack_instance_ids[0])
             for instance_id in openstack_instance_ids:
                 if ( instance_id == vm_id ):
@@ -75,4 +75,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()	
+            reporting.test_case_to_write()
