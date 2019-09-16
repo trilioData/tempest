@@ -14,7 +14,7 @@ rm -rf logs
 
 mkdir -p $REPORT_DIR
 rm -f results.html
-sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
+sed -i '/sanity_results_file=/c sanity_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 
 testname=$(echo $SUITE_LIST| cut -d'.' -f 4)
 touch $TEST_LIST_FILE
@@ -26,7 +26,7 @@ mkdir -p $LOGS_DIR
 echo "running $line"
 ./run_tempest.sh -V tempest.api.workloadmgr.sanity.test_create_full_snapshot
 if [ $? -ne 0 ]; then
-   echo "$line FAILED"
+   echo "$line FAIL"
 fi
 mv -f tempest.log $LOGS_DIR/
 
