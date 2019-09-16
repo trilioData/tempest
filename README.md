@@ -13,67 +13,42 @@ Repo for automation build, test etc.
 * Download TrilioData tempest framework from GitHub using command:
 
 * git clone https://github.com/trilioData/tempest.git
-* How to configure:
+* How to configure tempest:
 
-    - Update etc/accounts.yaml and provide below:
-        - username: 'username' → Username
-        - tenant_name: 'project-name' → Project name
-        - password: 'password' → Password
-        - domain_name: 'default' → Domain name
-    - Update etc/tempest.conf and provide below:
-        - [compute]
-        - flavor_ref = 1 → Flavor ID to be used for instance launch
-        - image_ref = fd54c426-caa5-4b0e-85ec-5fd50b4358bc → ID of image to be used for instance launch
-        - vm_availability_zone = nova → Nova availability zone for instance launch        
-        - fvm_image_ref = a7cceecf-a5b8-4b32-995f-3a1e1271df23 -> ID of file manager instance(FVM), reqiured to run snapshot mount tc.
-        - [volume]
-        - volume_availability_zone = nova → Cinder availability zone for volume creation
-        - volume_type = ceph → Ceph Volume type name for volume creation 
-        - volume_type_id = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of Ceph volume type specified in volume_type field
-        - volume_size = 1 → Size of the volume
-        - volume_type_1 = lvm → LVM Volume type name for volume creation
-        - volume_type_id_1 = d6cceecf-a5b8-4b32-995f-3a1e1271ca28 → ID of LVM volume type specified in volume_type_1 field
-                
-        - [identity]
-        - auth_version = v3 → Keystone version, v2 or v3
-        - admin_domain_name = admin → Domain name of admin user
-        - admin_domain_id = 4c0de2d116534c42bcfceffc6e947901 → Domain ID of admin user
-        - admin_tenant_id = e5087a90ecc340bd85bbb32171b2fcfe → Tenant ID of admin user
-        - admin_tenant_name = cloud-admin-project → Tenant name of admin user
-        - admin_password = password → Password of admin user
-        - admin_username = cloud-admin → Username of admin user
-        - tenant_name = cloud-admin-project → Tenant name of user to be used for executing tests
-        - password = password → Password of user to be used for executing tests
-        - username = cloud-admin → Username of user to be used for executing tests
-        - uri_v3 = http://192.168.1.135:5000/v3 → Auth URL for v3 keystone
-        - uri = http://192.168.1.135:5000/v2.0/ → Auth URL for v2 keystone
-        - public_endpoint_type = publicURL → Endpoint type used for v2 keystone authentication
-        - v3_endpoint_type = publicURL → Endpoint type used for v3 keystone authentication
-        - region = RegionOne → Region name
-        - disable_ssl_certificate_validation = False → Provide 'True' if SSL is enabled for Openstack endpoint. Else provide 'False'.
-        
-        - [auth]
-        - test_accounts_file = /home/tempest/etc/accounts.yaml → Absolute path of accounts.yaml file to be provided here
-        
-        - [network]
-        - internal_network_id = 0d76ede7-c26c-40b2-bff9-50439eb1ac44 → Network ID to be used for instance launch
-        - alt_internal_network_id = ab94b969-5ee0-4b28-850e-4a2942d046ff → Any alternate network ID to be used (for example: network for selective restore)
-        
-        - [identity-feature-enabled]
-        - api_v2 = False → Provide 'True' for v2 keystone, else provide 'False'
-        - api_v3 = True → Provide 'True' for v3 keystone, else provide 'False'
-        
-        - [dashboard]
-        - login_url = http://192.168.1.135/auth/login/ → Login URL of openstack horizon
-        - dashboard_url = http://192.168.1.135/ → Dashboard URL of openstack horizon
-        
-        - [wlm]
-        - os_tenant_id = 8be245de75d5409f923555f61532a5d0 → ID of 'services' tenant
-        - os_cacert = "/opt/tls-ca.pem" → Provide cacert .pem file path here if SSL enabled for WLM endpoint
-        - op_db_password = "sample-password" → Mysql 'root' password of openstack controller for config backup
-        
+    - Update the openstack setup details in openstack-setup.conf file 
+        ######## Openstack setup details ########
+        AUTH_URL=https://192.168.6.196:5000/v3
+        REGION_NAME=USEAST
+        IDENTITY_API_VERSION=3
+
+        TEST_IMAGE_NAME=cirros
+        VOLUME_SIZE=1
+        FVM_IMAGE_NAME=fvm
+        CINDER_BACKENDS_ENABLED=(ceph iscsi)
+        ENDPOINT_TYPE=publicURL
+
+        ### Cloud Admin details ###
+        CLOUDADMIN_USERNAME=cloudadmin
+        CLOUDADMIN_PASSWORD=Password1!
+        CLOUDADMIN_DOMAIN_NAME=clouddomain
+        CLOUDADMIN_USER_DOMAIN_NAME=clouddomain
+        CLOUDADMIN_PROJECT_NAME=cloudproject
+        CLOUDADMIN_PROJECT_ID=cd75812d91b54329b4448209593b12cc
+
+        ### Test user and project details to be used for running tempest wlm tests ###
+        TEST_USERNAME=trilio-member
+        TEST_PASSWORD=password
+        TEST_DOMAIN_NAME=trilio-domain
+        TEST_USER_DOMAIN_NAME=trilio-domain
+        TEST_PROJECT_NAME=trilio-project-1
+        TEST_ALT_PROJECT_NAME=trilio-project-2
+
+        ######## TrilioVault details ########
+        TVAULT_IP=192.168.6.17
+
+    - Run the wrapper script fetch_resources.sh
+      ./fetch_resources.sh
     - Update tempest/tvaultconf.py and provide below:
-        - tvault_ip = "192.168.1.113" → IP of TrilioVault appliance configured with respective openstack
         - tvault_password = "sample password" → TrilioVault appliance root password
                 
 * How to run tests:
