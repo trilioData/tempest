@@ -32,7 +32,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_email(self):
         try:
-            import pdb;pdb.set_trace()
             #Fetch existing settings
             existing_setting = self.get_settings_list()
             LOG.debug("Existing setting list: " + str(existing_setting))
