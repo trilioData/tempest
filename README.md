@@ -16,36 +16,6 @@ Repo for automation build, test etc.
 * How to configure tempest:
 
     - Update the openstack setup details in openstack-setup.conf file 
-	######## Openstack setup details ########
-	AUTH_URL=https://192.168.6.196:5000/v3
-	REGION_NAME=USEAST
-	IDENTITY_API_VERSION=3
-
-	TEST_IMAGE_NAME=cirros
-	VOLUME_SIZE=1
-	FVM_IMAGE_NAME=fvm
-	CINDER_BACKENDS_ENABLED=(ceph iscsi)
-	ENDPOINT_TYPE=publicURL
-
-	### Cloud Admin details ###
-	CLOUDADMIN_USERNAME=cloudadmin
-	CLOUDADMIN_PASSWORD=Password1!
-	CLOUDADMIN_DOMAIN_NAME=clouddomain
-	CLOUDADMIN_USER_DOMAIN_NAME=clouddomain
-	CLOUDADMIN_PROJECT_NAME=cloudproject
-	CLOUDADMIN_PROJECT_ID=cd75812d91b54329b4448209593b12cc
-
-	### Test user and project details to be used for running tempest wlm tests ###
-	TEST_USERNAME=trilio-member
-	TEST_PASSWORD=password
-	TEST_DOMAIN_NAME=trilio-domain
-	TEST_USER_DOMAIN_NAME=trilio-domain
-	TEST_PROJECT_NAME=trilio-project-1
-	TEST_ALT_PROJECT_NAME=trilio-project-2
-
-	######## TrilioVault details ########
-	TVAULT_IP=192.168.6.17
-
     - Run the wrapper script fetch_resources.sh
       ./fetch_resources.sh
     - Update tempest/tvaultconf.py and provide below:
