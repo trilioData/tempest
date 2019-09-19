@@ -2498,9 +2498,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             buildCommand = "find " + file_path_to_search +" -name " + file_name
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            LOG.debug(stdout.read())
+            output = stdout.read()
+            LOG.debug(output)
             time.sleep(20)
-            return stdout
+            return(output)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
     
@@ -2508,7 +2509,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to dismount snapshot
     '''
     def dismount_snapshot(self,snapshot_id):
-        resp, body = self.wlm_client.client.post("/snapshots/"+ snasphot_id +"/dismount")
+        resp, body = self.wlm_client.client.post("/snapshots/"+ snapshot_id +"/dismount")
         LOG.debug("Response:"+ str(resp.content))
         if(resp.status_code != 200):
            resp.raise_for_status()        
