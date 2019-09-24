@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 source openstack-setup.conf
 
 TEMPEST_DIR=$PWD
@@ -175,45 +175,30 @@ function configure_tempest
         echo "File recovery manager instance not available"
     fi
 
-    # Compute
-    # If ``TEST_IMAGE_NAME`` is not declared, use the new behavior
-    # Tempest creates its own instance types
-      available_flavors=$($OPENSTACK_CMD flavor list)
-    if  [[ -z "$TEST_IMAGE_NAME" ]]; then
-        if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
-            # Determine the flavor disk size based on the image size.
-            disk=$(image_size_in_gib $image_uuid)
-            $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
+    available_flavors=$($OPENSTACK_CMD flavor list)
+    if  [[ "$TEST_IMAGE_NAME" ]]; then
+        if [[ ! ( $TEST_IMAGE_NAME =~ 'cirros') ]]; then
+            if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+                # Determine the flavor disk size based on the image size.
+                disk=$(image_size_in_gib $image_uuid)
+                $OPENSTACK_CMD flavor create --id 50 --ram 4096 --disk $disk --vcpus 2 m1.$TEST_IMAGE_NAME
+            fi
+            flavor_ref=50
+        else
+            if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
+                # Determine the flavor disk size based on the image size.
+                disk=$(image_size_in_gib $image_uuid)
+                $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
+            fi
+            flavor_ref=42
         fi
-        if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]] && [[ ! -z "$fvm_image_uuid" ]]; then
-            # Determine the flavor disk size based on the image size.
-            disk_fvm=$(image_size_in_gib $fvm_image_uuid)
-            $OPENSTACK_CMD flavor create --id 45 --ram 4096 --disk $disk_fvm --vcpus 2 m1.fvm
-            flavor_ref_alt=45
-        fi
-        flavor_ref=42
-    else
-        # Check Nova for existing flavors, if ``TEST_IMAGE_NAME`` is set use it.
-        IFS=$'\r\n'
-        flavors=""
-        for line in $available_flavors; do
-            f=$(echo $line | awk "/ $TEST_IMAGE_NAME / { print \$2 }")
-            flavors="$flavors $f"
-        done
-
-        for line in $available_flavors; do
-            flavors="$flavors `echo $line | grep -v "^\(|\s*ID\|+--\)" | cut -d' ' -f2`"
-        done
-        IFS=" "
-        flavors=($flavors)
-        num_flavors=${#flavors[*]}
-        echo "Found $num_flavors flavors"
-        if [[ $num_flavors -eq 0 ]]; then
-            echo "Found no valid flavors to use!"
-            exit 1
-        fi
-        flavor_ref=${flavors[0]}
     fi
+    if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]] && [[ "$fvm_image_uuid" ]]; then
+        # Determine the flavor disk size based on the image size.
+        disk_fvm=$(image_size_in_gib $fvm_image_uuid)
+        $OPENSTACK_CMD flavor create --id 45 --ram 4096 --disk $disk_fvm --vcpus 2 m1.fvm
+    fi
+    flavor_ref_alt=45
     compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
