@@ -82,6 +82,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 except:
                     pass
 
+    def delete_abandoned_ports(self):
+            subnets = self.networks_client.show_network(CONF.network.internal_network_id)['network']['subnets']
+            ports = self.network_client.list_ports()['ports']
+            ports = [{'id':x['id'],'device_id':x['device_id']} for x in ports if x['fixed_ips'][0]['subnet_id'] in subnets]
+            for port in ports:
+                if port['device_id'] == '':
+                    try:
+                        self.network_client.delete_port(port['id'])
+                    except:
+                        pass
+
     def delete_securitygroups(self):
             sgs = self.security_groups_client.list_security_groups()['security_groups']
             sgs = [ sg['id'] for sg in sgs if sg['name']!= 'default']
@@ -113,6 +124,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nkeypairs deleted\n")
             self.delete_policies()
             LOG.debug("\npolicies deleted\n")
+            self.delete_abandoned_ports()
+            LOG.debug("\nAbandoned ports deleted\n")
             self.delete_securitygroups()
             LOG.debug("\nsecurity groups deleted\n")
 
