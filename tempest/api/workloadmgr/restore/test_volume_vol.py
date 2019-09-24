@@ -28,7 +28,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
-        reporting.add_test_script(str(__name__))
 
     def assign_floating_ips(self, vmid, cleanup):
         fip = self.get_floating_ips()
@@ -57,8 +56,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             ### VM and Workload ###
 
-            reporting.add_test_script(str(__name__))
-
+            tests = [['tempest.api.workloadmgr.sanity.test_volume_vol_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Oneclick-restore',0]]
+            reporting.add_test_script(tests[0][0])
             deleted = 0
             global volumes
             mount_points = ["mount_data_a", "mount_data_b"]
@@ -69,7 +68,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Key_pair : "+str(kp))
 
             #Create bootable volume
-            boot_volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
+            boot_volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=False)
             self.set_volume_as_bootable(boot_volume_id)
             LOG.debug("Bootable Volume ID : "+str(boot_volume_id))
 
@@ -124,10 +123,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
 
             if (tvaultconf.cleanup == True):
                 self.addCleanup(self.workload_delete, workload_id)
@@ -278,6 +275,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if md5sums_dir_before[str(floating_ip_1)] == md5sums_dir_after[str(floating_ip_2)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
@@ -293,14 +291,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             for i in range(len(vms_details_after_restore)):
                 if(vms_details_after_restore[i]['network_name'] == int_net_1_name):
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
+                    tests[0][1] = 1
+                    reporting.test_case_to_write()
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
                     LOG.error("Restored network: " + str(vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.test_case_to_write()
 
             ### In-place restore ###
 
+            reporting.add_test_script(tests[1][0]) 
             #Create in-place restore with CLI command
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(incr_snapshot_id)
 
@@ -369,10 +371,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if md5sums_dir_before[str(floating_ip_1)] == md5sums_dir_after[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
+                tests[1][1] = 1
+                reporting.set_test_script_status(tvaultconf.PASS)
+                reporting.test_case_to_write()
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             #Delete restore for snapshot
             if (tvaultconf.cleanup == True):
@@ -380,6 +386,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### One-click restore ###
 
+            reporting.add_test_script(tests[2][0])
             mdb = self.calcmd5sum(floating_ip_1, mount_points[0])
             LOG.debug("MD5SUMS before deleting the instance for one click restore : "+str(mdb))
 
@@ -440,10 +447,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if mdb[str(floating_ip_1)] == mda[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.PASS)
+                tests[2][0] = 1
+                reporting.set_test_script_status(tvaultconf.PASS)
+                reporting.test_case_to_write()
             else:
                 LOG.debug("***MDSUMS DON'T MATCH***")
                 reporting.add_test_step("Md5 Verification for volume", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             restored_volumes = []
             restored_volumes = self.get_restored_volume_list(restore_id_3)
@@ -455,16 +466,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 time.sleep(30)
                 self.addCleanup(self.delete_restored_vms, vm_list, restored_volumes)
 
-            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             if (deleted == 0):
-                self.disassociate_floating_ip_from_server(floating_ip_1, vm_id)
-                self.detach_volume(vm_id, volume_id)
-                self.delete_vm(vm_id)
+                try:
+                    self.delete_vm(vm_id)
+                except:
+                    pass
                 time.sleep(10)
-                self.delete_volume(volume_id)
-                self.delete_volume(boot_volume_id)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
+                try:
+                    self.delete_volume(volume_id)
+                    self.delete_volume(boot_volume_id)
+                except:
+                    pass
+            for test in tests:
+                if test[1] != 1:
+                    reporting.add_test_script(test[0])
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.test_case_to_write()

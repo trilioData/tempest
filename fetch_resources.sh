@@ -176,10 +176,10 @@ function configure_tempest
     fi
 
     # Compute
-    # If ``DEFAULT_INSTANCE_TYPE`` is not declared, use the new behavior
+    # If ``TEST_IMAGE_NAME`` is not declared, use the new behavior
     # Tempest creates its own instance types
       available_flavors=$($OPENSTACK_CMD flavor list)
-    if  [[ -z "$DEFAULT_INSTANCE_TYPE" ]]; then
+    if  [[ -z "$TEST_IMAGE_NAME" ]]; then
         if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
             # Determine the flavor disk size based on the image size.
             disk=$(image_size_in_gib $image_uuid)
@@ -193,11 +193,11 @@ function configure_tempest
         fi
         flavor_ref=42
     else
-        # Check Nova for existing flavors, if ``DEFAULT_INSTANCE_TYPE`` is set use it.
+        # Check Nova for existing flavors, if ``TEST_IMAGE_NAME`` is set use it.
         IFS=$'\r\n'
         flavors=""
         for line in $available_flavors; do
-            f=$(echo $line | awk "/ $DEFAULT_INSTANCE_TYPE / { print \$2 }")
+            f=$(echo $line | awk "/ $TEST_IMAGE_NAME / { print \$2 }")
             flavors="$flavors $f"
         done
 
@@ -235,8 +235,10 @@ function configure_tempest
             type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
+            enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
             ;;
         *)
+            cnt=0
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
                 type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
                 case $type in
@@ -245,6 +247,13 @@ function configure_tempest
                     *) volume_type=$type
                        volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
                 esac
+                if [ $cnt -eq 0 ]
+                then
+                    enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
+                else
+                    enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""]
+                fi
+                cnt+=1
             done
     esac
 
@@ -353,6 +362,7 @@ function configure_tempest
     # tvaultconf.py
     sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
+    sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
 }
 
 
