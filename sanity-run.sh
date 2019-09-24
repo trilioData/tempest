@@ -1,6 +1,5 @@
 #!/bin/bash -x
 BASE_DIR="$(pwd)"
-source /root/adminrc
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
@@ -14,7 +13,7 @@ rm -rf logs
 
 mkdir -p $REPORT_DIR
 rm -f results.html
-sed -i '/sanity_results_file=/c sanity_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
+sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 
 testname=$(echo $SUITE_LIST| cut -d'.' -f 4)
 touch $TEST_LIST_FILE
