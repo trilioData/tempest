@@ -495,8 +495,6 @@ class Manager(manager.Manager):
                                         CONF.identity.tenant_name,
                                         authurl,
                                         CONF.identity.domain_id,
-                                        os_user_domain_id=CONF.identity.domain_id,
-					os_project_domain_id=CONF.identity.domain_id,
                                         insecure=CONF.wlm.insecure,
                                         region_name=CONF.identity.region,
                                         tenant_id=CONF.wlm.os_tenant_id,

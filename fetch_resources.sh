@@ -205,6 +205,8 @@ function configure_tempest
         fvm_flavor="$fvm_flavor $f1"
     done
 
+    echo $flavors
+    echo $fvm_flavor
     for line in $flavors; do
         flavors="$flavors `echo $line | grep -v "^\(|\s*ID\|+--\)" | cut -d' ' -f2`"
     done
