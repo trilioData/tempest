@@ -328,7 +328,7 @@ function configure_tempest
             network_id_alt="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
 
     case "${#networks[*]}" in
         0)
@@ -388,9 +388,9 @@ fi
 echo "creating virtual env for openstack client"
 virtualenv $OPENSTACK_CLI_VENV
 . $OPENSTACK_CLI_VENV/bin/activate
-pip install openstacksdk==0.9.1
+pip install openstacksdk==0.35.0
 pip install os-client-config==1.18.0
-pip install python-openstackclient==2.6.0
+pip install python-openstackclient==3.19.0
 pip install python-cinderclient==4.2.0
 
 configure_tempest

@@ -75,7 +75,7 @@ fullbackup_interval_update = "7"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
-instance_username = "cirros"
+instance_username = "ubuntu"
 snapshot_restore_name = "Tempest Test Restore"
 restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
@@ -90,7 +90,7 @@ config_yaml = {"compute": ["/etc/nova", "/var/lib/nova", "/var/log/nova"],
                        "ceilometer": ["/etc/ceilometer", "/var/log/ceilometer/"],
                        "orchestration": ["/etc/heat/", "/var/log/heat/"]}
 additional_dir = {"tvault-contego": ["/etc/tvault-contego/"]}
-bootfromvol_vol_size = 1
+bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 recovery_flavor_ref = 3
 recovery_image_ref = "cd056509-666b-41fa-9236-86f202b3e619" 
