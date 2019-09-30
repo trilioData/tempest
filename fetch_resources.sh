@@ -177,22 +177,18 @@ function configure_tempest
 
     available_flavors=$($OPENSTACK_CMD flavor list)
     if  [[ "$TEST_IMAGE_NAME" ]]; then
-        if [[ ! ( $TEST_IMAGE_NAME =~ 'cirros') ]]; then
-            if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
-                $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
-            fi
-        else
-            if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
-                # Determine the flavor disk size based on the image size.
-                disk=$(image_size_in_gib $image_uuid)
-                $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
-            fi
+        if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+            $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
+        fi
+        if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
+            # Determine the flavor disk size based on the image size.
+            disk=$(image_size_in_gib $image_uuid)
+            $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
         fi
     fi
-    if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]] && [[ "$fvm_image_uuid" ]]; then
+    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
         # Determine the flavor disk size based on the image size.
-        disk_fvm=$(image_size_in_gib $fvm_image_uuid)
-        $OPENSTACK_CMD flavor create --ram 4096 --disk $disk_fvm --vcpus 2 $FVM_IMAGE_NAME
+        $OPENSTACK_CMD flavor create --ram 4096 --disk 40 --vcpus 2 $FVM_IMAGE_NAME
     fi
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'
