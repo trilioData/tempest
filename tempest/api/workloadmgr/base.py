@@ -684,7 +684,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         'restore_type': 'selective',
                         'openstack': {
                             'instances': instance_details,
-                            'networks_mapping': { 'networks': network_details, 'restore_topology': network_restore_flag }
+                            'restore_topology': network_restore_flag,
+                            'networks_mapping': { 'networks': network_details }
                                      }
                                 }
                            }
@@ -2566,7 +2567,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def delete_router_interfaces(self, router_id):
         interfaces = self.network_client.list_router_interfaces(router_id)['ports']
         for interface in interfaces:
-            self.network_client.remove_router_interface_with_port_id(router_id,interface['id'])
+            if interface['device_owner'] == 'network:router_interface':
+                for i in interface['fixed_ips']:
+                    self.network_client.remove_router_interface_with_subnet_id(router_id,i['subnet_id'])
+            else:
+                pass
 
     '''
     Method returns the auditlog information
@@ -2650,6 +2655,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.network_client.add_router_interface_with_subnet_id(routers['Router-4'], subnets['PS-5'])
         portid4 = self.network_client.create_port(**{'network_id':nets['Private-5'], 'fixed_ips': [{'ip_address':'10.10.5.3'}]})['port']['id']
         self.network_client.add_router_interface_with_port_id(routers['Router-5'], portid4)
+        return networkslist
 
     '''
     Get network topology details
