@@ -2498,7 +2498,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build comand to serach file")
             buildCommand = "find " + file_path_to_search +" -name " + file_name
             LOG.debug("build command to search file is :" + str(buildCommand))
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
             output = stdout.read()
             LOG.debug(output)
             time.sleep(20)
