@@ -34,7 +34,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             reporting.add_test_script(str(__name__))            
             self.delete_network_topology()
-            self.create_network()
+            ntwrks = self.create_network()
             vms = {}
             nws = [x['id'] for x in ntwrks]
             vmid = self.create_vm(vm_name="instance", networkid=[{'uuid':random.choice(nws)}], vm_cleanup=True)
@@ -93,11 +93,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Selective restore with network restore failed")
 
             nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
-
-            if nt_bf == nt_af and sbnt_bf == sbnt_af and rt_bf == rt_af and intf_bf == intf_af:
-                reporting.add_test_step("Network restore", tvaultconf.PASS)
+            if nt_bf == nt_af:
+                reporting.add_test_step("Verify network details after network restore", tvaultconf.PASS)
             else:
-                reporting.add_test_step("Network restore", tvaultconf.FAIL)
+                reporting.add_test_step("Verify network details after network restore", tvaultconf.FAIL)
+
+            if sbnt_bf == sbnt_af:
+                reporting.add_test_step("Verify subnet details after network restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify subnet details after network restore", tvaultconf.FAIL)
+
+            if rt_bf == rt_af:
+                reporting.add_test_step("Verify router details after network restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify router details after network restore", tvaultconf.FAIL)
+
+            if intf_bf == intf_af:
+                reporting.add_test_step("Verify interface details after network restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify interface details after network restore", tvaultconf.FAIL)
 
             self.delete_vm(self.get_restored_vm_list(restore_id)[0])
             self.delete_network_topology()

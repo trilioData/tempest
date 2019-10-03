@@ -176,14 +176,11 @@ function configure_tempest
     fi
 
     available_flavors=$($OPENSTACK_CMD flavor list)
-    if  [[ "$TEST_IMAGE_NAME" ]]; then
-        if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+    if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+        if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
+            $OPENSTACK_CMD flavor create --ram 64 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
+        else
             $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
-        fi
-        if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
-            # Determine the flavor disk size based on the image size.
-            disk=$(image_size_in_gib $image_uuid)
-            $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
         fi
     fi
     if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
@@ -375,6 +372,8 @@ function configure_tempest
     sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+
 }
 
 
