@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import yaml
 import tempest
 import unicodedata
 import collections
@@ -55,7 +56,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global volumes
             deleted = 0
-
             ## VM and Workload ###
             tests = [['tempest.api.workloadmgr.sanity.test_image_vol_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_image_vol_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_image_vol_Oneclick-restore',0]]
             reporting.add_test_script(tests[0][0])
@@ -287,8 +287,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.test_case_to_write()
+
             ### In-place Restore ###
 
+            md5sums_dir_before_ip = {}
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
+            self.execute_command_disk_mount(ssh, str(floating_ip_1), [volumes[0]], [mount_points[0]])
+            time.sleep(5)
+            md5sums_dir_before_ip = self.calcmd5sum(floating_ip_1, mount_points[0])
+            ssh.close()
             #Create in-place restore with CLI command
             reporting.add_test_script(tests[1][0])
             restore_command  = command_argument_string.inplace_restore + str(tvaultconf.restore_filename) + " "  + str(incr_snapshot_id)
@@ -316,7 +323,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("restore.json for inplace restore: " + str(restore_json))
             #Create Restore.json
             with open(tvaultconf.restore_filename, 'w') as f:
-                f.write(str(json.loads(restore_json)))
+                f.write(str(yaml.safe_load(restore_json)))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)

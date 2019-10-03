@@ -17,6 +17,7 @@ from tempest import config
 from tempest import test
 from tempest import tvaultconf
 import json
+import yaml
 import sys
 from tempest import api
 from oslo_log import log as logging
@@ -115,7 +116,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    LOG.debug("restore.json for inplace restore: " + str(restore_json))
 	    #Create Restore.json
 	    with open(tvaultconf.restore_filename, 'w') as f:
-	        f.write(str(json.loads(restore_json)))
+	        f.write(str(yaml.safe_load(restore_json)))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
 	        reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)

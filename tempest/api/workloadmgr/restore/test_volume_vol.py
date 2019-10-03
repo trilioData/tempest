@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import yaml
 import tempest
 import unicodedata
 import collections
@@ -55,7 +56,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_volume_volume(self):
         try:
             ### VM and Workload ###
-
             tests = [['tempest.api.workloadmgr.sanity.test_volume_vol_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Oneclick-restore',0]]
             reporting.add_test_script(tests[0][0])
             deleted = 0
@@ -68,7 +68,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Key_pair : "+str(kp))
 
             #Create bootable volume
-            boot_volume_id = self.create_volume(image_id=CONF.compute.image_ref, volume_cleanup=False)
+            boot_volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
             self.set_volume_as_bootable(boot_volume_id)
             LOG.debug("Bootable Volume ID : "+str(boot_volume_id))
 
@@ -330,7 +330,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("restore.json for inplace restore: " + str(restore_json))
             #Create Restore.json
             with open(tvaultconf.restore_filename, 'w') as f:
-                f.write(str(json.loads(restore_json)))
+                f.write(str(yaml.safe_load(restore_json)))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step("Triggering In-Place restore via CLI", tvaultconf.FAIL)
