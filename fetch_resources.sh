@@ -176,29 +176,53 @@ function configure_tempest
     fi
 
     available_flavors=$($OPENSTACK_CMD flavor list)
-    if  [[ "$TEST_IMAGE_NAME" ]]; then
-        if [[ ! ( $TEST_IMAGE_NAME =~ 'cirros') ]]; then
-            if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
-                # Determine the flavor disk size based on the image size.
-                disk=$(image_size_in_gib $image_uuid)
-                $OPENSTACK_CMD flavor create --id 50 --ram 4096 --disk $disk --vcpus 2 m1.$TEST_IMAGE_NAME
-            fi
-            flavor_ref=50
+    if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+        if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
+            $OPENSTACK_CMD flavor create --ram 64 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
         else
-            if [[ ! ( $available_flavors =~ 'm1.nano' ) ]]; then
-                # Determine the flavor disk size based on the image size.
-                disk=$(image_size_in_gib $image_uuid)
-                $OPENSTACK_CMD flavor create --id 42 --ram 64 --disk $disk --vcpus 1 m1.nano
-            fi
-            flavor_ref=42
+            $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
     fi
-    if [[ ! ( $available_flavors =~ 'm1.fvm' ) ]] && [[ "$fvm_image_uuid" ]]; then
+    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
         # Determine the flavor disk size based on the image size.
-        disk_fvm=$(image_size_in_gib $fvm_image_uuid)
-        $OPENSTACK_CMD flavor create --id 45 --ram 4096 --disk $disk_fvm --vcpus 2 m1.fvm
+        $OPENSTACK_CMD flavor create --ram 4096 --disk 40 --vcpus 2 $FVM_IMAGE_NAME
     fi
-    flavor_ref_alt=45
+    available_flavors=$($OPENSTACK_CMD flavor list)
+    IFS=$'\r\n'
+    flavors=""
+    fvm_flavor=""
+    for line in $available_flavors; do
+        f=$(echo $line | awk "/ $TEST_IMAGE_NAME / { print \$2 }")
+        flavors="$flavors $f"
+        f1=$(echo $line | awk "/ $FVM_IMAGE_NAME / { print \$2 }")
+        fvm_flavor="$fvm_flavor $f1"
+    done
+
+    echo $flavors
+    echo $fvm_flavor
+    for line in $flavors; do
+        flavors="$flavors `echo $line | grep -v "^\(|\s*ID\|+--\)" | cut -d' ' -f2`"
+    done
+    for line in $fvm_flavor; do
+        fvm_flavor="$fvm_flavor `echo $line | grep -v "^\(|\s*ID\|+--\)" | cut -d' ' -f2`"
+    done
+    IFS=" "
+    flavors=($flavors)
+    num_flavors=${#flavors[*]}
+    echo "Found $num_flavors flavors"
+    if [[ $num_flavors -eq 0 ]]; then
+        echo "Found no valid flavors to use!"
+        exit 1
+    fi
+    flavor_ref=${flavors[0]}
+    fvm_flavor=($fvm_flavor)
+    num_fvm_flavor=${#fvm_flavor[*]}
+    echo "Found $num_fvm_flavor flavors for File manager"
+    if [[ $num_fvm_flavor -eq 0 ]]; then
+        echo "Found no valid fvm flavors to use!"
+    fi
+    flavor_ref_alt=${fvm_flavor[0]}
+
     compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
@@ -297,15 +321,20 @@ function configure_tempest
         if [ "$NETWORK_TYPE" = "Internal" ]; then
             network_id="$NETWORK_UUID"
             network_id_alt="$NETWORK_UUID"
+        else
+            ext_network_id="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
 
     case "${#networks[*]}" in
         0)
-            echo "Found no internal networks to use!"
-            exit 1
-            ;;
+            echo "Found no internal networks to use! Creating new internal network"
+            $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
+            network_id=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            network_id_alt=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
+;;
         1)
             if [ -z "$network_id" ]; then
                 network_id=${networks[0]}
@@ -316,6 +345,32 @@ function configure_tempest
             if [ -z "$network_id" ]; then
                 network_id=${networks[0]}
                 network_id_alt=${networks[1]}
+            fi
+            ;;
+    esac
+
+    # router
+    while read -r ROUTER_UUID; do
+            router_id="$ROUTER_UUID"
+        routers+=($ROUTER_UUID)
+    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    
+    case "${#routers[*]}" in
+        0)
+            echo "Found no routers to use! Creating new router"
+            $OPENSTACK_CMD router create --enable --project $test_project_id test_router
+            router_id=$OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
+            $OPENSTACK_CMD router add subnet test_router test_internal_subnet
+            ;;
+        1)
+            if [ -z "$router_id" ]; then
+                router_id=${routers[0]}
+            fi
+            ;;
+        *)
+            if [ -z "$router_id" ]; then
+                router_id=${routers[0]}
             fi
             ;;
     esac
@@ -348,6 +403,8 @@ function configure_tempest
     sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+
 }
 
 
@@ -359,9 +416,9 @@ fi
 echo "creating virtual env for openstack client"
 virtualenv $OPENSTACK_CLI_VENV
 . $OPENSTACK_CLI_VENV/bin/activate
-pip install openstacksdk==0.9.1
+pip install openstacksdk==0.35.0
 pip install os-client-config==1.18.0
-pip install python-openstackclient==2.6.0
+pip install python-openstackclient==3.19.0
 pip install python-cinderclient==4.2.0
 
 configure_tempest
