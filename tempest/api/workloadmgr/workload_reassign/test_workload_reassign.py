@@ -59,18 +59,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 1 to tenant 2 passed")
-                reporting.add_test_step("Workload reassign", tvaultconf.PASS)
+                reporting.add_test_step("Workload reassign from tenant 1 to 2", tvaultconf.PASS)
             else:
-                LOG.debug("Workload reassign failed")
-                reporting.add_test_step("Workload reassign", tvaultconf.FAIL)
+                LOG.error("Workload reassign from tenant 1 to 2 failed")
+                reporting.add_test_step("Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
             rc = self.workload_reassign(tenant_id, workload_id, user_id)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 2 to tenant 1 passed")
-                reporting.add_test_step("Workload reassign", tvaultconf.PASS)
+                reporting.add_test_step("Workload reassign from tenant 2 to 1", tvaultconf.PASS)
             else:
-                LOG.debug("Workload reassign failed")
-                reporting.add_test_step("Workload reassign", tvaultconf.FAIL)
+                LOG.error("Workload reassign from tenant 2 to 1 failed")
+                reporting.add_test_step("Workload reassign from tenant 2 to 1", tvaultconf.FAIL)
             reporting.test_case_to_write()
 
 
