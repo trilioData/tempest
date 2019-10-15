@@ -321,8 +321,6 @@ function configure_tempest
         if [ "$NETWORK_TYPE" = "Internal" ]; then
             network_id="$NETWORK_UUID"
             network_id_alt="$NETWORK_UUID"
-        else
-            ext_network_id="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
     done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
@@ -331,8 +329,8 @@ function configure_tempest
         0)
             echo "Found no internal networks to use! Creating new internal network"
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
-            network_id=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
-            network_id_alt=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
+            network_id_alt=$network_id
             $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
 ;;
         1)
@@ -350,16 +348,23 @@ function configure_tempest
     esac
 
     # router
+    while read -r NETWORK_TYPE NETWORK_UUID; do
+        if [ "$NETWORK_TYPE" = "External" ]; then
+            ext_network_id="$NETWORK_UUID"
+        fi
+        networks+=($NETWORK_UUID)
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+
     while read -r ROUTER_UUID; do
             router_id="$ROUTER_UUID"
         routers+=($ROUTER_UUID)
-    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
     
     case "${#routers[*]}" in
         0)
             echo "Found no routers to use! Creating new router"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
-            router_id=$OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
             $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
             $OPENSTACK_CMD router add subnet test_router test_internal_subnet
             ;;
@@ -377,6 +382,7 @@ function configure_tempest
     
     iniset $TEMPEST_CONFIG network internal_network_id $network_id
     iniset $TEMPEST_CONFIG network alt_internal_network_id $network_id_alt
+    iniset $TEMPEST_CONFIG network public_router_id $router_id
 
     # identity-feature-enabled
     iniset $TEMPEST_CONFIG identity-feature-enabled api_v2 False

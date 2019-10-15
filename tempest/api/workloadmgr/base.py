@@ -2507,17 +2507,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception: " + str(e))
     
     '''
-    Method to dismount snapshot
-    '''
-    def dismount_snapshot(self,snapshot_id):
-        resp, body = self.wlm_client.client.post("/snapshots/"+ snapshot_id +"/dismount")
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()        
-        else:
-           return True
-
-    '''
     Method to fetch the list of network ports by network_id
     '''
     def get_port_list_by_network_id(self,network_id):

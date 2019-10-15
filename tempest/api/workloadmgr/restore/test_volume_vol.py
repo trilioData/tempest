@@ -56,7 +56,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_volume_volume(self):
         try:
             ### VM and Workload ###
-            tests = [['tempest.api.workloadmgr.sanity.test_volume_vol_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_volume_vol_Oneclick-restore',0]]
+            tests = [['tempest.api.workloadmgr.restore.test_volume_vol_Selective-restore',0], ['tempest.api.workloadmgr.restore.test_volume_vol_Inplace-restore',0], ['tempest.api.workloadmgr.restore.test_volume_vol_Oneclick-restore',0]]
             reporting.add_test_script(tests[0][0])
             deleted = 0
             global volumes

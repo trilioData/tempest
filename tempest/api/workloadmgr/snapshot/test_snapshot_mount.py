@@ -65,7 +65,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception ("Snapshot mount with full_snapshot  does not execute correctly")
             
             LOG.debug("validate that snapshot is mounted on FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh).split('\n')                 
             ssh.close()
             flag = 0
@@ -118,22 +118,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             volumes_ids = volumes_ids
             security_group_id = security_group_id
             fvm_id = fvm_id
-            dismount_snapshot_id = snapshot_ids[0]
+            unmount_snapshot_id = snapshot_ids[0]
             floating_ips_list = floating_ips_list
 
-            LOG.debug("umount snapshot")
-            is_dismounted = self.dismount_snapshot(dismount_snapshot_id)
-            LOG.debug("VALUE OF is_dismounted: " + str(is_dismounted))
-            if is_dismounted == True:
-                LOG.debug("dismount snapshot with full snapshot is  successful")
-                reporting.add_test_step("Verification of dismount snapshot with full snapshot", tvaultconf.PASS)
+            LOG.debug("unmount snapshot")
+            is_unmounted = self.unmount_snapshot(unmount_snapshot_id)
+            LOG.debug("VALUE OF is_unmounted: " + str(is_unmounted))
+            if is_unmounted == True:
+                LOG.debug("unmount snapshot with full snapshot is  successful")
+                reporting.add_test_step("Verification of unmount snapshot with full snapshot", tvaultconf.PASS)
             else:
-                LOG.debug("dismount snapshot with full snapshot is unsuccessful")
-                reporting.add_test_step("Verification of dismount snapshot with full snapshot", tvaultconf.FAIL)
-                raise Exception ("Snapshot dismount with full_snapshot does not execute correctly")
+                LOG.debug("unmount snapshot with full snapshot is unsuccessful")
+                reporting.add_test_step("Verification of unmount snapshot with full snapshot", tvaultconf.FAIL)
+                raise Exception ("Snapshot unmount with full_snapshot does not execute correctly")
             
-            LOG.debug("validate that snapshot is umounted from FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            LOG.debug("validate that snapshot is unmounted from FVM")
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh)
             ssh.close()
             
@@ -184,7 +184,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception ("Snapshot mount with incremental_snapshot  does not execute correctly")
             
             LOG.debug("validate that snapshot is mounted on FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh).split('\n')
             ssh.close()
             
