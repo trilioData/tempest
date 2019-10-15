@@ -1317,8 +1317,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get network name  by id'''
     def get_net_name(self, network_id):
-        net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
-        return net_name
+        try:
+            net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
+            return net_name
+        except TypeError as te:
+	    LOG.debug("TypeError: " + str(te))
+            net_name = self.networks_client.show_network(network_id).items()[0][1][0]['name']
+            return net_name
+        except Exception as e:
+            LOG.error("Exception in get_net_name: " +str(e))
+            return None 
 
     '''get subnet id'''
     def get_subnet_id(self, network_id):

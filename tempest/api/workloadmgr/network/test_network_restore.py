@@ -40,7 +40,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vmid = self.create_vm(vm_name="instance", networkid=[{'uuid':random.choice(nws)}], vm_cleanup=True)
 
             nt_bf, sbnt_bf, rt_bf, intf_bf = self.get_topology_details()
-            
 
             workload_id=self.workload_create([vmid],tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
@@ -97,21 +96,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify network details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify network details after network restore", tvaultconf.FAIL)
+                LOG.error("Network details before and after restore: %s , %s" % nt_bf, nt_af)
 
             if sbnt_bf == sbnt_af:
                 reporting.add_test_step("Verify subnet details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify subnet details after network restore", tvaultconf.FAIL)
+                LOG.error("Subnet details before and after restore: %s , %s" % sbnt_bf, sbnt_af)
 
             if rt_bf == rt_af:
                 reporting.add_test_step("Verify router details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify router details after network restore", tvaultconf.FAIL)
+                LOG.error("Router details before and after restore: %s , %s" % rt_bf, rt_af)
 
             if intf_bf == intf_af:
                 reporting.add_test_step("Verify interface details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify interface details after network restore", tvaultconf.FAIL)
+                LOG.error("Interface details before and after restore: %s , %s" % intf_bf, intf_af)
 
             self.delete_vm(self.get_restored_vm_list(restore_id)[0])
             self.delete_network_topology()
