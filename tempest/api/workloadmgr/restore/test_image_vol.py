@@ -98,7 +98,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volumes
             deleted = 0
             ## VM and Workload ###
-            tests = [['tempest.api.workloadmgr.sanity.test_image_vol_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_image_vol_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_image_vol_Oneclick-restore',0]]
+            tests = [['tempest.api.workloadmgr.restore.test_image_vol_Selective-restore',0], ['tempest.api.workloadmgr.restore.test_image_vol_Inplace-restore',0], ['tempest.api.workloadmgr.restore.test_image_vol_Oneclick-restore',0]]
             reporting.add_test_script(tests[0][0])
             mount_points = ["mount_data_a", "mount_data_b"] 
             md5sums_before_full = {}
