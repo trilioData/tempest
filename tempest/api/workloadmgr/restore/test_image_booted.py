@@ -75,7 +75,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             deleted = 0
             ## VM and Workload ###
-            tests = [['tempest.api.workloadmgr.sanity.test_image_booted_Selective-restore',0], ['tempest.api.workloadmgr.sanity.test_image_booted_Inplace-restore',0], ['tempest.api.workloadmgr.sanity.test_image_booted_Oneclick-restore',0]]
+            tests = [['tempest.api.workloadmgr.restore.test_image_booted_Selective-restore',0], ['tempest.api.workloadmgr.restore.test_image_booted_Inplace-restore',0], ['tempest.api.workloadmgr.restore.test_image_booted_Oneclick-restore',0]]
             reporting.add_test_script(tests[0][0])
             data_dir_path = "/root"
             md5sums_before_full = {}
