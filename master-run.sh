@@ -23,7 +23,7 @@ do
     python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     while read -r line
     do  
-        rm -rf /opt/lock
+        rm -rf $BASE_DIR/lock
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR

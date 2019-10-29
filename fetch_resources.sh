@@ -4,7 +4,7 @@ source openstack-setup.conf
 TEMPEST_DIR=$PWD
 TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
-TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:=/opt/lock}
+TEMPEST_STATE_PATH=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
@@ -106,6 +106,7 @@ function configure_tempest
     mkdir -p $TEMPEST_STATE_PATH
 
     # Set cloud admin credentials
+    echo "Setting cloud admin credentials, to fetch openstack details\n"
     export OS_USERNAME=$CLOUDADMIN_USERNAME
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
@@ -141,6 +142,7 @@ function configure_tempest
     # ... Also ensure we only take active images, so we don't get snapshots in process
     declare -a images
 
+    echo "Fetching image details\n"
     while read -r IMAGE_NAME IMAGE_UUID; do
         if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
             image_uuid="$IMAGE_UUID"
@@ -151,7 +153,7 @@ function configure_tempest
 
     case "${#images[*]}" in
         0)
-            echo "Found no valid images to use!"
+            echo "Found no valid images to use!\n"
             exit 1
             ;;
         1)
@@ -172,9 +174,10 @@ function configure_tempest
     fvm_image_uuid=`$OPENSTACK_CMD image list | grep $FVM_IMAGE_NAME | cut -d '|' -f2`
     if [[ -z $fvm_image_uuid ]]
     then
-        echo "File recovery manager instance not available"
+        echo "File recovery manager instance not available\n"
     fi
 
+    echo "Fetching flavor details\n"
     available_flavors=$($OPENSTACK_CMD flavor list)
     if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
         if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
@@ -219,7 +222,7 @@ function configure_tempest
     num_fvm_flavor=${#fvm_flavor[*]}
     echo "Found $num_fvm_flavor flavors for File manager"
     if [[ $num_fvm_flavor -eq 0 ]]; then
-        echo "Found no valid fvm flavors to use!"
+        echo "Found no valid fvm flavors to use!\n"
     fi
     flavor_ref_alt=${fvm_flavor[0]}
 
@@ -233,10 +236,11 @@ function configure_tempest
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
 
     # Volume
+    echo "Fetching volume type details\n"
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
-            echo "No volume type available to use!"
+            echo "No volume type available to use!\n"
             exit 1
             ;;
         1)
@@ -298,6 +302,7 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth allow_tenant_isolation True
 
     #Set test user credentials
+    echo "Set test user credentials\n"
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
@@ -305,7 +310,7 @@ function configure_tempest
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
     export OS_TENANT_ID=$test_project_id
 
-    #Add wlm rc paramerters to run_tempest.sh
+    echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
     sed -i "2i export OS_TENANT_ID=$test_project_id" run_tempest.sh
@@ -317,6 +322,7 @@ function configure_tempest
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
 
     # network
+    echo "Fetch network information\n"
     while read -r NETWORK_TYPE NETWORK_UUID; do
         if [ "$NETWORK_TYPE" = "Internal" ]; then
             network_id="$NETWORK_UUID"
@@ -327,7 +333,7 @@ function configure_tempest
 
     case "${#networks[*]}" in
         0)
-            echo "Found no internal networks to use! Creating new internal network"
+            echo "Found no internal networks to use! Creating new internal network\n"
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
             network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
             network_id_alt=$network_id
@@ -362,7 +368,7 @@ function configure_tempest
     
     case "${#routers[*]}" in
         0)
-            echo "Found no routers to use! Creating new router"
+            echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
             router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
             $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
