@@ -157,7 +157,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify instance details after restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify instance details after restore", tvaultconf.FAIL)
-                LOG.error("Interface details before and after restore: {0}, {1}".format(vm_details_bf, vm_details_af))
+                LOG.error("Instance details before and after restore: {0}, {1}".format(vm_details_bf, vm_details_af))
 
             for rvm in restored_vms:
                 self.delete_vm(rvm) 
