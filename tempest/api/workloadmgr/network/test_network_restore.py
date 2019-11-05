@@ -34,14 +34,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             reporting.add_test_script(str(__name__))            
             self.delete_network_topology()
+            vms = []
             ntwrks = self.create_network()
-            vms = {}
+            for network in ntwrks:
+                if network['name'] in ['Private-1','Private-2','Private-5']:
+                    vm_name = "instance-{}".format(network['name'])
+                    vmid = self.create_vm(vm_name=vm_name, networkid=[{'uuid':network['id']}], vm_cleanup=True)
+                    vms.append((vm_name, vmid))
+            LOG.debug("Launched vms : {}".format(vms))
+            
             nws = [x['id'] for x in ntwrks]
-            vmid = self.create_vm(vm_name="instance", networkid=[{'uuid':random.choice(nws)}], vm_cleanup=True)
 
             nt_bf, sbnt_bf, rt_bf, intf_bf = self.get_topology_details()
-
-            workload_id=self.workload_create([vmid],tvaultconf.parallel, workload_cleanup=True)
+           
+            vms_ids = [x[1] for x in vms] 
+            workload_id=self.workload_create(vms_ids,tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id != None):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -66,23 +73,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Snapshot creation failed")
 
             instance_details = []
-            vm_name = "restored_instance"
-            temp_instance_data = { 'id': vmid,
-                                    'include': True,
-                                   'restore_boot_disk': True,
-                                   'name': vm_name,
-                                   'vdisks':[]
-                                 }
-            instance_details.append(temp_instance_data)
+            for vm in vms:
+                temp_instance_data = { 'id': vm[1],
+                                        'include': True,
+                                       'restore_boot_disk': True,
+                                       'name': vm[0]+"restored_instance",
+                                       'vdisks':[]
+                                     }
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
 
-
-            self.delete_vm(vmid)
+            vm_details_bf = {}
+            for vm in vms:
+                vm_details_bf[vm[0]] = self.get_vm_details(vm[1])['server']
+                self.delete_vm(vm[1])
             self.delete_network_topology()
 
             restore_id=self.snapshot_selective_restore(workload_id, snapshot_id,restore_name=tvaultconf.restore_name,
                                                             instance_details=instance_details,
-                                                            network_restore_flag=True)
+                                                            network_restore_flag=True, restore_cleanup=True)
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
@@ -96,30 +105,65 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify network details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify network details after network restore", tvaultconf.FAIL)
-                LOG.error("Network details before and after restore: %s , %s" % nt_bf, nt_af)
+                LOG.error("Network details before and after restore: {0}, {1}".format(nt_bf, nt_af))
 
             if sbnt_bf == sbnt_af:
                 reporting.add_test_step("Verify subnet details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify subnet details after network restore", tvaultconf.FAIL)
-                LOG.error("Subnet details before and after restore: %s , %s" % sbnt_bf, sbnt_af)
+                LOG.error("Subnet details before and after restore: {0}, {1}".format(sbnt_bf, sbnt_af))
 
             if rt_bf == rt_af:
                 reporting.add_test_step("Verify router details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify router details after network restore", tvaultconf.FAIL)
-                LOG.error("Router details before and after restore: %s , %s" % rt_bf, rt_af)
+                LOG.error("Router details before and after restore: {0}, {1}".format(rt_bf, rt_af))
 
             if intf_bf == intf_af:
                 reporting.add_test_step("Verify interface details after network restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify interface details after network restore", tvaultconf.FAIL)
-                LOG.error("Interface details before and after restore: %s , %s" % intf_bf, intf_af)
+                LOG.error("Interface details before and after restore: {0}, {1}".format(intf_bf, intf_af))
 
-            self.delete_vm(self.get_restored_vm_list(restore_id)[0])
+            vm_details_af = {}
+            restored_vms = self.get_restored_vm_list(restore_id)
+            for vm in restored_vms:
+                vm_details = self.get_vm_details(vm)['server']
+                vm_details_af[vm_details['name'].replace('restored_instance', '')] = vm_details
+           
+            klist = vm_details_bf.keys()
+            klist.sort()
+
+            for vm in klist:
+                netname = vm_details_bf[vm]['addresses'].keys()[0]
+                vm_details_bf[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                vm_details_af[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                vm_details_bf[vm]['links'][1]['href'] = ''
+                vm_details_af[vm]['links'][1]['href'] = ''
+                del vm_details_af[vm]['metadata']['config_drive']
+                del vm_details_bf[vm]['links']
+                del vm_details_af[vm]['links']
+                vm_details_bf[vm]['updated'] = ''
+                vm_details_af[vm]['updated'] = ''
+                vm_details_bf[vm]['created'] = ''
+                vm_details_af[vm]['created'] = ''
+                vm_details_bf[vm]['id'] = ''
+                vm_details_af[vm]['id'] = ''
+                vm_details_bf[vm]['OS-SRV-USG:launched_at'] = ''
+                vm_details_af[vm]['OS-SRV-USG:launched_at'] = ''
+                vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace('restored_instance', '')                
+                        
+            if vm_details_bf == vm_details_af:
+                reporting.add_test_step("Verify instance details after restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify instance details after restore", tvaultconf.FAIL)
+                LOG.error("Interface details before and after restore: {0}, {1}".format(vm_details_bf, vm_details_af))
+
+            for rvm in restored_vms:
+                self.delete_vm(rvm) 
             self.delete_network_topology()
-    	    reporting.test_case_to_write()
             
+            reporting.test_case_to_write()
  
         except Exception as e:
             LOG.error("Exception: " + str(e))

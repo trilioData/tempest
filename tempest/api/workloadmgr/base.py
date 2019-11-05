@@ -2543,13 +2543,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
        for router_id in router_list:
             self.network_client.delete_router(router_id)
        LOG.debug("delete router")
-   
+
+    '''
+    Delete Router routes
+    '''
+    def delete_router_routes(self, router_list):
+        for router in router_list:
+            if router['routes'] != []:
+                self.network_client.update_router(router['id'], **{'routes':[]})
+        LOG.debug("Deleted routes of routers")
+
     '''
     Method to delete list of ports
     '''
     def delete_network(self, network_id):
         ports_list = []
         router_id_list = []
+        routers = self.network_client.list_routers()['routers']
+        self.delete_router_routes(routers)
         router_id_list = self.get_router_ids()
         for router in router_id_list:
             self.delete_router_interfaces(router)
@@ -2632,7 +2643,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 nets[net['network']['name']] = net['network']['id']
 
         for x in range(1,6):
-            if x != 4:
+            if x != 3:
                 router = self.network_client.create_router(**{'name':"Router-{}".format(x)})
             else:
                 router = self.network_client.create_router(**{'name':"Router-{}".format(x), 'admin_state_up':'False'})
@@ -2652,6 +2663,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.network_client.add_router_interface_with_subnet_id(routers['Router-4'], subnets['PS-5'])
         portid4 = self.network_client.create_port(**{'network_id':nets['Private-5'], 'fixed_ips': [{'ip_address':'10.10.5.3'}]})['port']['id']
         self.network_client.add_router_interface_with_port_id(routers['Router-5'], portid4)
+
+        for router_name,router_id in routers.items():
+            if router_name == 'Router-1':
+                self.network_client.update_router(router_id, **{'routes':[{'destination': '10.10.5.0/24', 'nexthop': '10.10.2.6'}]})
+            elif router_name in ['Router-4','Router-5']:
+                self.network_client.update_router(router_id, **{'routes':[{'destination': '10.10.1.0/24', 'nexthop': '10.10.2.1'}]})
+
         return networkslist
 
     '''
@@ -2661,20 +2679,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_topology_details(self):
             networkslist = self.networks_client.list_networks()['networks']
             nws = [x['id'] for x in networkslist]
-            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id')} for x in networkslist]
+            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id', 'revision_number')} for x in networkslist]
             networks = {}
             for each_network in nt:
                 networks[each_network['name']] = each_network
 
             sbnt = self.subnets_client.list_subnets()['subnets']
-            sbnts = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'id')} for x in sbnt]
+            sbnts = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'id', 'revision_number')} for x in sbnt]
             subnets = {}
             for each_subnet in sbnts:
                 subnets[each_subnet['name']] = each_subnet
 
 
             rs = self.network_client.list_routers()['routers']
-            rts = [{str(i):str(j) for i,j in x.items() if i not in ('external_gateway_info', 'created_at', 'updated_at', 'id')} for x in rs]
+            rts = [{str(i):str(j) for i,j in x.items() if i not in ('external_gateway_info', 'created_at', 'updated_at', 'id', 'revision_number')} for x in rs]
             routers = {}
             for each_router in rts:
                 routers[each_router['name']] = each_router
