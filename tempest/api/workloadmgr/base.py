@@ -2704,3 +2704,110 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 interfaces[self.network_client.show_router(router)['router']['name']] = intrfs
             return(networks, subnets, routers, interfaces)
 
+
+    def workload_snapshot_cli(self, workload_id, is_full):
+        self.created = False
+        command_execution = ''
+        snapshot_execution = ''
+        if is_full:
+            create_snapshot = command_argument_string.snapshot_create + workload_id
+            LOG.debug("Create snapshot command: " + str(create_snapshot))
+        else:
+            create_snapshot = command_argument_string.incr_snapshot_create + workload_id
+            LOG.debug("Create snapshot command: " + str(create_snapshot))
+
+        rc = cli_parser.cli_returncode(create_snapshot)
+        if rc != 0:
+            LOG.debug("Execution of workload-snapshot command failed")
+            command_execution = 'fail'
+        else:
+            LOG.debug("Command executed correctly for workload snapshot")
+            command_execution = 'pass'
+
+        snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
+        LOG.debug("Snapshot ID: " + str(snapshot_id))
+        wc = self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        if (str(wc) == "available"):
+            snapshot_execution = 'pass'
+            self.created = True
+        else:
+            if (str(wc) == "error"):
+                pass
+        if (self.created == False):
+            if is_full:
+                snapshot_execution = 'pass'
+            else:
+                snapshot_execution = 'fail'
+
+        if (tvaultconf.cleanup == True):
+            self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+        return(snapshot_id, command_execution, snapshot_execution)
+
+    '''
+    This method takes restore details as a parameter rest_details. For selective restore key,values of rest_details are : 1. rest_type:selective 2. network_id
+    3. subnet_id and 4. instances:{vm_id1:[list of vols associated with it including boot volume if any], vm_id2:[],...}.
+    For inplace restore necessary key,values are : 1.rest_type:inplace and 2.instances:{vm_id1:[list of vols associated with it including boot volume if any], vm_id2:[],...}.
+    '''
+    def create_restore_json(self, rest_details):
+        if rest_details['rest_type'] == 'selective':
+            snapshot_network = {
+                                 'id': rest_details['network_id'],
+                                 'subnet': { 'id': rest_details['subnet_id']}
+                               }
+            target_network = { 'id': rest_details['network_id'],
+                               'subnet': { 'id': rest_details['subnet_id']}
+                             }
+            network_details = [ { 'snapshot_network': snapshot_network,
+                                       'target_network': target_network } ]
+            LOG.debug("Network details for restore: " + str(network_details))
+            instances = rest_details['instances']
+            instance_details = []
+            for instance in instances:
+                temp_vdisks_data = []
+                for volume in instances[instance]:
+                    temp_vdisks_data.append({  'id':volume,
+                                                'availability_zone':CONF.volume.volume_availability_zone,
+                                                'new_volume_type':CONF.volume.volume_type})
+                vm_name = "tempest_test_vm_"+instance+"_selectively_restored"
+                temp_instance_data = {  'id': instance,
+                                        'availability_zone':CONF.compute.vm_availability_zone,
+                                        'include': True,
+                                        'restore_boot_disk': True,
+                                        'name': vm_name,
+                                        'vdisks':temp_vdisks_data
+                                    }
+            instance_details.append(temp_instance_data)
+            LOG.debug("Instance details for restore: " + str(instance_details))
+            payload={'instance_details': instance_details,
+                     'network_details': network_details}
+            return(payload)
+
+        elif rest_details['rest_type'] == 'inplace':
+            instances = rest_details['instances']
+            instance_details = []
+            for instance in instances:
+                temp_vdisks_data = []
+                for volume in instances[instance]:
+                    temp_vdisks_data.append({  'id':volume,
+                                                'availability_zone':CONF.volume.volume_availability_zone,
+                                                'new_volume_type':CONF.volume.volume_type})
+                temp_instance_data = {  'id': instance,
+                                        'availability_zone':CONF.compute.vm_availability_zone,
+                                        'include': True,
+                                        'restore_boot_disk': True,
+                                        'vdisks':temp_vdisks_data
+                                    }
+            instance_details.append(temp_instance_data)
+            LOG.debug("Instance details for restore: " + str(instance_details))
+            payload = { 'name': u'Inplace Restore', u'zone': u'', u'oneclickrestore': False,
+                        'openstack': {
+                            'instances': instance_details,
+                            'networks_mapping': {
+                                'networks': []}},
+                        'restore_type': 'inplace',
+                        'type': 'openstack',
+                            }
+            return(payload)
+        else:
+            return
+
