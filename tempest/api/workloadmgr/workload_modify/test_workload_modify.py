@@ -337,7 +337,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    timeA = datetime.datetime.strptime(scheduled_start_time.strip(), "%H:%M")
 	    timeB = datetime.datetime.strptime(start_time_in_hours.strip(), "%H:%M")
 	    newTime = timeA - timeB
-	    timedelta = newTime.seconds/60	
+            #Checking in terms of 15 minutes interval
+	    timedelta = newTime.seconds/900	
 
 	    #Condition for Interval value and time difference should not be more than two minutes and time periods AM/PM
             if timedelta < 2 and scheduled_start_time_periods == start_time_in_periods  and interval == interval_after_enable:
