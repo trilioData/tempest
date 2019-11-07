@@ -261,6 +261,7 @@ class NetworkClient(base.BaseNetworkClient):
         body = self.show_resource(uri)
         update_body = {}
         update_body['name'] = kwargs.get('name', body['router']['name'])
+        update_body['routes'] = kwargs.get('routes', body['router']['routes'])
         update_body['admin_state_up'] = kwargs.get(
             'admin_state_up', body['router']['admin_state_up'])
         cur_gw_info = body['router']['external_gateway_info']
