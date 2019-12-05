@@ -26,7 +26,7 @@ from tempest.test_discover import plugins
 
 import sys
 sys.path.append("/usr/lib/python2.7/site-packages/")
-sys.path.append("/usr/local/lib/python2.7/dist-packages")
+sys.path.append("/usr/lib/python2.7/dist-packages")
 
 from workloadmgrclient import utils
 
