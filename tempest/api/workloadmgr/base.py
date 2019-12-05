@@ -2560,8 +2560,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ports_list = []
         router_id_list = []
         routers = self.network_client.list_routers()['routers']
+        routers = [ x for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
         self.delete_router_routes(routers)
-        router_id_list = self.get_router_ids()
+        router_id_list = [x['id'] for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
         for router in router_id_list:
             self.delete_router_interfaces(router)
         self.delete_routers(router_id_list)
@@ -2618,7 +2619,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         networkslist = self.networks_client.list_networks()['networks']
 
         for network in networkslist:
-            if network['router:external'] == False:
+            if network['router:external'] == False and network['tenant_id'] == CONF.identity.tenant_id:
                 self.delete_network(network['id'])
             else:
                 pass
@@ -2679,7 +2680,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_topology_details(self):
             networkslist = self.networks_client.list_networks()['networks']
             nws = [x['id'] for x in networkslist]
-            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id', 'revision_number')} for x in networkslist]
+            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id', 'revision_number', 'provider:segmentation_id')} for x in networkslist]
             networks = {}
             for each_network in nt:
                 networks[each_network['name']] = each_network
