@@ -102,6 +102,7 @@ Following env variables are needed for workloadmgr test cases to work:
     OS_AUTH_URL
     OS_IDENTITY_API_VERSION
     OS_INTERFACE
+    OS_REGION_NAME
 
 * Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI.
 
