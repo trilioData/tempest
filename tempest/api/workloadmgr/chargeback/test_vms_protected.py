@@ -49,6 +49,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 if(vm_id == openstack_vm_id):
                     LOG.debug(" VM ID : "+vm_id)
                     instance_found = True
+                    break
                 else :
                     instance_found = False
                 counter = counter + 1
