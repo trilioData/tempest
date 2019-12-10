@@ -46,7 +46,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             #Verify workload ID
             openstack_workload_ids = chargeback_info[CONF.identity.tenant_id]['workloads'].keys()
-            LOG.debug(" Workload ID : "+ openstack_workload_ids[1])
+            LOG.debug(" Workload ID : "+ str(openstack_workload_ids))
             for worklad_id in openstack_workload_ids:
                 if ( worklad_id == wid ):
                     LOG.debug(" Workload ID : "+ wid)
