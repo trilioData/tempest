@@ -27,6 +27,7 @@ Repo for automation build, test etc.
     - Install below packages required for virtual environment.
         - yum install gcc
         - yum install python-virtualenv 
+    - Install python-workloadmgrclient package from TrilioVault appliance.
     - To create virtual environment:
         - Run below:
             - python tools/install_venv.py
@@ -82,7 +83,9 @@ Repo for automation build, test etc.
 
 * NOTES
 
-* There is need for workloadmgr client installation when the test case is testing CLI. For sanity tests example, all the tests are API based, so it'll not be necessary to install workloadmgr client in virtual env. Install it by adding workloadmgr client to requirement.txt.
+* For TrilioVault version 3.2 and below, need to install python-workloadmgrclient pip package on the system as well as on the virtual environment.
+
+* For TrilioVault version 3.3 and above, need to install python-workloadmgrclient rpm/deb package on the system.
 
 * Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases. 
 
@@ -94,9 +97,13 @@ Following env variables are needed for workloadmgr test cases to work:
     OS_DOMAIN_ID
     OS_DOMAIN_NAME
     OS_USER_DOMAIN_ID
+    OS_USERNAME
+    OS_PASSWORD
+    OS_AUTH_URL
+    OS_IDENTITY_API_VERSION
+    OS_INTERFACE
 
-
-* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. Please use license file provided at tempest/test_licenses/tvault_license_10VM.txt for Sanity test.
+* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI.
 
 * For running Sanity Test scenario - 
 
