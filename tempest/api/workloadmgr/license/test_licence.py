@@ -138,7 +138,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_04_license_check_capacity(self):
+    def license_check_capacity(self):
         reporting.add_test_script(str(__name__) + "_check_capacity")
         try:
             #Create license using CLI command
