@@ -389,14 +389,15 @@ function configure_tempest
             router_id="$ROUTER_UUID"
         routers+=($ROUTER_UUID)
     done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
-    
+ 
     case "${#routers[*]}" in
         0)
             echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
             router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
+            subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
             $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
-            $OPENSTACK_CMD router add subnet test_router test_internal_subnet
+            $OPENSTACK_CMD router add subnet test_router $subnet_id
             ;;
         1)
             if [ -z "$router_id" ]; then
