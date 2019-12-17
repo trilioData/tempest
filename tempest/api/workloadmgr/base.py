@@ -31,6 +31,7 @@ from tempest_lib import exceptions as lib_exc
 from datetime import datetime
 from datetime import timedelta
 from tempest import tvaultconf
+from tempest import command_argument_string
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
