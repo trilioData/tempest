@@ -31,6 +31,7 @@ from tempest_lib import exceptions as lib_exc
 from datetime import datetime
 from datetime import timedelta
 from tempest import tvaultconf
+from tempest import command_argument_string
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -999,7 +1000,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def SshRemoteMachineConnection(self, ipAddress, userName, password):
         ssh=paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
+        #ssh.load_system_host_keys()
         ssh.connect(hostname=ipAddress, username=userName ,password=password)
         return ssh
 
@@ -1036,7 +1037,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh=paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
+        #ssh.load_system_host_keys()
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
