@@ -7,7 +7,7 @@ def get_db_credentials(hostip=tvaultconf.tvault_ip,user=tvaultconf.tvault_dbuser
 			pwd=tvaultconf.tvault_password):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.load_system_host_keys()
+    #ssh.load_system_host_keys()
     ssh.connect(hostname=hostip, username=user, password=pwd)
     command = "cat /etc/workloadmgr/workloadmgr.conf | grep 'sql_connection' | cut -d '/' -f 3 | cut -d '@' -f 1"
     stdin, stdout, stderr = ssh.exec_command(command)

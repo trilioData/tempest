@@ -143,6 +143,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 del vm_details_af[vm]['metadata']['config_drive']
                 del vm_details_bf[vm]['links']
                 del vm_details_af[vm]['links']
+                vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
+                vm_details_af[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
                 vm_details_bf[vm]['updated'] = ''
                 vm_details_af[vm]['updated'] = ''
                 vm_details_bf[vm]['created'] = ''

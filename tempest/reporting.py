@@ -173,7 +173,7 @@ def add_sanity_results_to_tempest_report():
     result_table = """ <table border="1"><tr><th>TestName</th><th>Result</th></tr>"""
     with open(sanity_results_file, "r") as f:
         for line in f:
-            if(line == "\n"):
+            if(line == "\n" or line.find('---') != -1):
                 pass
             else:
                 row = line.split()
