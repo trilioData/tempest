@@ -320,6 +320,13 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity v3_endpoint_type $ENDPOINT_TYPE
     iniset $TEMPEST_CONFIG identity region $OS_REGION_NAME
 
+    iniset $TEMPEST_CONFIG identity nonadmin_user $NONADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity nonadmin_password $NONADMIN_PWD
+    iniset $TEMPEST_CONFIG identity newadmin_user $NEWADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity newadmin_password $NEWADMIN_PWD
+    iniset $TEMPEST_CONFIG identity backupuser $BACKUP_USERNAME
+    iniset $TEMPEST_CONFIG identity backupuser_password $BACKUP_PWD
+
     # Auth
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
     iniset $TEMPEST_CONFIG auth test_accounts_file $TEMPEST_ACCOUNTS
