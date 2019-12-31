@@ -140,7 +140,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.assign_unassign_workload_policy(policy_id,add_project_ids_list=[admin_project_id],remove_project_ids_list=[])
             if status:
                 reporting.add_test_step("Assign workload policy by admin user", tvaultconf.PASS)
-                LOG.error("Workload policy is assigned to project by admin user")
+                LOG.debug("Workload policy is assigned to project by admin user")
             else:
                 reporting.add_test_step("Assign workload policy by admin user", tvaultconf.FAIL)
                 raise Exception("Workload policy not assigned to project by admin user")
@@ -149,7 +149,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    details = self.get_policy_details(policy_id)
 	    if admin_project_id in details[4]:
 	        reporting.add_test_step("Verify policy assigned by admin user", tvaultconf.PASS)
-                LOG.error("Workload policy is assigned to project by admin user successfully")
+                LOG.debug("Workload policy is assigned to project by admin user successfully")
             else:
                 reporting.add_test_step("Verify policy assigned by admin user", tvaultconf.FAIL)
                 raise Exception("Workload policy not assigned to project by admin user unsuccessfully")
@@ -184,7 +184,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.assign_unassign_workload_policy(policy_id,add_project_ids_list=[],remove_project_ids_list=[admin_project_id])
             if status:
                 reporting.add_test_step("Unassign workload policy by admin user", tvaultconf.PASS)
-                LOG.error("Workload policy is unassigned by admin user")
+                LOG.debug("Workload policy is unassigned by admin user")
             else:
                 reporting.add_test_step("Unassign workload policy by admin user", tvaultconf.FAIL)
                 raise Exception("Workload policy not Unassigned by admin user")
@@ -193,7 +193,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             details = self.get_policy_details(policy_id)
             if admin_project_id not in details[4]:
                 reporting.add_test_step("Verify policy unassigned by admin user", tvaultconf.PASS)
-                LOG.error("Workload policy is unassigned by admin user successfully")
+                LOG.debug("Workload policy is unassigned by admin user successfully")
             else:
                 reporting.add_test_step("Verify policy unassigned by admin user", tvaultconf.FAIL)
                 raise Exception("Workload policy not unassigned by admin user unsuccessfully")
@@ -207,11 +207,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    policy_assign_command = command_argument_string.policy_assign + str(admin_project_id)+" "+ str(policy_id)
             rc = cli_parser.cli_returncode(policy_assign_command)
             if rc != 0:
-                reporting.add_test_step("Can not assign workload policy by nonadmin user", tvaultconf.PASS)
+                reporting.add_test_step("Cannot assign workload policy by nonadmin user", tvaultconf.PASS)
                 LOG.debug("Policy is not assigned by nonadmin user")
             else:
-                reporting.add_test_step("Can not assign workload policy by nonadmin user", tvaultconf.FAIL)
-                raise Exception("Policy is assignedd by nonadmin user")	
+                reporting.add_test_step("Cannot assign workload policy by nonadmin user", tvaultconf.FAIL)
+                raise Exception("Policy is assigned by nonadmin user")	
 
 	    reporting.test_case_to_write()
 	except Exception as e:
