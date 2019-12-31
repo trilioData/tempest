@@ -26,7 +26,7 @@ snapshot_list = "workloadmgr snapshot-list | grep available | wc -l"
 snapshot_create = "workloadmgr workload-snapshot " + " --full --display-name " +tvaultconf.snapshot_name + " "
 snapshot_delete = "workloadmgr snapshot-delete "
 incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tvaultconf.snapshot_name + " "
-
+snapshot_cancel = "workloadmgr snapshot-cancel "
 
 #Restore commands
 restore_list = "workloadmgr restore-list | grep available | wc -l"
@@ -35,7 +35,7 @@ oneclick_restore = "workloadmgr snapshot-oneclick-restore --display-name " +tvau
 selective_restore = "workloadmgr snapshot-selective-restore --display-name " +tvaultconf.selective_restore_name+ " --filename " +tvaultconf.restore_filename
 restore_show = "workloadmgr restore-show "
 inplace_restore = "workloadmgr snapshot-inplace-restore --display-name test_name_inplace --display-description test_description_inplace  --filename "
-
+restore_cancel = "workloadmgr restore-cancel "
 
 #Nova commands
 delete_vm = "nova delete "
