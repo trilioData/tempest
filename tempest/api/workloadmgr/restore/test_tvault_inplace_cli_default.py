@@ -43,10 +43,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
+
     @test.pre_req({'type':'inplace'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_tvault_inplace_cli(self):
+    def test_tvault_inplace_cli_default(self):
 	try:
 
 	    volumes = ["/dev/vdb", "/dev/vdc"]
