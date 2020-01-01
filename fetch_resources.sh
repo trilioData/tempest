@@ -420,12 +420,20 @@ function configure_tempest
     esac
    
     #Allocate floating ips to $TEST_PROJECT_NAME
-
     $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
     $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
     $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
     $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
     $OPENSTACK_CMD floating ip list    
+
+    #Update default security group rules
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    echo $def_secgrp_id
+    $OPENSTACK_CMD security group show $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol icmp $def_secgrp_id
     
     iniset $TEMPEST_CONFIG network internal_network_id $network_id
     iniset $TEMPEST_CONFIG network alt_internal_network_id $network_id_alt
