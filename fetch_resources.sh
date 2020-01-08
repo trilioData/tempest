@@ -335,12 +335,15 @@ function configure_tempest
 
     #Set test user credentials
     echo "Set test user credentials\n"
+    unset OS_PROJECT_ID
+    unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
     export OS_TENANT_ID=$test_project_id
+    env | grep OS_
 
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
@@ -427,7 +430,7 @@ function configure_tempest
     $OPENSTACK_CMD floating ip list    
 
     #Update default security group rules
-    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
