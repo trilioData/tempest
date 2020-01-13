@@ -257,7 +257,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             else:
                                 pass
                     if len(rvmvols)>0:
-                        fip = self.get_vm_details(rvm)['server']['addresses']['private'][1]['addr']
+                        int_net_name = self.get_net_name(CONF.network.internal_network_id)
+                        fip = self.get_vm_details(rvm)['server']['addresses'][int_net_name][1]['addr']
                         key = self.get_vm_details(rvm)['server']['key_name'] 
                         for rvolume in rvmvols:
                             LOG.debug("\nrvolume : {} & j {}\n".format(rvolume,j))
