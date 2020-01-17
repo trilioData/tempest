@@ -330,7 +330,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             print(datetime.datetime.utcnow())
             time_diff = (start_date_time - datetime.datetime.utcnow()).total_seconds()
             time_diff = int(time_diff)
-            LOG.debug("Time difference between UTC time and scheduled start time: " + str(start_date_time))
+            LOG.debug("Time difference between UTC time and scheduled start time: " + str(time_diff))
 
             if next_run_time_after_enable == time_diff and interval == interval_after_enable:
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
