@@ -321,27 +321,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             next_run_time_after_enable = schedule_details['nextrun']
 	    LOG.debug("interval_after_enable "+ str(interval_after_enable))
 	    LOG.debug("next_run_time_after_enable" + str(next_run_time_after_enable))
-	    scheduled_start_time_periods = ''.join([i for i in scheduled_start_time if not i.isdigit()])
-	    scheduled_start_time = ''.join([i for i in scheduled_start_time if not i.isalpha()])
-	    current_time = int(time.time())
-	    LOG.debug("current_time "+ str(current_time))
-            start_time = current_time + next_run_time_after_enable
-	    LOG.debug("start_time "+ str(start_time))
-            time3hours = datetime.datetime.utcfromtimestamp(start_time)
-            start_time_in_hours = time3hours.strftime('%I:%M %p')
-	    start_time_in_periods = ''.join([i for i in start_time_in_hours if not i.isdigit()])
-	    start_time_in_hours = ''.join([i for i in start_time_in_hours if not i.isalpha()])
-	    LOG.debug("start_time_in_hours "+ str(start_time_in_hours))
-	
-	    #Calculate difference between times in minutes
-	    timeA = datetime.datetime.strptime(scheduled_start_time.strip(), "%H:%M")
-	    timeB = datetime.datetime.strptime(start_time_in_hours.strip(), "%H:%M")
-	    newTime = timeA - timeB
-            #Checking in terms of 15 minutes interval
-	    timedelta = newTime.seconds/900	
+	    start_date = schedule_details['start_date']
+            start_time = schedule_details['start_time']
+            start_time = start_time[0:5]
+            date_time = start_date + " " + start_time
+            start_date_time = datetime.datetime.strptime(date_time, "%m/%d/%Y %H:%M")
+            LOG.debug("Scheduled start and date time is: " + str(start_date_time))
+            print(datetime.datetime.utcnow())
+            time_diff = (start_date_time - datetime.datetime.utcnow()).total_seconds()
+            time_diff = int(time_diff)
+            LOG.debug("Time difference between UTC time and scheduled start time: " + str(start_date_time))
 
-	    #Condition for Interval value and time difference should not be more than two minutes and time periods AM/PM
-            if timedelta < 2 and scheduled_start_time_periods == start_time_in_periods  and interval == interval_after_enable:
+            if next_run_time_after_enable == time_diff and interval == interval_after_enable:
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
                 LOG.debug("Interval and Next snapshot run time values are correct")
             else:
