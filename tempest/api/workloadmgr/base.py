@@ -1089,8 +1089,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
         self.channel = ssh.invoke_shell()
+        commands = []
         for volume in volumes:
-            commands = ["sudo fdisk {}".format(volumes[0]),"n","p","1","2048","2097151","w","sudo fdisk -l | grep {}".format(volume),"sudo mkfs -t ext3 {}1".format(volume)]
+            commands.extend(["sudo fdisk {}".format(volume), "n", "p", "1", "2048", "2097151", "w", "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing: " + str(command))
