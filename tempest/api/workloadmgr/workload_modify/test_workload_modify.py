@@ -295,9 +295,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Global job scheduler enable", tvaultconf.FAIL)
                 raise Exception ("Global job scheduler not enabled")
 	    
-	    #Modify workload scheduler to enable
-            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True"
-            rc = cli_parser.cli_returncode(workload_modify_command)
+	    #Modify workload scheduler to enable and set the start date, time and timezone
+	    now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time = datetime.datetime.strftime(now, "%H:%M %p")
+            now_time_plus_15 = now + datetime.timedelta(minutes = 15)
+            now_time_plus_15 = datetime.datetime.strftime(now_time_plus_15, "%H:%M %p")
+            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True" + " --jobschedule start_date="+str(now_date) + " --jobschedule start_time="+"'"+str(now_time_plus_15).strip()+"'" +  " --jobschedule timezone=UTC"
+	    rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step("Execute workload-modify scheduler enable", tvaultconf.FAIL)
                 raise Exception ("Command did not execute correctly")
@@ -319,15 +324,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    schedule_details = self.getSchedulerDetails(self.wid)
             interval_after_enable = schedule_details['interval']
             next_run_time_after_enable = schedule_details['nextrun']
+	    next_run_time_after_enable = int(next_run_time_after_enable)
 	    LOG.debug("interval_after_enable "+ str(interval_after_enable))
 	    LOG.debug("next_run_time_after_enable" + str(next_run_time_after_enable))
 	    start_date = schedule_details['start_date']
             start_time = schedule_details['start_time']
-            start_time = start_time[0:5]
             date_time = start_date + " " + start_time
-            start_date_time = datetime.datetime.strptime(date_time, "%m/%d/%Y %H:%M")
+            start_date_time = datetime.datetime.strptime(date_time, "%m/%d/%Y %H:%M %p")
             LOG.debug("Scheduled start and date time is: " + str(start_date_time))
-            print(datetime.datetime.utcnow())
             time_diff = (start_date_time - datetime.datetime.utcnow()).total_seconds()
             time_diff = int(time_diff)
             LOG.debug("Time difference between UTC time and scheduled start time: " + str(time_diff))
