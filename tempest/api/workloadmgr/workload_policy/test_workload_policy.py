@@ -559,8 +559,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Workload policy has not been created")
 	
 	    # Assign workload policy to projects
-            admin_project_id = CONF.identity.admin_tenant_id
-            status = self.assign_unassign_workload_policy(self.policy_id,add_project_ids_list=[admin_project_id],remove_project_ids_list=[])
+            project_id = CONF.identity.tenant_id
+            status = self.assign_unassign_workload_policy(self.policy_id,add_project_ids_list=[project_id],remove_project_ids_list=[])
             if status:
                 reporting.add_test_step("Assign workload policy", tvaultconf.PASS)
                 LOG.debug("Workload policy is assigned to project")
@@ -651,8 +651,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Workload policy has not been created")
 
             #Assign workload policy to projects
-            admin_project_id = CONF.identity.admin_tenant_id
-            status = self.assign_unassign_workload_policy(self.policy_id2,add_project_ids_list=[admin_project_id],remove_project_ids_list=[])
+            project_id = CONF.identity.tenant_id
+            status = self.assign_unassign_workload_policy(self.policy_id2,add_project_ids_list=[project_id],remove_project_ids_list=[])
             if status:
                 reporting.add_test_step("Assign workload policy_2", tvaultconf.PASS)
                 LOG.debug("Workload policy_2 is assigned to project")
