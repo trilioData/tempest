@@ -334,7 +334,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Scheduled start and date time is: " + str(start_date_time))
 	    utc_24hr = datetime.datetime.utcnow()
             utc_12hr = datetime.datetime.strftime(utc_24hr, "%m/%d/%Y %I:%M %p")
-            utc_12hr = datetime.datetime.strptime(utc_12hr, "%m/%d/%Y %I:%M %p")
+            utc_12hr = datetime.datetime.strptime(utc_12hr, "%m/%d/%Y %H:%M %p")
             time_diff = (start_date_time - utc_12hr).total_seconds()
             time_diff = int(time_diff)
             LOG.debug("Time difference between UTC time and scheduled start time: " + str(time_diff))
