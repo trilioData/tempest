@@ -295,9 +295,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Global job scheduler enable", tvaultconf.FAIL)
                 raise Exception ("Global job scheduler not enabled")
 	    
-	    #Modify workload scheduler to enable
-            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True"
-            rc = cli_parser.cli_returncode(workload_modify_command)
+	    #Modify workload scheduler to enable and set the start date, time and timezone
+	    now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time = datetime.datetime.strftime(now, "%I:%M %p")
+            now_time_plus_15 = now + datetime.timedelta(minutes = 15)
+            now_time_plus_15 = datetime.datetime.strftime(now_time_plus_15, "%I:%M %p")
+            workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True" + " --jobschedule start_date="+str(now_date) + " --jobschedule start_time="+"'"+str(now_time_plus_15).strip()+"'" +  " --jobschedule timezone=UTC"
+	    rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step("Execute workload-modify scheduler enable", tvaultconf.FAIL)
                 raise Exception ("Command did not execute correctly")
@@ -319,29 +324,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    schedule_details = self.getSchedulerDetails(self.wid)
             interval_after_enable = schedule_details['interval']
             next_run_time_after_enable = schedule_details['nextrun']
+	    next_run_time_after_enable = int(next_run_time_after_enable)
 	    LOG.debug("interval_after_enable "+ str(interval_after_enable))
 	    LOG.debug("next_run_time_after_enable" + str(next_run_time_after_enable))
-	    scheduled_start_time_periods = ''.join([i for i in scheduled_start_time if not i.isdigit()])
-	    scheduled_start_time = ''.join([i for i in scheduled_start_time if not i.isalpha()])
-	    current_time = int(time.time())
-	    LOG.debug("current_time "+ str(current_time))
-            start_time = current_time + next_run_time_after_enable
-	    LOG.debug("start_time "+ str(start_time))
-            time3hours = datetime.datetime.utcfromtimestamp(start_time)
-            start_time_in_hours = time3hours.strftime('%I:%M %p')
-	    start_time_in_periods = ''.join([i for i in start_time_in_hours if not i.isdigit()])
-	    start_time_in_hours = ''.join([i for i in start_time_in_hours if not i.isalpha()])
-	    LOG.debug("start_time_in_hours "+ str(start_time_in_hours))
-	
-	    #Calculate difference between times in minutes
-	    timeA = datetime.datetime.strptime(scheduled_start_time.strip(), "%H:%M")
-	    timeB = datetime.datetime.strptime(start_time_in_hours.strip(), "%H:%M")
-	    newTime = timeA - timeB
-            #Checking in terms of 15 minutes interval
-	    timedelta = newTime.seconds/900	
+	    start_date = schedule_details['start_date']
+            start_time = schedule_details['start_time']
+            date_time = start_date + " " + start_time
+            start_date_time = datetime.datetime.strptime(date_time, "%m/%d/%Y %H:%M %p")
+            LOG.debug("Scheduled start and date time is: " + str(start_date_time))
+	    utc_24hr = datetime.datetime.utcnow()
+            utc_12hr = datetime.datetime.strftime(utc_24hr, "%m/%d/%Y %I:%M %p")
+            utc_12hr = datetime.datetime.strptime(utc_12hr, "%m/%d/%Y %H:%M %p")
+            time_diff = (start_date_time - utc_12hr).total_seconds()
+            time_diff = int(time_diff)
+            LOG.debug("Time difference between UTC time and scheduled start time: " + str(time_diff))
+            delta = abs(time_diff - next_run_time_after_enable)
 
-	    #Condition for Interval value and time difference should not be more than two minutes and time periods AM/PM
-            if timedelta < 2 and scheduled_start_time_periods == start_time_in_periods  and interval == interval_after_enable:
+	    #Condition for Interval value and time difference should not be more than two minutes
+            if delta < 120 and interval == interval_after_enable:
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
                 LOG.debug("Interval and Next snapshot run time values are correct")
             else:
