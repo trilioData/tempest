@@ -298,9 +298,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 	    #Modify workload scheduler to enable and set the start date, time and timezone
 	    now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
-            now_time = datetime.datetime.strftime(now, "%H:%M %p")
+            now_time = datetime.datetime.strftime(now, "%I:%M %p")
             now_time_plus_15 = now + datetime.timedelta(minutes = 15)
-            now_time_plus_15 = datetime.datetime.strftime(now_time_plus_15, "%H:%M %p")
+            now_time_plus_15 = datetime.datetime.strftime(now_time_plus_15, "%I:%M %p")
             workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True" + " --jobschedule start_date="+str(now_date) + " --jobschedule start_time="+"'"+str(now_time_plus_15).strip()+"'" +  " --jobschedule timezone=UTC"
 	    rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
@@ -332,11 +332,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             date_time = start_date + " " + start_time
             start_date_time = datetime.datetime.strptime(date_time, "%m/%d/%Y %H:%M %p")
             LOG.debug("Scheduled start and date time is: " + str(start_date_time))
-            time_diff = (start_date_time - datetime.datetime.utcnow()).total_seconds()
+	    utc_24hr = datetime.datetime.utcnow()
+            utc_12hr = datetime.datetime.strftime(utc_24hr, "%m/%d/%Y %I:%M %p")
+            utc_12hr = datetime.datetime.strptime(utc_12hr, "%m/%d/%Y %I:%M %p")
+            time_diff = (start_date_time - utc_12hr).total_seconds()
             time_diff = int(time_diff)
             LOG.debug("Time difference between UTC time and scheduled start time: " + str(time_diff))
+            delta = abs(time_diff - next_run_time_after_enable)
 
-            if next_run_time_after_enable == time_diff and interval == interval_after_enable:
+	    #Condition for Interval value and time difference should not be more than two minutes
+            if delta < 120 and interval == interval_after_enable:
                 reporting.add_test_step("Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
                 LOG.debug("Interval and Next snapshot run time values are correct")
             else:
