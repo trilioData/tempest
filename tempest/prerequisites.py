@@ -413,7 +413,8 @@ def filesearch(self):
 
         # Add two files to vm2 to path /home/ubuntu/mount_data_c
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
-        self.addCustomSizedfilesOnLinux(self.ssh, "//home/ubuntu/mount_data_c", 2)
+        pth = "//home/"+ str(CONF.compute.image_ssh_user) + "/mount_data_c"
+        self.addCustomSizedfilesOnLinux(self.ssh, pth, 2)
         self.ssh.close()
 
         # Create incremental-2 snapshot
@@ -428,7 +429,8 @@ def filesearch(self):
 
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[0]))
-        self.addCustomSizedfilesOnLinux(self.ssh, "//home/ubuntu/mount_data_b", 1)
+        pth = "//home/"+ str(CONF.compute.image_ssh_user) + "/mount_data_b"
+        self.addCustomSizedfilesOnLinux(self.ssh, pth, 2)
         self.ssh.close()
 
         # Create incremental-3 snapshot
