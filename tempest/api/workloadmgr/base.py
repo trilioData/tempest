@@ -1145,7 +1145,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             LOG.debug("build command data population : " + str(dirPath)+ " number of files : " + str(fileCount))
             for count in range(fileCount):
-                buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + time.strftime("%H%M%S") + " bs=2M count=10"
+                buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + str(count+1) + " bs=2M count=10"
                 LOG.debug("Executing command -> "+buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 time.sleep(9*fileCount)
