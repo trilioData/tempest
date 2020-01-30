@@ -26,7 +26,6 @@ import time
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
-
 class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -51,8 +50,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    self.delete_volumes(self.workload_volumes)
             self.delete_key_pair(tvaultconf.key_pair_name)
             self.delete_security_group(self.security_group_id)
-            self.delete_flavor(self.flavor_id)
-
             int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
             int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
@@ -75,6 +72,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             LOG.debug("Vdisks details for restore"+str(temp_vdisks_data))
 
+            flavor_details = { 'id': self.flavor_id
+            	   }
+
 	    for i in range(len(self.workload_instances)):
 	        vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
 	        temp_instance_data = { 'id': self.workload_instances[i],
@@ -82,7 +82,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    			   'include': True,
 	    			   'restore_boot_disk': True,
 	    			   'name': vm_name,
-	    			   'vdisks':temp_vdisks_data[i]
+	    			   'vdisks':temp_vdisks_data[i],
+                                   'flavor': flavor_details
 	    			 }
 	        self.instance_details.append(temp_instance_data)
 	    LOG.debug("Instance details for restore: " + str(self.instance_details))
