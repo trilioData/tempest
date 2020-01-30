@@ -57,7 +57,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             security_group_id = self.security_group_id
 	    # Run Filesearch on vm-1
 	    vmid_to_search = instances_ids[0]
-	    filepath_to_search = "/opt/File_1.txt"
+	    filepath_to_search = "/opt/File_1"
 
 	    LOG.debug("global parameters: {0} {1} {2} {3} {4} {5} {6}".format(str(instances_ids), str(snapshot_ids), str(date_from), str(date_to), str(wid), str(volumes_ids), str(security_group_id)))
 	    filecount_in_snapshots = {snapshot_ids[0] : 0, snapshot_ids[1] : 1, snapshot_ids[2] : 1, snapshot_ids[3] : 1}
@@ -99,7 +99,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    # Run Filesearch on vm-1 with snapshot IDs
 	    vmid_to_search = instances_ids[0]
-	    filepath_to_search = "/File_1.txt"
+	    filepath_to_search = "/File_1"
 	    snapshot_ids_tosearch = snapshot_ids[2]
 	    filecount_in_snapshots = {snapshot_ids[0] : 0, snapshot_ids[1] : 0, snapshot_ids[2] : 0, snapshot_ids[3] : 1}
 	    filesearch_id = self.filepath_search(vmid_to_search, filepath_to_search, snapshot_ids_tosearch)
@@ -132,7 +132,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             global snapshot_ids
 	    # Run Filesearch on vm-1 with latest snapshots
 	    vmid_to_search = instances_ids[0]
-	    filepath_to_search = "/File_1.txt"
+	    filepath_to_search = "/File_1"
 	    snapshot_ids_tosearch = []
 	    start_snapshot = 2
 	    end_snapshot = 0
@@ -168,7 +168,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             global snapshot_ids
 	    # Run Filesearch on vm-1 with latest snapshots
 	    vmid_to_search = instances_ids[0]
-	    filepath_to_search = "/File_1.txt"
+	    filepath_to_search = "/File_1"
 	    snapshot_ids_tosearch = []
 	    start_snapshot = 0
 	    end_snapshot = 2
@@ -206,7 +206,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    global date_to
 	    # Run Filesearch on vm-1 with latest snapshots
 	    vmid_to_search = instances_ids[0]
-	    filepath_to_search = "/File_1.txt"
+	    filepath_to_search = "/File_1"
 	    snapshot_ids_tosearch = []
             start_snapshot = 0
             end_snapshot = 0
@@ -277,7 +277,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    global volumes_ids
 	    # Run Filesearch on vm-1
 	    vmid_to_search = instances_ids[0]
-   	    filepath_to_search = "/opt/File_?.txt"
+   	    filepath_to_search = "/opt/File_?"
 	    filecount_in_snapshots = {snapshot_ids[0]: 0, snapshot_ids[1] : 2, snapshot_ids[2] : 2, snapshot_ids[3] : 2}
 	    filesearch_id = self.filepath_search(vmid_to_search, filepath_to_search)
 	    snapshot_wise_filecount = self.verifyFilepath_Search(filesearch_id, filepath_to_search)
