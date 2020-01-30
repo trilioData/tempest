@@ -2505,7 +2505,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     connet to fvm , validate that snapshot is mounted on fvm
     '''
-    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1.txt"):
+    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1"):
         try:
             LOG.debug("build comand to serach file")
             buildCommand = "find " + file_path_to_search +" -name " + file_name
