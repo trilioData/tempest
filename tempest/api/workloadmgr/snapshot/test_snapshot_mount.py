@@ -122,7 +122,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             floating_ips_list = floating_ips_list
 
             LOG.debug("unmount snapshot")
-            is_unmounted = self.unmount_snapshot(unmount_snapshot_id)
+            is_unmounted = self.unmount_snapshot(wid, unmount_snapshot_id)
             LOG.debug("VALUE OF is_unmounted: " + str(is_unmounted))
             if is_unmounted == True:
                 LOG.debug("unmount snapshot with full snapshot is  successful")
