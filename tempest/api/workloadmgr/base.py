@@ -1689,19 +1689,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
 	if(tvaultconf.cleanup == True and mount_cleanup == True):
-            self.addCleanup(self.unmount_snapshot, snapshot_id)
+            self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
         return is_successful
 
 
     '''
     Method to unmount snapshot and return the status
     '''
-    def unmount_snapshot(self, snapshot_id):
+    def unmount_snapshot(self, workload_id, snapshot_id):
         try:
             resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/dismount")
             LOG.debug("#### snapshotid: %s , operation: unmount_snapshot" % snapshot_id)
             LOG.debug("Response status code:"+ str(resp.status_code))
 	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
+            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id)
 	    return True
         except Exception as e:
 	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
