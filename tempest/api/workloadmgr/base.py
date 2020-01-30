@@ -1703,7 +1703,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Response status code:"+ str(resp.status_code))
 	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-            LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id)
+            LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
 	    return True
         except Exception as e:
 	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
