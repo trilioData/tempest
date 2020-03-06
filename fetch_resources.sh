@@ -355,6 +355,7 @@ function configure_tempest
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
+    sed -i "2i export OS_TENANT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
 
     # network
     echo "Fetch network information\n"
