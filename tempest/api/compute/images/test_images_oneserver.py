@@ -13,39 +13,20 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_log import log as logging
-
 from tempest.api.compute import base
-from tempest.common.utils import data_utils
-from tempest.common import waiters
 from tempest import config
-from tempest import test
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
 
 CONF = config.CONF
-LOG = logging.getLogger(__name__)
 
 
 class ImagesOneServerTestJSON(base.BaseV2ComputeTest):
 
-    def tearDown(self):
-        """Terminate test instances created after a test is executed."""
-        self.server_check_teardown()
-        super(ImagesOneServerTestJSON, self).tearDown()
-
-    def setUp(self):
-        # NOTE(afazekas): Normally we use the same server with all test cases,
-        # but if it has an issue, we build a new one
-        super(ImagesOneServerTestJSON, self).setUp()
-        # Check if the server is in a clean state after test
-        try:
-            waiters.wait_for_server_status(self.servers_client,
-                                           self.server_id, 'ACTIVE')
-        except Exception:
-            LOG.exception('server %s timed out to become ACTIVE. rebuilding'
-                          % self.server_id)
-            # Rebuild server if cannot reach the ACTIVE state
-            # Usually it means the server had a serious accident
-            self.__class__.server_id = self.rebuild_server(self.server_id)
+    @classmethod
+    def resource_setup(cls):
+        super(ImagesOneServerTestJSON, cls).resource_setup()
+        cls.server_id = cls.create_test_server(wait_until='ACTIVE')['id']
 
     @classmethod
     def skip_checks(cls):
@@ -62,57 +43,62 @@ class ImagesOneServerTestJSON(base.BaseV2ComputeTest):
     @classmethod
     def setup_clients(cls):
         super(ImagesOneServerTestJSON, cls).setup_clients()
-        cls.client = cls.images_client
-
-    @classmethod
-    def resource_setup(cls):
-        super(ImagesOneServerTestJSON, cls).resource_setup()
-        server = cls.create_test_server(wait_until='ACTIVE')
-        cls.server_id = server['id']
+        if cls.is_requested_microversion_compatible('2.35'):
+            cls.client = cls.compute_images_client
+        else:
+            cls.client = cls.images_client
 
     def _get_default_flavor_disk_size(self, flavor_id):
         flavor = self.flavors_client.show_flavor(flavor_id)['flavor']
         return flavor['disk']
 
-    @test.idempotent_id('3731d080-d4c5-4872-b41a-64d0d0021314')
+    @decorators.idempotent_id('3731d080-d4c5-4872-b41a-64d0d0021314')
     def test_create_delete_image(self):
+        if self.is_requested_microversion_compatible('2.35'):
+            MIN_DISK = 'minDisk'
+            MIN_RAM = 'minRam'
+        else:
+            MIN_DISK = 'min_disk'
+            MIN_RAM = 'min_ram'
 
         # Create a new image
         name = data_utils.rand_name('image')
         meta = {'image_type': 'test'}
-        body = self.client.create_image(self.server_id, name=name,
-                                        metadata=meta)
-        image_id = data_utils.parse_image_id(body.response['location'])
-        waiters.wait_for_image_status(self.client, image_id, 'ACTIVE')
+        image = self.create_image_from_server(self.server_id, name=name,
+                                              metadata=meta,
+                                              wait_until='ACTIVE')
 
         # Verify the image was created correctly
-        image = self.client.show_image(image_id)['image']
         self.assertEqual(name, image['name'])
-        self.assertEqual('test', image['metadata']['image_type'])
+        if self.is_requested_microversion_compatible('2.35'):
+            self.assertEqual('test', image['metadata']['image_type'])
+        else:
+            self.assertEqual('test', image['image_type'])
 
-        original_image = self.client.show_image(self.image_ref)['image']
+        original_image = self.client.show_image(self.image_ref)
+        if self.is_requested_microversion_compatible('2.35'):
+            original_image = original_image['image']
 
         # Verify minRAM is the same as the original image
-        self.assertEqual(image['minRam'], original_image['minRam'])
+        self.assertEqual(image[MIN_RAM], original_image[MIN_RAM])
 
         # Verify minDisk is the same as the original image or the flavor size
         flavor_disk_size = self._get_default_flavor_disk_size(self.flavor_ref)
-        self.assertIn(str(image['minDisk']),
-                      (str(original_image['minDisk']), str(flavor_disk_size)))
+        self.assertIn(str(image[MIN_DISK]),
+                      (str(original_image[MIN_DISK]), str(flavor_disk_size)))
 
         # Verify the image was deleted correctly
-        self.client.delete_image(image_id)
-        self.client.wait_for_resource_deletion(image_id)
+        self.client.delete_image(image['id'])
+        self.client.wait_for_resource_deletion(image['id'])
 
-    @test.idempotent_id('3b7c6fe4-dfe7-477c-9243-b06359db51e6')
+    @decorators.idempotent_id('3b7c6fe4-dfe7-477c-9243-b06359db51e6')
     def test_create_image_specify_multibyte_character_image_name(self):
         # prefix character is:
-        # http://www.fileformat.info/info/unicode/char/1F4A9/index.htm
+        # http://unicode.org/cldr/utility/character.jsp?a=20A1
 
-        # We use a string with 3 byte utf-8 character due to bug
-        # #1370954 in glance which will 500 if mysql is used as the
-        # backend and it attempts to store a 4 byte utf-8 character
-        utf8_name = data_utils.rand_name('\xe2\x82\xa1')
-        body = self.client.create_image(self.server_id, name=utf8_name)
-        image_id = data_utils.parse_image_id(body.response['location'])
-        self.addCleanup(self.client.delete_image, image_id)
+        # We use a string with 3 byte utf-8 character due to nova/glance which
+        # will return 400(Bad Request) if we attempt to send a name which has
+        # 4 byte utf-8 character.
+        utf8_name = data_utils.rand_name(b'\xe2\x82\xa1'.decode('utf-8'))
+        self.create_image_from_server(self.server_id, name=utf8_name,
+                                      wait_until='ACTIVE')

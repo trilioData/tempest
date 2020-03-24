@@ -13,7 +13,8 @@
 #    under the License.
 
 from tempest.api.network import base
-from tempest import test
+from tempest.common import utils
+from tempest.lib import decorators
 
 
 class DHCPAgentSchedulersTestJSON(base.BaseAdminNetworkTest):
@@ -21,7 +22,7 @@ class DHCPAgentSchedulersTestJSON(base.BaseAdminNetworkTest):
     @classmethod
     def skip_checks(cls):
         super(DHCPAgentSchedulersTestJSON, cls).skip_checks()
-        if not test.is_extension_enabled('dhcp_agent_scheduler', 'network'):
+        if not utils.is_extension_enabled('dhcp_agent_scheduler', 'network'):
             msg = "dhcp_agent_scheduler extension not enabled."
             raise cls.skipException(msg)
 
@@ -31,41 +32,40 @@ class DHCPAgentSchedulersTestJSON(base.BaseAdminNetworkTest):
         # Create a network and make sure it will be hosted by a
         # dhcp agent: this is done by creating a regular port
         cls.network = cls.create_network()
-        cls.subnet = cls.create_subnet(cls.network)
+        cls.create_subnet(cls.network)
         cls.port = cls.create_port(cls.network)
 
-    @test.idempotent_id('5032b1fe-eb42-4a64-8f3b-6e189d8b5c7d')
+    @decorators.idempotent_id('5032b1fe-eb42-4a64-8f3b-6e189d8b5c7d')
     def test_list_dhcp_agent_hosting_network(self):
-        self.admin_client.list_dhcp_agent_hosting_network(
+        self.admin_networks_client.list_dhcp_agents_on_hosting_network(
             self.network['id'])
 
-    @test.idempotent_id('30c48f98-e45d-4ffb-841c-b8aad57c7587')
+    @decorators.idempotent_id('30c48f98-e45d-4ffb-841c-b8aad57c7587')
     def test_list_networks_hosted_by_one_dhcp(self):
-        body = self.admin_client.list_dhcp_agent_hosting_network(
+        body = self.admin_networks_client.list_dhcp_agents_on_hosting_network(
             self.network['id'])
         agents = body['agents']
-        self.assertIsNotNone(agents)
+        self.assertNotEmpty(agents, "no dhcp agent")
         agent = agents[0]
         self.assertTrue(self._check_network_in_dhcp_agent(
             self.network['id'], agent))
 
     def _check_network_in_dhcp_agent(self, network_id, agent):
         network_ids = []
-        body = self.admin_client.list_networks_hosted_by_one_dhcp_agent(
+        body = self.admin_agents_client.list_networks_hosted_by_one_dhcp_agent(
             agent['id'])
         networks = body['networks']
         for network in networks:
             network_ids.append(network['id'])
         return network_id in network_ids
 
-    @test.idempotent_id('a0856713-6549-470c-a656-e97c8df9a14d')
+    @decorators.idempotent_id('a0856713-6549-470c-a656-e97c8df9a14d')
     def test_add_remove_network_from_dhcp_agent(self):
         # The agent is now bound to the network, we can free the port
-        self.client.delete_port(self.port['id'])
-        self.ports.remove(self.port)
+        self.ports_client.delete_port(self.port['id'])
         agent = dict()
         agent['agent_type'] = None
-        body = self.admin_client.list_agents()
+        body = self.admin_agents_client.list_agents()
         agents = body['agents']
         for a in agents:
             if a['agent_type'] == 'DHCP agent':
@@ -84,14 +84,14 @@ class DHCPAgentSchedulersTestJSON(base.BaseAdminNetworkTest):
             self._remove_network_from_dhcp_agent(network_id, agent)
 
     def _remove_network_from_dhcp_agent(self, network_id, agent):
-        self.admin_client.remove_network_from_dhcp_agent(
+        self.admin_agents_client.delete_network_from_dhcp_agent(
             agent_id=agent['id'],
             network_id=network_id)
         self.assertFalse(self._check_network_in_dhcp_agent(
             network_id, agent))
 
     def _add_dhcp_agent_to_network(self, network_id, agent):
-        self.admin_client.add_dhcp_agent_to_network(agent['id'],
-                                                    network_id)
+        self.admin_agents_client.add_dhcp_agent_to_network(
+            agent['id'], network_id=network_id)
         self.assertTrue(self._check_network_in_dhcp_agent(
             network_id, agent))

@@ -16,18 +16,18 @@
 from oslo_utils import timeutils
 import six
 from tempest.api.identity import base
-from tempest import test
+from tempest.lib import decorators
 
 
 class TokensTest(base.BaseIdentityV2Test):
 
-    @test.idempotent_id('65ae3b78-91ff-467b-a705-f6678863b8ec')
+    @decorators.idempotent_id('65ae3b78-91ff-467b-a705-f6678863b8ec')
     def test_create_token(self):
 
         token_client = self.non_admin_token_client
 
         # get a token for the user
-        creds = self.os.credentials
+        creds = self.os_primary.credentials
         username = creds.username
         password = creds.password
         tenant_name = creds.tenant_name
@@ -43,8 +43,8 @@ class TokensTest(base.BaseIdentityV2Test):
         self.assertGreater(expires_at, now)
 
         self.assertEqual(body['token']['tenant']['id'],
-                         creds.credentials.tenant_id)
+                         creds.tenant_id)
         self.assertEqual(body['token']['tenant']['name'],
                          tenant_name)
 
-        self.assertEqual(body['user']['id'], creds.credentials.user_id)
+        self.assertEqual(body['user']['id'], creds.user_id)
