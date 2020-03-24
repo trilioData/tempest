@@ -12,36 +12,32 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import uuid
-
-from tempest_lib import exceptions as lib_exc
-
 from tempest.api.image import base
-from tempest.common.utils import data_utils
-from tempest import test
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 
 class ImagesTagsNegativeTest(base.BaseV2ImageTest):
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('8cd30f82-6f9a-4c6e-8034-c1b51fba43d9')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('8cd30f82-6f9a-4c6e-8034-c1b51fba43d9')
     def test_update_tags_for_non_existing_image(self):
         # Update tag with non existing image.
         tag = data_utils.rand_name('tag')
-        non_exist_image = str(uuid.uuid4())
+        non_exist_image = data_utils.rand_uuid()
         self.assertRaises(lib_exc.NotFound, self.client.add_image_tag,
                           non_exist_image, tag)
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('39c023a2-325a-433a-9eea-649bf1414b19')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('39c023a2-325a-433a-9eea-649bf1414b19')
     def test_delete_non_existing_tag(self):
         # Delete non existing tag.
-        body = self.create_image(container_format='bare',
-                                 disk_format='raw',
-                                 visibility='private'
-                                 )
-        image_id = body['id']
+        image = self.create_image(container_format='bare',
+                                  disk_format='raw',
+                                  visibility='private'
+                                  )
         tag = data_utils.rand_name('non-exist-tag')
-        self.addCleanup(self.client.delete_image, image_id)
+        self.addCleanup(self.client.delete_image, image['id'])
         self.assertRaises(lib_exc.NotFound, self.client.delete_image_tag,
-                          image_id, tag)
+                          image['id'], tag)

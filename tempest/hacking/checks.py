@@ -15,12 +15,11 @@
 import os
 import re
 
-import pep8
+import pycodestyle
 
 
 PYTHON_CLIENTS = ['cinder', 'glance', 'keystone', 'nova', 'swift', 'neutron',
-                  'trove', 'ironic', 'savanna', 'heat', 'ceilometer',
-                  'zaqar', 'sahara']
+                  'ironic', 'heat', 'sahara']
 
 PYTHON_CLIENT_RE = re.compile('import (%s)client' % '|'.join(PYTHON_CLIENTS))
 TEST_DEFINITION = re.compile(r'^\s*def test.*')
@@ -30,6 +29,14 @@ VI_HEADER_RE = re.compile(r"^#\s+vim?:.+")
 RAND_NAME_HYPHEN_RE = re.compile(r".*rand_name\(.+[\-\_][\"\']\)")
 mutable_default_args = re.compile(r"^\s*def .+\((.+=\{\}|.+=\[\])")
 TESTTOOLS_SKIP_DECORATOR = re.compile(r'\s*@testtools\.skip\((.*)\)')
+METHOD = re.compile(r"^    def .+")
+METHOD_GET_RESOURCE = re.compile(r"^\s*def (list|show)\_.+")
+METHOD_DELETE_RESOURCE = re.compile(r"^\s*def delete_.+")
+CLASS = re.compile(r"^class .+")
+EX_ATTRIBUTE = re.compile(r'(\s+|\()(e|ex|exc|exception).message(\s+|\))')
+NEGATIVE_TEST_DECORATOR = re.compile(
+    r'\s*@decorators\.attr\(type=.*negative.*\)')
+_HAVE_NEGATIVE_DECORATOR = False
 
 
 def import_no_clients_in_api_and_scenario_tests(physical_line, filename):
@@ -62,13 +69,15 @@ def scenario_tests_need_service_tags(physical_line, filename,
 
 def no_setup_teardown_class_for_tests(physical_line, filename):
 
-    if pep8.noqa(physical_line):
+    if pycodestyle.noqa(physical_line):
         return
 
-    if 'tempest/test.py' not in filename:
-        if SETUP_TEARDOWN_CLASS_DEFINITION.match(physical_line):
-            return (physical_line.find('def'),
-                    "T105: (setUp|tearDown)Class can not be used in tests")
+    if 'tempest/test.py' in filename or 'tempest/lib/' in filename:
+        return
+
+    if SETUP_TEARDOWN_CLASS_DEFINITION.match(physical_line):
+        return (physical_line.find('def'),
+                "T105: (setUp|tearDown)Class can not be used in tests")
 
 
 def no_vi_headers(physical_line, line_number, lines):
@@ -113,11 +122,6 @@ def no_hyphen_at_end_of_rand_name(logical_line, filename):
 
     T108
     """
-    if './tempest/api/network/' in filename:
-        # Network API tests are migrating from Tempest to Neutron repo now.
-        # So here should avoid network API tests checks.
-        return
-
     msg = "T108: hyphen should not be specified at the end of rand_name()"
     if RAND_NAME_HYPHEN_RE.match(logical_line):
         return 0, msg
@@ -140,7 +144,192 @@ def no_testtools_skip_decorator(logical_line):
     """
     if TESTTOOLS_SKIP_DECORATOR.match(logical_line):
         yield (0, "T109: Cannot use testtools.skip decorator; instead use "
-               "decorators.skip_because from tempest-lib")
+               "decorators.skip_because from tempest.lib")
+
+
+def _common_service_clients_check(logical_line, physical_line, filename,
+                                  ignored_list_file=None):
+    if not re.match('tempest/(lib/)?services/.*', filename):
+        return False
+
+    if ignored_list_file is not None:
+        ignored_list = []
+        with open('tempest/hacking/' + ignored_list_file) as f:
+            for line in f:
+                ignored_list.append(line.strip())
+
+        if filename in ignored_list:
+            return False
+
+    if not METHOD.match(physical_line):
+        return False
+
+    if pycodestyle.noqa(physical_line):
+        return False
+
+    return True
+
+
+def get_resources_on_service_clients(logical_line, physical_line, filename,
+                                     line_number, lines):
+    """Check that service client names of GET should be consistent
+
+    T110
+    """
+    if not _common_service_clients_check(logical_line, physical_line,
+                                         filename, 'ignored_list_T110.txt'):
+        return
+
+    for line in lines[line_number:]:
+        if METHOD.match(line) or CLASS.match(line):
+            # the end of a method
+            return
+
+        if 'self.get(' not in line and ('self.show_resource(' not in line and
+                                        'self.list_resources(' not in line):
+            continue
+
+        if METHOD_GET_RESOURCE.match(logical_line):
+            return
+
+        msg = ("T110: [GET /resources] methods should be list_<resource name>s"
+               " or show_<resource name>")
+        yield (0, msg)
+
+
+def delete_resources_on_service_clients(logical_line, physical_line, filename,
+                                        line_number, lines):
+    """Check that service client names of DELETE should be consistent
+
+    T111
+    """
+    if not _common_service_clients_check(logical_line, physical_line,
+                                         filename, 'ignored_list_T111.txt'):
+        return
+
+    for line in lines[line_number:]:
+        if METHOD.match(line) or CLASS.match(line):
+            # the end of a method
+            return
+
+        if 'self.delete(' not in line and 'self.delete_resource(' not in line:
+            continue
+
+        if METHOD_DELETE_RESOURCE.match(logical_line):
+            return
+
+        msg = ("T111: [DELETE /resources/<id>] methods should be "
+               "delete_<resource name>")
+        yield (0, msg)
+
+
+def dont_import_local_tempest_into_lib(logical_line, filename):
+    """Check that tempest.lib should not import local tempest code
+
+    T112
+    """
+    if 'tempest/lib/' not in filename:
+        return
+
+    if not ('from tempest' in logical_line or
+            'import tempest' in logical_line):
+        return
+
+    if ('from tempest.lib' in logical_line or
+            'import tempest.lib' in logical_line):
+        return
+
+    msg = ("T112: tempest.lib should not import local tempest code to avoid "
+           "circular dependency")
+    yield (0, msg)
+
+
+def use_rand_uuid_instead_of_uuid4(logical_line, filename):
+    """Check that tests use data_utils.rand_uuid() instead of uuid.uuid4()
+
+    T113
+    """
+    if 'tempest/lib/' in filename:
+        return
+
+    if 'uuid.uuid4()' not in logical_line:
+        return
+
+    msg = ("T113: Tests should use data_utils.rand_uuid()/rand_uuid_hex() "
+           "instead of uuid.uuid4()/uuid.uuid4().hex")
+    yield (0, msg)
+
+
+def dont_use_config_in_tempest_lib(logical_line, filename):
+    """Check that tempest.lib doesn't use tempest config
+
+    T114
+    """
+
+    if 'tempest/lib/' not in filename:
+        return
+
+    if ('tempest.config' in logical_line or
+            'from tempest import config' in logical_line or
+            'oslo_config' in logical_line):
+        msg = ('T114: tempest.lib can not have any dependency on tempest '
+               'config.')
+        yield(0, msg)
+
+
+def dont_put_admin_tests_on_nonadmin_path(logical_line, physical_line,
+                                          filename):
+    """Check admin tests should exist under admin path
+
+    T115
+    """
+
+    if 'tempest/api/' not in filename:
+        return
+
+    if pycodestyle.noqa(physical_line):
+        return
+
+    if not re.match(r'class .*Test.*\(.*Admin.*\):', logical_line):
+        return
+
+    if not re.match(r'.\/tempest\/api\/.*\/admin\/.*', filename):
+        msg = 'T115: All admin tests should exist under admin path.'
+        yield(0, msg)
+
+
+def unsupported_exception_attribute_PY3(logical_line):
+    """Check Unsupported 'message' exception attribute in PY3
+
+    T116
+    """
+    result = EX_ATTRIBUTE.search(logical_line)
+    msg = ("[T116] Unsupported 'message' Exception attribute in PY3")
+    if result:
+        yield(0, msg)
+
+
+def negative_test_attribute_always_applied_to_negative_tests(physical_line,
+                                                             filename):
+    """Check ``@decorators.attr(type=['negative'])`` applied to negative tests.
+
+    T117
+    """
+    global _HAVE_NEGATIVE_DECORATOR
+
+    if re.match(r'.\/tempest\/api\/.*_negative.*', filename):
+
+        if NEGATIVE_TEST_DECORATOR.match(physical_line):
+            _HAVE_NEGATIVE_DECORATOR = True
+            return
+
+        if TEST_DEFINITION.match(physical_line):
+            if not _HAVE_NEGATIVE_DECORATOR:
+                return (
+                    0, "T117: Must apply `@decorators.attr(type=['negative'])`"
+                       " to all negative API tests"
+                )
+            _HAVE_NEGATIVE_DECORATOR = False
 
 
 def factory(register):
@@ -152,3 +341,11 @@ def factory(register):
     register(no_hyphen_at_end_of_rand_name)
     register(no_mutable_default_args)
     register(no_testtools_skip_decorator)
+    register(get_resources_on_service_clients)
+    register(delete_resources_on_service_clients)
+    register(dont_import_local_tempest_into_lib)
+    register(dont_use_config_in_tempest_lib)
+    register(use_rand_uuid_instead_of_uuid4)
+    register(dont_put_admin_tests_on_nonadmin_path)
+    register(unsupported_exception_attribute_PY3)
+    register(negative_test_attribute_always_applied_to_negative_tests)

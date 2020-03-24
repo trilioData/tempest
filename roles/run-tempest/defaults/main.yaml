@@ -1,0 +1,6 @@
+devstack_base_dir: /opt/stack
+tempest_test_regex: ''
+tox_envlist: smoke
+tempest_black_regex: ''
+tox_extra_args: ''
+tempest_test_timeout: ''

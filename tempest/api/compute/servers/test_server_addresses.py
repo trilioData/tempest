@@ -13,10 +13,9 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import six
-
 from tempest.api.compute import base
-from tempest import test
+from tempest.common import utils
+from tempest.lib import decorators
 
 
 class ServerAddressesTestJSON(base.BaseV2ComputeTest):
@@ -38,9 +37,9 @@ class ServerAddressesTestJSON(base.BaseV2ComputeTest):
 
         cls.server = cls.create_test_server(wait_until='ACTIVE')
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('6eb718c0-02d9-4d5e-acd1-4e0c269cef39')
-    @test.services('network')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('6eb718c0-02d9-4d5e-acd1-4e0c269cef39')
+    @utils.services('network')
     def test_list_server_addresses(self):
         # All public and private addresses for
         # a server should be returned
@@ -49,16 +48,13 @@ class ServerAddressesTestJSON(base.BaseV2ComputeTest):
 
         # We do not know the exact network configuration, but an instance
         # should at least have a single public or private address
-        self.assertTrue(len(addresses) >= 1)
-        for network_name, network_addresses in six.iteritems(addresses):
-            self.assertTrue(len(network_addresses) >= 1)
-            for address in network_addresses:
-                self.assertTrue(address['addr'])
-                self.assertTrue(address['version'])
+        self.assertNotEmpty(addresses)
+        for network_addresses in addresses.values():
+            self.assertNotEmpty(network_addresses)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('87bbc374-5538-4f64-b673-2b0e4443cc30')
-    @test.services('network')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('87bbc374-5538-4f64-b673-2b0e4443cc30')
+    @utils.services('network')
     def test_list_server_addresses_by_network(self):
         # Providing a network type should filter
         # the addresses return by that type

@@ -14,10 +14,10 @@
 #    under the License.
 
 from tempest.api.compute import base
-from tempest.common.utils import data_utils
 from tempest.common import waiters
 from tempest import config
-from tempest import test
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
 
 
 CONF = config.CONF
@@ -25,11 +25,19 @@ CONF = config.CONF
 
 class VolumesSnapshotsTestJSON(base.BaseV2ComputeTest):
 
+    # These tests will fail with a 404 starting from microversion 2.36. For
+    # more information, see:
+    # https://docs.openstack.org/api-ref/compute/#volume-extension-os-volumes-os-snapshots-deprecated
+    max_microversion = '2.35'
+
     @classmethod
     def skip_checks(cls):
         super(VolumesSnapshotsTestJSON, cls).skip_checks()
         if not CONF.service_available.cinder:
             skip_msg = ("%s skipped as Cinder is not available" % cls.__name__)
+            raise cls.skipException(skip_msg)
+        if not CONF.volume_feature_enabled.snapshot:
+            skip_msg = ("Cinder volume snapshots are disabled")
             raise cls.skipException(skip_msg)
 
     @classmethod
@@ -38,25 +46,21 @@ class VolumesSnapshotsTestJSON(base.BaseV2ComputeTest):
         cls.volumes_client = cls.volumes_extensions_client
         cls.snapshots_client = cls.snapshots_extensions_client
 
-    @test.idempotent_id('cd4ec87d-7825-450d-8040-6e2068f2da8f')
+    @decorators.idempotent_id('cd4ec87d-7825-450d-8040-6e2068f2da8f')
     def test_volume_snapshot_create_get_list_delete(self):
-        v_name = data_utils.rand_name('Volume')
-        volume = self.volumes_client.create_volume(
-            size=CONF.volume.volume_size,
-            display_name=v_name)['volume']
+        volume = self.create_volume()
         self.addCleanup(self.delete_volume, volume['id'])
-        waiters.wait_for_volume_status(self.volumes_client, volume['id'],
-                                       'available')
-        s_name = data_utils.rand_name('Snapshot')
+
+        s_name = data_utils.rand_name(self.__class__.__name__ + '-Snapshot')
         # Create snapshot
         snapshot = self.snapshots_client.create_snapshot(
-            volume['id'],
+            volume_id=volume['id'],
             display_name=s_name)['snapshot']
 
         def delete_snapshot(snapshot_id):
-            waiters.wait_for_snapshot_status(self.snapshots_client,
-                                             snapshot_id,
-                                             'available')
+            waiters.wait_for_volume_resource_status(self.snapshots_client,
+                                                    snapshot_id,
+                                                    'available')
             # Delete snapshot
             self.snapshots_client.delete_snapshot(snapshot_id)
             self.snapshots_client.wait_for_resource_deletion(snapshot_id)

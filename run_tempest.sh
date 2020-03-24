@@ -40,11 +40,11 @@ function usage {
 }
 
 function list-failing-cases {
-    ${wrapper} testr failing
+    ${wrapper} stestr failing
 }
 
 function list_tests() {
-    ${wrapper} testr list-tests $testrargs
+    ${wrapper} stestr list-tests $testrargs
 }
 
 
@@ -123,7 +123,7 @@ fi
 
 function testr_init {
   if [ ! -d .testrepository ]; then
-      ${wrapper} testr init
+      ${wrapper} stestr init
   fi
 }
 
@@ -143,16 +143,16 @@ function run_tests {
   if [ -z "$filepath_arg" ]; then
       sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
       if [ $serial -eq 1 ]; then
-          ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       else
-          ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       fi
   else
       sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"'$tests_filter_option'\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
       if [ $serial -eq 1 ]; then
-          ${wrapper} testr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       else
-          ${wrapper} testr run --parallel --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       fi
   fi
 }

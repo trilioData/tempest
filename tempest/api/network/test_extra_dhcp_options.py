@@ -14,14 +14,14 @@
 #    under the License.
 
 from tempest.api.network import base
-from tempest.common.utils import data_utils
-from tempest import test
+from tempest.common import utils
+from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
 
 
 class ExtraDHCPOptionsTestJSON(base.BaseNetworkTest):
-    """
-    Tests the following operations with the Extra DHCP Options Neutron API
-    extension:
+    """Tests the following operations with the Extra DHCP Options:
 
         port create
         port list
@@ -36,7 +36,7 @@ class ExtraDHCPOptionsTestJSON(base.BaseNetworkTest):
     @classmethod
     def skip_checks(cls):
         super(ExtraDHCPOptionsTestJSON, cls).skip_checks()
-        if not test.is_extension_enabled('extra_dhcp_opt', 'network'):
+        if not utils.is_extension_enabled('extra_dhcp_opt', 'network'):
             msg = "Extra DHCP Options extension not enabled."
             raise cls.skipException(msg)
 
@@ -44,44 +44,46 @@ class ExtraDHCPOptionsTestJSON(base.BaseNetworkTest):
     def resource_setup(cls):
         super(ExtraDHCPOptionsTestJSON, cls).resource_setup()
         cls.network = cls.create_network()
-        cls.subnet = cls.create_subnet(cls.network)
+        cls.create_subnet(cls.network)
         cls.port = cls.create_port(cls.network)
-        cls.ip_tftp = ('123.123.123.123' if cls._ip_version == 4
-                       else '2015::dead')
-        cls.ip_server = ('123.123.123.45' if cls._ip_version == 4
-                         else '2015::badd')
+        ip_tftp = ('123.123.123.123' if cls._ip_version == 4
+                   else '2015::dead')
+        ip_server = ('123.123.123.45' if cls._ip_version == 4
+                     else '2015::badd')
         cls.extra_dhcp_opts = [
             {'opt_value': 'pxelinux.0', 'opt_name': 'bootfile-name'},
-            {'opt_value': cls.ip_tftp, 'opt_name': 'tftp-server'},
-            {'opt_value': cls.ip_server, 'opt_name': 'server-ip-address'}
+            {'opt_value': ip_tftp, 'opt_name': 'tftp-server'},
+            {'opt_value': ip_server, 'opt_name': 'server-ip-address'}
         ]
 
-    @test.idempotent_id('d2c17063-3767-4a24-be4f-a23dbfa133c9')
+    @decorators.idempotent_id('d2c17063-3767-4a24-be4f-a23dbfa133c9')
     def test_create_list_port_with_extra_dhcp_options(self):
         # Create a port with Extra DHCP Options
-        body = self.client.create_port(
+        body = self.ports_client.create_port(
             network_id=self.network['id'],
+            name=data_utils.rand_name(self.__class__.__name__),
             extra_dhcp_opts=self.extra_dhcp_opts)
         port_id = body['port']['id']
-        self.addCleanup(self.client.delete_port, port_id)
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.ports_client.delete_port, port_id)
 
         # Confirm port created has Extra DHCP Options
-        body = self.client.list_ports()
+        body = self.ports_client.list_ports()
         ports = body['ports']
         port = [p for p in ports if p['id'] == port_id]
         self.assertTrue(port)
         self._confirm_extra_dhcp_options(port[0], self.extra_dhcp_opts)
 
-    @test.idempotent_id('9a6aebf4-86ee-4f47-b07a-7f7232c55607')
+    @decorators.idempotent_id('9a6aebf4-86ee-4f47-b07a-7f7232c55607')
     def test_update_show_port_with_extra_dhcp_options(self):
         # Update port with extra dhcp options
         name = data_utils.rand_name('new-port-name')
-        body = self.client.update_port(
+        self.ports_client.update_port(
             self.port['id'],
             name=name,
             extra_dhcp_opts=self.extra_dhcp_opts)
         # Confirm extra dhcp options were added to the port
-        body = self.client.show_port(self.port['id'])
+        body = self.ports_client.show_port(self.port['id'])
         self._confirm_extra_dhcp_options(body['port'], self.extra_dhcp_opts)
 
     def _confirm_extra_dhcp_options(self, port, extra_dhcp_opts):

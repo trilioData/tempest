@@ -14,10 +14,7 @@
 #    under the License.
 
 from tempest.api.compute.security_groups import base
-from tempest import config
-from tempest import test
-
-CONF = config.CONF
+from tempest.lib import decorators
 
 
 class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
@@ -30,7 +27,6 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
     @classmethod
     def resource_setup(cls):
         super(SecurityGroupRulesTestJSON, cls).resource_setup()
-        cls.neutron_available = CONF.service_available.neutron
         cls.ip_protocol = 'tcp'
         cls.from_port = 22
         cls.to_port = 22
@@ -43,7 +39,6 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
         group = {}
         ip_range = {}
         cls.expected = {
-            'id': None,
             'parent_group_id': None,
             'ip_protocol': cls.ip_protocol,
             'from_port': from_port,
@@ -54,14 +49,11 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
 
     def _check_expected_response(self, actual_rule):
         for key in self.expected:
-            if key == 'id':
-                continue
             self.assertEqual(self.expected[key], actual_rule[key],
                              "Miss-matched key is %s" % key)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('850795d7-d4d3-4e55-b527-a774c0123d3a')
-    @test.services('network')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('850795d7-d4d3-4e55-b527-a774c0123d3a')
     def test_security_group_rules_create(self):
         # Positive test: Creation of Security Group rule
         # should be successful
@@ -78,8 +70,7 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
         self.expected['ip_range'] = {'cidr': '0.0.0.0/0'}
         self._check_expected_response(rule)
 
-    @test.idempotent_id('7a01873e-3c38-4f30-80be-31a043cfe2fd')
-    @test.services('network')
+    @decorators.idempotent_id('7a01873e-3c38-4f30-80be-31a043cfe2fd')
     def test_security_group_rules_create_with_optional_cidr(self):
         # Positive test: Creation of Security Group rule
         # with optional argument cidr
@@ -101,8 +92,7 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
         self.expected['ip_range'] = {'cidr': cidr}
         self._check_expected_response(rule)
 
-    @test.idempotent_id('7f5d2899-7705-4d4b-8458-4505188ffab6')
-    @test.services('network')
+    @decorators.idempotent_id('7f5d2899-7705-4d4b-8458-4505188ffab6')
     def test_security_group_rules_create_with_optional_group_id(self):
         # Positive test: Creation of Security Group rule
         # with optional argument group_id
@@ -129,9 +119,8 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
                                   'name': group_name}
         self._check_expected_response(rule)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('a6154130-5a55-4850-8be4-5e9e796dbf17')
-    @test.services('network')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('a6154130-5a55-4850-8be4-5e9e796dbf17')
     def test_security_group_rules_list(self):
         # Positive test: Created Security Group rules should be
         # in the list of all rules
@@ -158,16 +147,17 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
             to_port=to_port2)['security_group_rule']
         rule2_id = rule['id']
         # Delete the Security Group rule2 at the end of this method
-        self.addCleanup(self.client.delete_security_group_rule, rule2_id)
+        self.addCleanup(
+            self.security_group_rules_client.delete_security_group_rule,
+            rule2_id)
 
         # Get rules of the created Security Group
         rules = self.security_groups_client.show_security_group(
             securitygroup_id)['security_group']['rules']
-        self.assertTrue(any([i for i in rules if i['id'] == rule1_id]))
-        self.assertTrue(any([i for i in rules if i['id'] == rule2_id]))
+        self.assertNotEmpty([i for i in rules if i['id'] == rule1_id])
+        self.assertNotEmpty([i for i in rules if i['id'] == rule2_id])
 
-    @test.idempotent_id('fc5c5acf-2091-43a6-a6ae-e42760e9ffaf')
-    @test.services('network')
+    @decorators.idempotent_id('fc5c5acf-2091-43a6-a6ae-e42760e9ffaf')
     def test_security_group_rules_delete_when_peer_group_deleted(self):
         # Positive test:rule will delete when peer group deleting
         # Creating a Security Group to add rules to it
@@ -182,7 +172,7 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
             ip_protocol=self.ip_protocol,
             from_port=self.from_port,
             to_port=self.to_port,
-            group_id=sg2_id)['security_group_rule']
+            group_id=sg2_id)
 
         # Delete group2
         self.security_groups_client.delete_security_group(sg2_id)
@@ -190,4 +180,4 @@ class SecurityGroupRulesTestJSON(base.BaseSecurityGroupsTest):
         rules = (self.security_groups_client.show_security_group(sg1_id)
                  ['security_group']['rules'])
         # The group1 has no rules because group2 has deleted
-        self.assertEqual(0, len(rules))
+        self.assertEmpty(rules)
