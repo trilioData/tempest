@@ -62,6 +62,7 @@ def main(argv):
                                        py_version, project)
     options = install.parse_args(argv)
     install.check_python_version()
+    print py_version
     install.check_dependencies()
     install.create_virtualenv(no_site_packages=options.no_site_packages)
     install.install_dependencies()
