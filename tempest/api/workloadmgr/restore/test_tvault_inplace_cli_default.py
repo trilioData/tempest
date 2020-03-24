@@ -43,10 +43,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 	reporting.add_test_script(str(__name__))
+
     @test.pre_req({'type':'inplace'})
     @test.attr(type='smoke')
     @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    def test_tvault_inplace_cli(self):
+    def test_tvault_inplace_cli_default(self):
 	try:
 
 	    volumes = ["/dev/vdb", "/dev/vdc"]
@@ -69,12 +70,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    
 	    #Fill some data on each of the volumes attached
     	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 2)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 2)
     	    ssh.close()
 
     	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 2)
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 2)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 2)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[1], 2)
     	    ssh.close()
 
 	    

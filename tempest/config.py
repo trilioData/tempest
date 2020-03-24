@@ -26,7 +26,7 @@ from tempest.test_discover import plugins
 
 import sys
 sys.path.append("/usr/lib/python2.7/site-packages/")
-sys.path.append("/usr/local/lib/python2.7/dist-packages")
+sys.path.append("/usr/lib/python2.7/dist-packages")
 
 from workloadmgrclient import utils
 
@@ -287,6 +287,8 @@ ComputeGroup = [
     cfg.StrOpt('fvm_image_ref',
                help="Valid file manager image reference to be used in snasphot mount tests. "
                     "This is a required option"),
+    cfg.StrOpt('fvm_ssh_user',
+               help="User name used to authenticate to the file manager instance."),
     cfg.StrOpt('flavor_ref',
                default="1",
                help="Valid primary flavor to use in tests."),

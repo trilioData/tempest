@@ -65,7 +65,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception ("Snapshot mount with full_snapshot  does not execute correctly")
             
             LOG.debug("validate that snapshot is mounted on FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh).split('\n')                 
             ssh.close()
             flag = 0
@@ -74,7 +74,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step("Verify that mountpoint mounted is shown on FVM instance", tvaultconf.PASS)
                     flag = 1
-                    if 'File_1.txt' in i:
+                    if 'File_1' in i:
                         LOG.debug("check that file exists on mounted snapshot")
                         reporting.add_test_step("Verification of file's existance on moutned snapshot", tvaultconf.PASS)
                     else:
@@ -118,22 +118,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             volumes_ids = volumes_ids
             security_group_id = security_group_id
             fvm_id = fvm_id
-            dismount_snapshot_id = snapshot_ids[0]
+            unmount_snapshot_id = snapshot_ids[0]
             floating_ips_list = floating_ips_list
 
-            LOG.debug("umount snapshot")
-            is_dismounted = self.dismount_snapshot(dismount_snapshot_id)
-            LOG.debug("VALUE OF is_dismounted: " + str(is_dismounted))
-            if is_dismounted == True:
-                LOG.debug("dismount snapshot with full snapshot is  successful")
-                reporting.add_test_step("Verification of dismount snapshot with full snapshot", tvaultconf.PASS)
+            LOG.debug("unmount snapshot")
+            is_unmounted = self.unmount_snapshot(wid, unmount_snapshot_id)
+            LOG.debug("VALUE OF is_unmounted: " + str(is_unmounted))
+            if is_unmounted == True:
+                LOG.debug("unmount snapshot with full snapshot is  successful")
+                reporting.add_test_step("Verification of unmount snapshot with full snapshot", tvaultconf.PASS)
             else:
-                LOG.debug("dismount snapshot with full snapshot is unsuccessful")
-                reporting.add_test_step("Verification of dismount snapshot with full snapshot", tvaultconf.FAIL)
-                raise Exception ("Snapshot dismount with full_snapshot does not execute correctly")
+                LOG.debug("unmount snapshot with full snapshot is unsuccessful")
+                reporting.add_test_step("Verification of unmount snapshot with full snapshot", tvaultconf.FAIL)
+                raise Exception ("Snapshot unmount with full_snapshot does not execute correctly")
             
-            LOG.debug("validate that snapshot is umounted from FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            LOG.debug("validate that snapshot is unmounted from FVM")
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh)
             ssh.close()
             
@@ -184,7 +184,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception ("Snapshot mount with incremental_snapshot  does not execute correctly")
             
             LOG.debug("validate that snapshot is mounted on FVM")
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ips_list[1]), CONF.compute.fvm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh).split('\n')
             ssh.close()
             
@@ -194,12 +194,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step("Verify that mountpoint mounted is shown on FVM instance", tvaultconf.PASS)
                     flag = 1
-                    if 'File_1.txt' in i:
+                    if 'File_1' in i:
                         LOG.debug("check that file is exist on mounted snapshot")
-                        reporting.add_test_step("Verification of file's existance on moutned snapshot", tvaultconf.PASS)
+                        reporting.add_test_step("Verification of file's existance on mounted snapshot", tvaultconf.PASS)
                     else:
                         LOG.debug("file does not found on FVM instacne")
-                        reporting.add_test_step("Verification of file's existance on moutned snapshot", tvaultconf.FAIL)
+                        reporting.add_test_step("Verification of file's existance on mounted snapshot", tvaultconf.FAIL)
                         raise Exception ("file does not found on FVM instacne")
                 else:
                     pass
@@ -208,10 +208,37 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("mount snapshot with full snapshot is unsuccessful on FVM")
                 reporting.add_test_step("Verify that  mountpoint mounted is shown on FVM instance", tvaultconf.FAIL)
                 LOG.debug("file does not found on FVM instacne")
-                reporting.add_test_step("Verification of file's existance on moutned snapshot", tvaultconf.FAIL)
+                reporting.add_test_step("Verification of file's existance on mounted snapshot", tvaultconf.FAIL)
                 raise Exception ("mountpoint is not showing on FVM instance")
             else:
                 pass
+
+            # Cleanup
+            # Unmount incremental snapshot
+            self.unmount_snapshot(wid, incremental_snapshot_id)
+
+            # Delete all snapshots
+            for snapshot_id in snapshot_ids:
+                self.snapshot_delete(wid, snapshot_id)
+
+            # Delete workload
+            self.workload_delete(wid)
+
+            # Delete VMs
+            for instance_id in instances_ids:
+                self.delete_vm(instance_id)
+            self.delete_vm(fvm_id)
+
+            # Delete volumes
+            for volume_id in volumes_ids:
+                self.delete_volume(volume_id)
+
+            # Delete security group
+            self.delete_security_group(security_group_id)
+
+            # Delete key pair
+            self.delete_key_pair(tvaultconf.key_pair_name)
+
             reporting.test_case_to_write()
 
         except Exception as e:

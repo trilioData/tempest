@@ -33,14 +33,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    self.instances_id = []
 
 	    # Create volume, Launch an Instance
-	    floating_ips_list = self.get_floating_ips()
 	    self.volumes_id = self.create_volume(volume_cleanup=False)
             LOG.debug("Volume-1 ID: " + str(self.volumes_id))
             self.instances_id.append(self.create_vm(vm_cleanup=False))
             LOG.debug("VM-1 ID: " + str(self.instances_id[0]))
             self.attach_volume(self.volumes_id, self.instances_id[0])
             LOG.debug("Volume attached")
-            self.set_floating_ip(floating_ips_list[0], self.instances_id[0])
 
 	    # Create workload
     	    self.wid = self.workload_create(self.instances_id, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
@@ -95,7 +93,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Snapshot one-click restore verification with DB", tvaultconf.FAIL)
 
 	    # Launch recovery instance and Mount snapshot
-	    self.recoveryinstances_id = self.create_vm(flavor_id=tvaultconf.recovery_flavor_ref, image_id=tvaultconf.recovery_image_ref)
+	    self.recoveryinstances_id = self.create_vm(flavor_id=CONF.compute.flavor_ref_alt, image_id=CONF.compute.fvm_image_ref)
             LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
 	    status = self.mount_snapshot(self.wid, self.snapshot_id, self.recoveryinstances_id)
             if status == True:

@@ -35,7 +35,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             vm_id = self.create_vm( vm_cleanup=True)
             LOG.debug("VM ID : "+str(vm_id))
-            reporting.add_test_script(str(__name__)+ "_create_workload" + time.strftime("%H%M%S"))
             i = 1
 
             jobschedule = {'retention_policy_type': 'Number of Snapshots to Keep',

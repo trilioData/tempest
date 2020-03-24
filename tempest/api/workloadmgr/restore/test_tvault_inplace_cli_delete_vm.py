@@ -54,12 +54,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    
 	    #Fill some data on each of the volumes attached
     	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[0]))
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 1)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 1)
     	    ssh.close()
 
     	    ssh = self.SshRemoteMachineConnectionWithRSAKey(str(self.floating_ips_list[1]))
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 1)
-    	    self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 1)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 1)
+    	    self.addCustomfilesOnLinuxVM(ssh, mount_points[1], 1)
     	    ssh.close()
 
 	    #Fill some more data on each volume attached

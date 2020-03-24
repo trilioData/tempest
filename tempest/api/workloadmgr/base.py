@@ -31,6 +31,9 @@ from tempest_lib import exceptions as lib_exc
 from datetime import datetime
 from datetime import timedelta
 from tempest import tvaultconf
+from tempest import command_argument_string
+from tempest.util import cli_parser
+from tempest.util import query_data
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -999,7 +1002,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def SshRemoteMachineConnection(self, ipAddress, userName, password):
         ssh=paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
+        #ssh.load_system_host_keys()
         ssh.connect(hostname=ipAddress, username=userName ,password=password)
         return ssh
 
@@ -1036,7 +1039,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh=paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
+        #ssh.load_system_host_keys()
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
@@ -1086,8 +1089,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
         self.channel = ssh.invoke_shell()
+        commands = []
         for volume in volumes:
-            commands = ["sudo fdisk {}".format(volumes[0]),"n","p","1","2048","2097151","w","sudo fdisk -l | grep {}".format(volume),"sudo mkfs -t ext3 {}1".format(volume)]
+            commands.extend(["sudo fdisk {}".format(volume), "n", "p", "1", "2048", "2097151", "w", "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing: " + str(command))
@@ -1141,7 +1145,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             LOG.debug("build command data population : " + str(dirPath)+ " number of files : " + str(fileCount))
             for count in range(fileCount):
-                buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + time.strftime("%H%M%S") + " bs=2M count=10"
+                buildCommand = "sudo dd if=/dev/urandom of=" + str(dirPath) + "/" + "File_" + str(count+1) + " bs=2M count=10"
                 LOG.debug("Executing command -> "+buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 time.sleep(9*fileCount)
@@ -1317,8 +1321,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''get network name  by id'''
     def get_net_name(self, network_id):
-        net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
-        return net_name
+        try:
+            net_name = self.networks_client.show_network(network_id).items()[0][1]['name']
+            return net_name
+        except TypeError as te:
+	    LOG.debug("TypeError: " + str(te))
+            net_name = self.networks_client.show_network(network_id).items()[0][1][0]['name']
+            return net_name
+        except Exception as e:
+            LOG.error("Exception in get_net_name: " +str(e))
+            return None 
 
     '''get subnet id'''
     def get_subnet_id(self, network_id):
@@ -1677,19 +1689,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' % self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
 	if(tvaultconf.cleanup == True and mount_cleanup == True):
-            self.addCleanup(self.unmount_snapshot, snapshot_id)
+            self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
         return is_successful
 
 
     '''
     Method to unmount snapshot and return the status
     '''
-    def unmount_snapshot(self, snapshot_id):
+    def unmount_snapshot(self, workload_id, snapshot_id):
         try:
             resp, body = self.wlm_client.client.post("/snapshots/"+snapshot_id+"/dismount")
             LOG.debug("#### snapshotid: %s , operation: unmount_snapshot" % snapshot_id)
             LOG.debug("Response status code:"+ str(resp.status_code))
 	    LOG.debug('Snapshot unmounted: %s' % snapshot_id)
+            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            LOG.debug('Snapshot status is: %s' % self.getSnapshotStatus(workload_id, snapshot_id))
 	    return True
         except Exception as e:
 	    LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
@@ -2493,7 +2507,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     connet to fvm , validate that snapshot is mounted on fvm
     '''
-    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1.txt"):
+    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1"):
         try:
             LOG.debug("build comand to serach file")
             buildCommand = "find " + file_path_to_search +" -name " + file_name
@@ -2506,17 +2520,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception: " + str(e))
     
-    '''
-    Method to dismount snapshot
-    '''
-    def dismount_snapshot(self,snapshot_id):
-        resp, body = self.wlm_client.client.post("/snapshots/"+ snapshot_id +"/dismount")
-        LOG.debug("Response:"+ str(resp.content))
-        if(resp.status_code != 200):
-           resp.raise_for_status()        
-        else:
-           return True
-
     '''
     Method to fetch the list of network ports by network_id
     '''
@@ -2546,14 +2549,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
        for router_id in router_list:
             self.network_client.delete_router(router_id)
        LOG.debug("delete router")
-   
+
+    '''
+    Delete Router routes
+    '''
+    def delete_router_routes(self, router_list):
+        for router in router_list:
+            if router['routes'] != []:
+                self.network_client.update_router(router['id'], **{'routes':[]})
+        LOG.debug("Deleted routes of routers")
+
     '''
     Method to delete list of ports
     '''
     def delete_network(self, network_id):
         ports_list = []
         router_id_list = []
-        router_id_list = self.get_router_ids()
+        routers = self.network_client.list_routers()['routers']
+        routers = [ x for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
+        self.delete_router_routes(routers)
+        router_id_list = [x['id'] for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
         for router in router_id_list:
             self.delete_router_interfaces(router)
         self.delete_routers(router_id_list)
@@ -2610,7 +2625,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         networkslist = self.networks_client.list_networks()['networks']
 
         for network in networkslist:
-            if network['router:external'] == False:
+            if network['router:external'] == False and network['tenant_id'] == CONF.identity.tenant_id:
                 self.delete_network(network['id'])
             else:
                 pass
@@ -2635,7 +2650,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 nets[net['network']['name']] = net['network']['id']
 
         for x in range(1,6):
-            if x != 4:
+            if x != 3:
                 router = self.network_client.create_router(**{'name':"Router-{}".format(x)})
             else:
                 router = self.network_client.create_router(**{'name':"Router-{}".format(x), 'admin_state_up':'False'})
@@ -2655,6 +2670,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.network_client.add_router_interface_with_subnet_id(routers['Router-4'], subnets['PS-5'])
         portid4 = self.network_client.create_port(**{'network_id':nets['Private-5'], 'fixed_ips': [{'ip_address':'10.10.5.3'}]})['port']['id']
         self.network_client.add_router_interface_with_port_id(routers['Router-5'], portid4)
+
+        for router_name,router_id in routers.items():
+            if router_name == 'Router-1':
+                self.network_client.update_router(router_id, **{'routes':[{'destination': '10.10.5.0/24', 'nexthop': '10.10.2.6'}]})
+            elif router_name in ['Router-4','Router-5']:
+                self.network_client.update_router(router_id, **{'routes':[{'destination': '10.10.1.0/24', 'nexthop': '10.10.2.1'}]})
+
         return networkslist
 
     '''
@@ -2664,20 +2686,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_topology_details(self):
             networkslist = self.networks_client.list_networks()['networks']
             nws = [x['id'] for x in networkslist]
-            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id')} for x in networkslist]
+            nt= [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'subnets', 'created_at', 'updated_at', 'id', 'revision_number', 'provider:segmentation_id')} for x in networkslist]
             networks = {}
             for each_network in nt:
                 networks[each_network['name']] = each_network
 
             sbnt = self.subnets_client.list_subnets()['subnets']
-            sbnts = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'id')} for x in sbnt]
+            sbnts = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'id', 'revision_number')} for x in sbnt]
             subnets = {}
             for each_subnet in sbnts:
                 subnets[each_subnet['name']] = each_subnet
 
 
             rs = self.network_client.list_routers()['routers']
-            rts = [{str(i):str(j) for i,j in x.items() if i not in ('external_gateway_info', 'created_at', 'updated_at', 'id')} for x in rs]
+            rts = [{str(i):str(j) for i,j in x.items() if i not in ('external_gateway_info', 'created_at', 'updated_at', 'id', 'revision_number')} for x in rs]
             routers = {}
             for each_router in rts:
                 routers[each_router['name']] = each_router
@@ -2688,4 +2710,111 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 intrfs = [{str(i):str(j) for i,j in x.items() if i not in ('network_id', 'created_at', 'updated_at', 'mac_address', 'fixed_ips', 'id', 'device_id', 'security_groups', 'port_security_enabled', 'revision_number')} for x in interfaceslist]
                 interfaces[self.network_client.show_router(router)['router']['name']] = intrfs
             return(networks, subnets, routers, interfaces)
+
+
+    def workload_snapshot_cli(self, workload_id, is_full):
+        self.created = False
+        command_execution = ''
+        snapshot_execution = ''
+        if is_full:
+            create_snapshot = command_argument_string.snapshot_create + workload_id
+            LOG.debug("Create snapshot command: " + str(create_snapshot))
+        else:
+            create_snapshot = command_argument_string.incr_snapshot_create + workload_id
+            LOG.debug("Create snapshot command: " + str(create_snapshot))
+
+        rc = cli_parser.cli_returncode(create_snapshot)
+        if rc != 0:
+            LOG.debug("Execution of workload-snapshot command failed")
+            command_execution = 'fail'
+        else:
+            LOG.debug("Command executed correctly for workload snapshot")
+            command_execution = 'pass'
+
+        snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
+        LOG.debug("Snapshot ID: " + str(snapshot_id))
+        wc = self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        if (str(wc) == "available"):
+            snapshot_execution = 'pass'
+            self.created = True
+        else:
+            if (str(wc) == "error"):
+                pass
+        if (self.created == False):
+            if is_full:
+                snapshot_execution = 'pass'
+            else:
+                snapshot_execution = 'fail'
+
+        if (tvaultconf.cleanup == True):
+            self.addCleanup(self.snapshot_delete,workload_id, snapshot_id)
+        return(snapshot_id, command_execution, snapshot_execution)
+
+    '''
+    This method takes restore details as a parameter rest_details. For selective restore key,values of rest_details are : 1. rest_type:selective 2. network_id
+    3. subnet_id and 4. instances:{vm_id1:[list of vols associated with it including boot volume if any], vm_id2:[],...}.
+    For inplace restore necessary key,values are : 1.rest_type:inplace and 2.instances:{vm_id1:[list of vols associated with it including boot volume if any], vm_id2:[],...}.
+    '''
+    def create_restore_json(self, rest_details):
+        if rest_details['rest_type'] == 'selective':
+            snapshot_network = {
+                                 'id': rest_details['network_id'],
+                                 'subnet': { 'id': rest_details['subnet_id']}
+                               }
+            target_network = { 'id': rest_details['network_id'],
+                               'subnet': { 'id': rest_details['subnet_id']}
+                             }
+            network_details = [ { 'snapshot_network': snapshot_network,
+                                       'target_network': target_network } ]
+            LOG.debug("Network details for restore: " + str(network_details))
+            instances = rest_details['instances']
+            instance_details = []
+            for instance in instances:
+                temp_vdisks_data = []
+                for volume in instances[instance]:
+                    temp_vdisks_data.append({  'id':volume,
+                                                'availability_zone':CONF.volume.volume_availability_zone,
+                                                'new_volume_type':CONF.volume.volume_type})
+                vm_name = "tempest_test_vm_"+instance+"_selectively_restored"
+                temp_instance_data = {  'id': instance,
+                                        'availability_zone':CONF.compute.vm_availability_zone,
+                                        'include': True,
+                                        'restore_boot_disk': True,
+                                        'name': vm_name,
+                                        'vdisks':temp_vdisks_data
+                                    }
+            instance_details.append(temp_instance_data)
+            LOG.debug("Instance details for restore: " + str(instance_details))
+            payload={'instance_details': instance_details,
+                     'network_details': network_details}
+            return(payload)
+
+        elif rest_details['rest_type'] == 'inplace':
+            instances = rest_details['instances']
+            instance_details = []
+            for instance in instances:
+                temp_vdisks_data = []
+                for volume in instances[instance]:
+                    temp_vdisks_data.append({  'id':volume,
+                                                'availability_zone':CONF.volume.volume_availability_zone,
+                                                'new_volume_type':CONF.volume.volume_type})
+                temp_instance_data = {  'id': instance,
+                                        'availability_zone':CONF.compute.vm_availability_zone,
+                                        'include': True,
+                                        'restore_boot_disk': True,
+                                        'vdisks':temp_vdisks_data
+                                    }
+            instance_details.append(temp_instance_data)
+            LOG.debug("Instance details for restore: " + str(instance_details))
+            payload = { 'name': u'Inplace Restore', u'zone': u'', u'oneclickrestore': False,
+                        'openstack': {
+                            'instances': instance_details,
+                            'networks_mapping': {
+                                'networks': []}},
+                        'restore_type': 'inplace',
+                        'type': 'openstack',
+                            }
+            return(payload)
+        else:
+            return
 

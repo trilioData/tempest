@@ -4,10 +4,16 @@ source openstack-setup.conf
 TEMPEST_DIR=$PWD
 TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
-TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:=/opt/lock}
+TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+NONADMIN_USERNAME=trilio-nonadmin-user
+NONADMIN_PWD=password
+NEWADMIN_USERNAME=trilio-newadmin-user
+NEWADMIN_PWD=password
+BACKUP_USERNAME=trilio-backup-user
+BACKUP_PWD=password
 git checkout run_tempest.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
@@ -106,6 +112,7 @@ function configure_tempest
     mkdir -p $TEMPEST_STATE_PATH
 
     # Set cloud admin credentials
+    echo "Setting cloud admin credentials, to fetch openstack details\n"
     export OS_USERNAME=$CLOUDADMIN_USERNAME
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
@@ -118,12 +125,29 @@ function configure_tempest
     export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE
     export OS_INTERFACE=$ENDPOINT_TYPE
 
+    #Create roles and users
+    $OPENSTACK_CMD role create newadmin
+    $OPENSTACK_CMD role create backup
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NONADMIN_PWD --description $NONADMIN_USERNAME --enable $NONADMIN_USERNAME
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
+    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
+     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_ALT_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME newadmin
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME backup
+
+    #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
     service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
+    test_user_id=$($OPENSTACK_CMD user list | awk "/ $TEST_USERNAME / { print \$2 }")
+    test_alt_user_id=$($OPENSTACK_CMD user list | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
+
     if [[ "$wlm_endpoint" =~ "https" ]]
     then
         git checkout tempest/command_argument_string.py
@@ -141,6 +165,7 @@ function configure_tempest
     # ... Also ensure we only take active images, so we don't get snapshots in process
     declare -a images
 
+    echo "Fetching image details\n"
     while read -r IMAGE_NAME IMAGE_UUID; do
         if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
             image_uuid="$IMAGE_UUID"
@@ -151,7 +176,7 @@ function configure_tempest
 
     case "${#images[*]}" in
         0)
-            echo "Found no valid images to use!"
+            echo "Found no valid images to use!\n"
             exit 1
             ;;
         1)
@@ -172,9 +197,10 @@ function configure_tempest
     fvm_image_uuid=`$OPENSTACK_CMD image list | grep $FVM_IMAGE_NAME | cut -d '|' -f2`
     if [[ -z $fvm_image_uuid ]]
     then
-        echo "File recovery manager instance not available"
+        echo "File recovery manager instance not available\n"
     fi
 
+    echo "Fetching flavor details\n"
     available_flavors=$($OPENSTACK_CMD flavor list)
     if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
         if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
@@ -219,7 +245,7 @@ function configure_tempest
     num_fvm_flavor=${#fvm_flavor[*]}
     echo "Found $num_fvm_flavor flavors for File manager"
     if [[ $num_fvm_flavor -eq 0 ]]; then
-        echo "Found no valid fvm flavors to use!"
+        echo "Found no valid fvm flavors to use!\n"
     fi
     flavor_ref_alt=${fvm_flavor[0]}
 
@@ -233,10 +259,11 @@ function configure_tempest
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
 
     # Volume
+    echo "Fetching volume type details\n"
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
-            echo "No volume type available to use!"
+            echo "No volume type available to use!\n"
             exit 1
             ;;
         1)
@@ -286,11 +313,20 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
+    iniset $TEMPEST_CONFIG identity user_id $test_user_id
+    iniset $TEMPEST_CONFIG identity user_id_1 $test_alt_user_id
     iniset $TEMPEST_CONFIG identity domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity default_domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity uri_v3 $OS_AUTH_URL
     iniset $TEMPEST_CONFIG identity v3_endpoint_type $ENDPOINT_TYPE
     iniset $TEMPEST_CONFIG identity region $OS_REGION_NAME
+
+    iniset $TEMPEST_CONFIG identity nonadmin_user $NONADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity nonadmin_password $NONADMIN_PWD
+    iniset $TEMPEST_CONFIG identity newadmin_user $NEWADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity newadmin_password $NEWADMIN_PWD
+    iniset $TEMPEST_CONFIG identity backupuser $BACKUP_USERNAME
+    iniset $TEMPEST_CONFIG identity backupuser_password $BACKUP_PWD
 
     # Auth
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
@@ -298,14 +334,18 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth allow_tenant_isolation True
 
     #Set test user credentials
+    echo "Set test user credentials\n"
+    unset OS_PROJECT_ID
+    unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
     export OS_TENANT_ID=$test_project_id
+    env | grep OS_
 
-    #Add wlm rc paramerters to run_tempest.sh
+    echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
     sed -i "2i export OS_TENANT_ID=$test_project_id" run_tempest.sh
@@ -317,22 +357,21 @@ function configure_tempest
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
 
     # network
+    echo "Fetch network information\n"
     while read -r NETWORK_TYPE NETWORK_UUID; do
         if [ "$NETWORK_TYPE" = "Internal" ]; then
             network_id="$NETWORK_UUID"
             network_id_alt="$NETWORK_UUID"
-        else
-            ext_network_id="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
     done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
 
     case "${#networks[*]}" in
         0)
-            echo "Found no internal networks to use! Creating new internal network"
+            echo "Found no internal networks to use! Creating new internal network\n"
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
-            network_id=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
-            network_id_alt=$OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
+            network_id_alt=$network_id
             $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
 ;;
         1)
@@ -350,18 +389,26 @@ function configure_tempest
     esac
 
     # router
+    while read -r NETWORK_TYPE NETWORK_UUID; do
+        if [ "$NETWORK_TYPE" = "External" ]; then
+            ext_network_id="$NETWORK_UUID"
+        fi
+        networks+=($NETWORK_UUID)
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+
     while read -r ROUTER_UUID; do
             router_id="$ROUTER_UUID"
         routers+=($ROUTER_UUID)
-    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
-    
+    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
+ 
     case "${#routers[*]}" in
         0)
-            echo "Found no routers to use! Creating new router"
+            echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
-            router_id=$OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }'
+            router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
+            subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
             $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
-            $OPENSTACK_CMD router add subnet test_router test_internal_subnet
+            $OPENSTACK_CMD router add subnet test_router $subnet_id
             ;;
         1)
             if [ -z "$router_id" ]; then
@@ -374,9 +421,26 @@ function configure_tempest
             fi
             ;;
     esac
+   
+    #Allocate floating ips to $TEST_PROJECT_NAME
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip list    
+
+    #Update default security group rules
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    echo $def_secgrp_id
+    $OPENSTACK_CMD security group show $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol icmp $def_secgrp_id
     
     iniset $TEMPEST_CONFIG network internal_network_id $network_id
     iniset $TEMPEST_CONFIG network alt_internal_network_id $network_id_alt
+    iniset $TEMPEST_CONFIG network public_router_id $router_id
 
     # identity-feature-enabled
     iniset $TEMPEST_CONFIG identity-feature-enabled api_v2 False
