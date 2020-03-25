@@ -485,6 +485,7 @@ pip install openstacksdk==0.35.0
 pip install os-client-config==1.18.0
 pip install python-openstackclient==3.19.0
 pip install python-cinderclient==4.2.0
+pip install python-novaclient==15.1.0
 
 configure_tempest
 deactivate
