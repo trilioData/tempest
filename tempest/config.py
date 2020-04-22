@@ -28,8 +28,8 @@ from tempest.lib.services import clients
 from tempest.test_discover import plugins
 
 import sys
-sys.path.append("/usr/lib/python2.7/site-packages/")
-sys.path.append("/usr/local/lib/python2.7/dist-packages")
+sys.path.append("/usr/lib/python3.6/site-packages/")
+sys.path.append("/usr/local/lib/python3.6/dist-packages")
 
 from workloadmgrclient import utils
 DEFAULT_OS_WORKLOAD_API_VERSION = "1"
@@ -196,6 +196,69 @@ IdentityGroup = [
                     "keystone.conf: security_compliance.unique_last_password_"
                     "count otherwise test might fail"
                ),
+    cfg.StrOpt('username',
+               help="Username to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('tenant_name',
+               help="Tenant name to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('tenant_id',
+               help="Tenant ID to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('tenant_id_1',
+               help="Tenant_1 ID to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('admin_tenant_id',
+               help="admin tenant id to be used for authentcation "
+                    "for API tests."),
+    cfg.StrOpt('admin_role',
+               default='admin',
+               help="Role required to administrate keystone."),
+    cfg.StrOpt('password',
+               help="API key to use when authenticating.",
+               secret=True,
+               deprecated_for_removal=True),
+    cfg.StrOpt('domain_id',
+               help="Domain id for authentication (Keystone V3)."
+                    "The same domain applies to user and project",
+               deprecated_for_removal=True),
+    cfg.StrOpt('domain_name',
+               help="Domain name for authentication (Keystone V3)."
+                    "The same domain applies to user and project",
+               deprecated_for_removal=True),
+    cfg.StrOpt('nonadmin_user',
+               help="nonadmin_user to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('newadmin_user',
+               help="newadmin_user to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('backupuser',
+               help="backupuser to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('nonadmin_password',
+               help="API key to use when authenticating.",
+               secret=True,
+               deprecated_for_removal=True),
+    cfg.StrOpt('newadmin_password',
+               help="API key to use when authenticating.",
+               secret=True,
+               deprecated_for_removal=True),
+    cfg.StrOpt('backupuser_password',
+               help="API key to use when authenticating.",
+               secret=True,
+               deprecated_for_removal=True),
+    cfg.StrOpt('admin_tenant_id',
+               help="admin tenant id to be used for authentcation "
+                    "for API tests."),
+    cfg.StrOpt('user_id_1',
+               help="ID of user to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('user_id',
+               help="ID of user to use for Nova API requests.",
+               deprecated_for_removal=True),
+    cfg.StrOpt('user_email',
+               help="Email of user to be used.",
+               deprecated_for_removal=True),
 ]
 
 service_clients_group = cfg.OptGroup(name='service-clients',
@@ -387,6 +450,24 @@ ComputeGroup = [
                     'allow_availability_zone_fallback=False in cinder.conf), '
                     'the volume create request will fail and the instance '
                     'will fail the build request.'),
+    cfg.StrOpt('flavor_name',
+               default='',
+               help="Flavor name"),
+    cfg.IntOpt('flavor_ram',
+               default=4096,
+               help="RAM for the flavor"),
+    cfg.IntOpt('flavor_disk',
+               default=10,
+               help="Disk size for the flavor"),
+    cfg.IntOpt('flavor_swap',
+               default=1024,
+               help="Swap disk size for the flavor"),
+    cfg.IntOpt('flavor_ephemeral',
+               default=2,
+               help="Ephemeral disk size for the flavor"),
+    cfg.IntOpt('flavor_vcpus',
+               default=4,
+               help="VCPUS for the flavor"),
 ]
 
 placement_group = cfg.OptGroup(name='placement',
@@ -923,6 +1004,18 @@ VolumeGroup = [
     cfg.StrOpt('volume_availability_zone',
                default=None,
                help="Availability zone for volume creation"),
+    cfg.StrOpt('volume_type',
+               default='',
+               help='Volume type name'),
+    cfg.StrOpt('volume_type_id',
+               default='',
+               help='Volume type id'),
+    cfg.StrOpt('volume_type_1',
+               default='',
+               help='Alternate Volume type name'),
+    cfg.StrOpt('volume_type_id_1',
+               default='',
+               help='Alternate Volume type id'),
 
 ]
 
@@ -953,6 +1046,9 @@ VolumeFeaturesGroup = [
                 help='A list of enabled volume extensions with a special '
                      'entry all which indicates every extension is enabled. '
                      'Empty list indicates all extensions are disabled'),
+    cfg.BoolOpt('api_v1',
+                default=True,
+                help="Is the v1 volume API enabled"),
     cfg.BoolOpt('api_v2',
                 default=True,
                 help="Is the v2 volume API enabled",

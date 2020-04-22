@@ -30,7 +30,6 @@ CONF = config.CONF
 sys.path.append(os.getcwd())
 
 
-
 class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -59,44 +58,53 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.server_id = self.vm_info[1].strip()
 
         LOG.debug('Workload ID is in file : %s' % self.workload_id)
-        self.assertEqual(self.getFullBackupIntervalStatus(self.workload_id), '-1')
+        self.assertEqual(self.getFullBackupIntervalStatus(
+            self.workload_id), '-1')
         if(self.is_schedule_running(self.workload_id)):
             self.snap_list = self.getSnapshotList(self.workload_id)
-            for i in range(0,len(self.snap_list)):
+            for i in range(0, len(self.snap_list)):
                 self.snapshot_info = self.getSnapshotInfo(self.snap_list[i])
                 self.snapshot_type.append(self.snapshot_info[2])
-                if (i==0):
-                    if (self.snapshot_type[i]=='full'):
+                if (i == 0):
+                    if (self.snapshot_type[i] == 'full'):
                         LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                    else :
+                        LOG.debug('Snapshot Type is : %s' %
+                                  self.snapshot_type[i])
+                    else:
                         LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                        LOG.debug('Retention Policy Full backup interval Number of Days Failed')
-                        raise Exception("Retention Policy Full backup interval Never Failed")
-                else :
-                    if (self.snapshot_type[i]=='incremental'):
-  			LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                    else :
+                        LOG.debug('Snapshot Type is : %s' %
+                                  self.snapshot_type[i])
+                        LOG.debug(
+                            'Retention Policy Full backup interval Number of Days Failed')
+                        raise Exception(
+                            "Retention Policy Full backup interval Never Failed")
+                else:
+                    if (self.snapshot_type[i] == 'incremental'):
                         LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
-                        LOG.debug('Snapshot Type is : %s' % self.snapshot_type[i])
-                        LOG.debug('Retention Policy Full backup interval Number of Days Failed')
-                        raise Exception("Retention Policy Full backup interval Never Failed")
-        
-        else :
-            raise Exception("Retention Policy Full backup interval Never Failed")
-            LOG.debug('Retention Policy Full backup interval Never is Successful')         
+                        LOG.debug('Snapshot Type is : %s' %
+                                  self.snapshot_type[i])
+                    else:
+                        LOG.debug('Snapshot ID is : %s' % self.snap_list[i])
+                        LOG.debug('Snapshot Type is : %s' %
+                                  self.snapshot_type[i])
+                        LOG.debug(
+                            'Retention Policy Full backup interval Number of Days Failed')
+                        raise Exception(
+                            "Retention Policy Full backup interval Never Failed")
 
-        for i in range (0,len(self.snap_list)):
-           self.snapshot_delete(self.workload_id , self.snap_list[i])
+        else:
+            raise Exception(
+                "Retention Policy Full backup interval Never Failed")
+            LOG.debug('Retention Policy Full backup interval Never is Successful')
+
+        for i in range(0, len(self.snap_list)):
+            self.snapshot_delete(self.workload_id, self.snap_list[i])
         self.workload_delete(self.workload_id)
         self.detach_volume(self.server_id, self.volume_id)
         self.vol_snapshot_list = self.get_volume_snapshots(self.volume_id)
-        for i in range (0,len(self.vol_snapshot_list)):
+        for i in range(0, len(self.vol_snapshot_list)):
             LOG.debug('Volume Snapshot ID is : %s' % self.vol_snapshot_list[i])
             self.delete_volume_snapshot(self.vol_snapshot_list[i])
         self.delete_vm(self.server_id)
         self.delete_volume(self.volume_id)
         os.remove('Tvault-1264.txt')
-        
