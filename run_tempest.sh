@@ -1,5 +1,4 @@
 #!/bin/bash -x
-
 BASE_DIR="$(pwd)"
 
 if [ -f $BASE_DIR/vms_file ]; then
@@ -86,7 +85,13 @@ then
     exit 1
 fi
 
-check_py_version
+if [ ! -z $PYTHON_VERSION ]
+then
+   py_str="python"$PYTHON_VERSION
+   echo $py_str
+else
+   check_py_version
+fi
 eval set -- $options
 first_uu=yes
 

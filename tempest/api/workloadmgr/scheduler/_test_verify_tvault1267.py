@@ -30,7 +30,6 @@ CONF = config.CONF
 sys.path.append(os.getcwd())
 
 
-
 class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -49,28 +48,29 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.workload_id = self.workload[0]
         self.volume_id = self.workload[1]
         self.server_id = self.workload[2]
-        self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of Snapshots to Keep')
-        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 2)
+        self.assertEqual(self.getRetentionPolicyTypeStatus(
+            self.workload_id), 'Number of Snapshots to Keep')
+        self.assertEqual(
+            self.getRetentionPolicyValueStatus(self.workload_id), 2)
         self.snap_list = self.getSnapshotList(self.workload_id)
-        if (len(self.snap_list)==2):
+        if (len(self.snap_list) == 2):
             LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
-            LOG.debug('At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
-        else :
-            LOG.debug('Retention Policy No. of snapshot to keep is not working properly')
+            LOG.debug(
+                'At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
+        else:
+            LOG.debug(
+                'Retention Policy No. of snapshot to keep is not working properly')
             LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
             raise Exception("Retention Policy No. of snapshot to keep Failed")
-        
-        for i in range (0,len(self.snap_list)):
-           self.snapshot_delete(self.workload_id , self.snap_list[i])
+
+        for i in range(0, len(self.snap_list)):
+            self.snapshot_delete(self.workload_id, self.snap_list[i])
         self.workload_delete(self.workload_id)
         self.detach_volume(self.server_id, self.volume_id)
         self.vol_snapshot_list = self.get_volume_snapshots(self.volume_id)
-        for i in range (0,len(self.vol_snapshot_list)):
+        for i in range(0, len(self.vol_snapshot_list)):
             LOG.debug('Volume Snapshot ID is : %s' % self.vol_snapshot_list[i])
             self.delete_volume_snapshot(self.vol_snapshot_list[i])
         self.delete_vm(self.server_id)
         self.delete_volume(self.volume_id)
         os.remove('Tvault-1267.txt')
-       
-    
-   

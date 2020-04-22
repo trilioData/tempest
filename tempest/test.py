@@ -34,9 +34,54 @@ from tempest.lib.common import validation_resources as vr
 from tempest.lib import decorators
 from tempest.lib import exceptions as lib_exc
 
+from tempest import config
+from tempest import exceptions
+from tempest import prerequisites
+from tempest import tvaultconf
+
 LOG = logging.getLogger(__name__)
 
 CONF = config.CONF
+
+"""A decorator which applies pre-requisites capabilities to a function when called with a 'type'. Pre-requisites functions must be defined in prerequisites.py. If tvaultconf.pre_req is found to be False, this decorator will return to the same fucntion and will pick the parameters from set vms_file, volumes_file, workloads_file."""
+def pre_req(arg1):
+    def decorator(function):
+
+        def wrapper(*args):
+            if (arg1['type'] == 'small_workload') and (tvaultconf.pre_req==True):
+                prerequisites.small_workload(args[0])
+            elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
+                prerequisites.inplace(args[0])
+            elif (arg1['type'] == 'selective_basic') and (tvaultconf.pre_req==True):
+                prerequisites.selective_basic(args[0])
+            elif (arg1['type'] == 'filesearch') and (tvaultconf.pre_req==True):
+                prerequisites.filesearch(args[0])
+            elif (arg1['type'] == 'basic_workload') and (tvaultconf.pre_req==True):
+                prerequisites.basic_workload(args[0])
+            elif (arg1['type'] == 'bootfromvol_workload') and (tvaultconf.pre_req==True):
+                prerequisites.bootfromvol_workload(args[0])
+            elif (arg1['type'] == 'config_backup') and (tvaultconf.pre_req==True):
+                prerequisites.config_backup(args[0])
+            elif (arg1['type'] == 'config_workload') and (tvaultconf.pre_req==True):
+                prerequisites.config_workload(args[0])
+            elif (arg1['type'] == 'bootfromvol_workload_medium') and (tvaultconf.pre_req==True):
+                prerequisites.bootfromvol_workload_medium(args[0])
+            elif (arg1['type'] == 'bootfrom_image_with_floating_ips') and (tvaultconf.pre_req==True):
+                prerequisites.bootfrom_image_with_floating_ips(args[0])
+            elif (arg1['type'] == 'nested_security') and (tvaultconf.pre_req==True):
+                prerequisites.nested_security(args[0])
+            elif (arg1['type'] == 'snapshot_mount') and (tvaultconf.pre_req==True):
+                prerequisites.snapshot_mount(args[0])
+            elif tvaultconf.pre_req==False:
+                LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
+                prerequisites.load_prerequisites_data(args[0],arg1['type'])
+            else:
+                LOG.debug("Prerequisite is set to true but invalid pre_requisite type provided")
+                raise Exception("Prerequisite is set to true but invalid pre_requisite type provided")
+            function(*args)
+        return wrapper
+    return decorator
+
 
 # TODO(oomichi): This test.idempotent_id should be removed after all projects
 # switch to use decorators.idempotent_id.

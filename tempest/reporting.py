@@ -4,15 +4,16 @@ import datetime
 import os
 import pickle
 
-test_results_file="Report/results.html"
-sanity_results_file="test_results"
+test_results_file = "Report/results.html"
+sanity_results_file = "test_results"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
-test_step_to_write =""
+test_step_to_write = ""
 passed_count = 0
 failed_count = 0
 total_tests_count = passed_count + failed_count
 steps_count = 0
+
 
 def setup_report(testname):
     head = """<table border="1">
@@ -22,7 +23,8 @@ def setup_report(testname):
             </tr>
             """.format(testname.capitalize())
     with open(test_results_file, "a") as f:
-            f.write(head)
+        f.write(head)
+
 
 def add_test_script(script):
     global test_script_name
@@ -30,9 +32,11 @@ def add_test_script(script):
     steps_count = 0
     test_script_name = script
 
+
 def set_test_script_status(status):
-   global test_script_status
-   test_script_status = status
+    global test_script_status
+    test_script_status = status
+
 
 def test_case_to_write():
     global test_step_to_write
@@ -42,10 +46,10 @@ def test_case_to_write():
     global total_tests_count
     if test_script_status == "PASS":
         color = "green"
-	passed_count += 1
+        passed_count += 1
     else:
         color = "red"
-	failed_count += 1
+        failed_count += 1
     total_tests_count = passed_count + failed_count
     test_case_to_write = """
 	<tr>
@@ -58,11 +62,14 @@ def test_case_to_write():
         f.write(test_step_to_write)
     test_step_to_write = ""
     test_script_status = tvaultconf.PASS
-    cmd1 = "sed -i -e '9s/passed_count = [0-9]*/passed_count = {0}/' tempest/reporting.py".format(passed_count)
-    cmd2 = "sed -i -e '10s/failed_count = [0-9]*/failed_count = {0}/' tempest/reporting.py".format(failed_count)
-    cmd = cmd1+"; " +cmd2
-    p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+    cmd1 = "sed -i -e '9s/passed_count = [0-9]*/passed_count = {0}/' tempest/reporting.py".format(
+        passed_count)
+    cmd2 = "sed -i -e '10s/failed_count = [0-9]*/failed_count = {0}/' tempest/reporting.py".format(
+        failed_count)
+    cmd = cmd1 + "; " + cmd2
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     p.wait()
+
 
 def add_test_step(teststep, status):
     if status == "PASS":
@@ -73,22 +80,27 @@ def add_test_step(teststep, status):
         test_script_status = "FAIL"
     global test_step_to_write
     global steps_count
-    steps_count+=1
+    steps_count += 1
     test_step_to_write += """<tr>
                     <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px; height: 17px"><i>    {3}. {0}</pre></font> </td>
                     <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
                 """.format(teststep.capitalize(), color, status, steps_count)
 
+
 def end_report_table():
     with open(test_results_file, "a") as f:
         f.write("</table>\n<br>")
-    cmd1 = "sed -i -e '14s/<td>[0-9]*/<td>{0}/' Report/results.html".format(total_tests_count)
-    cmd2 = "sed -i -e '15s/<b>[0-9]*/<b>{0}/' Report/results.html".format(passed_count)
-    cmd3 = "sed -i -e '16s/<b>[0-9]*/<b>{0}/' Report/results.html".format(failed_count)
-    cmd = cmd1+"; " +cmd2+"; "+cmd3
-    p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
+    cmd1 = "sed -i -e '14s/<td>[0-9]*/<td>{0}/' Report/results.html".format(
+        total_tests_count)
+    cmd2 = "sed -i -e '15s/<b>[0-9]*/<b>{0}/' Report/results.html".format(
+        passed_count)
+    cmd3 = "sed -i -e '16s/<b>[0-9]*/<b>{0}/' Report/results.html".format(
+        failed_count)
+    cmd = cmd1 + "; " + cmd2 + "; " + cmd3
+    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
     p.wait()
+
 
 def consolidate_report():
     pass_count = 0
@@ -97,10 +109,10 @@ def consolidate_report():
         for line in html_file:
             if 'PASS' in line:
                 if '<b>' in line:
-                    pass_count+=1
+                    pass_count += 1
             if 'FAIL' in line:
                 if '<b>' in line:
-                    fail_count+=1
+                    fail_count += 1
     total_count = pass_count + fail_count
 
     consolidate_table = """
@@ -123,9 +135,9 @@ def consolidate_report():
             </table>
         <br>
             """.format(total_count, pass_count, fail_count)
-    with open(test_results_file,'r') as f2:
+    with open(test_results_file, 'r') as f2:
         ogcontent = f2.read()
-    with open(test_results_file,'w') as f3:
+    with open(test_results_file, 'w') as f3:
         f3.write(consolidate_table)
     styl = '''
     <style>
@@ -139,7 +151,7 @@ def consolidate_report():
          }
       </style>
     '''
-    with open(test_results_file,'a') as f4:
+    with open(test_results_file, 'a') as f4:
         f4.write(styl)
         f4.write(ogcontent)
 
@@ -153,21 +165,25 @@ def consolidate_report():
         for child in children:
             if child.string != 'FAIL' and child.string != 'PASS':
                 child.string = "{}. ".format(i) + child.string
-                i+=1
+                i += 1
     with open(test_results_file, "wb") as f_output:
         f_output.write(soup.encode('utf8'))
 
+
 def add_sanity_results(test_step, status):
     with open(sanity_results_file, "a") as f:
-	    f.write(str(test_step) + " " + str(status) + "\n")
+        f.write(str(test_step) + " " + str(status) + "\n")
 
-def get_tests(test_list_file,suite_path):
+
+def get_tests(test_list_file, suite_path):
     import glob
-    with open (test_list_file, "w") as f:
-        for path in glob.glob(str(suite_path)+"/*.py"):
+    with open(test_list_file, "w") as f:
+        for path in glob.glob(str(suite_path) + "/*.py"):
             if "__init__" not in path:
-                print "test: " + ".".join(str(path[:-3]).split("/")[-5:])+"\n"
-                f.write(".".join(str(path[:-3]).split("/")[-5:])+"\n")
+                print(
+                    "test: " + ".".join(str(path[:-3]).split("/")[-5:]) + "\n")
+                f.write(".".join(str(path[:-3]).split("/")[-5:]) + "\n")
+
 
 def add_sanity_results_to_tempest_report():
     result_table = """ <table border="1"><tr><th>TestName</th><th>Result</th></tr>"""
@@ -186,16 +202,15 @@ def add_sanity_results_to_tempest_report():
                     text_color = "red"
                 else:
                     text_color = "green"
-                result_table+="""<tr>
+                result_table += """<tr>
                     <td><font color="%s" style="font-size:15px">%s</font></td>
                     <td><font color="%s" style="font-size:15px">%s</font></td>
                     </tr> """ % (text_color, test_name, text_color, test_result)
-    html_file=open(test_results_file, "a")
-    result_table+="""</table>"""
+    html_file = open(test_results_file, "a")
+    result_table += """</table>"""
     html_file.write("Date : " + str(datetime.datetime.now()))
     html_file.write("<br/>")
     html_file.write("<b>Sanity Test Results</b>")
     html_file.write("<br/><br/>")
     html_file.write(result_table)
     html_file.close()
- 

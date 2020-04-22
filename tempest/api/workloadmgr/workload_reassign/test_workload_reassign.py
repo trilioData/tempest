@@ -1,17 +1,17 @@
+from tempest.util import query_data
+from tempest.util import cli_parser
+from tempest import command_argument_string
+import time
+from tempest import reporting
+from tempest import tvaultconf
+from oslo_log import log as logging
+from tempest import test
+from tempest import config
+from tempest.api.workloadmgr import base
 import sys
 import os
 import json
 sys.path.append(os.getcwd())
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest import test
-from oslo_log import log as logging
-from tempest import tvaultconf
-from tempest import reporting
-import time
-from tempest import command_argument_string
-from tempest.util import cli_parser
-from tempest.util import query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -37,7 +37,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
             vmdetails = self.get_vm_details(vm_id)
-            workload_id=self.workload_create([vm_id],tvaultconf.parallel, workload_cleanup=True)
+            workload_id = self.workload_create(
+                [vm_id], tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id != None):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -59,20 +60,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 1 to tenant 2 passed")
-                reporting.add_test_step("Workload reassign from tenant 1 to 2", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Workload reassign from tenant 1 to 2", tvaultconf.PASS)
             else:
                 LOG.error("Workload reassign from tenant 1 to 2 failed")
-                reporting.add_test_step("Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
+                reporting.add_test_step(
+                    "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
             rc = self.workload_reassign(tenant_id, workload_id, user_id)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 2 to tenant 1 passed")
-                reporting.add_test_step("Workload reassign from tenant 2 to 1", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Workload reassign from tenant 2 to 1", tvaultconf.PASS)
             else:
                 LOG.error("Workload reassign from tenant 2 to 1 failed")
-                reporting.add_test_step("Workload reassign from tenant 2 to 1", tvaultconf.FAIL)
+                reporting.add_test_step(
+                    "Workload reassign from tenant 2 to 1", tvaultconf.FAIL)
             reporting.test_case_to_write()
-
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
