@@ -29,6 +29,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.idempotent_id('dbb758aa-b3af-40ac-9105-705b1f18cbd8')
     def test_tvault_rbac_backuprole_touser_policyjson(self):
 	try:
+            workload_create_error_str = "Policy doesn't allow workload:workload_create to be performed."
+
 	    # Change policy.json file on tvault to change role and rule
 	    self.change_policyjson_file("backup", "backup_api")
 	    self.instances_id = []
@@ -102,8 +104,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 	    # Create workload with CLI by admin role
             workload_create = command_argument_string.workload_create + " --instance instance-id=" +str(self.restore_vm_id1)
-            rc = cli_parser.cli_returncode(workload_create)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_create)
+            if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug("Command workload_create did not execute correctly by admin role")
 		reporting.add_test_step("Can not execute workload_create command by admin role", tvaultconf.PASS)
             else:
