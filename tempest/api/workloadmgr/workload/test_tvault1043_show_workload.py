@@ -61,7 +61,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             #Compare the workload details against database
             out = cli_parser.cli_output(command_argument_string.workload_show + self.wid)
-            LOG.debug("Response from DB: " + str(out))
+            LOG.debug("Response from CLI: " + str(out))
         
             if(query_data.get_workload_display_name(self.wid) == cli_parser.cli_response_parser(out, 'name')):
     	        reporting.add_test_step("Verify workload name", tvaultconf.PASS)
@@ -77,7 +77,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Verify workload status", tvaultconf.FAIL)
         
             instances_cli = []
-            temp = json.loads(cli_parser.cli_response_parser(out,'instances'))
+            temp = eval(cli_parser.cli_response_parser(out,'instances'))
             for i in range(0, len(temp)):
                 instances_cli.append(temp[i]['id'])
             instances_cli.sort()        

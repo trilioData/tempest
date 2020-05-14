@@ -62,7 +62,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
   	    self.cmd = command_argument_string.license_create + tvaultconf.invalid_license_filename
             LOG.debug("License create command: " + str(self.cmd))
             rc = cli_parser.cli_returncode(self.cmd)
-            if rc != 0:
+            if rc == 0:
     	        reporting.add_test_step("Execute license_create command with invalid license", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             else:
