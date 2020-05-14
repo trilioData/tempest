@@ -348,13 +348,15 @@ function configure_tempest
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
-    sed -i "2i export OS_TENANT_ID=$test_project_id" run_tempest.sh
-    sed -i "2i export OS_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_ID=$test_project_id" run_tempest.sh
+    sed -i "2i export OS_USER_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_DOMAIN_ID=$test_domain_id" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
     sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
+    sed -i "2i export OS_PROJECT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
 
     # network
     echo "Fetch network information\n"
