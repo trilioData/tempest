@@ -271,6 +271,8 @@ function configure_tempest
             type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
+            volume_type_alt=$type
+            volume_type_id_alt=$type_id
             enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
             ;;
         *)
