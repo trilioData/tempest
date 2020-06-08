@@ -2509,12 +2509,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1"):
         try:
-            LOG.debug("build comand to serach file")
+            LOG.debug("List all directories")
+            stdin, stdout, stderr = ssh.exec_command("ls -la /home/ubuntu/tvault-mounts/mounts/Test*/vd*", timeout=120)
+            output = stdout.read()
+            LOG.debug("List directories from FRM: " + str(output))
+            LOG.debug("build command to search file")
             buildCommand = "find " + file_path_to_search +" -name " + file_name
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
             output = stdout.read()
-            LOG.debug(output)
+            LOG.debug("Find response: " + str(output))
             time.sleep(20)
             return(output)
         except Exception as e:
