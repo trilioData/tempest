@@ -36,7 +36,7 @@ from tempest.util import cli_parser
 from tempest.util import query_data
 
 CONF = config.CONF
-LOG = logging.tempest_set_log_file(__name__)
+LOG = logging.getLogger(__name__)
 
 
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
@@ -48,49 +48,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
-        cls.subnets_client = cls.os.subnets_client
-        cls.wlm_client = cls.os.wlm_client
-        cls.servers_client = cls.os.servers_client
-        cls.server_groups_client = cls.os.server_groups_client
-        cls.flavors_client = cls.os.flavors_client
-        cls.extensions_client = cls.os.extensions_client
-        cls.floating_ip_pools_client = cls.os.floating_ip_pools_client
-        cls.floating_ips_client = cls.os.floating_ips_client
-        cls.keypairs_client = cls.os.keypairs_client
-        cls.security_group_rules_client = cls.os.security_group_rules_client
-        cls.security_groups_client = cls.os.security_groups_client
-        cls.quotas_client = cls.os.quotas_client
-        cls.quota_classes_client = cls.os.quota_classes_client
-        cls.compute_networks_client = cls.os.compute_networks_client
-        cls.networks_client = cls.os.networks_client
-        cls.routers_client = cls.os.routers_client
-        cls.limits_client = cls.os.limits_client
-        cls.volumes_extensions_client = cls.os.volumes_extensions_client
-        cls.snapshots_extensions_client = cls.os.snapshots_extensions_client
-        cls.ports_client = cls.os.ports_client
-        cls.networks_client = cls.os.networks_client
-        cls.interfaces_client = cls.os.interfaces_client
-        cls.fixed_ips_client = cls.os.fixed_ips_client
-        cls.availability_zone_client = cls.os.availability_zone_client
-        cls.agents_client = cls.os.agents_client
-        cls.aggregates_client = cls.os.aggregates_client
-        cls.services_client = cls.os.services_client
-        cls.instance_usages_audit_log_client = (
-            cls.os.instance_usages_audit_log_client)
-        cls.hypervisor_client = cls.os.hypervisor_client
-        cls.certificates_client = cls.os.certificates_client
-        cls.migrations_client = cls.os.migrations_client
-        cls.security_group_default_rules_client = (
-            cls.os.security_group_default_rules_client)
-        cls.versions_client = cls.os.compute_versions_client
+        cls.subnets_client = cls.os_primary.subnets_client
+        cls.wlm_client = cls.os_primary.wlm_client
+        cls.servers_client = cls.os_primary.servers_client
+        cls.flavors_client = cls.os_primary.flavors_client
+        cls.floating_ips_client = cls.os_primary.floating_ips_client
+        cls.keypairs_client = cls.os_primary.keypairs_client
+        cls.security_group_rules_client = cls.os_primary.security_group_rules_client
+        cls.security_groups_client = cls.os_primary.security_groups_client
+        cls.routers_client = cls.os_primary.routers_client
+        cls.volumes_extensions_client = cls.os_primary.volumes_extensions_client
+        cls.snapshots_extensions_client = cls.os_primary.snapshots_extensions_client
+        cls.ports_client = cls.os_primary.ports_client
+        cls.networks_client = cls.os_primary.networks_client
 
-        cls.volumes_client = cls.os.volumes_v2_client
+        cls.volumes_client = cls.os_primary.volumes_v2_client
         cls.volumes_client.service = 'volumev2'
 
         if CONF.identity_feature_enabled.api_v2:
-            cls.identity_client = cls.os.identity_client
+            cls.identity_client = cls.os_primary.identity_client
         else:
-            cls.identity_client = cls.os.identity_v3_client
+            cls.identity_client = cls.os_primary.identity_v3_client
 
     @classmethod
     def register_custom_config_opts(cls):
@@ -1945,7 +1923,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def change_policyjson_file(self, role, rule, policy_changes_cleanup=True):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
         try:
             if role == "newadmin":
                 LOG.debug("Add new_admin role in policy.json : " + str(role))
@@ -2013,7 +1991,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def revert_changes_policyjson(self, rule):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
             if rule == "admin_api":
@@ -2060,321 +2038,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
-    def config_user_create(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, config_pass=CONF.wlm.config_pass):
-
-        user_exist = False
-        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
-        LOG.debug("ip" + str(ip))
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        LOG.debug("connecting")
-        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
-        LOG.debug("connected")
-        channel = ssh.invoke_shell()
-
-        time.sleep(1)
-        channel.recv(9999)
-        channel.send("\n")
-        time.sleep(1)
-
-        config_user_check_command = "cat /etc/passwd | grep {}".format(
-            config_user)
-
-        channel.send(config_user_check_command + "\n")
-        output = channel.recv(9999)  # read in
-        LOG.debug("config_user_check_command: " +
-                  str(config_user_check_command) + " | output | " + str(output) + " | ")
-        if "/bin/bash" in str(output):
-            user_exist = True
-            LOG.debug("****config_user exists****")
-
-        time.sleep(0.1)
-        if not user_exist:
-            LOG.debug("config_user doesn't exist, Creating config user.")
-            commands = ["useradd {}".format(config_user),
-                        "passwd {}".format(config_user),
-                        "echo {}".format(
-                            config_pass), "echo {}".format(config_pass),
-                        "cat /etc/passwd",
-                        "echo '{0}' {1}".format(
-                            config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"),
-                        "cat /etc/sudoers",
-                        "su {}".format(config_user),
-                        "ssh-keygen -t rsa", "\n", "\n", "\n",
-                        "cp /home/{0}/.ssh/id_rsa.pub /home/{0}/.ssh/authorized_keys".format(
-                            config_user),
-                        "cat /home/{}/.ssh/authorized_keys".format(
-                            config_user),
-                        "chmod 600 /home/{}/.ssh/authorized_keys".format(config_user)]
-
-            for command in commands:
-                channel.send(command + "\n")
-                while not channel.recv_ready():  # Wait for the server to read and respond
-                    time.sleep(0.1)
-                # wait enough for writing to (hopefully) be finished
-                time.sleep(2)
-                output = channel.recv(9999)  # read in
-                LOG.debug(str(output))
-                time.sleep(0.1)
-
-            buildCommand = "cat /home/{}/.ssh/id_rsa".format(config_user)
-            stdin, stdout, stderr = ssh.exec_command(buildCommand)
-            output = stdout.read()
-            with open("config_backup_pvk", 'w+') as f:
-                f.write(output)
-
-            os.chmod("config_backup_pvk", stat.S_IRWXU)
-
-            channel.close()
-            ssh.close()
-
-    def create_config_backup_yaml(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, config_user=CONF.wlm.config_user, db_password=CONF.wlm.op_db_password, added_dir=""):
-        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
-        LOG.debug("ip" + str(ip))
-
-        yaml_dir = {'databases': {'database1': {'host': str(ip[0]), 'password': str(
-            db_password), 'port': None, 'user': str(user)}}, 'trusted_user': {'username': config_user}}
-
-        if added_dir != "":
-            LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
-            yaml_dir.update(added_dir)
-
-        import yaml
-        with open("yaml_file.yaml", 'w') as f:
-            yaml.dump(yaml_dir, f, default_flow_style=False)
-
-    def calculate_md5_config_backup(self, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, added_dir="", vault_storage_path="", compute_hostname=""):
-
-        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
-        LOG.debug("ip" + str(ip))
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        LOG.debug("connecting")
-        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
-        LOG.debug("connected")
-
-        config_yaml = tvaultconf.config_yaml
-
-        if added_dir != "":
-            LOG.debug("Adding added_dir to yaml_file: " + str(added_dir))
-            config_yaml.update(added_dir)
-
-        LOG.debug("Calculating md5 sum for config_yaml_dir: " + str(config_yaml))
-
-        def tree(): return collections.defaultdict(tree)
-        md5_sum_config_backup = tree()
-
-        for service, service_dirs in list(config_yaml.items()):
-            service_dirs_list = {}
-            for service_dir in service_dirs:
-                service_md5_list = {}
-                service_dir_path = service_dir
-                md5_calculate_command = ""
-                LOG.debug("vault_storage_path: " + " | " +
-                          vault_storage_path + " | ")
-                LOG.debug("service: " + " | " + service + " | ")
-                LOG.debug("compute_hostname: " + " | " +
-                          compute_hostname + " | ")
-                LOG.debug("service_dir: " + " | " + service_dir + " | ")
-
-                if vault_storage_path != "":
-                    if "/var/lib/cinder" not in service_dir:
-                        service_dir_path = "{0}/{1}/{2}{3}".format(
-                            vault_storage_path, service, compute_hostname, service_dir)
-                        LOG.debug("service_dir_vault: " +
-                                  str(service_dir_path))
-                if "log" not in service_dir_path:
-                    if "/var/lib/cinder" != service_dir_path:
-                        md5_calculate_command = "rm -rf checksums_backup.md5; find {} -type f -print0 | xargs -0 md5sum > checksums_backup.md5; cat checksums_backup.md5;".format(
-                            service_dir_path)
-                stdin, stdout, sterr = ssh.exec_command(md5_calculate_command)
-
-                exit_status = stdout.channel.recv_exit_status()
-                if exit_status == 0:
-                    LOG.debug("command {} completed".format(
-                        md5_calculate_command))
-                else:
-                    LOG.debug("Error", exit_status)
-                output = stdout.readlines()
-                LOG.debug("md5 calculate output: " + str(output))
-                for line in output:
-                    LOG.debug("line: " + str(line))
-                    if "triliovault-mounts" in str(line.split()[1]):
-                        service_md5_list.update({str(line.split()[1])[str(
-                            line.split()[1]).find(str(service_dir)):]: str(line.split()[0])})
-                    else:
-                        service_md5_list.update(
-                            {str(line.split()[1]): str(line.split()[0])})
-
-                LOG.debug("service_md5_list: " +
-                          str(service_dir) + str(service_md5_list))
-
-                if "log" not in str(service_dir):
-                    service_dirs_list.update(
-                        {str(service_dir): service_md5_list})
-
-                LOG.debug("service_dirs_list: " +
-                          str(service_dir) + str(service_dirs_list))
-
-            # channel.close()
-            time.sleep(0.1)
-
-            md5_sum_config_backup[service] = service_dirs_list
-
-        ssh.close()
-        LOG.debug("md5_sum_config_backup : " + str(md5_sum_config_backup))
-        return md5_sum_config_backup
-
-    def get_config_workload(self):
-        resp, body = self.wlm_client.client.get("/config_workload")
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
-            resp.raise_for_status()
-        return body
-
-    def create_config_backup(self, config_backup_cleanup=False):
-        payload = {"backup": {"name": "Config backup",
-                              "description": "Test description"}}
-        resp, body = self.wlm_client.client.post(
-            "/config_backup", json=payload)
-        LOG.debug("Response:" + str(resp.content))
-        if resp.status_code != 202:
-            resp.raise_for_status()
-        config_backup_id = body['config_backup']['id']
-        self.wait_for_config_backup_tobe_available(config_backup_id)
-        if(tvaultconf.cleanup == True and config_backup_cleanup == True):
-            self.addCleanup(self.delete_config_backup, config_backup_id)
-        return config_backup_id
-
-    def wait_for_config_backup_tobe_available(self, config_backup_id):
-        status = "available"
-        LOG.debug('Checking config backup status')
-        while (status != self.show_config_backup(config_backup_id)['config_backup']['status']):
-            if(self.show_config_backup(config_backup_id)['config_backup']['status'] == 'error'):
-                LOG.debug('Config backup status is: %s' % self.show_config_backup(
-                    config_backup_id)['config_backup']['status'])
-                return status
-            LOG.debug('Config backup status is: %s' % self.show_config_backup(
-                config_backup_id)['config_backup']['status'])
-            time.sleep(30)
-        LOG.debug('Final Status of Config backup : %s' % (
-            self.show_config_backup(config_backup_id)['config_backup']['status']))
-        return status
-
-    def get_config_backup_list(self):
-        body = ""
-        resp, body = self.wlm_client.client.get("/config_backups")
-        LOG.debug("#### config_backup_list" + (str(body)))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
-            resp.raise_for_status()
-        return body
-
-    def show_config_backup(self, config_backup_id):
-        body = ""
-        resp, body = self.wlm_client.client.get(
-            "/config_backup/" + str(config_backup_id))
-        LOG.debug("#### config_backup_details" + (str(body)))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
-            resp.raise_for_status()
-        return body
-
-    def delete_config_backup(self, config_backup_id):
-        resp, body = self.wlm_client.client.delete(
-            "/config_backup/" + str(config_backup_id))
-        LOG.debug("#### config_backup_delete response body: " + (str(body)))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 202):
-            resp.raise_for_status()
-            return False
-        else:
-            return True
-
-    def sudo_access_config_user(self, config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw, access=True):
-        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
-        LOG.debug("ip" + str(ip))
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        LOG.debug("connecting")
-        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
-        LOG.debug("connected")
-        channel = ssh.invoke_shell()
-
-        time.sleep(1)
-        channel.recv(9999)
-        channel.send("\n")
-        time.sleep(1)
-
-        if not access:
-            commands = [
-                "sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(config_user), "cat /etc/sudoers"]
-        else:
-            commands = ["echo '{0}' {1}".format(
-                config_user + " ALL=(ALL) NOPASSWD:ALL", ">> /etc/sudoers"), "cat /etc/sudoers"]
-
-        for command in commands:
-            channel.send(command + "\n")
-            time.sleep(3)  # wait enough for writing to (hopefully) be finished
-            output = channel.recv(9999)  # read in
-            LOG.debug(str(output))
-
-        channel.close()
-        ssh.close()
-
-    def get_compute_hostname(self, compute_node_ip=tvaultconf.compute_node_ip, compute_node_username=tvaultconf.compute_node_username, compute_node_password=tvaultconf.compute_node_password):
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        LOG.debug("connecting")
-        ssh.connect(hostname=compute_node_ip,
-                    username=compute_node_username, password=compute_node_password)
-        LOG.debug("connected")
-
-        buildCommand = "hostname"
-        stdin, stdout, stderr = ssh.exec_command(buildCommand)
-        hostname = stdout.read()
-        LOG.debug("compute: " + str(compute_node_ip) +
-                  ": hostname: " + str(hostname))
-        ssh.close()
-
-        return hostname
-
-    def delete_config_user(self, config_user=CONF.wlm.config_user, user=CONF.wlm.op_user, passw=CONF.wlm.op_passw):
-        ip = re.findall(r'[0-9]+(?:\.[0-9]+){3}', CONF.identity.uri)
-        LOG.debug("ip" + str(ip))
-
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.load_system_host_keys()
-        LOG.debug("connecting")
-        ssh.connect(hostname=str(ip[0]), username=user, password=passw)
-        LOG.debug("connected")
-        channel = ssh.invoke_shell()
-
-        time.sleep(1)
-        channel.recv(9999)
-        channel.send("\n")
-        time.sleep(1)
-
-        commands = ["userdel -r {}".format(config_user), "sed -i '/{0} ALL=(ALL) NOPASSWD:ALL/d' /etc/sudoers".format(
-            config_user), "cat /etc/passwd", "cat /etc/sudoers"]
-
-        for command in commands:
-            channel.send(command + "\n")
-            time.sleep(3)  # wait enough for writing to (hopefully) be finished
-            output = channel.recv(9999)  # read in
-            LOG.debug(str(output))
-
-        channel.close()
-        ssh.close()
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2399,7 +2062,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     rule_reassign_command1 + "; " + rule_reassign_command2
                 LOG.debug("commands: " + str(commands))
                 ssh = self.SshRemoteMachineConnection(
-                    tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
             elif rule == "admin_or_owner":
                 LOG.debug("Delete backup role in policy.json : ")
@@ -2431,7 +2094,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     + "; " + rule_reassign_command5 + "; " + rule_reassign_command6
                 LOG.debug("commands" + str(commands))
                 ssh = self.SshRemoteMachineConnection(
-                    tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2857,7 +2520,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def restart_wlm_api_service(self):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
         command = "service wlm-api restart"
         stdin, stdout, stderr = ssh.exec_command(command)
         time.sleep(3)

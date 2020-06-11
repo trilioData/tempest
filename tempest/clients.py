@@ -19,7 +19,7 @@ from tempest.lib import exceptions as lib_exc
 from tempest.lib.services import clients
 
 import sys
-sys.path.append("/usr/lib/python2.7/site-packages/python_workloadmgrclient-1.0.160-py2.7.egg/workloadmgrclient/")
+sys.path.append("/usr/lib/python2.7/site-packages")
 from workloadmgrclient import client
 
 CONF = config.CONF
@@ -339,7 +339,10 @@ class Manager(clients.ServiceClients):
                                         service_name=CONF.wlm.service_name,
                                         retries=CONF.wlm.retries,
                                         http_log_debug=False,
-                                        cacert=CONF.wlm.os_cacert)
+                                        cacert=CONF.wlm.os_cacert,
+                                        project_domain_name=CONF.auth.admin_domain_name,
+                                        user_domain_name=CONF.auth.admin_domain_name)
+
         try:
             self.wlm_client.authenticate()
         except Exception:

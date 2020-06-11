@@ -186,7 +186,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("CLI Response: " + str(out))
             get_usage_tvault = "df -h | grep triliovault-mounts"
             ssh = self.SshRemoteMachineConnection(
-                tvaultconf.tvault_ip, tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
             stdin, stdout, stderr = ssh.exec_command(get_usage_tvault)
             tmp = ' '.join(stdout.read().split())
             usage = tmp.split(' ')
