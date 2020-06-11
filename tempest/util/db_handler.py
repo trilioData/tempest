@@ -4,7 +4,7 @@ from tempest import tvaultconf
 import paramiko
 
 
-def get_db_credentials(hostip=tvaultconf.tvault_ip, user=tvaultconf.tvault_dbusername,
+def get_db_credentials(hostip=tvaultconf.tvault_ip[0], user=tvaultconf.tvault_dbusername,
                        pwd=tvaultconf.tvault_password):
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -19,10 +19,10 @@ def get_db_credentials(hostip=tvaultconf.tvault_ip, user=tvaultconf.tvault_dbuse
 
 def dbHandler():
     try:
-        cred = (str(get_db_credentials(hostip=tvaultconf.tvault_ip)).split("\n"))[
+        cred = (str(get_db_credentials(hostip=tvaultconf.tvault_ip[0])).split("\n"))[
             0].split(":")
         conn = mysql.connector.connect(user=cred[0], password=cred[1],
-                                       host=tvaultconf.tvault_ip, database=tvaultconf.tvault_dbname)
+                                       host=tvaultconf.tvault_ip[0], database=tvaultconf.tvault_dbname)
         print(conn)
         return conn
     except mysql.connector.Error as err:

@@ -271,6 +271,8 @@ function configure_tempest
             type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
+            volume_type_alt=$type
+            volume_type_id_alt=$type_id
             enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
             ;;
         *)
@@ -302,12 +304,8 @@ function configure_tempest
 
     # Identity
     iniset $TEMPEST_CONFIG identity auth_version v3
-    iniset $TEMPEST_CONFIG identity admin_domain_name $CLOUDADMIN_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
     iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
-    iniset $TEMPEST_CONFIG identity admin_tenant_name $CLOUDADMIN_PROJECT_NAME
-    iniset $TEMPEST_CONFIG identity admin_password $CLOUDADMIN_PASSWORD
-    iniset $TEMPEST_CONFIG identity admin_username $CLOUDADMIN_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
@@ -332,6 +330,10 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
     iniset $TEMPEST_CONFIG auth test_accounts_file $TEMPEST_ACCOUNTS
     iniset $TEMPEST_CONFIG auth allow_tenant_isolation True
+    iniset $TEMPEST_CONFIG auth admin_username $CLOUDADMIN_USERNAME
+    iniset $TEMPEST_CONFIG auth admin_password $CLOUDADMIN_PASSWORD
+    iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
+    iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -348,14 +350,15 @@ function configure_tempest
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
-    sed -i "2i export OS_TENANT_ID=$test_project_id" run_tempest.sh
-    sed -i "2i export OS_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_ID=$test_project_id" run_tempest.sh
+    sed -i "2i export OS_USER_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_DOMAIN_ID=$test_domain_id" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
     sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
-    sed -i "2i export OS_TENANT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
+    sed -i "2i export OS_PROJECT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
 
     # network
     echo "Fetch network information\n"
@@ -434,6 +437,7 @@ function configure_tempest
     def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
+    $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
@@ -464,8 +468,23 @@ function configure_tempest
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
 
+    IP=""
+    cnt=0
+    IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
+    for i in "${IP[@]}"; do
+       if [ $cnt -eq 0 ]
+       then
+          TVAULT_IP="[""\""$i"\""
+       else
+          TVAULT_IP+=", \""$i"\""
+       fi
+       cnt=`expr $cnt + 1`
+    done
+    TVAULT_IP+="]"
+
     # tvaultconf.py
-    sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
+    sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
+    echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
@@ -490,4 +509,3 @@ pip install python-novaclient==15.1.0
 configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
-#rm -rf $OPENSTACK_CLI_VENV
