@@ -3,6 +3,7 @@ from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
 from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -26,11 +27,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
     @test.pre_req({'type': 'snapshot_mount'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
     def test_1_snapshot_mount_full(self):
         reporting.add_test_script(str(__name__) + "_full_snasphot")
         try:
@@ -59,14 +59,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             is_mounted = self.mount_snapshot(
                 wid, full_snapshot_id, fvm_id, mount_cleanup=False)
             LOG.debug("VALUE OF is_mounted: " + str(is_mounted))
-            if is_mounted == True:
+            if is_mounted:
                 LOG.debug(" mount snapshot with full snapshot is successful")
                 reporting.add_test_step(
-                    "Verification of mount snapshot with full snapshot", tvaultconf.PASS)
+                    "Verification of mount snapshot with full snapshot",
+                    tvaultconf.PASS)
             else:
                 LOG.debug("mount snapshot with full snapshot is unsuccessful")
                 reporting.add_test_step(
-                    "Verification of mount snapshot with full snapshot", tvaultconf.FAIL)
+                    "Verification of mount snapshot with full snapshot",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Snapshot mount with full_snapshot  does not execute correctly")
 
@@ -81,7 +83,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
-                        "Verify that mountpoint mounted is shown on FVM instance", tvaultconf.PASS)
+                        "Verify that mountpoint mounted is shown on FVM instance",
+                        tvaultconf.PASS)
                     flag = 1
                     if 'File_1' in i:
                         LOG.debug("check that file exists on mounted snapshot")
@@ -99,10 +102,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug(
                     "mount snapshot with full snapshot is unsuccessful on FVM")
                 reporting.add_test_step(
-                    "Verify that  mountpoint mounted is shown on FVM instance", tvaultconf.FAIL)
+                    "Verify that  mountpoint mounted is shown on FVM instance",
+                    tvaultconf.FAIL)
                 LOG.debug("file does not found on FVM instacne")
                 reporting.add_test_step(
-                    "Verification of file's existance on moutned snapshot", tvaultconf.FAIL)
+                    "Verification of file's existance on moutned snapshot",
+                    tvaultconf.FAIL)
                 raise Exception("mountpoint is not showing on FVM instance")
             else:
                 pass
@@ -113,8 +118,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
     def test_2_umount_snapshot(self):
         reporting.add_test_script(str(__name__) + "_umount_snapshot")
         try:
@@ -137,14 +142,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("unmount snapshot")
             is_unmounted = self.unmount_snapshot(wid, unmount_snapshot_id)
             LOG.debug("VALUE OF is_unmounted: " + str(is_unmounted))
-            if is_unmounted == True:
+            if is_unmounted:
                 LOG.debug("unmount snapshot with full snapshot is  successful")
                 reporting.add_test_step(
-                    "Verification of unmount snapshot with full snapshot", tvaultconf.PASS)
+                    "Verification of unmount snapshot with full snapshot",
+                    tvaultconf.PASS)
             else:
                 LOG.debug("unmount snapshot with full snapshot is unsuccessful")
                 reporting.add_test_step(
-                    "Verification of unmount snapshot with full snapshot", tvaultconf.FAIL)
+                    "Verification of unmount snapshot with full snapshot",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Snapshot unmount with full_snapshot does not execute correctly")
 
@@ -170,8 +177,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
     def test_3_snapshot_mount_incremental(self):
         reporting.add_test_script(str(__name__) + "_incremental_snasphot")
         try:
@@ -195,16 +202,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             is_mounted = self.mount_snapshot(
                 wid, incremental_snapshot_id, fvm_id)
             LOG.debug("VALUE OF is_mounted: " + str(is_mounted))
-            if is_mounted == True:
+            if is_mounted:
                 LOG.debug(
                     " mount snapshot with incremental snapshot is  successful")
                 reporting.add_test_step(
-                    "Verification of mount snapshot with incremental snapshot", tvaultconf.PASS)
+                    "Verification of mount snapshot with incremental snapshot",
+                    tvaultconf.PASS)
             else:
                 LOG.debug(
                     "mount snapshot with incremental snapshot is unsuccessful")
                 reporting.add_test_step(
-                    "Verification of mount snapshot with incremental snapshot", tvaultconf.FAIL)
+                    "Verification of mount snapshot with incremental snapshot",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Snapshot mount with incremental_snapshot  does not execute correctly")
 
@@ -220,7 +229,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
-                        "Verify that mountpoint mounted is shown on FVM instance", tvaultconf.PASS)
+                        "Verify that mountpoint mounted is shown on FVM instance",
+                        tvaultconf.PASS)
                     flag = 1
                     if 'File_1' in i:
                         LOG.debug(
@@ -239,10 +249,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug(
                     "mount snapshot with full snapshot is unsuccessful on FVM")
                 reporting.add_test_step(
-                    "Verify that  mountpoint mounted is shown on FVM instance", tvaultconf.FAIL)
+                    "Verify that  mountpoint mounted is shown on FVM instance",
+                    tvaultconf.FAIL)
                 LOG.debug("file does not found on FVM instacne")
                 reporting.add_test_step(
-                    "Verification of file's existance on mounted snapshot", tvaultconf.FAIL)
+                    "Verification of file's existance on mounted snapshot",
+                    tvaultconf.FAIL)
                 raise Exception("mountpoint is not showing on FVM instance")
             else:
                 pass

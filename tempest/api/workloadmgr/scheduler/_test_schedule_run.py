@@ -58,8 +58,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         date = time.strftime("%Y-%m-%d %H:%M:%S")
         tvaultconf.count = 0
         self.enabled = True
-        self.schedule = {"interval": tvaultconf.interval, "enabled": self.enabled,
-                         "start_date": self.start_date, "start_time": self.start_time}
+        self.schedule = {
+            "interval": tvaultconf.interval,
+            "enabled": self.enabled,
+            "start_date": self.start_date,
+            "start_time": self.start_time}
         for vm in range(0, self.vms_per_workload):
             vm_id = self.create_vm()
             self.workload_instances.append(vm_id)
@@ -73,13 +76,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.attach_volume(volume_id2, vm_id, device="/dev/vdc")
 
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel, self.schedule, 'Workload-1', True, 'New Test')
+            self.workload_instances,
+            tvaultconf.parallel,
+            self.schedule,
+            'Workload-1',
+            True,
+            'New Test')
         self.wait_for_workload_tobe_available(self.workload_id)
         self.date = time.strftime("%Y-%m-%d %H:%M:%S")
         self.end_date = datetime.strptime(
             self.date, "%Y-%m-%d %H:%M:%S") + timedelta(minutes=10)
-        tvaultconf.sched.add_job(self.verifyScheduleTest, 'interval', args=[
-                                 self.workload_id], seconds=3558, id='my_job_id')
+        tvaultconf.sched.add_job(
+            self.verifyScheduleTest,
+            'interval',
+            args=[
+                self.workload_id],
+            seconds=3558,
+            id='my_job_id')
         tvaultconf.sched.start()
         if (tvaultconf.count < tvaultconf.No_of_Backup):
             raise Exception(" Scheduler is Not Running")

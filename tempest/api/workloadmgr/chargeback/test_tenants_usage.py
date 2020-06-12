@@ -1,6 +1,6 @@
 from tempest.api.workloadmgr import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
 from tempest import prerequisites
 from oslo_log import log as logging
 from tempest import tvaultconf
@@ -17,11 +17,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tenants_usage(self):
         try:
             # Run getTenantUsage API
@@ -44,7 +43,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(str(self.exception))
             LOG.debug("pre req completed")
 
-            # Get the openstack global and tenant usage after creating instance and workload
+            # Get the openstack global and tenant usage after creating instance
+            # and workload
 
             Tenant_Usage_after_prereqisite = self.getTenantUsage()
             global_usage_total_vms_after_pre_req = Tenant_Usage_after_prereqisite[
@@ -57,7 +57,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       str(tenants_usage_vms_protected_after_pre_req))
 
             # Verify Global Usage
-            if ((global_usage_total_vms + 1) == global_usage_total_vms_after_pre_req):
+            if ((global_usage_total_vms + 1) ==
+                global_usage_total_vms_after_pre_req):
                 LOG.debug(" Global usage total vms value is correct ")
                 reporting.add_test_step(
                     "Verify total vms in openstack", tvaultconf.PASS)
@@ -69,7 +70,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     " Verification for total vms in openstack failed ")
 
             # Verify Global Usage
-            if ((tenants_usage_vms_protected + 1) == tenants_usage_vms_protected_after_pre_req):
+            if ((tenants_usage_vms_protected + 1) ==
+                tenants_usage_vms_protected_after_pre_req):
                 LOG.debug(" No. of total protected vms in tenant is correct ")
                 reporting.add_test_step(
                     " Verify total protected vms in tenant ", tvaultconf.PASS)

@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -35,12 +36,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
         try:
             if self.exception != "":
@@ -105,8 +105,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
 
             # Trigger selective restore
-            self.restore_id = self.snapshot_selective_restore(self.workload_id, self.snapshot_id, restore_name=tvaultconf.restore_name,
-                                                              instance_details=self.instance_details, network_details=self.network_details)
+            self.restore_id = self.snapshot_selective_restore(
+                self.workload_id,
+                self.snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=self.instance_details,
+                network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(
                 self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -138,8 +142,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
-                    LOG.error(
-                        "Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
+                    LOG.error("Restored network: " +
+                              str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -149,8 +153,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original keypair details: " +
                               str(self.original_fingerprint))
-                    LOG.error("Restored keypair details: " + str(
-                        self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
+                    LOG.error(
+                        "Restored keypair details: " + str(
+                            self.get_key_pair_details(
+                                self.vms_details_after_restore[i]['keypair'])))
                     reporting.add_test_step(
                         "Keypair verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -160,8 +166,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original flavor details: " +
                               str(self.original_flavor_conf))
-                    LOG.error("Restored flavor details: " + str(
-                        self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
+                    LOG.error(
+                        "Restored flavor details: " + str(
+                            self.get_flavor_details(
+                                self.vms_details_after_restore[i]['flavor_id'])))
                     reporting.add_test_step(
                         "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)

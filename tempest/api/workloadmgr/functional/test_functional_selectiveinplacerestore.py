@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -39,13 +39,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         sec_groups = []
         ip_protocols = ["TCP", "UDP"]
         for each in range(1, count + 1):
-            sgid = self.create_security_group(name="sample_security_group-{}".format(
-                each), description="security group", secgrp_cleanup=True)
+            sgid = self.create_security_group(
+                name="sample_security_group-{}".format(each),
+                description="security group",
+                secgrp_cleanup=True)
             sec_groups.append(sgid)
-            self.add_security_group_rule(parent_group_id=sgid, ip_protocol=random.choice(
-                ip_protocols), from_port=2000, to_port=2100)
             self.add_security_group_rule(
-                parent_group_id=sgid, ip_protocol="TCP", from_port=22, to_port=22)
+                parent_group_id=sgid,
+                ip_protocol=random.choice(ip_protocols),
+                from_port=2000,
+                to_port=2100)
+            self.add_security_group_rule(
+                parent_group_id=sgid,
+                ip_protocol="TCP",
+                from_port=22,
+                to_port=22)
         return(sec_groups)
 
     def multiple_vms(self, vm_count, key_pairs, sec_groups):
@@ -54,12 +62,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for each in range(1, vm_count + 1):
             if each <= (vm_count / 2):
                 kptouple = random.choice(key_pairs)
-                vm_id = self.create_vm(security_group_id=random.choice(
-                    sec_groups), key_pair=kptouple[1], key_name=kptouple[0], vm_cleanup=True)
+                vm_id = self.create_vm(
+                    security_group_id=random.choice(sec_groups),
+                    key_pair=kptouple[1],
+                    key_name=kptouple[0],
+                    vm_cleanup=True)
                 vms[vm_id] = [kptouple[0]]
             else:
                 boot_volume_id = self.create_volume(
-                    size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=True)
+                    size=tvaultconf.bootfromvol_vol_size,
+                    image_id=CONF.compute.image_ref,
+                    volume_cleanup=True)
                 boot_vols.append(boot_volume_id)
                 self.set_volume_as_bootable(boot_volume_id)
                 LOG.debug("Bootable Volume ID : " + str(boot_volume_id))
@@ -72,8 +85,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                 # Create instance
                 kptouple = random.choice(key_pairs)
-                vm_id = self.create_vm(security_group_id=random.choice(
-                    sec_groups), key_pair=kptouple[1], key_name=kptouple[0], block_mapping_data=block_mapping_details, vm_cleanup=True)
+                vm_id = self.create_vm(
+                    security_group_id=random.choice(sec_groups),
+                    key_pair=kptouple[1],
+                    key_name=kptouple[0],
+                    block_mapping_data=block_mapping_details,
+                    vm_cleanup=True)
                 LOG.debug("VM ID : " + str(vm_id))
                 vms[vm_id] = [kptouple[0]]
         return(vms, boot_vols)
@@ -119,7 +136,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.set_floating_ip(str(fip[0]), vm_id, floatingip_cleanup=fipcleanup)
         return(fip[0])
 
-    def data_ops(self, flo_ip, key_name, volumes_part, mount_point, file_count):
+    def data_ops(
+        self,
+        flo_ip,
+        key_name,
+        volumes_part,
+        mount_point,
+        file_count):
         ssh = self.SshRemoteMachineConnectionWithRSAKeyName(
             str(flo_ip), key_name)
         self.execute_command_disk_create(
@@ -150,7 +173,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_id = self.workload_create(
                 each, tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
-            if(workload_id != None):
+            if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step(
@@ -171,9 +194,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_functional(self):
         try:
 
@@ -245,7 +267,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("\nvmvols : {}\n".format(vmvols))
                 if len(vmvols) > 0:
                     for vol in vmvols:
-                        if self.volumes_client.show_volume(vol)['volume']['bootable'] == 'true':
+                        if self.volumes_client.show_volume(
+                            vol)['volume']['bootable'] == 'true':
                             vmvols.remove(vol)
                         else:
                             pass
@@ -328,26 +351,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     vmname = vmid + "_selectively_restored"
                     volumes = vmvol[1][1]
                     if len(volumes) == 0:
-                        temp_instance_data = {'id': vmid,
-                                              'availability_zone': CONF.compute.vm_availability_zone,
-                                              'include': True,
-                                              'restore_boot_disk': True,
-                                              'name': vmname
-                                              }
+                        temp_instance_data = {
+                            'id': vmid,
+                            'availability_zone': CONF.compute.vm_availability_zone,
+                            'include': True,
+                            'restore_boot_disk': True,
+                            'name': vmname}
                         instance_details.append(temp_instance_data)
                     else:
                         for volume in volumes:
-                            temp_vdisks_data.append({'id': volume,
-                                                     'availability_zone': CONF.volume.volume_availability_zone,
-                                                     'new_volume_type': CONF.volume.volume_type
-                                                     })
-                        temp_instance_data = {'id': vmid,
-                                              'availability_zone': CONF.compute.vm_availability_zone,
-                                              'include': True,
-                                              'restore_boot_disk': True,
-                                              'name': vmname,
-                                              'vdisks': temp_vdisks_data
-                                              }
+                            temp_vdisks_data.append(
+                                {
+                                    'id': volume,
+                                    'availability_zone': CONF.volume.volume_availability_zone,
+                                    'new_volume_type': CONF.volume.volume_type})
+                        temp_instance_data = {
+                            'id': vmid,
+                            'availability_zone': CONF.compute.vm_availability_zone,
+                            'include': True,
+                            'restore_boot_disk': True,
+                            'name': vmname,
+                            'vdisks': temp_vdisks_data}
                         instance_details.append(temp_instance_data)
 
                 LOG.debug("Instance details for restore: " +
@@ -355,8 +379,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 instances_details[wid] = instance_details
 
                 # Trigger selective restore
-                restore_id_1 = self.snapshot_selective_restore(wid, snapshotid, restore_name=tvaultconf.restore_name, restore_cleanup=True,
-                                                               instance_details=instance_details, network_details=network_details)
+                restore_id_1 = self.snapshot_selective_restore(
+                    wid,
+                    snapshotid,
+                    restore_name=tvaultconf.restore_name,
+                    restore_cleanup=True,
+                    instance_details=instance_details,
+                    network_details=network_details)
                 self.wait_for_snapshot_tobe_available(wid, snapshotid)
                 if(self.getRestoreStatus(wid, snapshotid, restore_id_1) == "available"):
                     reporting.add_test_step(
@@ -384,7 +413,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     LOG.debug("\nrvmvols : {}\n".format(rvmvols))
                     if len(rvmvols) > 0:
                         for rvol in rvmvols:
-                            if self.volumes_client.show_volume(rvol)['volume']['bootable'] == 'true':
+                            if self.volumes_client.show_volume(
+                                rvol)['volume']['bootable'] == 'true':
                                 rvmvols.remove(rvol)
                             else:
                                 pass
@@ -397,7 +427,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             ssh = self.SshRemoteMachineConnectionWithRSAKeyName(
                                 str(fip), key)
                             self.execute_command_disk_mount(
-                                ssh, str(fip), [volumes_parts[j]], [mount_points[j]])
+                                ssh, str(fip), [
+                                    volumes_parts[j]], [
+                                    mount_points[j]])
                             ssh.close()
                             mdsum = mdsum + \
                                 self.calcmd5sum(fip, key, mount_points[j])
@@ -451,14 +483,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 resp, body = self.wlm_client.client.post(
                     "/workloads/" + wid + "/snapshots/" + incrsnapid + "/restores", json=payload)
                 restore_id_2 = body['restore']['id']
-                LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (
-                    workload_id, incrsnapid, restore_id_2))
+                LOG.debug(
+                    "#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" %
+                    (workload_id, incrsnapid, restore_id_2))
                 LOG.debug("Response:" + str(resp.content))
                 if(resp.status_code != 202):
                     resp.raise_for_status()
                 LOG.debug(
-                    'Restore of snapshot %s scheduled succesffuly' % incrsnapid)
-                if(tvaultconf.cleanup == True):
+                    'Restore of snapshot %s scheduled succesffuly' %
+                    incrsnapid)
+                if(tvaultconf.cleanup):
                     self.wait_for_snapshot_tobe_available(
                         workload_id, incrsnapid)
                     self.restored_vms = self.get_restored_vm_list(restore_id_2)
@@ -493,7 +527,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     LOG.debug("\nrvmvols : {}\n".format(rvmvols))
                     if len(rvmvols) > 0:
                         for rvol in rvmvols:
-                            if self.volumes_client.show_volume(rvol)['volume']['bootable'] == 'true':
+                            if self.volumes_client.show_volume(
+                                rvol)['volume']['bootable'] == 'true':
                                 rvmvols.remove(rvol)
                             else:
                                 pass
@@ -508,7 +543,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             ssh = self.SshRemoteMachineConnectionWithRSAKeyName(
                                 str(fip), key)
                             self.execute_command_disk_mount(
-                                ssh, str(fip), [volumes_parts[j]], [mount_points[j]])
+                                ssh, str(fip), [
+                                    volumes_parts[j]], [
+                                    mount_points[j]])
                             ssh.close()
                             mdsum = mdsum + \
                                 self.calcmd5sum(fip, key, mount_points[j])

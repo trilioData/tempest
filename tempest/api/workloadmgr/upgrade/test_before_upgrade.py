@@ -103,10 +103,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     f.write("settings_list=" + str(self.settings_resp) + "\n")
                     self.setting_data_from_resp = {}
                     for i in range(0, len(self.settings_resp)):
-                        self.setting_data_from_resp[self.settings_resp[i]
-                                                    ['name']] = self.settings_resp[i]['value']
-                    LOG.debug("Settings data from response: " + str(self.setting_data_from_resp) +
-                              " ; original setting data: " + str(tvaultconf.setting_data))
+                        self.setting_data_from_resp[self.settings_resp[i][
+                            'name']] = self.settings_resp[i]['value']
+                    LOG.debug("Settings data from response: " +
+                              str(self.setting_data_from_resp) +
+                              " ; original setting data: " +
+                              str(tvaultconf.setting_data))
 
                     if(cmp(self.setting_data_from_resp, tvaultconf.setting_data) == 0):
                         reporting.add_test_step(
@@ -146,21 +148,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             self.start_date = time.strftime("%x")
             self.start_time = time.strftime("%X")
-            self.jobschedule = {"fullbackup_interval": "-1",
-                                "retention_policy_type": tvaultconf.retention_policy_type,
-                                "enabled": True,
-                                "start_date": self.start_date,
-                                "start_time": self.start_time,
-                                "interval": tvaultconf.interval,
-                                "retention_policy_value": tvaultconf.retention_policy_value}
+            self.jobschedule = {
+                "fullbackup_interval": "-1",
+                "retention_policy_type": tvaultconf.retention_policy_type,
+                "enabled": True,
+                "start_date": self.start_date,
+                "start_time": self.start_time,
+                "interval": tvaultconf.interval,
+                "retention_policy_value": tvaultconf.retention_policy_value}
             self.workload_id = self.workload_create(
-                self.workload_instances, tvaultconf.parallel, self.jobschedule, workload_cleanup=False)
+                self.workload_instances,
+                tvaultconf.parallel,
+                self.jobschedule,
+                workload_cleanup=False)
             if(self.wait_for_workload_tobe_available(self.workload_id)):
                 reporting.add_test_step(
-                    "Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.PASS)
+                    "Create Workload 1 for attached volume instance with scheduler enabled",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Create Workload 1 for attached volume instance with scheduler enabled", tvaultconf.FAIL)
+                    "Create Workload 1 for attached volume instance with scheduler enabled",
+                    tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
             f.write("workload_id=\"" + str(self.workload_id) + "\"\n")
 
@@ -168,7 +176,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.volumes = []
             self.instances = []
             self.volume_id = self.create_volume(
-                size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_type_id=CONF.volume.volume_type_id)
+                size=tvaultconf.bootfromvol_vol_size,
+                image_id=CONF.compute.image_ref,
+                volume_type_id=CONF.volume.volume_type_id)
             self.set_volume_as_bootable(self.volume_id)
             self.block_mapping_details = [{"source_type": "volume",
                                            "delete_on_termination": "false",
@@ -182,14 +192,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.instances.append(self.vm_id)
             f.write("instance_id_2=" + str(self.instances) + "\n")
 
-            self.workload_id2 = self.workload_create(self.instances, tvaultconf.parallel, jobschedule={
-                                                     'enabled': False}, workload_cleanup=False)
+            self.workload_id2 = self.workload_create(
+                self.instances, tvaultconf.parallel, jobschedule={
+                    'enabled': False}, workload_cleanup=False)
             if(self.wait_for_workload_tobe_available(self.workload_id2)):
                 reporting.add_test_step(
-                    "Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.PASS)
+                    "Create Workload 2 for boot from volume instance with scheduler disabled",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Create Workload 2 for boot from volume instance with scheduler disabled", tvaultconf.FAIL)
+                    "Create Workload 2 for boot from volume instance with scheduler disabled",
+                    tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
             f.write("workload_id_2=\"" + str(self.workload_id2) + "\"\n")
 

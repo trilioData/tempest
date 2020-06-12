@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -34,12 +35,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'selective_basic'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     def test_ubuntu_smallvolumes_selectiverestore_excludevms(self):
         try:
             if self.exception != "":
@@ -62,31 +62,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 temp_vdisks_data.append([{'id': self.workload_volumes[flag],
                                           'availability_zone':CONF.volume.volume_availability_zone,
-                                          'new_volume_type':CONF.volume.volume_type
-                                          },
+                                          'new_volume_type':CONF.volume.volume_type},
                                          {'id': self.workload_volumes[flag + 1],
                                           'availability_zone':CONF.volume.volume_availability_zone,
-                                          'new_volume_type':CONF.volume.volume_type
-                                          }]
-                                        )
+                                          'new_volume_type':CONF.volume.volume_type}])
             LOG.debug("Vdisks details for restore" + str(temp_vdisks_data))
 
             for i in range(len(self.workload_instances)):
                 vm_name = "tempest_test_vm_" + str(i + 1) + "_restored"
                 if (i == 1):
                     include_vm = False
-                    temp_instance_data = {'id': self.workload_instances[i],
-                                          'availability_zone': CONF.compute.vm_availability_zone,
-                                          'include': include_vm
-                                          }
+                    temp_instance_data = {
+                        'id': self.workload_instances[i],
+                        'availability_zone': CONF.compute.vm_availability_zone,
+                        'include': include_vm}
                 else:
                     include_vm = True
-                    temp_instance_data = {'id': self.workload_instances[i],
-                                          'availability_zone': CONF.compute.vm_availability_zone,
-                                          'include': include_vm,
-                                          'name': vm_name,
-                                          'vdisks': temp_vdisks_data[i]
-                                          }
+                    temp_instance_data = {
+                        'id': self.workload_instances[i],
+                        'availability_zone': CONF.compute.vm_availability_zone,
+                        'include': include_vm,
+                        'name': vm_name,
+                        'vdisks': temp_vdisks_data[i]}
                 self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
                       str(self.instance_details))
@@ -106,8 +103,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(self.network_details))
 
             # Trigger selective restore
-            self.restore_id = self.snapshot_selective_restore(self.workload_id, self.snapshot_id, restore_name=tvaultconf.restore_name,
-                                                              instance_details=self.instance_details, network_details=self.network_details)
+            self.restore_id = self.snapshot_selective_restore(
+                self.workload_id,
+                self.snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=self.instance_details,
+                network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(
                 self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -149,8 +150,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
-                    LOG.error(
-                        "Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
+                    LOG.error("Restored network: " +
+                              str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
                 if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
@@ -159,8 +160,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original keypair details: " +
                               str(self.original_fingerprint))
-                    LOG.error("Restored keypair details: " + str(
-                        self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
+                    LOG.error(
+                        "Restored keypair details: " + str(
+                            self.get_key_pair_details(
+                                self.vms_details_after_restore[i]['keypair'])))
                     reporting.add_test_step(
                         "Keypair verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -170,8 +173,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original flavor details: " +
                               str(self.original_flavor_conf))
-                    LOG.error("Restored flavor details: " + str(
-                        self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
+                    LOG.error(
+                        "Restored flavor details: " + str(
+                            self.get_flavor_details(
+                                self.vms_details_after_restore[i]['flavor_id'])))
                     reporting.add_test_step(
                         "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)

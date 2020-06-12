@@ -109,8 +109,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id)
         snapshot_status = body['snapshot']['status']
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" % (
-            workload_id, snapshot_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" %
+            (workload_id, snapshot_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
@@ -124,8 +125,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + str(workload_id) + "/snapshots/" + str(snapshot_id) + "/restores/" + str(restore_id))
         restore_status = body['restore']['status']
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" % (
-            workload_id, snapshot_id, restore_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" %
+            (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
@@ -228,8 +230,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-    def create_vm(self, vm_cleanup=True, vm_name="", security_group_id="default", flavor_id=CONF.compute.flavor_ref,
-                  key_pair="", key_name=tvaultconf.key_pair_name, networkid=[{'uuid': CONF.network.internal_network_id}], image_id=CONF.compute.image_ref, block_mapping_data=[], a_zone=CONF.compute.vm_availability_zone):
+
+    def create_vm(self,
+                  vm_cleanup=True,
+                  vm_name="",
+                  security_group_id="default",
+                  flavor_id=CONF.compute.flavor_ref,
+                  key_pair="",
+                  key_name=tvaultconf.key_pair_name,
+                  networkid=[{'uuid': CONF.network.internal_network_id}],
+                  image_id=CONF.compute.image_ref,
+                  block_mapping_data=[],
+                  a_zone=CONF.compute.vm_availability_zone):
         if(vm_name == ""):
             ts = str(datetime.now())
             vm_name = "Tempest_Test_Vm" + ts.replace('.', '-')
@@ -237,21 +249,53 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             server_id = self.read_vm_id()
         else:
             if (len(block_mapping_data) > 0 and key_pair != ""):
-                server = self.servers_client.create_server(name=vm_name, security_groups=[{"name": security_group_id}], imageRef="",
-                                                           flavorRef=flavor_id, networks=networkid, key_name=key_name, block_device_mapping_v2=block_mapping_data, availability_zone=a_zone)
+                server = self.servers_client.create_server(
+                    name=vm_name,
+                    security_groups=[
+                        {
+                            "name": security_group_id}],
+                    imageRef="",
+                    flavorRef=flavor_id,
+                    networks=networkid,
+                    key_name=key_name,
+                    block_device_mapping_v2=block_mapping_data,
+                    availability_zone=a_zone)
             elif (len(block_mapping_data) > 0 and key_pair == ""):
-                server = self.servers_client.create_server(name=vm_name, security_groups=[{"name": security_group_id}], imageRef=image_id,
-                                                           flavorRef=flavor_id, networks=networkid, block_device_mapping_v2=block_mapping_data, availability_zone=a_zone)
+                server = self.servers_client.create_server(
+                    name=vm_name,
+                    security_groups=[
+                        {
+                            "name": security_group_id}],
+                    imageRef=image_id,
+                    flavorRef=flavor_id,
+                    networks=networkid,
+                    block_device_mapping_v2=block_mapping_data,
+                    availability_zone=a_zone)
             elif (key_pair != ""):
-                server = self.servers_client.create_server(name=vm_name, security_groups=[{"name": security_group_id}], imageRef=image_id,
-                                                           flavorRef=flavor_id, networks=networkid, key_name=key_name, availability_zone=a_zone)
+                server = self.servers_client.create_server(
+                    name=vm_name,
+                    security_groups=[
+                        {
+                            "name": security_group_id}],
+                    imageRef=image_id,
+                    flavorRef=flavor_id,
+                    networks=networkid,
+                    key_name=key_name,
+                    availability_zone=a_zone)
             else:
-                server = self.servers_client.create_server(name=vm_name, security_groups=[{"name": security_group_id}], imageRef=image_id,
-                                                           flavorRef=flavor_id, networks=networkid, availability_zone=a_zone)
+                server = self.servers_client.create_server(
+                    name=vm_name,
+                    security_groups=[
+                        {
+                            "name": security_group_id}],
+                    imageRef=image_id,
+                    flavorRef=flavor_id,
+                    networks=networkid,
+                    availability_zone=a_zone)
             server_id = server['server']['id']
             waiters.wait_for_server_status(
                 self.servers_client, server_id, status='ACTIVE')
-        if(tvaultconf.cleanup == True and vm_cleanup == True):
+        if(tvaultconf.cleanup and vm_cleanup):
             self.addCleanup(self.delete_vm, server_id)
         return server_id
 
@@ -269,13 +313,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     server_id = self.read_vm_id()
                 else:
                     server = self.servers_client.create_server(
-                        name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, key_name=tvaultconf.key_pair_name)
+                        name="tempest-test-vm",
+                        imageRef=CONF.compute.image_ref,
+                        flavorRef=CONF.compute.flavor_ref,
+                        key_name=tvaultconf.key_pair_name)
                     server_id = server['server']['id']
                     waiters.wait_for_server_status(
                         self.servers_client, server['server']['id'], status='ACTIVE')
             else:
                 server = self.servers_client.create_server(
-                    name="tempest-test-vm", imageRef=CONF.compute.image_ref, flavorRef=CONF.compute.flavor_ref, key_name=tvaultconf.key_pair_name)
+                    name="tempest-test-vm",
+                    imageRef=CONF.compute.image_ref,
+                    flavorRef=CONF.compute.flavor_ref,
+                    key_name=tvaultconf.key_pair_name)
                 # instances.append(server['server']['id'])
                 server_id = server['server']['id']
                 waiters.wait_for_server_status(
@@ -315,7 +365,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a new volume and returns Volume ID
     '''
 
-    def create_volume(self, size=CONF.volume.volume_size, volume_type_id=CONF.volume.volume_type_id, image_id="", az_name=CONF.volume.volume_availability_zone, volume_cleanup=True):
+    def create_volume(
+        self,
+        size=CONF.volume.volume_size,
+        volume_type_id=CONF.volume.volume_type_id,
+        image_id="",
+        az_name=CONF.volume.volume_availability_zone,
+        volume_cleanup=True):
         if(tvaultconf.volumes_from_file):
             flag = 0
             flag = self.is_volume_available()
@@ -324,24 +380,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             else:
                 if(image_id != ""):
                     volume = self.volumes_client.create_volume(
-                        size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+                        size=size,
+                        volume_type=volume_type_id,
+                        imageRef=image_id,
+                        availability_zone=az_name)
                 else:
                     volume = self.volumes_client.create_volume(
-                        size=size, expected_resp=self.expected_resp, volume_type=volume_type_id, availability_zone=az_name)
+                        size=size,
+                        expected_resp=self.expected_resp,
+                        volume_type=volume_type_id,
+                        availability_zone=az_name)
                 volume_id = volume['volume']['id']
                 waiters.wait_for_volume_status(self.volumes_client,
                                                volume_id, 'available')
         else:
             if(image_id != ""):
                 volume = self.volumes_client.create_volume(
-                    size=size, volume_type=volume_type_id, imageRef=image_id, availability_zone=az_name)
+                    size=size,
+                    volume_type=volume_type_id,
+                    imageRef=image_id,
+                    availability_zone=az_name)
             else:
                 volume = self.volumes_client.create_volume(
                     size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id = volume['volume']['id']
             waiters.wait_for_volume_status(self.volumes_client,
                                            volume_id, 'available')
-        if(tvaultconf.cleanup == True and volume_cleanup == True):
+        if(tvaultconf.cleanup and volume_cleanup):
             self.addCleanup(self.delete_volume, volume_id)
         return volume_id
 
@@ -443,7 +508,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method attaches given volume to given VM instance
     '''
 
-    def attach_volume(self, volume_id, server_id, device="/dev/vdb", attach_cleanup=True):
+    def attach_volume(
+        self,
+        volume_id,
+        server_id,
+        device="/dev/vdb",
+        attach_cleanup=True):
         if(not tvaultconf.workloads_from_file):
             if(tvaultconf.volumes_from_file):
                 try:
@@ -461,7 +531,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.servers_client.attach_volume(
                     server_id, volumeId=volume_id, device=device)
                 self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
-        if(tvaultconf.cleanup == True and attach_cleanup == True):
+        if(tvaultconf.cleanup and attach_cleanup):
             self.addCleanup(self.detach_volume, server_id, volume_id)
 
     '''
@@ -492,7 +562,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a workload and returns Workload id
     '''
 
-    def workload_create(self, instances, workload_type, jobschedule={}, workload_name="", workload_cleanup=True, description='test'):
+    def workload_create(
+        self,
+        instances,
+        workload_type,
+        jobschedule={},
+        workload_name="",
+        workload_cleanup=True,
+        description='test'):
         if(tvaultconf.workloads_from_file):
             flag = 0
             flag = self.is_workload_available()
@@ -515,7 +592,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "/workloads", json=payload)
                 workload_id = body['workload']['id']
                 LOG.debug(
-                    "#### workloadid: %s , operation:workload_create" % workload_id)
+                    "#### workloadid: %s , operation:workload_create" %
+                    workload_id)
                 LOG.debug("Response:" + str(resp.content))
                 if(resp.status_code != 202):
                     resp.raise_for_status()
@@ -539,7 +617,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("#### workloadid: %s , operation:workload_create" %
                       workload_id)
             time.sleep(30)
-            while (self.getWorkloadStatus(workload_id) != "available" and self.getWorkloadStatus(workload_id) != "error"):
+            while (self.getWorkloadStatus(workload_id) !=
+                   "available" and self.getWorkloadStatus(workload_id) != "error"):
                 LOG.debug('workload status is: %s , sleeping for 30 sec' %
                           self.getWorkloadStatus(workload_id))
                 time.sleep(30)
@@ -548,7 +627,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if(resp.status_code != 202):
                 resp.raise_for_status()
         LOG.debug('WorkloadCreated: %s' % workload_id)
-        if(tvaultconf.cleanup == True and workload_cleanup == True):
+        if(tvaultconf.cleanup and workload_cleanup):
             self.addCleanup(self.workload_delete, workload_id)
         return workload_id
 
@@ -569,7 +648,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.delete(
                 "/workloads/" + workload_id)
             LOG.debug(
-                "#### workloadid: %s , operation: workload_delete" % workload_id)
+                "#### workloadid: %s , operation: workload_delete" %
+                workload_id)
             LOG.debug("Response:" + str(resp.content))
             LOG.debug('WorkloadDeleted: %s' % workload_id)
             return True
@@ -580,7 +660,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates oneclick snapshot for a given workload and returns snapshot id
     '''
 
-    def workload_snapshot(self, workload_id, is_full, snapshot_name="", snapshot_cleanup=True):
+    def workload_snapshot(
+        self,
+        workload_id,
+        is_full,
+        snapshot_name="",
+        snapshot_cleanup=True):
         if (snapshot_name == ""):
             snapshot_name = 'Tempest-test-snapshot'
         LOG.debug("Snapshot Name: " + str(snapshot_name))
@@ -596,11 +681,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.post(
                 "/workloads/" + workload_id, json=payload)
         snapshot_id = body['snapshot']['id']
-        LOG.debug("#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" % (
-            workload_id, snapshot_id))
+        LOG.debug(
+            "#### workload_id: %s ,snapshot_id: %s , operation: workload_snapshot" %
+            (workload_id, snapshot_id))
         LOG.debug("Snapshot Response:" + str(resp.content))
         # self.wait_for_workload_tobe_available(workload_id)
-        if(tvaultconf.cleanup == True and snapshot_cleanup == True):
+        if(tvaultconf.cleanup and snapshot_cleanup):
             self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
         return snapshot_id
 
@@ -625,8 +711,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_reassign(self, new_tenant_id, workload_ids, user_id):
         try:
-            payload = [{"workload_ids": [workload_ids], "migrate_cloud": False, "old_tenant_ids": [
-                ], "user_id": user_id, "new_tenant_id":new_tenant_id}]
+            payload = [{"workload_ids": [workload_ids],
+                        "migrate_cloud": False,
+                        "old_tenant_ids": [],
+                        "user_id": user_id,
+                        "new_tenant_id":new_tenant_id}]
             resp, body = self.wlm_client.client.post(
                 "/workloads/reasign_workloads", json=payload)
             reassignstatus = body['workloads']['reassigned_workloads'][0]['status']
@@ -679,8 +768,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Deleting snapshot {}".format(snapshot_id))
         resp, body = self.wlm_client.client.delete(
             "/snapshots/" + str(snapshot_id))
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" % (
-            workload_id, snapshot_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s  , Operation: snapshot_delete" %
+            (workload_id, snapshot_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
@@ -692,20 +782,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates one click restore for a given snapshot and returns the restore id
     '''
 
-    def snapshot_restore(self, workload_id, snapshot_id, restore_name="", restore_cleanup=True):
+    def snapshot_restore(
+        self,
+        workload_id,
+        snapshot_id,
+        restore_name="",
+        restore_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if(restore_name == ""):
             restore_name = tvaultconf.snapshot_restore_name
-        payload = {"restore": {"options": {"description": "Tempest test restore",
-                                           "vmware": {},
-                                           "openstack": {"instances": [], "zone": ""},
-                                           "restore_type": "oneclick",
-                                           "type": "openstack",
-                                           "oneclickrestore": "True",
-                                           "restore_options": {},
-                                           "name": restore_name},
-                               "name": restore_name,
-                               "description": "Tempest test restore"}}
+        payload = {
+            "restore": {
+                "options": {
+                    "description": "Tempest test restore",
+                    "vmware": {},
+                    "openstack": {
+                        "instances": [],
+                        "zone": ""},
+                    "restore_type": "oneclick",
+                    "type": "openstack",
+                    "oneclickrestore": "True",
+                    "restore_options": {},
+                    "name": restore_name},
+                "name": restore_name,
+                "description": "Tempest test restore"}}
         LOG.debug(
             "In snapshot_restore method, before calling waitforsnapshot method")
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -713,8 +813,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.post(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id + "/restores", json=payload)
         restore_id = body['restore']['id']
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (
-            workload_id, snapshot_id, restore_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" %
+            (workload_id, snapshot_id, restore_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
@@ -722,7 +823,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         self.restored_vms = self.get_restored_vm_list(restore_id)
         self.restored_volumes = self.get_restored_volume_list(restore_id)
-        if(tvaultconf.cleanup == True and restore_cleanup == True):
+        if(tvaultconf.cleanup and restore_cleanup):
             #self.restored_vms = self.get_restored_vm_list(restore_id)
             #self.restored_volumes = self.get_restored_volume_list(restore_id)
             self.addCleanup(self.restore_delete, workload_id,
@@ -735,7 +836,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates selective restore for a given snapshot and returns the restore id
     '''
 
-    def snapshot_selective_restore(self, workload_id, snapshot_id, restore_name="", restore_desc="", instance_details=[], network_details=[], network_restore_flag=False, restore_cleanup=True, sec_group_cleanup=False):
+    def snapshot_selective_restore(
+        self,
+        workload_id,
+        snapshot_id,
+        restore_name="",
+        restore_desc="",
+        instance_details=[],
+        network_details=[],
+        network_restore_flag=False,
+        restore_cleanup=True,
+        sec_group_cleanup=False):
         LOG.debug("At the start of snapshot_selective_restore method")
         if(restore_name == ""):
             restore_name = "Tempest_test_restore"
@@ -762,21 +873,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.post(
                 "/workloads/" + workload_id + "/snapshots/" + snapshot_id + "/restores", json=payload)
             restore_id = body['restore']['id']
-            LOG.debug("#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" % (
-                workload_id, snapshot_id, restore_id))
+            LOG.debug(
+                "#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" %
+                (workload_id, snapshot_id, restore_id))
             LOG.debug("Response:" + str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('Restore of snapshot %s scheduled succesffuly' %
                       snapshot_id)
-            if(tvaultconf.cleanup == True and restore_cleanup == True):
+            if(tvaultconf.cleanup and restore_cleanup):
                 self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(
                     restore_id)
                 self.addCleanup(self.restore_delete,
                                 workload_id, snapshot_id, restore_id)
-                if sec_group_cleanup == True:
+                if sec_group_cleanup:
                     self.restored_security_group_id = self.get_security_group_id_by_name(
                         "snap_of_" + tvaultconf.security_group_name)
                     self.addCleanup(self.delete_security_group,
@@ -910,8 +1022,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         resp, body = self.wlm_client.client.delete(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id + "/restores/" + restore_id)
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s  , Operation: restore_delete" % (
-            workload_id, snapshot_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s  , Operation: restore_delete" %
+            (workload_id, snapshot_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 202):
             resp.raise_for_status()
@@ -1063,7 +1176,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def getSnapshotList(self, workload_id=None):
-        if(workload_id != None):
+        if(workload_id is not None):
             resp, body = self.wlm_client.client.get(
                 "/snapshots?workload_id=" + workload_id)
         else:
@@ -1119,7 +1232,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         floating_ips = get_ips_response['floating_ips']
         for ip in floating_ips:
             LOG.debug("instanceid: " + str(ip['instance_id']))
-            if str(ip['instance_id']) == "None" or str(ip['instance_id']) == "":
+            if str(
+                ip['instance_id']) == "None" or str(
+                ip['instance_id']) == "":
                 floating_ips_list.append(ip['ip'])
         LOG.debug('floating_ips' + str(floating_ips_list))
         return floating_ips_list
@@ -1128,20 +1243,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to associate floating ip to a server
     '''
 
-    def set_floating_ip(self, floating_ip, server_id, floatingip_cleanup=False):
+    def set_floating_ip(
+        self,
+        floating_ip,
+        server_id,
+        floatingip_cleanup=False):
         set_response = self.floating_ips_client.associate_floating_ip_to_server(
             floating_ip, server_id)
         # self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
-        if(tvaultconf.cleanup == True and floatingip_cleanup == True):
+        if(tvaultconf.cleanup and floatingip_cleanup):
             self.addCleanup(
-                self.disassociate_floating_ip_from_server, floating_ip, server_id)
+                self.disassociate_floating_ip_from_server,
+                floating_ip,
+                server_id)
         return set_response
 
     '''
     Method to create SSH connection using RSA Private key
     '''
 
-    def SshRemoteMachineConnectionWithRSAKey(self, ipAddress, username=tvaultconf.instance_username):
+    def SshRemoteMachineConnectionWithRSAKey(
+        self, ipAddress, username=tvaultconf.instance_username):
         key_file = str(tvaultconf.key_pair_name) + ".pem"
         ssh = paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
@@ -1150,7 +1272,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
-            if(flag == True):
+            if(flag):
                 break
             try:
                 ssh.connect(hostname=ipAddress, username=username,
@@ -1169,7 +1291,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create SSH connection using RSA Private key and its name
     '''
 
-    def SshRemoteMachineConnectionWithRSAKeyName(self, ipAddress, key_name, username=tvaultconf.instance_username):
+    def SshRemoteMachineConnectionWithRSAKeyName(
+        self, ipAddress, key_name, username=tvaultconf.instance_username):
         key_file = key_name + ".pem"
         ssh = paramiko.SSHClient()
         private_key = paramiko.RSAKey.from_private_key_file(key_file)
@@ -1178,7 +1301,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         flag = False
         for i in range(0, 30, 1):
             LOG.debug("Trying to connect to " + str(ipAddress))
-            if(flag == True):
+            if(flag):
                 break
             try:
                 ssh.connect(hostname=ipAddress, username=username,
@@ -1197,12 +1320,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     layout creation and formatting the disks
     '''
 
-    def execute_command_disk_create(self, ssh, ipAddress, volumes, mount_points):
+    def execute_command_disk_create(
+        self,
+        ssh,
+        ipAddress,
+        volumes,
+        mount_points):
         self.channel = ssh.invoke_shell()
         commands = []
         for volume in volumes:
-            commands.extend(["sudo fdisk {}".format(volume), "n", "p", "1", "2048",
-                             "2097151", "w", "yes | sudo mkfs -t ext3 {}1".format(volume)])
+            commands.extend(["sudo fdisk {}".format(volume),
+                             "n",
+                             "p",
+                             "1",
+                             "2048",
+                             "2097151",
+                             "w",
+                             "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing: " + str(command))
@@ -1218,14 +1352,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     disks mounting
     '''
 
-    def execute_command_disk_mount(self, ssh, ipAddress, volumes, mount_points):
+    def execute_command_disk_mount(
+        self,
+        ssh,
+        ipAddress,
+        volumes,
+        mount_points):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
         self.channel = ssh.invoke_shell()
         for i in range(len(volumes)):
 
-            commands = ["sudo mkdir " + mount_points[i], "sudo mount {0}1 {1}".format(volumes[i], mount_points[i]),
-                        "sudo df -h"]
+            commands = [
+                "sudo mkdir " +
+                mount_points[i],
+                "sudo mount {0}1 {1}".format(
+                    volumes[i],
+                    mount_points[i]),
+                "sudo df -h"]
 
             for command in commands:
                 LOG.debug("Executing: " + str(command))
@@ -1302,7 +1446,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to populate data before full backup
     '''
 
-    def data_populate_before_backup(self, workload_instances, floating_ips_list, backup_size, files_count, mount_points):
+    def data_populate_before_backup(
+        self,
+        workload_instances,
+        floating_ips_list,
+        backup_size,
+        files_count,
+        mount_points):
         md5sums_dir_before = {}
         for id in range(len(workload_instances)):
             self.md5sums = ""
@@ -1321,7 +1471,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 ssh.close()
             md5sums_dir_before[str(floating_ips_list[id])] = self.md5sums
             LOG.debug("before backup md5sum for " +
-                      floating_ips_list[id].encode('ascii', 'ignore') + " " + str(self.md5sums))
+                      floating_ips_list[id].encode('ascii', 'ignore') +
+                      " " +
+                      str(self.md5sums))
 
         LOG.debug("before backup md5sum : " + str(md5sums_dir_before))
         return md5sums_dir_before
@@ -1330,7 +1482,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to populate data before full backup
     '''
 
-    def calculate_md5_after_restore(self, workload_instances, floating_ips_list, volumes, mount_points):
+    def calculate_md5_after_restore(
+        self,
+        workload_instances,
+        floating_ips_list,
+        volumes,
+        mount_points):
         LOG.debug("Calculating md5 sums for :" +
                   str(workload_instances) + "||||" + str(floating_ips_list))
         md5sums_dir_after = {}
@@ -1375,7 +1532,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             f.write(str(privatekey))
         os.chmod(str(keypair_name) + ".pem", stat.S_IRWXU)
         LOG.debug("keypair fingerprint : " + str(fingerprint))
-        if(tvaultconf.cleanup == True and keypair_cleanup == True):
+        if(tvaultconf.cleanup and keypair_cleanup):
             self.addCleanup(self.delete_key_pair, keypair_name)
         return fingerprint
 
@@ -1436,27 +1593,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.vms_details = []
         for i in range(len(vm_details_list)):
             server_id = vm_details_list[i]['server']['id']
-            if len(vm_details_list[i]['server']['addresses'][list(vm_details_list[i]['server']['addresses'].keys())[0]]) == 2:
+            if len(vm_details_list[i]['server']['addresses'][list(
+                vm_details_list[i]['server']['addresses'].keys())[0]]) == 2:
                 floatingip = str(vm_details_list[i]['server']['addresses'][list(
                     vm_details_list[i]['server']['addresses'].keys())[0]][1]['addr'])
             else:
                 floatingip = None
-            if "security_groups" not in list(vm_details_list[i]['server'].keys()):
+            if "security_groups" not in list(
+                vm_details_list[i]['server'].keys()):
                 security_group = None
             else:
                 security_group = vm_details_list[i]['server']['security_groups']
 
-            tmp_json = {'id': server_id,
-                        'name': vm_details_list[i]['server']['name'],
-                        'network_name': list(vm_details_list[i]['server']['addresses'].keys())[0],
-                        'keypair': vm_details_list[i]['server']['key_name'],
-                        'floating_ip': floatingip,
-                        'vm_status': vm_details_list[i]['server']['status'],
-                        'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
-                        'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
-                        'flavor_id': vm_details_list[i]['server']['flavor']['id'],
-                        'security_groups': security_group
-                        }
+            tmp_json = {
+                'id': server_id,
+                'name': vm_details_list[i]['server']['name'],
+                'network_name': list(
+                    vm_details_list[i]['server']['addresses'].keys())[0],
+                'keypair': vm_details_list[i]['server']['key_name'],
+                'floating_ip': floatingip,
+                'vm_status': vm_details_list[i]['server']['status'],
+                'vm_power_status': vm_details_list[i]['server']['OS-EXT-STS:vm_state'],
+                'availability_zone': vm_details_list[i]['server']['OS-EXT-AZ:availability_zone'],
+                'flavor_id': vm_details_list[i]['server']['flavor']['id'],
+                'security_groups': security_group}
             self.vms_details.append(tmp_json)
         return self.vms_details
 
@@ -1470,13 +1630,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_net_name(self, network_id):
         try:
-            net_name = list(self.networks_client.show_network(network_id).items())[
-                0][1]['name']
+            net_name = list(self.networks_client.show_network(
+                network_id).items())[0][1]['name']
             return net_name
         except TypeError as te:
             LOG.debug("TypeError: " + str(te))
-            net_name = list(self.networks_client.show_network(network_id).items())[
-                0][1][0]['name']
+            net_name = list(self.networks_client.show_network(
+                network_id).items())[0][1][0]['name']
             return net_name
         except Exception as e:
             LOG.error("Exception in get_net_name: " + str(e))
@@ -1543,7 +1703,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def create_security_group(self, name, description, secgrp_cleanup=True):
         self.security_group_id = self.security_groups_client.create_security_group(
             name=name, description=description)['security_group']['id']
-        if(tvaultconf.cleanup == True and secgrp_cleanup == True):
+        if(tvaultconf.cleanup and secgrp_cleanup):
             self.addCleanup(self.delete_security_group, self.security_group_id)
         return self.security_group_id
 
@@ -1551,7 +1711,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_security_group_details(self, security_group_id):
         security_group_details = (
-            self.security_groups_client.show_security_group(str(security_group_id)))
+            self.security_groups_client.show_security_group(
+                str(security_group_id)))
         LOG.debug(security_group_details)
         return security_group_details
 
@@ -1572,15 +1733,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_flavor'''
 
-    def create_flavor(self, name=CONF.compute.flavor_name, disk=CONF.compute.flavor_disk, vcpus=CONF.compute.flavor_vcpus, ram=CONF.compute.flavor_ram, swap=0, ephemeral=0, flavor_cleanup=True):
+    def create_flavor(
+        self,
+        name=CONF.compute.flavor_name,
+        disk=CONF.compute.flavor_disk,
+        vcpus=CONF.compute.flavor_vcpus,
+        ram=CONF.compute.flavor_ram,
+        swap=0,
+        ephemeral=0,
+        flavor_cleanup=True):
         if(ephemeral == 0):
             flavor_id = self.flavors_client.create_flavor(
                 name=name, disk=disk, vcpus=vcpus, ram=ram, swap=swap)['flavor']['id']
             LOG.debug("flavor id" + str(flavor_id))
         else:
             flavor_id = self.flavors_client.create_flavor(
-                name=name, disk=disk, vcpus=vcpus, ram=ram, swap=swap, ephemeral=ephemeral)['flavor']['id']
-        if(tvaultconf.cleanup == True and flavor_cleanup == True):
+                name=name,
+                disk=disk,
+                vcpus=vcpus,
+                ram=ram,
+                swap=swap,
+                ephemeral=ephemeral)['flavor']['id']
+        if(tvaultconf.cleanup and flavor_cleanup):
             self.addCleanup(self.delete_flavor, flavor_id)
         return flavor_id
 
@@ -1601,14 +1775,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_flavor_details(self, flavor_id):
         flavor_resp = self.flavors_client.show_flavor(flavor_id)['flavor']
-        flavor_details = {'ram': flavor_resp['ram'],
-                          'OS-FLV-DISABLED:disabled': flavor_resp['OS-FLV-DISABLED:disabled'],
-                          'vcpus': flavor_resp['vcpus'],
-                          'swap': flavor_resp['swap'],
-                          'os-flavor-access:is_public': flavor_resp['os-flavor-access:is_public'],
-                          'rxtx_factor': flavor_resp['rxtx_factor'],
-                          'OS-FLV-EXT-DATA:ephemeral': flavor_resp['OS-FLV-EXT-DATA:ephemeral'],
-                          'disk': flavor_resp['disk']}
+        flavor_details = {
+            'ram': flavor_resp['ram'],
+            'OS-FLV-DISABLED:disabled': flavor_resp['OS-FLV-DISABLED:disabled'],
+            'vcpus': flavor_resp['vcpus'],
+            'swap': flavor_resp['swap'],
+            'os-flavor-access:is_public': flavor_resp['os-flavor-access:is_public'],
+            'rxtx_factor': flavor_resp['rxtx_factor'],
+            'OS-FLV-EXT-DATA:ephemeral': flavor_resp['OS-FLV-EXT-DATA:ephemeral'],
+            'disk': flavor_resp['disk']}
         return flavor_details
 
     '''Set a volume as bootable'''
@@ -1725,8 +1900,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id)
         snapshot_details = body['snapshot']
-        LOG.debug("#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" % (
-            workload_id, snapshot_id))
+        LOG.debug(
+            "#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" %
+            (workload_id, snapshot_id))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
@@ -1756,7 +1932,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method runs file search and returns filesearch id for given instance id and path
     '''
 
-    def filepath_search(self, vm_id, path, snapshot_ids=[], start=0, end=0, date_from="", date_to=""):
+    def filepath_search(
+        self,
+        vm_id,
+        path,
+        snapshot_ids=[],
+        start=0,
+        end=0,
+        date_from="",
+        date_to=""):
         payload = {"file_search": {"end": end,
                                    "filepath": path,
                                    "date_from": date_from,
@@ -1770,7 +1954,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### filesearchid: %s , operation:filepath_search" %
                   filesearch_id)
         time.sleep(30)
-        while (self.getSearchStatus(filesearch_id) != "completed" and self.getSearchStatus(filesearch_id) != "error"):
+        while (self.getSearchStatus(filesearch_id) !=
+               "completed" and self.getSearchStatus(filesearch_id) != "error"):
             LOG.debug('filepath_search status is: %s , sleeping for 30 sec' %
                       self.getSearchStatus(filesearch_id))
             time.sleep(30)
@@ -1787,8 +1972,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/search/" + str(filesearch_id))
         filesearch_status = body['file_search']['status']
-        LOG.debug("#### filesearchid: %s , filesearch status: %s, operation: filepath_search_status" % (
-            filesearch_id, filesearch_status))
+        LOG.debug(
+            "#### filesearchid: %s , filesearch status: %s, operation: filepath_search_status" %
+            (filesearch_id, filesearch_status))
         LOG.debug("Response:" + str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
@@ -1828,7 +2014,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                             else:
                                                 break
                                     disk = list(k3.keys())[0]
-                                if i != 0 and k2 not in list(snapshot_wise_filecount.keys()):
+                                if i != 0 and k2 not in list(
+                                    snapshot_wise_filecount.keys()):
                                     LOG.debug("File exist in " +
                                               k2 + " in volume " + disk)
                                     snapshot_wise_filecount[k2] = i
@@ -1865,14 +2052,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         LOG.debug("Total Files found = " +
                                   str(snapshot_wise_filecount[k2]))
                 LOG.debug(
-                    "Total number of files found in each snapshot =" + str(snapshot_wise_filecount))
+                    "Total number of files found in each snapshot =" +
+                    str(snapshot_wise_filecount))
         return snapshot_wise_filecount
 
     '''
     Method to mount snapshot and return the status
     '''
 
-    def mount_snapshot(self, workload_id, snapshot_id, vm_id, mount_cleanup=True):
+    def mount_snapshot(
+        self,
+        workload_id,
+        snapshot_id,
+        vm_id,
+        mount_cleanup=True):
         is_successful = True
         payload = {"mount": {"mount_vm_id": vm_id,
                              "options": {}}}
@@ -1891,7 +2084,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' %
                       self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(30)
-        if(tvaultconf.cleanup == True and mount_cleanup == True):
+        if(tvaultconf.cleanup and mount_cleanup):
             self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
         return is_successful
 
@@ -1904,7 +2097,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.post(
                 "/snapshots/" + snapshot_id + "/dismount")
             LOG.debug(
-                "#### snapshotid: %s , operation: unmount_snapshot" % snapshot_id)
+                "#### snapshotid: %s , operation: unmount_snapshot" %
+                snapshot_id)
             LOG.debug("Response status code:" + str(resp.status_code))
             LOG.debug('Snapshot unmounted: %s' % snapshot_id)
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
@@ -1917,30 +2111,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''
     Method to add newadmin role and newadmin_api rule to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
-    Method to add backup role and backup_api rule to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation 
+    Method to add backup role and backup_api rule to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
     and "workload:get_nodes" operations in policy.json file on tvault
     '''
 
     def change_policyjson_file(self, role, rule, policy_changes_cleanup=True):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0],
+            tvaultconf.tvault_dbusername,
+            tvaultconf.tvault_password)
         try:
             if role == "newadmin":
                 LOG.debug("Add new_admin role in policy.json : " + str(role))
                 role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
                     rule, role)
                 LOG.debug(
-                    "Assign new_admin rule to workload storage usage command : " + str(rule))
+                    "Assign new_admin rule to workload storage usage command : " +
+                    str(rule))
                 rule_assign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:admin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign new_admin rule to get_nodes command : " + str(rule))
+                    "Assign new_admin rule to get_nodes command : " +
+                    str(rule))
                 rule_assign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:admin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 commands = role_add_command + "; " + \
                     rule_assign_command1 + "; " + rule_assign_command2
                 stdin, stdout, stderr = ssh.exec_command(commands)
-                if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
+                if(tvaultconf.cleanup and policy_changes_cleanup):
                     self.addCleanup(
                         self.revert_changes_policyjson, "admin_api")
                 self.ssh.close()
@@ -1949,33 +2147,39 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
                     rule, role)
                 LOG.debug(
-                    "Assign backup_api rule to snapshot_create  command : " + str(rule))
+                    "Assign backup_api rule to snapshot_create  command : " +
+                    str(rule))
                 rule_assign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:admin_or_owner"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign backup_api rule to snapshot_delete  command : " + str(rule))
+                    "Assign backup_api rule to snapshot_delete  command : " +
+                    str(rule))
                 rule_assign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:admin_or_owner"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign backup_api rule to workload_create  command : " + str(rule))
+                    "Assign backup_api rule to workload_create  command : " +
+                    str(rule))
                 rule_assign_command3 = 'sed -i \'s/"workload:workload_create": "rule:admin_or_owner"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign backup_api rule to workload_delete  command : " + str(rule))
+                    "Assign backup_api rule to workload_delete  command : " +
+                    str(rule))
                 rule_assign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:admin_or_owner"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign backup_api rule to restore_create  command : " + str(rule))
+                    "Assign backup_api rule to restore_create  command : " +
+                    str(rule))
                 rule_assign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:admin_or_owner"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Assign backup_api rule to restore_delete  command : " + str(rule))
+                    "Assign backup_api rule to restore_delete  command : " +
+                    str(rule))
                 rule_assign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:admin_or_owner"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
-                commands = role_add_command + "; " + rule_assign_command1 + "; " + rule_assign_command2 + "; " + rule_assign_command3 + "; " + rule_assign_command4 \
-                    + "; " + rule_assign_command5 + "; " + rule_assign_command6
+                commands = role_add_command + "; " + rule_assign_command1 + "; " + rule_assign_command2 + "; " + \
+                    rule_assign_command3 + "; " + rule_assign_command4 + "; " + rule_assign_command5 + "; " + rule_assign_command6
                 stdin, stdout, stderr = ssh.exec_command(commands)
-                if(tvaultconf.cleanup == True and policy_changes_cleanup == True):
+                if(tvaultconf.cleanup and policy_changes_cleanup):
                     self.addCleanup(
                         self.revert_changes_policyjson, "admin_or_owner")
                 self.ssh.close()
@@ -1991,7 +2195,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def revert_changes_policyjson(self, rule):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0],
+            tvaultconf.tvault_dbusername,
+            tvaultconf.tvault_password)
         try:
             role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
             if rule == "admin_api":
@@ -2009,35 +2215,40 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             elif rule == "admin_or_owner":
                 LOG.debug("Delete backup role in policy.json : ")
                 LOG.debug(
-                    "Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+                    "Reassign admin_or_owner rule to snapshot_create command : " +
+                    str(rule))
                 rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
+                    "Reassign admin_or_owner rule to snapshot_delete command : " +
+                    str(rule))
                 rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to workload_create command : " + str(rule))
+                    "Reassign admin_or_owner rule to workload_create command : " +
+                    str(rule))
                 rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to workload_delete  command : " + str(rule))
+                    "Reassign admin_or_owner rule to workload_delete  command : " +
+                    str(rule))
                 rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to restore_create  command : " + str(rule))
+                    "Reassign admin_or_owner rule to restore_create  command : " +
+                    str(rule))
                 rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
+                    "Reassign admin_or_owner rule to restore_delete  command : " +
+                    str(rule))
                 rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
-                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2 + "; " + rule_reassign_command3 + "; " + rule_reassign_command4 \
-                    + "; " + rule_reassign_command5 + "; " + rule_reassign_command6
+                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2 + "; " + \
+                    rule_reassign_command3 + "; " + rule_reassign_command4 + "; " + rule_reassign_command5 + "; " + rule_reassign_command6
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
-
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2062,39 +2273,49 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     rule_reassign_command1 + "; " + rule_reassign_command2
                 LOG.debug("commands: " + str(commands))
                 ssh = self.SshRemoteMachineConnection(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                    tvaultconf.tvault_ip[0],
+                    tvaultconf.tvault_dbusername,
+                    tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
             elif rule == "admin_or_owner":
                 LOG.debug("Delete backup role in policy.json : ")
                 LOG.debug(
-                    "Reassign admin_or_owner rule to snapshot_create command : " + str(rule))
+                    "Reassign admin_or_owner rule to snapshot_create command : " +
+                    str(rule))
                 rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to snapshot_delete command : " + str(rule))
+                    "Reassign admin_or_owner rule to snapshot_delete command : " +
+                    str(rule))
                 rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to workload_create command : " + str(rule))
+                    "Reassign admin_or_owner rule to workload_create command : " +
+                    str(rule))
                 rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to workload_delete  command : " + str(rule))
+                    "Reassign admin_or_owner rule to workload_delete  command : " +
+                    str(rule))
                 rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to restore_create  command : " + str(rule))
+                    "Reassign admin_or_owner rule to restore_create  command : " +
+                    str(rule))
                 rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
                 LOG.debug(
-                    "Reassign admin_or_owner rule to restore_delete  command : " + str(rule))
+                    "Reassign admin_or_owner rule to restore_delete  command : " +
+                    str(rule))
                 rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(
                     rule)
-                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2 + "; " + rule_reassign_command3 + "; " + rule_reassign_command4 \
-                    + "; " + rule_reassign_command5 + "; " + rule_reassign_command6
+                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2 + "; " + \
+                    rule_reassign_command3 + "; " + rule_reassign_command4 + "; " + rule_reassign_command5 + "; " + rule_reassign_command6
                 LOG.debug("commands" + str(commands))
                 ssh = self.SshRemoteMachineConnection(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                    tvaultconf.tvault_ip[0],
+                    tvaultconf.tvault_dbusername,
+                    tvaultconf.tvault_password)
                 stdin, stdout, stderr = ssh.exec_command(commands)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2103,12 +2324,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     add security group rule
     '''
 
-    def add_security_group_rule(self, parent_group_id="", remote_group_id="", ip_protocol="", from_port=1, to_port=40000):
+    def add_security_group_rule(
+        self,
+        parent_group_id="",
+        remote_group_id="",
+        ip_protocol="",
+        from_port=1,
+        to_port=40000):
         LOG.debug("parent group id: {}".format(str(parent_group_id)))
         LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
         if remote_group_id != "":
-            self.security_group_rules_client.create_security_group_rule(parent_group_id=str(parent_group_id), group_id=str(
-                remote_group_id), ip_protocol=ip_protocol, from_port=from_port, to_port=to_port)
+            self.security_group_rules_client.create_security_group_rule(
+                parent_group_id=str(parent_group_id),
+                group_id=str(remote_group_id),
+                ip_protocol=ip_protocol,
+                from_port=from_port,
+                to_port=to_port)
         else:
             self.security_group_rules_client.create_security_group_rule(parent_group_id=str(
                 parent_group_id), ip_protocol=ip_protocol, from_port=from_port, to_port=to_port)
@@ -2146,7 +2377,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to update trilioVault email settings
     '''
 
-    def update_email_setings(self, setting_data, project_id=CONF.identity.admin_tenant_id, category="", is_public=False, is_hidden=False, metadata={}, type="", description=""):
+    def update_email_setings(
+        self,
+        setting_data,
+        project_id=CONF.identity.admin_tenant_id,
+        category="",
+        is_public=False,
+        is_hidden=False,
+        metadata={},
+        type="",
+        description=""):
         settings = []
         for k, v in list(setting_data.items()):
             data = {"name": str(k),
@@ -2184,7 +2424,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to update user email in openstack
     '''
 
-    def update_user_email(self, user_id, email_id, project_id=CONF.identity.tenant_id):
+    def update_user_email(
+        self,
+        user_id,
+        email_id,
+        project_id=CONF.identity.tenant_id):
         try:
             if CONF.identity_feature_enabled.api_v2:
                 resp = self.identity_client.update_user(
@@ -2277,10 +2521,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method creats a workload policy and return policy_id
     '''
 
-    def workload_policy_create(self, policy_name=tvaultconf.policy_name, fullbackup_interval=tvaultconf.fullbackup_interval,
-                               interval=tvaultconf.interval, retention_policy_value=tvaultconf.retention_policy_value,
-                               retention_policy_type=tvaultconf.retention_policy_type, description='description',
-                               policy_cleanup=True):
+    def workload_policy_create(
+        self,
+        policy_name=tvaultconf.policy_name,
+        fullbackup_interval=tvaultconf.fullbackup_interval,
+        interval=tvaultconf.interval,
+        retention_policy_value=tvaultconf.retention_policy_value,
+        retention_policy_type=tvaultconf.retention_policy_type,
+        description='description',
+        policy_cleanup=True):
         payload = {"workload_policy": {
             "field_values": {
                 "fullbackup_interval": fullbackup_interval,
@@ -2303,7 +2552,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
 
         LOG.debug('PolicyCreated: %s' % policy_id)
-        if(tvaultconf.cleanup == True and policy_cleanup == True):
+        if(tvaultconf.cleanup and policy_cleanup):
             self.addCleanup(self.workload_policy_delete, policy_id)
         return policy_id
 
@@ -2311,20 +2560,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method updates workload policy and return status
     '''
 
-    def workload_policy_update(self, policy_id, policy_name='policy_update', fullbackup_interval=tvaultconf.fullbackup_interval,
-                               interval=tvaultconf.interval, retention_policy_value=tvaultconf.retention_policy_value,
-                               retention_policy_type=tvaultconf.retention_policy_type, description='description'):
+    def workload_policy_update(
+        self,
+        policy_id,
+        policy_name='policy_update',
+        fullbackup_interval=tvaultconf.fullbackup_interval,
+        interval=tvaultconf.interval,
+        retention_policy_value=tvaultconf.retention_policy_value,
+        retention_policy_type=tvaultconf.retention_policy_type,
+        description='description'):
         try:
-            payload = {"policy": {
-                "field_values": {
-                    "fullbackup_interval": fullbackup_interval,
-                    "retention_policy_type": retention_policy_type,
-                    "interval": interval, "retention_policy_value": retention_policy_value
-                    },
-                "display_name": policy_name,
-                "display_description": description
-                }
-                }
+            payload = {
+                "policy": {
+                    "field_values": {
+                        "fullbackup_interval": fullbackup_interval,
+                        "retention_policy_type": retention_policy_type,
+                        "interval": interval,
+                        "retention_policy_value": retention_policy_value},
+                    "display_name": policy_name,
+                    "display_description": description}}
             resp, body = self.wlm_client.client.put(
                 "/workload_policy/" + policy_id, json=payload)
             LOG.debug("Response:" + str(resp.content))
@@ -2351,7 +2605,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp, body = self.wlm_client.client.delete(
                 "/workload_policy/" + policy_id)
             LOG.debug(
-                "#### policy id: %s , operation: workload_policy_delete" % policy_id)
+                "#### policy id: %s , operation: workload_policy_delete" %
+                policy_id)
             LOG.debug("Response:" + str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
@@ -2365,7 +2620,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method assign/unassign workload policy to tenants
     '''
 
-    def assign_unassign_workload_policy(self, policy_id, add_project_ids_list=[], remove_project_ids_list=[]):
+    def assign_unassign_workload_policy(
+        self,
+        policy_id,
+        add_project_ids_list=[],
+        remove_project_ids_list=[]):
         try:
             payload = {"policy":
                        {
@@ -2377,7 +2636,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "/workload_policy/" + policy_id + "/assign", json=payload)
             policy_id = body['policy']['id']
             LOG.debug(
-                "#### policyid: %s , operation:assignorunassign_workload_policy" % policy_id)
+                "#### policyid: %s , operation:assignorunassign_workload_policy" %
+                policy_id)
             LOG.debug("Response:" + str(resp.content))
             if(resp.status_code != 202):
                 resp.raise_for_status()
@@ -2410,7 +2670,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for i in range(len(body['policy']['policy_assignments'])):
                 list_of_projects_assigned1 = body['policy']['policy_assignments'][i]['project_id']
                 list_of_project_assigned.append(list_of_projects_assigned1)
-            return [policy_name, field_values, policy_id, description, list_of_project_assigned]
+            return [
+                policy_name,
+                field_values,
+                policy_id,
+                description,
+                list_of_project_assigned]
         except Exception as e:
             LOG.debug("Exception: " + str(e))
             return False
@@ -2452,7 +2717,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns True if snapshot dir is exists on backup target media
     '''
 
-    def check_snapshot_exist_on_backend(self, ipaddress, username, password, mount_path, workload_id, snapshot_id):
+    def check_snapshot_exist_on_backend(
+        self,
+        ipaddress,
+        username,
+        password,
+        mount_path,
+        workload_id,
+        snapshot_id):
         ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
         snapshot_path = str(mount_path).strip() + "/workload_" + \
             str(workload_id).strip() + "/snapshot_" + str(snapshot_id).strip()
@@ -2520,7 +2792,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def restart_wlm_api_service(self):
         ssh = self.SshRemoteMachineConnection(
-            tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+            tvaultconf.tvault_ip[0],
+            tvaultconf.tvault_dbusername,
+            tvaultconf.tvault_password)
         command = "service wlm-api restart"
         stdin, stdout, stderr = ssh.exec_command(command)
         time.sleep(3)
@@ -2534,7 +2808,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     connet to fvm , validate that snapshot is mounted on fvm
     '''
 
-    def validate_snapshot_mount(self, ssh, file_path_to_search="/home/ubuntu/tvault-mounts/mounts", file_name="File_1"):
+    def validate_snapshot_mount(
+        self,
+        ssh,
+        file_path_to_search="/home/ubuntu/tvault-mounts/mounts",
+        file_name="File_1"):
         try:
             LOG.debug("build comand to serach file")
             buildCommand = "find " + file_path_to_search + " -name " + file_name
@@ -2560,7 +2838,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return capture_port_list
 
     '''
-    Method to fetch the list of router ids 
+    Method to fetch the list of router ids
     '''
 
     def get_router_ids(self):
@@ -2687,8 +2965,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 net = self.networks_client.create_network(
                     **{'name': "Private-{}".format(x)})
                 nets[net['network']['name']] = net['network']['id']
-                subnetconfig = {'ip_version': 4, 'network_id': net['network']['id'], 'name': "PS-{}".format(
-                    x), 'gateway_ip': '10.10.{}.1'.format(x), 'cidr': '10.10.{}.0/24'.format(x)}
+                subnetconfig = {
+                    'ip_version': 4,
+                    'network_id': net['network']['id'],
+                    'name': "PS-{}".format(x),
+                    'gateway_ip': '10.10.{}.1'.format(x),
+                    'cidr': '10.10.{}.0/24'.format(x)}
                 subnet = self.subnets_client.create_subnet(**subnetconfig)
                 subnets[subnet['subnet']['name']] = subnet['subnet']['id']
             else:
@@ -2751,8 +3033,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_topology_details(self):
         networkslist = self.networks_client.list_networks()['networks']
         nws = [x['id'] for x in networkslist]
-        nt = [{str(i): str(j) for i, j in list(x.items()) if i not in ('network_id', 'subnets', 'created_at',
-                                                                 'updated_at', 'id', 'revision_number', 'provider:segmentation_id')} for x in networkslist]
+        nt = [{str(i): str(j) for i,
+               j in list(x.items()) if i not in ('network_id',
+                                                 'subnets',
+                                                 'created_at',
+                                                 'updated_at',
+                                                 'id',
+                                                 'revision_number',
+                                                 'provider:segmentation_id')} for x in networkslist]
         networks = {}
         for each_network in nt:
             networks[each_network['name']] = each_network
@@ -2765,8 +3053,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             subnets[each_subnet['name']] = each_subnet
 
         rs = self.network_client.list_routers()['routers']
-        rts = [{str(i): str(j) for i, j in list(x.items()) if i not in (
-            'external_gateway_info', 'created_at', 'updated_at', 'id', 'revision_number')} for x in rs]
+        rts = [{str(i): str(j) for i,
+                j in list(x.items()) if i not in ('external_gateway_info',
+                                                  'created_at',
+                                                  'updated_at',
+                                                  'id',
+                                                  'revision_number')} for x in rs]
         routers = {}
         for each_router in rts:
             routers[each_router['name']] = each_router
@@ -2775,8 +3067,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for router in self.get_router_ids():
             interfaceslist = self.network_client.list_router_interfaces(router)[
                 'ports']
-            intrfs = [{str(i): str(j) for i, j in list(x.items()) if i not in ('network_id', 'created_at', 'updated_at', 'mac_address',
-                                                                         'fixed_ips', 'id', 'device_id', 'security_groups', 'port_security_enabled', 'revision_number')} for x in interfaceslist]
+            intrfs = [{str(i): str(j) for i,
+                       j in list(x.items()) if i not in ('network_id',
+                                                         'created_at',
+                                                         'updated_at',
+                                                         'mac_address',
+                                                         'fixed_ips',
+                                                         'id',
+                                                         'device_id',
+                                                         'security_groups',
+                                                         'port_security_enabled',
+                                                         'revision_number')} for x in interfaceslist]
             interfaces[self.network_client.show_router(
                 router)['router']['name']] = intrfs
         return(networks, subnets, routers, interfaces)
@@ -2815,7 +3116,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             else:
                 snapshot_execution = 'fail'
 
-        if (tvaultconf.cleanup == True):
+        if (tvaultconf.cleanup):
             self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
         return(snapshot_id, command_execution, snapshot_execution)
 
@@ -2842,17 +3143,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for instance in instances:
                 temp_vdisks_data = []
                 for volume in instances[instance]:
-                    temp_vdisks_data.append({'id': volume,
-                                             'availability_zone': CONF.volume.volume_availability_zone,
-                                             'new_volume_type': CONF.volume.volume_type})
+                    temp_vdisks_data.append(
+                        {
+                            'id': volume,
+                            'availability_zone': CONF.volume.volume_availability_zone,
+                            'new_volume_type': CONF.volume.volume_type})
                 vm_name = "tempest_test_vm_" + instance + "_selectively_restored"
-                temp_instance_data = {'id': instance,
-                                      'availability_zone': CONF.compute.vm_availability_zone,
-                                      'include': True,
-                                      'restore_boot_disk': True,
-                                      'name': vm_name,
-                                      'vdisks': temp_vdisks_data
-                                      }
+                temp_instance_data = {
+                    'id': instance,
+                    'availability_zone': CONF.compute.vm_availability_zone,
+                    'include': True,
+                    'restore_boot_disk': True,
+                    'name': vm_name,
+                    'vdisks': temp_vdisks_data}
             instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {'instance_details': instance_details,
@@ -2865,25 +3168,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for instance in instances:
                 temp_vdisks_data = []
                 for volume in instances[instance]:
-                    temp_vdisks_data.append({'id': volume,
-                                             'availability_zone': CONF.volume.volume_availability_zone,
-                                             'new_volume_type': CONF.volume.volume_type})
-                temp_instance_data = {'id': instance,
-                                      'availability_zone': CONF.compute.vm_availability_zone,
-                                      'include': True,
-                                      'restore_boot_disk': True,
-                                      'vdisks': temp_vdisks_data
-                                      }
+                    temp_vdisks_data.append(
+                        {
+                            'id': volume,
+                            'availability_zone': CONF.volume.volume_availability_zone,
+                            'new_volume_type': CONF.volume.volume_type})
+                temp_instance_data = {
+                    'id': instance,
+                    'availability_zone': CONF.compute.vm_availability_zone,
+                    'include': True,
+                    'restore_boot_disk': True,
+                    'vdisks': temp_vdisks_data}
             instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
-            payload = {'name': 'Inplace Restore', 'zone': '', 'oneclickrestore': False,
-                       'openstack': {
-                           'instances': instance_details,
-                           'networks_mapping': {
-                               'networks': []}},
-                       'restore_type': 'inplace',
-                       'type': 'openstack',
-                       }
+            payload = {
+                'name': 'Inplace Restore',
+                'zone': '',
+                'oneclickrestore': False,
+                'openstack': {
+                    'instances': instance_details,
+                    'networks_mapping': {
+                        'networks': []}},
+                'restore_type': 'inplace',
+                'type': 'openstack',
+                }
             return(payload)
         else:
             return

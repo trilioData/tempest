@@ -4,7 +4,7 @@ from tempest import command_argument_string
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -22,11 +22,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault1035_list_workload(self):
         try:
             # Prerequisites
@@ -47,7 +46,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
-                self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+                self.workload_instances,
+                tvaultconf.parallel,
+                workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
 
             # List available workloads using CLI command
@@ -73,7 +74,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Verification with DB", tvaultconf.FAIL)
                 raise Exception(
-                    "Workload list command did not list available workloads correctly, from db: " + str(wc) + " , from cmd: " + str(out))
+                    "Workload list command did not list available workloads correctly, from db: " +
+                    str(wc) +
+                    " , from cmd: " +
+                    str(out))
             reporting.test_case_to_write()
 
         except Exception as e:

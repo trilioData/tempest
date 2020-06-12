@@ -1,6 +1,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
@@ -17,12 +18,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'basic_workload'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_chargeback_api(self):
         try:
             if self.exception != "":
@@ -57,7 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     instance_found = False
                 counter = counter + 1
 
-            if(instance_found == True):
+            if(instance_found):
                 reporting.add_test_step(
                     " Verified Instance ID ", tvaultconf.PASS)
             else:

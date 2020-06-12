@@ -5,6 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
+from tempest.lib import decorators
 from tempest import test
 from tempest import config
 from tempest.api.workloadmgr import base
@@ -27,10 +28,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_workload_policy_create(self):
         reporting.add_test_script(str(__name__) + "_create")
         try:
@@ -72,11 +72,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(policy_create_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not create workload policy by nonadmin user", tvaultconf.PASS)
+                    "Can not create workload policy by nonadmin user",
+                    tvaultconf.PASS)
                 LOG.debug("Policy is not created by nonadmin user")
             else:
                 reporting.add_test_step(
-                    "Can not create workload policy by nonadmin user", tvaultconf.FAIL)
+                    "Can not create workload policy by nonadmin user",
+                    tvaultconf.FAIL)
                 raise Exception("Policy is created by nonadmin user")
 
             reporting.test_case_to_write()
@@ -85,16 +87,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_2_workload_policy_update(self):
         reporting.add_test_script(str(__name__) + "_update")
         try:
             global policy_id
             # Update workload policy by admin user
-            updated_status = self.workload_policy_update(policy_id, policy_name=tvaultconf.policy_name_update,
-                                                         fullbackup_interval=tvaultconf.fullbackup_interval_update, interval=tvaultconf.interval_update,
-                                                         retention_policy_value=tvaultconf.retention_policy_value_update)
+            updated_status = self.workload_policy_update(
+                policy_id,
+                policy_name=tvaultconf.policy_name_update,
+                fullbackup_interval=tvaultconf.fullbackup_interval_update,
+                interval=tvaultconf.interval_update,
+                retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:
                 reporting.add_test_step(
                     "Update workload policy by admin user", tvaultconf.PASS)
@@ -105,11 +110,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Workload policy not updated by admin user")
 
             # Verify workload policy updated parameters
-            # Below function returns list as [policy_name, {field_values}, policy_id, description, [list_of_project_assigned]]
+            # Below function returns list as [policy_name, {field_values},
+            # policy_id, description, [list_of_project_assigned]]
             details = self.get_policy_details(policy_id)
             if not details:
                 reporting.add_test_step(
-                    "Verify workload policy parameters updated", tvaultconf.FAIL)
+                    "Verify workload policy parameters updated",
+                    tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
                 if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == details[1]['interval'] and tvaultconf.retention_policy_value_update ==\
@@ -133,11 +140,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(policy_update_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not update workload policy by nonadmin user", tvaultconf.PASS)
+                    "Can not update workload policy by nonadmin user",
+                    tvaultconf.PASS)
                 LOG.debug("Policy is not updated by nonadmin user")
             else:
                 reporting.add_test_step(
-                    "Can not update workload policy by nonadmin user", tvaultconf.FAIL)
+                    "Can not update workload policy by nonadmin user",
+                    tvaultconf.FAIL)
                 raise Exception("Policy is updated by nonadmin user")
 
             reporting.test_case_to_write()
@@ -146,16 +155,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_workload_policy_assign(self):
         reporting.add_test_script(str(__name__) + "_assign")
         try:
             global policy_id
             # Assign workload policy to projects by admin user
             admin_project_id = CONF.identity.admin_tenant_id
-            status = self.assign_unassign_workload_policy(policy_id, add_project_ids_list=[
-                                                          admin_project_id], remove_project_ids_list=[])
+            status = self.assign_unassign_workload_policy(
+                policy_id, add_project_ids_list=[admin_project_id], remove_project_ids_list=[])
             if status:
                 reporting.add_test_step(
                     "Assign workload policy by admin user", tvaultconf.PASS)
@@ -180,25 +189,32 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload policy not assigned to project by admin user unsuccessfully")
 
             # Update workload policy which is assigned to tenant
-            updated_status = self.workload_policy_update(policy_id, policy_name=tvaultconf.policy_name_update,
-                                                         fullbackup_interval=tvaultconf.fullbackup_interval_update, interval=tvaultconf.interval_update,
-                                                         retention_policy_value=tvaultconf.retention_policy_value_update)
+            updated_status = self.workload_policy_update(
+                policy_id,
+                policy_name=tvaultconf.policy_name_update,
+                fullbackup_interval=tvaultconf.fullbackup_interval_update,
+                interval=tvaultconf.interval_update,
+                retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:
                 reporting.add_test_step(
-                    "Update workload policy which is assigned to tenant", tvaultconf.PASS)
+                    "Update workload policy which is assigned to tenant",
+                    tvaultconf.PASS)
                 LOG.debug("Assigned workload policy has been updated")
             else:
                 reporting.add_test_step(
-                    "Update workload policy which is assigned to tenantr", tvaultconf.FAIL)
+                    "Update workload policy which is assigned to tenantr",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Assigned workload policy not updated by admin user")
 
             # Verify workload policy which has assigned to tenant is updated with parameters
-            # Below function returns list as [policy_name, {field_values}, policy_id, description, [list_of_project_assigned]]
+            # Below function returns list as [policy_name, {field_values},
+            # policy_id, description, [list_of_project_assigned]]
             details = self.get_policy_details(policy_id)
             if not details:
                 reporting.add_test_step(
-                    "Verify workload policy parameters updated", tvaultconf.FAIL)
+                    "Verify workload policy parameters updated",
+                    tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
                 if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == details[1]['interval'] and tvaultconf.retention_policy_value_update ==\
@@ -247,11 +263,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(policy_assign_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Cannot assign workload policy by nonadmin user", tvaultconf.PASS)
+                    "Cannot assign workload policy by nonadmin user",
+                    tvaultconf.PASS)
                 LOG.debug("Policy is not assigned by nonadmin user")
             else:
                 reporting.add_test_step(
-                    "Cannot assign workload policy by nonadmin user", tvaultconf.FAIL)
+                    "Cannot assign workload policy by nonadmin user",
+                    tvaultconf.FAIL)
                 raise Exception("Policy is assigned by nonadmin user")
 
             reporting.test_case_to_write()
@@ -261,8 +279,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'small_workload'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_workload_modify(self):
         reporting.add_test_script(str(__name__) + "_workload_modify")
         try:
@@ -288,11 +306,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create with policy command", tvaultconf.FAIL)
+                    "Execute workload-create with policy command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create with policy command", tvaultconf.PASS)
+                    "Execute workload-create with policy command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
@@ -317,11 +337,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policyid_from_workload_metadata = workload_details["metadata"]["policy_id"]
             if policyid_from_workload_metadata == policy_id:
                 reporting.add_test_step(
-                    "Verfiy that same policy id is assigned in workload-metadata", tvaultconf.PASS)
+                    "Verfiy that same policy id is assigned in workload-metadata",
+                    tvaultconf.PASS)
                 LOG.debug("Same policy id is assigned in workload-metadata")
             else:
                 reporting.add_test_step(
-                    "Verfiy that same policy id is assigned in workload-metadata", tvaultconf.FAIL)
+                    "Verfiy that same policy id is assigned in workload-metadata",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "policy id not assigned properly in workload-metadata")
 
@@ -341,11 +363,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     break
             if same_policy_settings:
                 reporting.add_test_step(
-                    "Verify that workload is created with same policy settings", tvaultconf.PASS)
+                    "Verify that workload is created with same policy settings",
+                    tvaultconf.PASS)
                 LOG.debug("Workload is created with same policy settings")
             else:
                 reporting.add_test_step(
-                    "Verify that workload is created with same policy settings", tvaultconf.FAIL)
+                    "Verify that workload is created with same policy settings",
+                    tvaultconf.FAIL)
                 LOG.debug("Workload is not created with same policy settings")
 
             # Launch second instance
@@ -361,16 +385,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
-            workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + str(self.vm_id2) + " --instance instance-id=" +\
-                str(vm_id) + " " + str(workload_id)
+            workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
+                str(self.vm_id2) + " --instance instance-id=" + str(vm_id) + " " + str(workload_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-modify command to add one more vm", tvaultconf.FAIL)
+                    "Execute workload-modify command to add one more vm",
+                    tvaultconf.FAIL)
                 LOG.error("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-modify command to add one more vm", tvaultconf.PASS)
+                    "Execute workload-modify command to add one more vm",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             self.wait_for_workload_tobe_available(workload_id)
@@ -378,11 +404,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 workload_id)
             if (workload_vm_count == 2):
                 reporting.add_test_step(
-                    "Verify vm added to policy assigned workload with DB", tvaultconf.PASS)
+                    "Verify vm added to policy assigned workload with DB",
+                    tvaultconf.PASS)
                 LOG.debug("Vm has been added successfully")
             else:
                 reporting.add_test_step(
-                    "Verify vm added to policy assigned workload with DB", tvaultconf.FAIL)
+                    "Verify vm added to policy assigned workload with DB",
+                    tvaultconf.FAIL)
                 LOG.error("Vm has not been added")
 
             # workload delete
@@ -393,8 +421,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_5_workload_policy_in_use(self):
         reporting.add_test_script(str(__name__) + "_in_use")
         try:
@@ -407,11 +435,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create with policy command", tvaultconf.FAIL)
+                    "Execute workload-create with policy command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create with policy command", tvaultconf.PASS)
+                    "Execute workload-create with policy command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
@@ -432,9 +462,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Verify policy can not be updated when it is in use
-            updated_status = self.workload_policy_update(policy_id, policy_name=tvaultconf.policy_name_update,
-                                                         fullbackup_interval=tvaultconf.fullbackup_interval_update, interval=tvaultconf.interval_update,
-                                                         retention_policy_value=tvaultconf.retention_policy_value_update)
+            updated_status = self.workload_policy_update(
+                policy_id,
+                policy_name=tvaultconf.policy_name_update,
+                fullbackup_interval=tvaultconf.fullbackup_interval_update,
+                interval=tvaultconf.interval_update,
+                retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:
                 reporting.add_test_step(
                     "Can not update policy while in use", tvaultconf.FAIL)
@@ -470,8 +503,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_6_workload_policy_delete(self):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
@@ -487,11 +520,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(policy_delete_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not delete workload policy by nonadmin user", tvaultconf.PASS)
+                    "Can not delete workload policy by nonadmin user",
+                    tvaultconf.PASS)
                 LOG.debug("Policy is not deleted by nonadmin user")
             else:
                 reporting.add_test_step(
-                    "Can not delete workload policy by nonadmin user", tvaultconf.FAIL)
+                    "Can not delete workload policy by nonadmin user",
+                    tvaultconf.FAIL)
                 raise Exception("Policy is deleted by nonadmin user")
 
             # Use admin credentials
@@ -502,11 +537,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             delete_status = self.workload_policy_delete(policy_id)
             if delete_status:
                 reporting.add_test_step(
-                    "Delete policy which is assigned to tenant by admin user", tvaultconf.PASS)
+                    "Delete policy which is assigned to tenant by admin user",
+                    tvaultconf.PASS)
                 LOG.debug("Policy deleted")
             else:
                 reporting.add_test_step(
-                    "Delete policy which is assigned to tenant by admin user", tvaultconf.FAIL)
+                    "Delete policy which is assigned to tenant by admin user",
+                    tvaultconf.FAIL)
                 raise Exception("Policy not deleted")
 
             # Verify policy is deleted
@@ -532,10 +569,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     # Workload policy with scheduler and retension parameter
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_7_policywith_scheduler_retension(self):
-        reporting.add_test_script(str(__name__) + "with_scheduler_retension")
+        reporting.add_test_script(str(__name__) + "with_scheduler_retention")
         try:
             global vm_id
             global volume_id
@@ -548,19 +585,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler enable", tvaultconf.FAIL)
+                    "Execute workload-create command with scheduler enable",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command workload create did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler enable", tvaultconf.PASS)
+                    "Execute workload-create command with scheduler enable",
+                    tvaultconf.PASS)
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
             self.workload_id = query_data.get_workload_id(
                 tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(self.workload_id))
-            if self.workload_id != None:
+            if self.workload_id is not None:
                 self.wait_for_workload_tobe_available(self.workload_id)
                 if(self.getWorkloadStatus(self.workload_id) == "available"):
                     reporting.add_test_step(
@@ -578,11 +617,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.getSchedulerStatus(self.workload_id)
             if status:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler enabled", tvaultconf.PASS)
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.PASS)
                 LOG.debug("Workload created with scheduler enabled successfully")
             else:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler enabled", tvaultconf.FAIL)
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Workload has not been created with scheduler enabled")
 
@@ -613,19 +654,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler disable", tvaultconf.FAIL)
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command workload create did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler disable", tvaultconf.PASS)
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
             self.workload_id2 = query_data.get_workload_id(
                 tvaultconf.workload_name)
             LOG.debug("Workload2 ID: " + str(self.workload_id2))
-            if(self.workload_id2 != None):
+            if(self.workload_id2 is not None):
                 self.wait_for_workload_tobe_available(self.workload_id2)
                 if(self.getWorkloadStatus(self.workload_id2) == "available"):
                     reporting.add_test_step(
@@ -643,16 +686,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.getSchedulerStatus(self.workload_id2)
             if status:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler disable", tvaultconf.FAIL)
+                    "Verify workload created with scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Workload has not been created with scheduler disabled")
             else:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler disable", tvaultconf.PASS)
+                    "Verify workload created with scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Workload created with scheduler disabled successfully")
 
-            # Get retension parameters values of workload_id2 wirh scheduler disabled
+            # Get retension parameters values of workload_id2 wirh scheduler
+            # disabled
             retention_policy_type_wid2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_wid2 = self.getRetentionPolicyValueStatus(
@@ -661,8 +707,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.workload_id2)
 
             # Create workload policy
-            self.policy_id = self.workload_policy_create(fullbackup_interval=tvaultconf.fullbackup_interval,
-                                                         retention_policy_value=tvaultconf.retention_policy_value, retention_policy_type=tvaultconf.retention_policy_type, policy_cleanup=True)
+            self.policy_id = self.workload_policy_create(
+                fullbackup_interval=tvaultconf.fullbackup_interval,
+                retention_policy_value=tvaultconf.retention_policy_value,
+                retention_policy_type=tvaultconf.retention_policy_type,
+                policy_cleanup=True)
             if self.policy_id != "":
                 reporting.add_test_step(
                     "Create workload policy", tvaultconf.PASS)
@@ -705,24 +754,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w1 == retention_policy_type_wid and retention_policy_value_w1 == retention_policy_value_wid and Full_Backup_Interval_Value_w1\
                 == Full_Backup_Interval_Value_wid:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant", tvaultconf.PASS)
+                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler enabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant", tvaultconf.FAIL)
+                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler enabled Retension param's not preserved")
 
             if retention_policy_type_w2 == retention_policy_type_wid2 and retention_policy_value_w2 == retention_policy_value_wid2 and Full_Backup_Interval_Value_w2\
                 == Full_Backup_Interval_Value_wid2:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant", tvaultconf.PASS)
+                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler disabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant", tvaultconf.FAIL)
+                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler disabled Retension param's not preserved")
 
@@ -733,11 +786,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute scheduler enabled workload policy modify command", tvaultconf.FAIL)
+                    "Execute scheduler enabled workload policy modify command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute scheduler enabled workload policy modify command", tvaultconf.PASS)
+                    "Execute scheduler enabled workload policy modify command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Modify policy of scheduler disabled workload
@@ -747,22 +802,26 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute scheduler disabled workload policy modify command", tvaultconf.FAIL)
+                    "Execute scheduler disabled workload policy modify command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute scheduler disabled workload policy modify command", tvaultconf.PASS)
+                    "Execute scheduler disabled workload policy modify command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify policy is reflected after workload policy modify
-            # Get retension parameters values of workload_id wirh scheduler disabled
+            # Get retension parameters values of workload_id wirh scheduler
+            # disabled
             retention_policy_type_w1 = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_w1 = self.getRetentionPolicyValueStatus(
                 self.workload_id)
             Full_Backup_Interval_Value_w1 = self.getFullBackupIntervalStatus(
                 self.workload_id)
-            # Get retension parameters values of workload_id2 wirh scheduler disabled
+            # Get retension parameters values of workload_id2 wirh scheduler
+            # disabled
             retention_policy_type_w2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_w2 = self.getRetentionPolicyValueStatus(
@@ -773,35 +832,44 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
                 Full_Backup_Interval_Value_w1 == tvaultconf.fullbackup_interval:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's updated after policy modify", tvaultconf.PASS)
+                    "Scheduler enabled workload Retension param's updated after policy modify",
+                    tvaultconf.PASS)
                 LOG.debug("Scheduler enabled workload policy param's modified")
             else:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's updated after policy modify", tvaultconf.FAIL)
+                    "Scheduler enabled workload Retension param's updated after policy modify",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Scheduler enabled workload policy param's not modified")
 
             if retention_policy_type_w2 == tvaultconf.retention_policy_type and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
                 Full_Backup_Interval_Value_w2 == tvaultconf.fullbackup_interval:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's updated after policy modify", tvaultconf.PASS)
+                    "Scheduler disabled workload Retension param's updated after policy modify",
+                    tvaultconf.PASS)
                 LOG.debug("Scheduler disabled workload policy param's modified")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's updated after policy modify", tvaultconf.FAIL)
+                    "Scheduler disabled workload Retension param's updated after policy modify",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Scheduler disabled workload policy param's not modified")
 
             # Create workload policy_2
-            self.policy_id2 = self.workload_policy_create(fullbackup_interval=tvaultconf.fullbackup_interval,
-                                                          retention_policy_value=tvaultconf.retention_policy_value			, retention_policy_type=tvaultconf.retention_policy_type, policy_cleanup=False)
+            self.policy_id2 = self.workload_policy_create(
+                fullbackup_interval=tvaultconf.fullbackup_interval,
+                retention_policy_value=tvaultconf.retention_policy_value,
+                retention_policy_type=tvaultconf.retention_policy_type,
+                policy_cleanup=False)
             if self.policy_id2 != "":
                 reporting.add_test_step(
-                    "Create workload policy to replace old one", tvaultconf.PASS)
+                    "Create workload policy to replace old one",
+                    tvaultconf.PASS)
                 LOG.debug("Workload policy id is " + str(self.policy_id2))
             else:
                 reporting.add_test_step(
-                    "Create workload policy to replace old one", tvaultconf.FAIL)
+                    "Create workload policy to replace old one",
+                    tvaultconf.FAIL)
                 raise Exception("Workload policy has not been created")
 
             # Assign workload policy to projects
@@ -824,12 +892,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Scheduler enabled workload modify policy1 to policy2", tvaultconf.FAIL)
+                    "Scheduler enabled workload modify policy1 to policy2",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command did not execute modify policy1 to policy2 correctly")
             else:
                 reporting.add_test_step(
-                    "Scheduler enabled workload modify policy1 to policy2", tvaultconf.PASS)
+                    "Scheduler enabled workload modify policy1 to policy2",
+                    tvaultconf.PASS)
                 LOG.debug("Command modify policy1 to policy2 execute correctly")
 
             # Modify policy1 to policy2  of scheduler disabled workload
@@ -839,12 +909,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Scheduler disabled workload modify policy1 to policy2", tvaultconf.FAIL)
+                    "Scheduler disabled workload modify policy1 to policy2",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command modify did not execute policy1 to policy2 correctly")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload modify policy1 to policy2", tvaultconf.PASS)
+                    "Scheduler disabled workload modify policy1 to policy2",
+                    tvaultconf.PASS)
                 LOG.debug("Command modify policy1 to policy2 execute correctly")
 
             # Verify after modify policy_1 to policy_2
@@ -867,24 +939,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
                 Full_Backup_Interval_Value_w1 == tvaultconf.fullbackup_interval:
                 reporting.add_test_step(
-                    "Verify Scheduler enabled workload modified policy_1 to policy_2", tvaultconf.PASS)
+                    "Verify Scheduler enabled workload modified policy_1 to policy_2",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Scheduler enabled workload modified policy_1 to policy_2")
             else:
                 reporting.add_test_step(
-                    "Verify Scheduler enabled workload modified policy_1 to policy_2", tvaultconf.FAIL)
+                    "Verify Scheduler enabled workload modified policy_1 to policy_2",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Scheduler enabled workload not modified policy_1 to policy_2")
 
             if retention_policy_type_w2 == tvaultconf.retention_policy_type and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
                 Full_Backup_Interval_Value_w2 == tvaultconf.fullbackup_interval:
                 reporting.add_test_step(
-                    "Verify Scheduler disabled workload modified policy_1 to policy_2", tvaultconf.PASS)
+                    "Verify Scheduler disabled workload modified policy_1 to policy_2",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Scheduler disabled workload modified policy_1 to policy_2")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload modified policy_1 to policy_2", tvaultconf.FAIL)
+                    "Scheduler disabled workload modified policy_1 to policy_2",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Scheduler disabled workload not modified policy_1 to policy_2")
 
@@ -892,13 +968,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create snapshots equal to number of retention_policy_value
             for i in range(0, int(retention_policy_value_w1)):
                 snapshot_id = self.workload_snapshot(
-                    self.workload_id, True, snapshot_name=tvaultconf.snapshot_name + str(i), snapshot_cleanup=False)
+                    self.workload_id,
+                    True,
+                    snapshot_name=tvaultconf.snapshot_name +
+                    str(i),
+                    snapshot_cleanup=False)
                 snapshots_list.append(snapshot_id)
             LOG.debug("snapshot id list is : " + str(snapshots_list))
 
             # Create one more snapshot
             snapshot_id = self.workload_snapshot(
-                self.workload_id, True, snapshot_name=tvaultconf.snapshot_name + "_final", snapshot_cleanup=False)
+                self.workload_id,
+                True,
+                snapshot_name=tvaultconf.snapshot_name +
+                "_final",
+                snapshot_cleanup=False)
             LOG.debug("Last snapshot id is : " + str(snapshot_id))
 
             self.wait_for_snapshot_tobe_available(
@@ -913,48 +997,65 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("snapshot list of workload retrieved using API is : " +
                       str(snapshot_list_of_workload))
 
-            # verify that numbers of snapshot created persist retention_policy_value
+            # verify that numbers of snapshot created persist
+            # retention_policy_value
             LOG.debug("number of snapshots created : %d " %
                       len(snapshot_list_of_workload))
-            if int(retention_policy_value_w1) == len(snapshot_list_of_workload):
+            if int(retention_policy_value_w1) == len(
+                snapshot_list_of_workload):
                 reporting.add_test_step(
-                    "Verify number of snapshots created equals retention_policy_value", tvaultconf.PASS)
+                    "Verify number of snapshots created equals retention_policy_value",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Number of snapshots created equals retention_policy_value")
             else:
                 reporting.add_test_step(
-                    "Verify number of snapshots created equals retention_policy_value", tvaultconf.FAIL)
+                    "Verify number of snapshots created equals retention_policy_value",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Number of snapshots created not equal to retention_policy_value")
 
-            # Check first snapshot is deleted or not after retension value exceed
+            # Check first snapshot is deleted or not after retension value
+            # exceed
             deleted_snapshot_id = snapshots_list[0]
             LOG.debug("snapshot id of first snapshot is : " +
                       str(deleted_snapshot_id))
             if deleted_snapshot_id in snapshot_list_of_workload:
                 reporting.add_test_step(
-                    "Verify first snapshot deleted after retension value exceeds", tvaultconf.FAIL)
+                    "Verify first snapshot deleted after retension value exceeds",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "first snapshot not deleted after retension value exceeds")
             else:
                 reporting.add_test_step(
-                    "Verify first snapshot deleted after retension value exceeds", tvaultconf.PASS)
+                    "Verify first snapshot deleted after retension value exceeds",
+                    tvaultconf.PASS)
                 LOG.debug("first snapshot deleted after retension value exceeds")
 
-            # Check first snapshot is deleted from backup target when retension value exceed
+            # Check first snapshot is deleted from backup target when retension
+            # value exceed
             mount_path = self.get_mountpoint_path(
-                ipaddress=tvaultconf.tvault_ip[0], username=tvaultconf.tvault_dbusername, password=tvaultconf.tvault_password)
+                ipaddress=tvaultconf.tvault_ip[0],
+                username=tvaultconf.tvault_dbusername,
+                password=tvaultconf.tvault_password)
             LOG.debug("Backup target mount_path is : " + mount_path)
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
-                tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password, mount_path, self			.workload_id, deleted_snapshot_id)
+                tvaultconf.tvault_ip[0],
+                tvaultconf.tvault_dbusername,
+                tvaultconf.tvault_password,
+                mount_path,
+                self .workload_id,
+                deleted_snapshot_id)
             LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
-            if is_snapshot_exist == False:
+            if not is_snapshot_exist:
                 LOG.debug("First snapshot is deleted from backup target")
                 reporting.add_test_step(
-                    "First snapshot deleted from backup target", tvaultconf.PASS)
+                    "First snapshot deleted from backup target",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "First snapshot deleted from backup target", tvaultconf.FAIL)
+                    "First snapshot deleted from backup target",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "First snapshot is not deleted from backup target media")
 
@@ -963,18 +1064,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             assigned_policies = self.assigned_policies(CONF.identity.tenant_id)
             if assigned_policies and len(assigned_policies) > 1:
                 reporting.add_test_step(
-                    "List policies assigned to specific tenant", tvaultconf.PASS)
+                    "List policies assigned to specific tenant",
+                    tvaultconf.PASS)
                 LOG.debug("Policies assigned to project %s are %s" %
                           (CONF.identity.tenant_id, assigned_policies))
                 reporting.add_test_step(
-                    "Multiple policies assigned one by one to tenant", tvaultconf.PASS)
+                    "Multiple policies assigned one by one to tenant",
+                    tvaultconf.PASS)
                 LOG.debug("Multiple policies assigned to project %s are %s" % (
                     CONF.identity.tenant_id, assigned_policies))
             else:
                 reporting.add_test_step(
-                    "List policies assigned one by one to tenant", tvaultconf.FAIL)
+                    "List policies assigned one by one to tenant",
+                    tvaultconf.FAIL)
                 reporting.add_test_step(
-                    "Multiple policies assigned to specific tenant", tvaultconf.FAIL)
+                    "Multiple policies assigned to specific tenant",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Listing policies assigned to specific tenant failed")
 
@@ -983,13 +1088,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             admin_project_id = CONF.identity.tenant_id
             status = self.assign_unassign_workload_policy(
                 self.policy_id, add_project_ids_list=[project_id], remove_project_ids_list=[])
-            # below function returns list as [policy_name, field_values, policy_id, description, list_of_project_assigned]
+            # below function returns list as [policy_name, field_values,
+            # policy_id, description, list_of_project_assigned]
             details = self.get_policy_details(self.policy_id)
             if not details:
                 reporting.add_test_step("Get policy details", tvaultconf.FAIL)
                 raise Exception("Get policy details failed")
             else:
-                if project_id in details[4] and admin_project_id in details[4] and len(details[4]) == 2:
+                if project_id in details[4] and admin_project_id in details[4] and len(
+                    details[4]) == 2:
                     reporting.add_test_step(
                         "Single policy to multiple tenant", tvaultconf.PASS)
                     LOG.debug(
@@ -1006,23 +1113,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute policy assigned workload-modify scheduler disable", tvaultconf.FAIL)
+                    "Execute policy assigned workload-modify scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute policy assigned workload-modify scheduler disable", tvaultconf.PASS)
+                    "Execute policy assigned workload-modify scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify workload with policy scheduler changed to disable
             status = self.getSchedulerStatus(self.workload_id)
             if status:
                 reporting.add_test_step(
-                    "Verify policy assigned workload scheduler disabled", tvaultconf.FAIL)
+                    "Verify policy assigned workload scheduler disabled",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Policy assigned workload scheduler disabled unsuccessfully")
             else:
                 reporting.add_test_step(
-                    "Verify policy assigned workload scheduler disabled", tvaultconf.PASS)
+                    "Verify policy assigned workload scheduler disabled",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Policy assigned workload scheduler disabled successfully")
 
@@ -1032,11 +1143,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute policy assigned workload-modify scheduler enable", tvaultconf.FAIL)
+                    "Execute policy assigned workload-modify scheduler enable",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute policy assigned workload-modify scheduler enable", tvaultconf.PASS)
+                    "Execute policy assigned workload-modify scheduler enable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify workload with policy scheduler changed to enable
@@ -1044,12 +1157,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.getSchedulerStatus(self.workload_id2)
             if status:
                 reporting.add_test_step(
-                    "Verify policy assigned workload scheduler enabled", tvaultconf.PASS)
+                    "Verify policy assigned workload scheduler enabled",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Policy assigned workload scheduler enabled successfully")
             else:
                 reporting.add_test_step(
-                    "Verify policy assigned workload scheduler enabled", tvaultconf.FAIL)
+                    "Verify policy assigned workload scheduler enabled",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Policy assigned workload scheduler enabled unsuccessfully")
 

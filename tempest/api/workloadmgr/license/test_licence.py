@@ -4,7 +4,7 @@ from tempest import command_argument_string
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -22,10 +22,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_01_expired_license(self):
         reporting.add_test_script(str(__name__) + "_expired_license")
         try:
@@ -37,11 +36,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("rc value: " + str(rc))
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute license_create command with expired license", tvaultconf.FAIL)
+                    "Execute license_create command with expired license",
+                    tvaultconf.FAIL)
                 raise Exception("Command not executed correctly")
             else:
                 reporting.add_test_step(
-                    "Execute license_create command with expired license", tvaultconf.PASS)
+                    "Execute license_create command with expired license",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             out = self.get_license_check()
@@ -60,8 +61,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_02_invalid_license(self):
         reporting.add_test_script(str(__name__) + "_invalid_license")
         try:
@@ -72,11 +73,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(self.cmd)
             if rc == 0:
                 reporting.add_test_step(
-                    "Execute license_create command with invalid license", tvaultconf.PASS)
+                    "Execute license_create command with invalid license",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             else:
                 reporting.add_test_step(
-                    "Execute license_create command with invalid license", tvaultconf.FAIL)
+                    "Execute license_create command with invalid license",
+                    tvaultconf.FAIL)
                 raise Exception("Command not executed correctly")
 
             self.license_txt = ""
@@ -101,8 +104,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_03_license_check_vms(self):
         reporting.add_test_script(str(__name__) + "_check_vms")
         try:
@@ -154,8 +157,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def license_check_capacity(self):
         reporting.add_test_script(str(__name__) + "_check_capacity")
         try:
@@ -186,7 +189,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("CLI Response: " + str(out))
             get_usage_tvault = "df -h | grep triliovault-mounts"
             ssh = self.SshRemoteMachineConnection(
-                tvaultconf.tvault_ip[0], tvaultconf.tvault_dbusername, tvaultconf.tvault_password)
+                tvaultconf.tvault_ip[0],
+                tvaultconf.tvault_dbusername,
+                tvaultconf.tvault_password)
             stdin, stdout, stderr = ssh.exec_command(get_usage_tvault)
             tmp = ' '.join(stdout.read().split())
             usage = tmp.split(' ')
@@ -206,8 +211,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_05_license_check_compute(self):
         reporting.add_test_script(str(__name__) + "_check_compute")
         try:

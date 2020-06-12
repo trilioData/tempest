@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 from tempest import tvaultconf
 import json
 import yaml
@@ -41,12 +42,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'inplace'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault_inplace_cli_default(self):
         try:
 
@@ -151,8 +151,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # mount volumes after restore
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(self.floating_ips_list[0]))
-            self.execute_command_disk_mount(ssh, str(self.floating_ips_list[0]), [
-                                            volumes[0]], [mount_points[0]])
+            self.execute_command_disk_mount(
+                ssh, str(
+                    self.floating_ips_list[0]), [
+                    volumes[0]], [
+                    mount_points[0]])
             ssh.close()
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
@@ -184,7 +187,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # md5 sum verification
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[0])][str(mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[0])][str(mount_points[0])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[0])][str(
+                mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[0])][str(mount_points[0])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 1", tvaultconf.PASS)
             else:
@@ -192,7 +196,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Md5 Verification for volume 1", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(
+                mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 2", tvaultconf.PASS)
             else:
@@ -200,7 +205,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Md5 Verification for volume 2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[1])] != md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(
+                mount_points[1])] != md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 3", tvaultconf.PASS)
             else:
@@ -211,7 +217,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Delete restore for snapshot
             self.restored_volumes = self.get_restored_volume_list(
                 self.restore_id)
-            if tvaultconf.cleanup == True:
+            if tvaultconf.cleanup:
                 self.restore_delete(
                     self.workload_id, self.incr_snapshot_id, self.restore_id)
                 LOG.debug("Snapshot Restore deleted successfully")

@@ -6,7 +6,7 @@ from tempest import command_argument_string
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -24,11 +24,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
-        reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_modify_workload_tvault1045_add_instance(self):
         reporting.add_test_script(str(__name__) + "_tvault1045_add_instance")
         try:
@@ -51,7 +49,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload with scheduler enabled
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
-                self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=True)
+                self.workload_instances,
+                tvaultconf.parallel,
+                workload_name=tvaultconf.workload_name,
+                workload_cleanup=True)
             LOG.debug("Workload ID: " + str(self.wid))
 
             # Launch second instance
@@ -68,16 +69,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify workload to add new instance using CLI command
             workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
-                str(self.vm_id2) + " --instance instance-id=" + \
-                str(self.vm_id) + " " + str(self.wid)
+                str(self.vm_id2) + " --instance instance-id=" + str(self.vm_id) + " " + str(self.wid)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-modify command to add one more vm", tvaultconf.FAIL)
+                    "Execute workload-modify command to add one more vm",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-modify command to add one more vm", tvaultconf.PASS)
+                    "Execute workload-modify command to add one more vm",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             self.wait_for_workload_tobe_available(self.wid)
@@ -99,8 +101,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_2_modify_workload_scheduler_disable(self):
         reporting.add_test_script(str(__name__) + "_scheduler_disable")
         try:
@@ -123,7 +125,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload with scheduler enabled
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
-                self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name, workload_cleanup=True)
+                self.workload_instances,
+                tvaultconf.parallel,
+                workload_name=tvaultconf.workload_name,
+                workload_cleanup=True)
             LOG.debug("Workload ID-2: " + str(self.wid))
 
             # Verify workload created with scheduler enable
@@ -159,16 +164,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_modify_command = command_argument_string.workload_modify + \
                 str(self.wid) + " --jobschedule enabled=False"
             error = cli_parser.cli_error(workload_modify_command)
-            if error and (str(error.strip('\n')).find("Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
+            if error and (str(error.strip('\n')).find(
+                "Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler disable", tvaultconf.PASS)
+                    "Does not execute workload-modify scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
                 reporting.add_test_step(
                     "Throws proper message", tvaultconf.PASS)
                 LOG.debug("Error message :" + str(error))
             else:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler disable", tvaultconf.FAIL)
+                    "Does not execute workload-modify scheduler disable",
+                    tvaultconf.FAIL)
                 reporting.add_test_step(
                     "Throws proper message", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
@@ -191,11 +199,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-modify scheduler disable", tvaultconf.FAIL)
+                    "Execute workload-modify scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-modify scheduler disable", tvaultconf.PASS)
+                    "Execute workload-modify scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify workload scheduler changed to disable
@@ -215,12 +225,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             if interval == interval_after_disable and 'nextrun' not in schedule_details:
                 reporting.add_test_step(
-                    "Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
+                    "Verify Interval and Next snapshot run time values are correct",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Interval and Next snapshot run time values are correct")
             else:
                 reporting.add_test_step(
-                    "Verify Interval and Next snapshot run time values are correct", tvaultconf.FAIL)
+                    "Verify Interval and Next snapshot run time values are correct",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Interval and Next snapshot run time values are incorrect")
 
@@ -231,8 +243,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_modify_workload_scheduler_enable(self):
         reporting.add_test_script(str(__name__) + "_scheduler_enable")
         try:
@@ -259,18 +271,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler disable", tvaultconf.FAIL)
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command workload create did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler disable", tvaultconf.PASS)
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
             self.wid = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID-3: " + str(self.wid))
-            if(self.wid != None):
+            if(self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
                 if(self.getWorkloadStatus(self.wid) == "available"):
                     reporting.add_test_step(
@@ -289,12 +303,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.getSchedulerStatus(self.wid)
             if status:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler disable", tvaultconf.FAIL)
+                    "Verify workload created with scheduler disable",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Workload has not been created with scheduler disabled")
             else:
                 reporting.add_test_step(
-                    "Verify workload created with scheduler disable", tvaultconf.PASS)
+                    "Verify workload created with scheduler disable",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Workload created with scheduler disabled successfully")
 
@@ -319,16 +335,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_modify_command = command_argument_string.workload_modify + \
                 str(self.wid) + " --jobschedule enabled=True"
             error = cli_parser.cli_error(workload_modify_command)
-            if error and (str(error.strip('\n')).find("Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
+            if error and (str(error.strip('\n')).find(
+                "Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler enable", tvaultconf.PASS)
+                    "Does not execute workload-modify scheduler enable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
                 reporting.add_test_step(
                     "Throws proper message", tvaultconf.PASS)
                 LOG.debug("Error message :" + str(error))
             else:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler enable", tvaultconf.FAIL)
+                    "Does not execute workload-modify scheduler enable",
+                    tvaultconf.FAIL)
                 reporting.add_test_step(
                     "Throws proper message", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
@@ -345,7 +364,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Global job scheduler enable", tvaultconf.FAIL)
                 raise Exception("Global job scheduler not enabled")
 
-            # Modify workload scheduler to enable and set the start date, time and timezone
+            # Modify workload scheduler to enable and set the start date, time
+            # and timezone
             now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
             now_time = datetime.datetime.strftime(now, "%I:%M %p")
@@ -357,11 +377,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-modify scheduler enable", tvaultconf.FAIL)
+                    "Execute workload-modify scheduler enable",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-modify scheduler enable", tvaultconf.PASS)
+                    "Execute workload-modify scheduler enable",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify workload scheduler changed to enable
@@ -399,18 +421,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time_diff = (start_date_time - utc_12hr).total_seconds()
             time_diff = int(time_diff)
             LOG.debug(
-                "Time difference between UTC time and scheduled start time: " + str(time_diff))
+                "Time difference between UTC time and scheduled start time: " +
+                str(time_diff))
             delta = abs(time_diff - next_run_time_after_enable)
 
-            # Condition for Interval value and time difference should not be more than two minutes
+            # Condition for Interval value and time difference should not be
+            # more than two minutes
             if delta < 120 and interval == interval_after_enable:
                 reporting.add_test_step(
-                    "Verify Interval and Next snapshot run time values are correct", tvaultconf.PASS)
+                    "Verify Interval and Next snapshot run time values are correct",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Interval and Next snapshot run time values are correct")
             else:
                 reporting.add_test_step(
-                    "Verify Interval and Next snapshot run time values are correct", tvaultconf.FAIL)
+                    "Verify Interval and Next snapshot run time values are correct",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Interval and Next snapshot run time values are incorrect")
 
