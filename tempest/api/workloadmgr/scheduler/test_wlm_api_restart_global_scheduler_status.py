@@ -42,22 +42,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status_update = self.restart_wlm_api_service()
             if "active (running)" in str(status_update):
                 reporting.add_test_step(
-                    "verify wlm-api service is up and running after restart", tvaultconf.PASS)
+                    "verify wlm-api service is up and running after restart",
+                    tvaultconf.PASS)
                 LOG.debug("wlm-api service is up and running")
             else:
                 reporting.add_test_step(
-                    "verify wlm-api service is up and running after restart", tvaultconf.FAIL)
+                    "verify wlm-api service is up and running after restart",
+                    tvaultconf.FAIL)
                 raise Exception("wlm-api service is not restarted")
 
-            # Verify global job scheduler remains disabled even after wlm-api service restart
+            # Verify global job scheduler remains disabled even after wlm-api
+            # service restart
             status = self.get_global_job_scheduler_status()
             if not status:
                 reporting.add_test_step(
-                    "Global job scheduler remains disabled after wlm-api service restart", tvaultconf.PASS)
+                    "Global job scheduler remains disabled after wlm-api service restart",
+                    tvaultconf.PASS)
                 LOG.debug("Global job scheduler remains disabled")
             else:
                 reporting.add_test_step(
-                    "Global job scheduler remains disabled after wlm-api service restart", tvaultconf.FAIL)
+                    "Global job scheduler remains disabled after wlm-api service restart",
+                    tvaultconf.FAIL)
                 LOG.debug("Global job scheduler changed")
 
             # Change global job scheduler to enable using API
@@ -75,22 +80,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status_update = self.restart_wlm_api_service()
             if "active (running)" in str(status_update):
                 reporting.add_test_step(
-                    "verify wlm-api service is up and running after restart", tvaultconf.PASS)
+                    "verify wlm-api service is up and running after restart",
+                    tvaultconf.PASS)
                 LOG.debug("wlm-api service is up and running")
             else:
                 reporting.add_test_step(
-                    "verify wlm-api service is up and running after restart", tvaultconf.FAIL)
+                    "verify wlm-api service is up and running after restart",
+                    tvaultconf.FAIL)
                 raise Exception("wlm-api service is not restarted")
 
-            # Verify global job scheduler remains enabled even after wlm-api service restart
+            # Verify global job scheduler remains enabled even after wlm-api
+            # service restart
             status = self.get_global_job_scheduler_status()
             if status:
                 reporting.add_test_step(
-                    "Global job scheduler remains enabled after wlm-api service restart", tvaultconf.PASS)
+                    "Global job scheduler remains enabled after wlm-api service restart",
+                    tvaultconf.PASS)
                 LOG.debug("Global job scheduler remains enabled")
             else:
                 reporting.add_test_step(
-                    "Global job scheduler remains enabled after wlm-api service restart", tvaultconf.FAIL)
+                    "Global job scheduler remains enabled after wlm-api service restart",
+                    tvaultconf.FAIL)
                 LOG.debug("Global job scheduler changed")
 
             reporting.test_case_to_write()

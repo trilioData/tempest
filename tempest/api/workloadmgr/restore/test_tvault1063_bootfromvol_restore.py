@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -34,12 +35,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'bootfromvol_workload'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault1063_bootfromvol_restore(self):
         try:
 
@@ -48,10 +48,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
                 reporting.add_test_step(
-                    "Create full snapshot of boot from volume instance", tvaultconf.PASS)
+                    "Create full snapshot of boot from volume instance",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Create full snapshot of boot from volume instance", tvaultconf.FAIL)
+                    "Create full snapshot of boot from volume instance",
+                    tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
             self.delete_vms(self.workload_instances)
@@ -62,10 +64,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step(
-                    "Oneclick restore of boot from volume instance", tvaultconf.PASS)
+                    "Oneclick restore of boot from volume instance",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Oneclick restore of boot from volume instance", tvaultconf.FAIL)
+                    "Oneclick restore of boot from volume instance",
+                    tvaultconf.FAIL)
                 raise Exception("Oneclick restore failed")
             reporting.test_case_to_write()
 

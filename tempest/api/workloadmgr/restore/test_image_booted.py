@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -28,7 +28,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
     def assign_floating_ips(self, vm_id, cleanup):
         fip = self.get_floating_ips()
@@ -51,7 +50,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         return mdb
 
     def create_snapshot(self, workload_id, is_full=True):
-        if is_full == True:
+        if is_full:
             substitution = 'Full'
         else:
             substitution = 'Incremental'
@@ -77,13 +76,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             raise Exception("Full snapshot failed")
         return(snapshot_id)
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_image_booted(self):
         try:
             deleted = 0
             ## VM and Workload ###
-            tests = [['tempest.api.workloadmgr.restore.test_image_booted_Selective-restore', 0],
-                     ['tempest.api.workloadmgr.restore.test_image_booted_Inplace-restore', 0], ['tempest.api.workloadmgr.restore.test_image_booted_Oneclick-restore', 0]]
+            tests = [['tempest.api.workloadmgr.restore.test_image_booted_Selective-restore',
+                      0],
+                     ['tempest.api.workloadmgr.restore.test_image_booted_Inplace-restore',
+                      0],
+                     ['tempest.api.workloadmgr.restore.test_image_booted_Oneclick-restore',
+                      0]]
             reporting.add_test_script(tests[0][0])
             data_dir_path = "/root"
             md5sums_before_full = {}
@@ -125,7 +128,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             workload_id = query_data.get_workload_id(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(workload_id))
-            if(workload_id != None):
+            if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
@@ -136,7 +139,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
 
-            if (tvaultconf.cleanup == True):
+            if (tvaultconf.cleanup):
                 self.addCleanup(self.workload_delete, workload_id)
 
             ### Full snapshot ###
@@ -169,8 +172,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore
-            restore_id_1 = self.snapshot_selective_restore(workload_id, snapshot_id, restore_name=tvaultconf.restore_name, restore_cleanup=True,
-                                                           instance_details=payload['instance_details'], network_details=payload['network_details'])
+            restore_id_1 = self.snapshot_selective_restore(
+                workload_id,
+                snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                restore_cleanup=True,
+                instance_details=payload['instance_details'],
+                network_details=payload['network_details'])
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id_1) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
@@ -184,7 +192,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(60)
             floating_ip_2 = self.assign_floating_ips(vm_list[0], True)
             LOG.debug(
-                "Floating ip assigned to selective restore vm -> " + str(floating_ip_2))
+                "Floating ip assigned to selective restore vm -> " +
+                str(floating_ip_2))
             md5sums_after_selective = {}
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_2))
             md5sums_after_selective = self.calcmd5sum(
@@ -196,7 +205,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("MD5SUMS after selective restore")
             LOG.debug(md5sums_after_selective[str(floating_ip_2)])
 
-            if md5sums_before_full[str(floating_ip_1)] == md5sums_after_selective[str(floating_ip_2)]:
+            if md5sums_before_full[str(
+                floating_ip_1)] == md5sums_after_selective[str(floating_ip_2)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for volume", tvaultconf.PASS)
@@ -288,7 +298,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("<----md5sums_after_inplace---->")
             LOG.debug(md5sums_after_inplace[str(floating_ip_1)])
 
-            if md5sums_before_full[str(floating_ip_1)] == md5sums_after_inplace[str(floating_ip_1)]:
+            if md5sums_before_full[str(
+                floating_ip_1)] == md5sums_after_inplace[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for volume", tvaultconf.PASS)
@@ -303,7 +314,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.test_case_to_write()
 
             # Delete restore for snapshot
-            if (tvaultconf.cleanup == True):
+            if (tvaultconf.cleanup):
                 self.addCleanup(self.restore_delete, workload_id,
                                 snapshot_id, restore_id_2)
 
@@ -314,7 +325,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug(
-                "Instance deleted successfully for one click restore : " + str(vm_id))
+                "Instance deleted successfully for one click restore : " +
+                str(vm_id))
             time.sleep(10)
 
             deleted = 1
@@ -324,11 +336,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.PASS)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             restore_id_3 = query_data.get_snapshot_restore_id(incr_snapshot_id)
@@ -358,7 +372,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 md5sums_after_1clickrestore))
             ssh.close()
 
-            if md5sums_before_incremental[str(floating_ip_1)] == md5sums_after_1clickrestore[str(floating_ip_1)]:
+            if md5sums_before_incremental[str(
+                floating_ip_1)] == md5sums_after_1clickrestore[str(floating_ip_1)]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for volume", tvaultconf.PASS)
@@ -377,7 +392,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Restored volumes : ")
             LOG.debug(restored_volumes)
 
-            if (tvaultconf.cleanup == True):
+            if (tvaultconf.cleanup):
                 self.addCleanup(self.restore_delete, workload_id,
                                 incr_snapshot_id, restore_id_3)
                 time.sleep(30)
@@ -389,7 +404,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (deleted == 0):
                 try:
                     self.delete_vm(vm_id)
-                except:
+                except BaseException:
                     pass
             for test in tests:
                 if test[1] != 1:

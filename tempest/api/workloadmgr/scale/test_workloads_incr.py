@@ -68,15 +68,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         for workload in range(0, self.total_workloads):
             self.wait_for_workload_tobe_available(self.workloads[workload])
-            self.assertEqual(self.getSnapshotStatus(
-                self.workloads[workload], self.full_snapshots[workload]), "available")
+            self.assertEqual(
+                self.getSnapshotStatus(
+                    self.workloads[workload],
+                    self.full_snapshots[workload]),
+                "available")
             self.incr_snapshots.append(
                 self.workload_snapshot(self.workloads[workload], False))
 
         for workload in range(0, self.total_workloads):
             self.wait_for_workload_tobe_available(self.workloads[workload])
-            self.assertEqual(self.getSnapshotStatus(self.workloads[workload], self.incr_snapshots[workload]), "available",
-                             "Workload_id: " + self.workloads[workload] + " Snapshot_id: " + self.incr_snapshots[workload])
+            self.assertEqual(
+                self.getSnapshotStatus(
+                    self.workloads[workload],
+                    self.incr_snapshots[workload]),
+                "available",
+                "Workload_id: " +
+                self.workloads[workload] +
+                " Snapshot_id: " +
+                self.incr_snapshots[workload])
             self.workload_reset(self.workload_id)
 
         time.sleep(400)
@@ -87,5 +97,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         for workload in range(0, self.total_workloads):
             self.wait_for_snapshot_tobe_available(
                 self.workloads[workload], self.incr_snapshots[workload])
-            self.assertEqual(self.getRestoreStatus(self.workloads[workload], self.incr_snapshots[workload], self.restores[workload]), "available",
-                             "Workload_id: " + self.workloads[workload] + " Snapshot_id: " + self.incr_snapshots[workload] + " Restore id: " + self.restores[workload])
+            self.assertEqual(
+                self.getRestoreStatus(
+                    self.workloads[workload],
+                    self.incr_snapshots[workload],
+                    self.restores[workload]),
+                "available",
+                "Workload_id: " +
+                self.workloads[workload] +
+                " Snapshot_id: " +
+                self.incr_snapshots[workload] +
+                " Restore id: " +
+                self.restores[workload])

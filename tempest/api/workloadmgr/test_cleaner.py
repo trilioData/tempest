@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -27,7 +27,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.wlm_client.restores.delete(restore.id)
                 self.wait_for_workload_tobe_available(restore.workload_id)
-            except:
+            except BaseException:
                 pass
 
     def delete_snapshots(self):
@@ -37,7 +37,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wlm_client.snapshots.delete(snapshot.id)
                 self.wait_for_snapshot_tobe_available(
                     snapshot.workload_id, snapshot.id)
-            except:
+            except BaseException:
                 pass
 
     def delete_workloads(self):
@@ -46,7 +46,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.wlm_client.workloads.delete(wl)
                 self.wait_for_workload_tobe_available(wl)
-            except:
+            except BaseException:
                 pass
 
     def delete_servers(self):
@@ -55,7 +55,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for server in servers:
             try:
                 self.delete_vm(server)
-            except:
+            except BaseException:
                 pass
 
     def delete_volumes(self):
@@ -64,7 +64,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for volume in volumes:
             try:
                 self.delete_volume(volume)
-            except:
+            except BaseException:
                 pass
 
     def delete_keypairs(self):
@@ -73,7 +73,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for kp in kps:
             try:
                 self.delete_key_pair(kp)
-            except:
+            except BaseException:
                 pass
 
     def delete_policies(self):
@@ -81,12 +81,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for policy in policies:
             try:
                 self.workload_policy_delete(policy)
-            except:
+            except BaseException:
                 pass
 
     def delete_abandoned_ports(self):
-        subnets = self.networks_client.show_network(CONF.network.internal_network_id)[
-            'network']['subnets']
+        subnets = self.networks_client.show_network(
+            CONF.network.internal_network_id)['network']['subnets']
         ports = self.network_client.list_ports()['ports']
         ports = [{'id': x['id'], 'device_id':x['device_id']}
                  for x in ports if x['fixed_ips'][0]['subnet_id'] in subnets]
@@ -94,7 +94,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if port['device_id'] == '':
                 try:
                     self.network_client.delete_port(port['id'])
-                except:
+                except BaseException:
                     pass
 
     def delete_securitygroups(self):
@@ -104,15 +104,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for sg in sgs:
             try:
                 self.delete_security_group(sg)
-            except:
+            except BaseException:
                 pass
 
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_cleaner(self):
         try:
             self.delete_restores()

@@ -3,7 +3,7 @@ from tempest.util import query_data
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -21,11 +21,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
     def test_tvault_rbac_nonadmin_ableto(self):
         try:
             # Use non-admin credentials
@@ -43,11 +42,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload
             self.wid = self.workload_create(
-                self.instances_id, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+                self.instances_id,
+                tvaultconf.parallel,
+                workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             workload_available = self.wait_for_workload_tobe_available(
                 self.wid)
-            if workload_available == True:
+            if workload_available:
                 LOG.debug("Workload created successfully")
                 reporting.add_test_step(
                     "Verification of workload creation", tvaultconf.PASS)
@@ -94,7 +95,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status initial: " +
                       str(restore_status))
-            while (str(restore_status) != "available" and str(restore_status) != "error"):
+            while (str(restore_status) != "available" and str(
+                restore_status) != "error"):
                 time.sleep(10)
                 restore_status = query_data.get_snapshot_restore_status(
                     restore_name, self.snapshot_id)
@@ -102,19 +104,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if (str(restore_status) == "available"):
                 LOG.debug("Snapshot Restore successfully completed")
                 reporting.add_test_step(
-                    "Snapshot one-click restore verification with DB", tvaultconf.PASS)
+                    "Snapshot one-click restore verification with DB",
+                    tvaultconf.PASS)
             else:
                 LOG.debug("Snapshot Restore unsuccessful")
                 reporting.add_test_step(
-                    "Snapshot one-click restore verification with DB", tvaultconf.FAIL)
+                    "Snapshot one-click restore verification with DB",
+                    tvaultconf.FAIL)
 
             # Launch recovery instance and Mount snapshot
             self.recoveryinstances_id = self.create_vm(
-                flavor_id=CONF.compute.flavor_ref_alt, image_id=CONF.compute.fvm_image_ref)
+                flavor_id=CONF.compute.flavor_ref_alt,
+                image_id=CONF.compute.fvm_image_ref)
             LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
             status = self.mount_snapshot(
                 self.wid, self.snapshot_id, self.recoveryinstances_id)
-            if status == True:
+            if status:
                 LOG.debug("snapshot Mounted successfully")
                 reporting.add_test_step(
                     "Verification of snapshot mount", tvaultconf.PASS)
@@ -143,7 +148,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     raise Exception(
                         "Filesearch path does not execute correctly by non-admin user")
 
-            if filesearch_status == True:
+            if filesearch_status:
                 LOG.debug("Filepath_Search successful")
                 reporting.add_test_step(
                     "Verification of Filepath serach", tvaultconf.PASS)

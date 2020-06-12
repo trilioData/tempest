@@ -50,14 +50,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             start_date = time.strftime("%x")
             start_time = (datetime.now() + timedelta(minutes=5)
                           ).strftime("%H:%M:%S")
-            self.schedule = {"fullbackup_interval": "0", "retention_policy_type": "Number of Snapshots to Keep", "interval": tvaultconf.interval,
-                             "enabled": True, "start_date": start_date, "start_time": start_time, "retention_policy_value": retention}
+            self.schedule = {
+                "fullbackup_interval": "0",
+                "retention_policy_type": "Number of Snapshots to Keep",
+                "interval": tvaultconf.interval,
+                "enabled": True,
+                "start_date": start_date,
+                "start_time": start_time,
+                "retention_policy_value": retention}
             vmid = self.create_vm(vm_cleanup=True)
             volume = self.create_volume(volume_cleanup=True)
             self.attach_volume(volume, vmid, attach_cleanup=True)
             wid = self.workload_create(
-                [vmid], tvaultconf.parallel, self.schedule, 'Workload-1', True, 'New Test')
-            if(wid != None):
+                [vmid],
+                tvaultconf.parallel,
+                self.schedule,
+                'Workload-1',
+                True,
+                'New Test')
+            if(wid is not None):
                 self.wait_for_workload_tobe_available(wid)
                 if(self.getWorkloadStatus(wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
@@ -87,7 +98,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     snaptimes.append(datetime.strptime(
                         t1, '%Y-%m-%dT%H:%M:%S.%f'))
 
-                    if info[2] == "full" and self.getSnapshotStatus(wid, snapshot) == 'available':
+                    if info[2] == "full" and self.getSnapshotStatus(
+                        wid, snapshot) == 'available':
                         pass
                     else:
                         raise Exception(

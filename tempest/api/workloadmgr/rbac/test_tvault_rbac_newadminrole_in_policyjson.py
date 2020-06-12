@@ -3,7 +3,7 @@ from tempest import command_argument_string
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -21,11 +21,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault_rbac_newadminrole_in_policyjson(self):
         try:
             # Change policy.json file on tvault to change role and rule
@@ -41,12 +40,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_storage_usage)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute get_storage_usage  command by newadmin role", tvaultconf.FAIL)
+                    "Execute get_storage_usage  command by newadmin role",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command  get_storage_usage did not execute correctly  by new-admin")
             else:
                 reporting.add_test_step(
-                    "Execute get_storage_usage command by new-admin role", tvaultconf.PASS)
+                    "Execute get_storage_usage command by new-admin role",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command get_storage_usage executed correctly by new-admin")
 
@@ -56,12 +57,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_nodes)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute get_nodes command by newadmin role", tvaultconf.FAIL)
+                    "Execute get_nodes command by newadmin role",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command get_nodes did not execute by new-admin")
             else:
                 reporting.add_test_step(
-                    "Execute get_nodes command by newadmin role", tvaultconf.PASS)
+                    "Execute get_nodes command by newadmin role",
+                    tvaultconf.PASS)
                 LOG.debug("Command get_nodes executed correctly  by new-admin")
 
             # Use admin credentials
@@ -74,12 +77,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_storage_usage)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage command by admin role ", tvaultconf.PASS)
+                    "Can not execute get_storage_usage command by admin role ",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command  get_storage_usage did not execute by admin role")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage command by admin role", tvaultconf.FAIL)
+                    "Can not execute get_storage_usage command by admin role",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command get_storage_usage executed correctly by admin")
 
@@ -89,11 +94,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_nodes)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_nodes command by admin role", tvaultconf.PASS)
+                    "Can not execute get_nodes command by admin role",
+                    tvaultconf.PASS)
                 LOG.debug("Command get_nodes did not execute by admin role")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_nodes command by admin role", tvaultconf.FAIL)
+                    "Can not execute get_nodes command by admin role",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command get_nodes executed correctly by admin")
 
@@ -107,12 +114,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_storage_usage)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage  command by non-admin", tvaultconf.PASS)
+                    "Can not execute get_storage_usage  command by non-admin",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command  get_storage_usage did not execute by nonadmin")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage command by non-admin", tvaultconf.FAIL)
+                    "Can not execute get_storage_usage command by non-admin",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command get_storage_usage executed by nonadmin")
 
@@ -122,11 +131,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_nodes)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_nodes command by non-admin", tvaultconf.PASS)
+                    "Can not execute get_nodes command by non-admin",
+                    tvaultconf.PASS)
                 LOG.debug("Command get_nodes did not execute by nonadmin")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_nodes command by non-admin", tvaultconf.FAIL)
+                    "Can not execute get_nodes command by non-admin",
+                    tvaultconf.FAIL)
                 raise Exception("Command get_nodes executed by nonadmin")
 
             reporting.set_test_script_status(tvaultconf.PASS)

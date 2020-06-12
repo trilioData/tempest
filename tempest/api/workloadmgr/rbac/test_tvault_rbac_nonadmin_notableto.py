@@ -3,7 +3,7 @@ from tempest import command_argument_string
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -21,11 +21,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault_rbac_nonadmin_notableto(self):
         try:
             # Use non-admin credentials
@@ -38,11 +37,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_storage_usage)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage command ", tvaultconf.PASS)
+                    "Can not execute get_storage_usage command ",
+                    tvaultconf.PASS)
                 LOG.debug("Command  get_storage_usage did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_storage_usage command", tvaultconf.FAIL)
+                    "Can not execute get_storage_usage command",
+                    tvaultconf.FAIL)
                 raise Exception("Command get_storage_usage executed correctly")
 
             # Run get_import_workloads_list CLI
@@ -52,12 +53,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_import_workloads_list)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute get_import_workloads_list command ", tvaultconf.PASS)
+                    "Can not execute get_import_workloads_list command ",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command get_import_workloads_list did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Can not execute get_import_workloads_list command", tvaultconf.FAIL)
+                    "Can not execute get_import_workloads_list command",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command get_import_workloads_list executed correctly")
 
@@ -68,12 +71,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(get_import_workloads_list)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute workload_disable_global_job_scheduler command ", tvaultconf.PASS)
+                    "Can not execute workload_disable_global_job_scheduler command ",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command workload_disable_global_job_scheduler did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Can not execute workload_disable_global_job_scheduler command", tvaultconf.FAIL)
+                    "Can not execute workload_disable_global_job_scheduler command",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command workload_disable_global_job_scheduler executed correctly")
 
@@ -85,12 +90,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 workload_enable_global_job_scheduler)
             if rc != 0:
                 reporting.add_test_step(
-                    "Can not execute workload_enable_global_job_scheduler command ", tvaultconf.PASS)
+                    "Can not execute workload_enable_global_job_scheduler command ",
+                    tvaultconf.PASS)
                 LOG.debug(
                     "Command workload_enable_global_job_scheduler did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Can not execute workload_enable_global_job_scheduler command", tvaultconf.FAIL)
+                    "Can not execute workload_enable_global_job_scheduler command",
+                    tvaultconf.FAIL)
                 raise Exception(
                     "Command workload_enable_global_job_scheduler executed correctly")
 

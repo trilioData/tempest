@@ -57,8 +57,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.start_date = time.strftime("%x")
         self.start_time = time.strftime("%X")
         self.enabled = True
-        self.schedule = {"interval": tvaultconf.interval, "enabled": self.enabled,
-                         "start_date": self.start_date, "start_time": self.start_time}
+        self.schedule = {
+            "interval": tvaultconf.interval,
+            "enabled": self.enabled,
+            "start_date": self.start_date,
+            "start_time": self.start_time}
         for vm in range(0, self.vms_per_workload):
             vm_id = self.create_vm()
             self.workload_instances.append(vm_id)

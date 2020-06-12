@@ -76,7 +76,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     self.license_check_flag = False
                     reporting.add_test_step(
-                        "License data '" + str(key) + "' not imported correctly", tvaultconf.FAIL)
+                        "License data '" +
+                        str(key) +
+                        "' not imported correctly",
+                        tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 self.license_check_flag = False
@@ -96,8 +99,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for key in upgrade_data_conf.trust_details[i].keys():
                 if self.trust_after_upgrade:
                     if(key == "metadata"):
-                        for j in range(0, len(upgrade_data_conf.trust_details[i][key])):
-                            for k in upgrade_data_conf.trust_details[i][key][j].keys():
+                        for j in range(
+                            0, len(
+                                upgrade_data_conf.trust_details[i][key])):
+                            for k in upgrade_data_conf.trust_details[i][key][j].keys(
+                            ):
                                 if(upgrade_data_conf.trust_details[i][key][j][k] == self.trust_after_upgrade[i][key][j][k]):
                                     LOG.debug("Trust metadata '" +
                                               str(k) + "' imported correctly")
@@ -113,7 +119,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         self.trust_check_flag = False
                         reporting.add_test_step(
-                            "Trust data '" + str(key) + "' not imported correctly", tvaultconf.FAIL)
+                            "Trust data '" +
+                            str(key) +
+                            "' not imported correctly",
+                            tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
                 else:
                     self.trust_check_flag = False
@@ -141,7 +150,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     self.email_check_flag = False
                     reporting.add_test_step(
-                        "Email setting '" + str(key) + "' not preserve", tvaultconf.FAIL)
+                        "Email setting '" +
+                        str(key) +
+                        "' not preserve",
+                        tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
         else:
             self.email_check_flag = False
@@ -163,11 +175,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(datetime.datetime.now()))
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-importworkloads command", tvaultconf.FAIL)
+                    "Execute workload-importworkloads command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-importworkloads command", tvaultconf.PASS)
+                    "Execute workload-importworkloads command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             # Verify if global job scheduler setting is preserved
@@ -235,8 +249,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.workload_members_after_upgrade = []
                 for instance in self.workload_instances_data:
                     self.workload_members_after_upgrade.append(instance['id'])
-                LOG.debug("Workload members before upgrade: " + str(upgrade_data_conf.instance_id) +
-                          " ; and after upgrade: " + str(self.workload_members_after_upgrade))
+                LOG.debug("Workload members before upgrade: " +
+                          str(upgrade_data_conf.instance_id) +
+                          " ; and after upgrade: " +
+                          str(self.workload_members_after_upgrade))
                 if(self.workload_members_after_upgrade.sort() == upgrade_data_conf.instance_id.sort()):
                     reporting.add_test_step(
                         "Verify workload members after import for workload " + str(i + 1), tvaultconf.PASS)
@@ -252,8 +268,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     i]['scheduler_settings']
                 self.scheduler_settings_after_upgrade = self.getSchedulerDetails(
                     self.data_before_upgrade[i]['workload_id'])
-                LOG.debug("Scheduler settings before upgrade: " + str(self.scheduler_settings_before_upgrade) +
-                          " ; and after upgrade: " + str(self.scheduler_settings_after_upgrade))
+                LOG.debug("Scheduler settings before upgrade: " +
+                          str(self.scheduler_settings_before_upgrade) +
+                          " ; and after upgrade: " +
+                          str(self.scheduler_settings_after_upgrade))
                 for key in self.scheduler_settings_before_upgrade.keys():
                     if(key == 'nextrun'):
                         pass
@@ -263,8 +281,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                       "' preserved for workload " + str(i + 1))
                         else:
                             self.scheduler_settings_check_flag = False
-                            reporting.add_test_step("Workload scheduler '" + str(
-                                key) + "' not preserved for workload " + str(i + 1), tvaultconf.FAIL)
+                            reporting.add_test_step(
+                                "Workload scheduler '" +
+                                str(key) +
+                                "' not preserved for workload " +
+                                str(
+                                    i +
+                                    1),
+                                tvaultconf.FAIL)
                             reporting.set_test_script_status(tvaultconf.FAIL)
 
                 if self.scheduler_settings_check_flag:
@@ -298,17 +322,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create instance details for restore.json
             self.instance_details = []
             self.vol_details = []
-            temp_vol_data = {'id': self.original_vols[0],
-                             'availability_zone': CONF.volume.volume_availability_zone,
-                             'new_volume_type': CONF.volume.volume_type
-                             }
+            temp_vol_data = {
+                'id': self.original_vols[0],
+                'availability_zone': CONF.volume.volume_availability_zone,
+                'new_volume_type': CONF.volume.volume_type}
             self.vol_details.append(temp_vol_data)
-            temp_instance_data = {'id': self.original_vm_id,
-                                  'include': True,
-                                  'name': "tempest_test_vm_restored_" + str(self.data_before_upgrade[0]['workload_id']),
-                                  'vdisks': self.vol_details,
-                                  'availability_zone': CONF.compute.vm_availability_zone
-                                  }
+            temp_instance_data = {
+                'id': self.original_vm_id,
+                'include': True,
+                'name': "tempest_test_vm_restored_" + str(
+                    self.data_before_upgrade[0]['workload_id']),
+                'vdisks': self.vol_details,
+                'availability_zone': CONF.compute.vm_availability_zone}
             self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
                       str(self.instance_details))
@@ -336,22 +361,29 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Trigger selective restore of imported snapshot of workload-1
             self.selective_restore_id = self.snapshot_selective_restore(
-                self.data_before_upgrade[0]['workload_id'], self.data_before_upgrade[0]['snapshot_id'], instance_details=self.instance_details, network_details=self.network_details, restore_cleanup=False)
+                self.data_before_upgrade[0]['workload_id'],
+                self.data_before_upgrade[0]['snapshot_id'],
+                instance_details=self.instance_details,
+                network_details=self.network_details,
+                restore_cleanup=False)
             LOG.debug("Selective Restore ID: " +
                       str(self.selective_restore_id))
             if(self.selective_restore_id == 0):
                 reporting.add_test_step(
-                    "Trigger selective restore of imported snapshot for workload-1", tvaultconf.FAIL)
+                    "Trigger selective restore of imported snapshot for workload-1",
+                    tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 self.wait_for_workload_tobe_available(
                     self.data_before_upgrade[0]['workload_id'])
                 if(self.getRestoreStatus(self.data_before_upgrade[0]['workload_id'], self.data_before_upgrade[0]['snapshot_id'], self.selective_restore_id) == "available"):
                     reporting.add_test_step(
-                        "Selective restore of imported snapshot for workload-1", tvaultconf.PASS)
+                        "Selective restore of imported snapshot for workload-1",
+                        tvaultconf.PASS)
                 else:
                     reporting.add_test_step(
-                        "Selective restore of imported snapshot for workload-1", tvaultconf.FAIL)
+                        "Selective restore of imported snapshot for workload-1",
+                        tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
 
             self.selective_restored_vms = self.get_restored_vm_list(
@@ -366,14 +398,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for instance in self.workload_instances_after_selective_restore:
                 self.workload_members_after_selective_restore.append(
                     instance['id'])
-            LOG.debug("Workload members before selective restore: " + str(upgrade_data_conf.instance_id) +
-                      " ; and after selective restore: " + str(self.workload_members_after_selective_restore))
+            LOG.debug("Workload members before selective restore: " +
+                      str(upgrade_data_conf.instance_id) +
+                      " ; and after selective restore: " +
+                      str(self.workload_members_after_selective_restore))
             if(self.workload_members_after_selective_restore.sort() == upgrade_data_conf.instance_id.sort()):
                 reporting.add_test_step(
-                    "Verify workload members after selective restore for workload-1", tvaultconf.PASS)
+                    "Verify workload members after selective restore for workload-1",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify workload members after selective restore for workload-1", tvaultconf.FAIL)
+                    "Verify workload members after selective restore for workload-1",
+                    tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete original VM
@@ -381,16 +417,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Trigger one click restore of imported snapshot of workload-1
             self.oneclick_restore_id = self.snapshot_restore(
-                self.data_before_upgrade[0]['workload_id'], self.data_before_upgrade[0]['snapshot_id'], restore_cleanup=False)
+                self.data_before_upgrade[0]['workload_id'],
+                self.data_before_upgrade[0]['snapshot_id'],
+                restore_cleanup=False)
             LOG.debug("Oneclick Restore ID: " + str(self.oneclick_restore_id))
             self.wait_for_workload_tobe_available(
                 self.data_before_upgrade[0]['workload_id'])
             if(self.getRestoreStatus(self.data_before_upgrade[0]['workload_id'], self.data_before_upgrade[0]['snapshot_id'], self.oneclick_restore_id) == "available"):
                 reporting.add_test_step(
-                    "One click restore of imported snapshot for workload-1", tvaultconf.PASS)
+                    "One click restore of imported snapshot for workload-1",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "One click restore of imported snapshot for workload-1", tvaultconf.FAIL)
+                    "One click restore of imported snapshot for workload-1",
+                    tvaultconf.FAIL)
                 raise Exception("One click restore failed")
 
             self.oneclick_restored_vms = self.get_restored_vm_list(
@@ -409,10 +449,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(self.workload_members_after_oneclick_restore))
             if(self.workload_members_after_oneclick_restore.sort() == self.oneclick_restored_vms.sort()):
                 reporting.add_test_step(
-                    "Verify workload members after oneclick restore for workload-1", tvaultconf.PASS)
+                    "Verify workload members after oneclick restore for workload-1",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify workload members after oneclick restore for workload-1", tvaultconf.FAIL)
+                    "Verify workload members after oneclick restore for workload-1",
+                    tvaultconf.FAIL)
 
             # Trigger full snapshot of imported workloads
             self.new_snapshots = []
@@ -437,25 +479,31 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Cleanup
             # Delete selective restore
             self.restore_delete(
-                self.data_before_upgrade[i]['workload_id'], self.data_before_upgrade[i]['snapshot_id'], self.selective_restore_id)
+                self.data_before_upgrade[i]['workload_id'],
+                self.data_before_upgrade[i]['snapshot_id'],
+                self.selective_restore_id)
             self.delete_restored_vms(
                 self.selective_restored_vms, self.selective_restored_volumes)
 
             # Delete one click restore
             self.restore_delete(
-                self.data_before_upgrade[i]['workload_id'], self.data_before_upgrade[i]['snapshot_id'], self.oneclick_restore_id)
+                self.data_before_upgrade[i]['workload_id'],
+                self.data_before_upgrade[i]['snapshot_id'],
+                self.oneclick_restore_id)
             self.delete_restored_vms(
                 self.oneclick_restored_vms, self.oneclick_restored_volumes)
 
             # Delete new snapshots created
             for i in range(0, len(self.new_snapshots)):
                 self.snapshot_delete(
-                    self.data_before_upgrade[i]['workload_id'], self.new_snapshots[i])
+                    self.data_before_upgrade[i]['workload_id'],
+                    self.new_snapshots[i])
 
             # Delete imported snapshots and workloads
             for i in range(0, len(self.workloads_before_upgrade)):
                 self.snapshot_delete(
-                    self.data_before_upgrade[i]['workload_id'], self.data_before_upgrade[i]['snapshot_id'])
+                    self.data_before_upgrade[i]['workload_id'],
+                    self.data_before_upgrade[i]['snapshot_id'])
                 self.workload_delete(
                     self.data_before_upgrade[i]['workload_id'])
 

@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -23,11 +23,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault1034_create_scheduled_workload(self):
         try:
             # Prerequisites
@@ -58,11 +57,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler enabled", tvaultconf.FAIL)
+                    "Execute workload-create command with scheduler enabled",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-create command with scheduler enabled", tvaultconf.PASS)
+                    "Execute workload-create command with scheduler enabled",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             time.sleep(10)
             self.wid = query_data.get_workload_id(tvaultconf.workload_name)

@@ -57,8 +57,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.start_time = self.workload_start_date.strftime("%H:%M:%S")
         self.enabled = True
         file = open("Tvault-1266.txt", "a")
-        self.schedule = {"fullbackup_interval": "1", "retention_policy_type": "Number of Snapshots to Keep", "enabled": self.enabled,
-                         "start_date": self.start_date, "start_time": self.start_time, "interval": tvaultconf.interval, "retention_policy_value": 4}
+        self.schedule = {
+            "fullbackup_interval": "1",
+            "retention_policy_type": "Number of Snapshots to Keep",
+            "enabled": self.enabled,
+            "start_date": self.start_date,
+            "start_time": self.start_time,
+            "interval": tvaultconf.interval,
+            "retention_policy_value": 4}
         self.description = "Full backup interval Number of Days with retention policy as No. of snapshot to keep"
         for vm in range(0, self.vms_per_workload):
             self.vm_id = self.create_vm(False)
@@ -69,7 +75,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id,
                                attach_cleanup=False)
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel, self.schedule, 'Workload-1', False, self.description)
+            self.workload_instances,
+            tvaultconf.parallel,
+            self.schedule,
+            'Workload-1',
+            False,
+            self.description)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(
             self.getFullBackupIntervalStatus(self.workload_id), '1')

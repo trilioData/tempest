@@ -7,7 +7,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -26,10 +26,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_network_restore(self):
         try:
             reporting.add_test_script(str(__name__))
@@ -52,7 +51,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_id = self.workload_create(
                 vms_ids, tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
-            if(workload_id != None):
+            if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
@@ -94,9 +93,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.delete_vm(vm[1])
             self.delete_network_topology()
 
-            restore_id = self.snapshot_selective_restore(workload_id, snapshot_id, restore_name=tvaultconf.restore_name,
-                                                         instance_details=instance_details,
-                                                         network_restore_flag=True, restore_cleanup=True)
+            restore_id = self.snapshot_selective_restore(
+                workload_id,
+                snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=instance_details,
+                network_restore_flag=True,
+                restore_cleanup=True)
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
@@ -111,39 +114,51 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
             if nt_bf == nt_af:
                 reporting.add_test_step(
-                    "Verify network details after network restore", tvaultconf.PASS)
+                    "Verify network details after network restore",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify network details after network restore", tvaultconf.FAIL)
+                    "Verify network details after network restore",
+                    tvaultconf.FAIL)
                 LOG.error(
-                    "Network details before and after restore: {0}, {1}".format(nt_bf, nt_af))
+                    "Network details before and after restore: {0}, {1}".format(
+                        nt_bf, nt_af))
 
             if sbnt_bf == sbnt_af:
                 reporting.add_test_step(
-                    "Verify subnet details after network restore", tvaultconf.PASS)
+                    "Verify subnet details after network restore",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify subnet details after network restore", tvaultconf.FAIL)
-                LOG.error("Subnet details before and after restore: {0}, {1}".format(
-                    sbnt_bf, sbnt_af))
+                    "Verify subnet details after network restore",
+                    tvaultconf.FAIL)
+                LOG.error(
+                    "Subnet details before and after restore: {0}, {1}".format(
+                        sbnt_bf, sbnt_af))
 
             if rt_bf == rt_af:
                 reporting.add_test_step(
-                    "Verify router details after network restore", tvaultconf.PASS)
+                    "Verify router details after network restore",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify router details after network restore", tvaultconf.FAIL)
+                    "Verify router details after network restore",
+                    tvaultconf.FAIL)
                 LOG.error(
-                    "Router details before and after restore: {0}, {1}".format(rt_bf, rt_af))
+                    "Router details before and after restore: {0}, {1}".format(
+                        rt_bf, rt_af))
 
             if intf_bf == intf_af:
                 reporting.add_test_step(
-                    "Verify interface details after network restore", tvaultconf.PASS)
+                    "Verify interface details after network restore",
+                    tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify interface details after network restore", tvaultconf.FAIL)
-                LOG.error("Interface details before and after restore: {0}, {1}".format(
-                    intf_bf, intf_af))
+                    "Verify interface details after network restore",
+                    tvaultconf.FAIL)
+                LOG.error(
+                    "Interface details before and after restore: {0}, {1}".format(
+                        intf_bf, intf_af))
 
             vm_details_af = {}
             restored_vms = self.get_restored_vm_list(restore_id)
@@ -152,8 +167,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details_af[vm_details['name'].replace(
                     'restored_instance', '')] = vm_details
 
-            klist = vm_details_bf.keys()
-            klist.sort()
+            klist = sorted(vm_details_bf.keys())
 
             for vm in klist:
                 netname = vm_details_bf[vm]['addresses'].keys()[0]
@@ -183,8 +197,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Verify instance details after restore", tvaultconf.FAIL)
-                LOG.error("Instance details before and after restore: {0}, {1}".format(
-                    vm_details_bf, vm_details_af))
+                LOG.error(
+                    "Instance details before and after restore: {0}, {1}".format(
+                        vm_details_bf, vm_details_af))
 
             for rvm in restored_vms:
                 self.delete_vm(rvm)

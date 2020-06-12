@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -23,11 +23,10 @@ class RestoreTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(RestoreTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault1040_oneclick_restore(self):
         try:
             # Prerequisites
@@ -50,7 +49,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             # Create workload
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
-                self.workload_instances, tvaultconf.parallel, workload_name=tvaultconf.workload_name)
+                self.workload_instances,
+                tvaultconf.parallel,
+                workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
 
@@ -75,11 +76,13 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.PASS)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             wc = query_data.get_snapshot_restore_status(
@@ -102,7 +105,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             if (self.created == False):
                 reporting.add_test_step(
-                    "Snapshot one-click restore verification with DB", tvaultconf.FAIL)
+                    "Snapshot one-click restore verification with DB",
+                    tvaultconf.FAIL)
                 raise Exception("Snapshot Restore did not get created")
 
             self.restore_id = query_data.get_snapshot_restore_id(

@@ -6,6 +6,7 @@ from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
 from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -27,11 +28,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
     @test.pre_req({'type': 'basic_workload'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_1_create_full_snapshot(self):
         try:
             reporting.add_test_script(str(__name__) + "_create_full_snapshot")
@@ -57,11 +57,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(create_snapshot)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute workload-snapshot command with --full", tvaultconf.FAIL)
+                    "Execute workload-snapshot command with --full",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload-snapshot command with --full", tvaultconf.PASS)
+                    "Execute workload-snapshot command with --full",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
@@ -87,8 +89,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_2_create_incremental_snapshot(self):
         try:
             reporting.add_test_script(
@@ -141,8 +143,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_list_snapshot(self):
         try:
             reporting.add_test_script(str(__name__) + "_list_snapshot")
@@ -179,8 +181,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_delete_snapshot(self):
         try:
             global workload_id

@@ -8,7 +8,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -27,10 +27,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_email(self):
         try:
             # Fetch existing settings
@@ -52,10 +51,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 setting_data_from_resp = {}
 
                 for i in range(0, len(settings_resp)):
-                    setting_data_from_resp[settings_resp[i]
-                                           ['name']] = settings_resp[i]['value']
-                LOG.debug("Settings data from response: " + str(setting_data_from_resp) + " ; original setting data: " + str(tvaultconf.setting_data)
-                          )
+                    setting_data_from_resp[settings_resp[i][
+                        'name']] = settings_resp[i]['value']
+                LOG.debug("Settings data from response: " +
+                          str(setting_data_from_resp) +
+                          " ; original setting data: " +
+                          str(tvaultconf.setting_data))
                 if(cmp(setting_data_from_resp, tvaultconf.setting_data) == 0):
                     reporting.add_test_step(
                         "Update email settings", tvaultconf.PASS)
@@ -72,7 +73,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         cmd = 'curl  -u ' + tvaultconf.setting_data["smtp_default_recipient"] + ':' + \
                             tvaultconf.tvault_password + ' --silent "https://mail.google.com/mail/feed/atom"'
                         op = subprocess.check_output(cmd, shell=True)
-                        if len(re.findall('Testing email configuration', op.split('<entry>')[1])) == 1:
+                        if len(re.findall('Testing email configuration',
+                                          op.split('<entry>')[1])) == 1:
                             LOG.debug(
                                 "Email testing done correctly and email is : {}".format(op))
                             reporting.add_test_step(

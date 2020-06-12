@@ -5,7 +5,7 @@ import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 import sys
@@ -27,14 +27,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
     def test_workload_reset(self):
         try:
-            reporting.add_test_script(str(__name__))
             ## VM and Workload ###
-
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
 
@@ -49,9 +46,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(40)
             i = 1
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_name="w1", workload_cleanup=True, description='test')
+                [vm_id],
+                tvaultconf.parallel,
+                workload_name="w1",
+                workload_cleanup=True,
+                description='test')
             LOG.debug("Workload ID: " + str(workload_id))
-            if(workload_id != None):
+            if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)

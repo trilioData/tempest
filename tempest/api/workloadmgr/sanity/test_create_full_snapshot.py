@@ -15,7 +15,7 @@
 
 from tempest.api.workloadmgr import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -35,7 +35,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
     def _attached_volume_prerequisite(self, volume_type):
         try:
@@ -55,11 +54,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _boot_from_volume_prerequisite(self, volume_type):
         try:
             if(volume_type == "LVM"):
-                self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref,
-                                                    volume_type_id=CONF.volume.volume_type_id_1)
+                self.volume_id = self.create_volume(
+                    size=tvaultconf.bootfromvol_vol_size,
+                    image_id=CONF.compute.image_ref,
+                    volume_type_id=CONF.volume.volume_type_id_1)
             else:
-                self.volume_id = self.create_volume(size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref,
-                                                    volume_type_id=CONF.volume.volume_type_id)
+                self.volume_id = self.create_volume(
+                    size=tvaultconf.bootfromvol_vol_size,
+                    image_id=CONF.compute.image_ref,
+                    volume_type_id=CONF.volume.volume_type_id)
             self.set_volume_as_bootable(self.volume_id)
             self.block_mapping_details = [{"source_type": "volume",
                                            "delete_on_termination": "false",
@@ -70,7 +73,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 image_id="", block_mapping_data=self.block_mapping_details)
             return True
         except Exception as e:
-            LOG.error("Exception in _boot_from_volume_prerequisite : " + str(e))
+            LOG.error(
+                "Exception in _boot_from_volume_prerequisite : " +
+                str(e))
             return False
 
     def _create_workload(self, workload_instances):
@@ -89,7 +94,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.wait_for_workload_tobe_available(workload_id)
         return self.getSnapshotStatus(workload_id, snapshot_id)
 
-    def _trigger_selective_restore(self, workload_instances, workload_id, snapshot_id):
+    def _trigger_selective_restore(
+        self,
+        workload_instances,
+        workload_id,
+        snapshot_id):
         self.instance_details = []
         int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
         LOG.debug("int_net_1_name" + str(int_net_1_name))
@@ -124,9 +133,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("Network details for restore: " + str(self.network_details))
 
         # Trigger selective restore
-        self.restore_id = self.snapshot_selective_restore(workload_id, snapshot_id, restore_name=tvaultconf.restore_name,
-                                                          instance_details=self.instance_details, network_details=self.network_details,
-                                                          restore_cleanup=False)
+        self.restore_id = self.snapshot_selective_restore(
+            workload_id,
+            snapshot_id,
+            restore_name=tvaultconf.restore_name,
+            instance_details=self.instance_details,
+            network_details=self.network_details,
+            restore_cleanup=False)
         return self.restore_id
 
     def _delete_restore(self, workload_id, snapshot_id, restore_id):
@@ -143,8 +156,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _delete_workload(self, workload_id):
         return self.workload_delete(workload_id)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_full_snapshot(self):
         try:
             result_json = {}
@@ -207,12 +220,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         result_json[k]['workload'], result_json[k]['snapshot'])
                     result_json[k]['workload_status'] = self.getWorkloadStatus(
                         result_json[k]['workload'])
-                    result_json[k]['snapshot_size'] = (self.getSnapshotDetails(
-                        result_json[k]['workload'], result_json[k]['snapshot']))['size']
+                    result_json[k]['snapshot_size'] = (
+                        self.getSnapshotDetails(
+                            result_json[k]['workload'],
+                            result_json[k]['snapshot']))['size']
                     result_json[k]['snapshot_restore_size'] = (self.getSnapshotDetails(
                         result_json[k]['workload'], result_json[k]['snapshot']))['restore_size']
-                    result_json[k]['snapshot_time_taken'] = (self.getSnapshotDetails(
-                        result_json[k]['workload'], result_json[k]['snapshot']))['time_taken']
+                    result_json[k]['snapshot_time_taken'] = (
+                        self.getSnapshotDetails(
+                            result_json[k]['workload'],
+                            result_json[k]['snapshot']))['time_taken']
                     result_json[k]['snapshot_uploaded_size'] = (self.getSnapshotDetails(
                         result_json[k]['workload'], result_json[k]['snapshot']))['uploaded_size']
                     if(result_json[k]['snapshot_status'] == "available"):
@@ -231,7 +248,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         [result_json[k]['instances']], result_json[k]['workload'], result_json[k]['snapshot'])
                     result_json[k]['restore'] = self.restore_id
             LOG.debug(
-                "Result json after trigger selective restore: " + str(result_json))
+                "Result json after trigger selective restore: " +
+                str(result_json))
 
             for k in result_json.keys():
                 if('restore' in result_json[k].keys()):
@@ -242,7 +260,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     result_json[k]['restore_status'] = self.getRestoreStatus(
                         result_json[k]['workload'], result_json[k]['snapshot'], result_json[k]['restore'])
                     result_json[k]['restore_size'] = (
-                        self.getRestoreDetails(result_json[k]['restore']))['size']
+                        self.getRestoreDetails(
+                            result_json[k]['restore']))['size']
                     result_json[k]['restore_time_taken'] = (
                         self.getRestoreDetails(result_json[k]['restore']))['time_taken']
                     result_json[k]['restore_uploaded_size'] = (
@@ -255,7 +274,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         result_json[k]['result']['Selective_Restore'] = tvaultconf.FAIL + \
                             "\nERROR " + result_json[k]['restore_error_msg']
             LOG.debug(
-                "Result json after selective restore complete: " + str(result_json))
+                "Result json after selective restore complete: " +
+                str(result_json))
 
             for k in result_json.keys():
                 if('restore_status' in result_json[k].keys()):

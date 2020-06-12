@@ -71,11 +71,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.PASS)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             wc = query_data.get_snapshot_restore_status(
@@ -98,7 +100,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             if (self.created == False):
                 reporting.add_test_step(
-                    "Snapshot one-click restore verification with DB", tvaultconf.FAIL)
+                    "Snapshot one-click restore verification with DB",
+                    tvaultconf.FAIL)
                 raise Exception("Snapshot Restore did not get created")
 
             self.restore_id = query_data.get_snapshot_restore_id(
@@ -293,8 +296,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # mount volumes after restore
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(self.floating_ips_list[0]))
-            self.execute_command_disk_mount(ssh, str(self.floating_ips_list[0]), [
-                                            volumes[0]], [mount_points[0]])
+            self.execute_command_disk_mount(
+                ssh, str(
+                    self.floating_ips_list[0]), [
+                    volumes[0]], [
+                    mount_points[0]])
             ssh.close()
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
@@ -326,7 +332,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # md5 sum verification
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[0])][str(mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[0])][str(mount_points[0])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[0])][str(
+                mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[0])][str(mount_points[0])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 1", tvaultconf.PASS)
             else:
@@ -334,7 +341,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Md5 Verification for volume 1", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(
+                mount_points[0])] == md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[0])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 2", tvaultconf.PASS)
             else:
@@ -342,7 +350,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Md5 Verification for volume 2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(mount_points[1])] != md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])]:
+            if self.md5sums_dir_before[str(self.floating_ips_list[1])][str(
+                mount_points[1])] != md5_sum_after_in_place_restore[str(self.floating_ips_list[1])][str(mount_points[1])]:
                 reporting.add_test_step(
                     "Md5 Verification for volume 3", tvaultconf.PASS)
             else:
@@ -361,7 +370,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Delete restore for snapshot
             self.restored_volumes = self.get_restored_volume_list(
                 self.restore_id)
-            if tvaultconf.cleanup == True:
+            if tvaultconf.cleanup:
                 self.restore_delete(
                     self.workload_id, self.incr_snapshot_id, self.restore_id)
                 LOG.debug("Snapshot Restore deleted successfully")
@@ -438,8 +447,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
 
             # Trigger selective restore
-            self.restore_id = self.snapshot_selective_restore(self.workload_id, self.snapshot_id, restore_name=tvaultconf.restore_name,
-                                                              instance_details=self.instance_details, network_details=self.network_details)
+            self.restore_id = self.snapshot_selective_restore(
+                self.workload_id,
+                self.snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=self.instance_details,
+                network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(
                 self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -471,8 +484,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
-                    LOG.error(
-                        "Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
+                    LOG.error("Restored network: " +
+                              str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -482,8 +495,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original keypair details: " +
                               str(self.original_fingerprint))
-                    LOG.error("Restored keypair details: " + str(
-                        self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
+                    LOG.error(
+                        "Restored keypair details: " + str(
+                            self.get_key_pair_details(
+                                self.vms_details_after_restore[i]['keypair'])))
                     reporting.add_test_step(
                         "Keypair verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -493,8 +508,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original flavor details: " +
                               str(self.original_flavor_conf))
-                    LOG.error("Restored flavor details: " + str(
-                        self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
+                    LOG.error(
+                        "Restored flavor details: " + str(
+                            self.get_flavor_details(
+                                self.vms_details_after_restore[i]['flavor_id'])))
                     reporting.add_test_step(
                         "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -613,8 +630,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
 
             # Trigger selective restore
-            self.restore_id = self.snapshot_selective_restore(self.workload_id, self.snapshot_id, restore_name=tvaultconf.restore_name,
-                                                              instance_details=self.instance_details, network_details=self.network_details)
+            self.restore_id = self.snapshot_selective_restore(
+                self.workload_id,
+                self.snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=self.instance_details,
+                network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(
                 self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -646,8 +667,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
-                    LOG.error(
-                        "Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
+                    LOG.error("Restored network: " +
+                              str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -657,8 +678,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original keypair details: " +
                               str(self.original_fingerprint))
-                    LOG.error("Restored keypair details: " + str(
-                        self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
+                    LOG.error(
+                        "Restored keypair details: " + str(
+                            self.get_key_pair_details(
+                                self.vms_details_after_restore[i]['keypair'])))
                     reporting.add_test_step(
                         "Keypair verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -668,8 +691,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     LOG.error("Original flavor details: " +
                               str(self.original_flavor_conf))
-                    LOG.error("Restored flavor details: " + str(
-                        self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
+                    LOG.error(
+                        "Restored flavor details: " + str(
+                            self.get_flavor_details(
+                                self.vms_details_after_restore[i]['flavor_id'])))
                     reporting.add_test_step(
                         "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
@@ -746,11 +771,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.FAIL)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute snapshot-oneclick-restore command", tvaultconf.PASS)
+                    "Execute snapshot-oneclick-restore command",
+                    tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
             wc = query_data.get_snapshot_restore_status(
@@ -773,7 +800,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             if (self.created == False):
                 reporting.add_test_step(
-                    "Snapshot one-click restore verification with DB", tvaultconf.FAIL)
+                    "Snapshot one-click restore verification with DB",
+                    tvaultconf.FAIL)
                 raise Exception("Snapshot Restore did not get created")
 
             self.restore_id = query_data.get_snapshot_restore_id(
