@@ -71,15 +71,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.identity_client = cls.os_primary.identity_v3_client
 
     @classmethod
-    def register_custom_config_opts(cls):
-        conf = cfg.CONF
-        volume_opts = [
-            cfg.StrOpt('volume_type_nfs', default='123233'),
-            cfg.StrOpt('volume_type_ceph', default='31312323'),
-            ]
-        conf.register_opt(volume_opts, group='volume')
-
-    @classmethod
     def resource_setup(cls):
         super(BaseWorkloadmgrTest, cls).resource_setup()
 
@@ -391,7 +382,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         volume_type=volume_type_id,
                         availability_zone=az_name)
                 volume_id = volume['volume']['id']
-                waiters.wait_for_volume_status(self.volumes_client,
+                waiters.wait_for_volume_resource_status(self.volumes_client,
                                                volume_id, 'available')
         else:
             if(image_id != ""):
@@ -404,7 +395,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 volume = self.volumes_client.create_volume(
                     size=size, volume_type=volume_type_id, availability_zone=az_name)
             volume_id = volume['volume']['id']
-            waiters.wait_for_volume_status(self.volumes_client,
+            waiters.wait_for_volume_resource_status(self.volumes_client,
                                            volume_id, 'available')
         if(tvaultconf.cleanup and volume_cleanup):
             self.addCleanup(self.delete_volume, volume_id)
@@ -521,8 +512,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                               (volume_id, server_id))
                     self.servers_client.attach_volume(
                         server_id, volumeId=volume_id, device=device)
-                    self.volumes_client.wait_for_volume_status(
-                        volume_id, 'in-use')
+                    waiters.wait_for_volume_resource_status(self.volumes_client,
+                                               volume_id, 'in-use')
                 except Exception as e:
                     pass
             else:
@@ -530,7 +521,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                           (volume_id, server_id))
                 self.servers_client.attach_volume(
                     server_id, volumeId=volume_id, device=device)
-                self.volumes_client.wait_for_volume_status(volume_id, 'in-use')
+                waiters.wait_for_volume_resource_status(self.volumes_client,
+                                               volume_id, 'in-use')
         if(tvaultconf.cleanup and attach_cleanup):
             self.addCleanup(self.detach_volume, server_id, volume_id)
 
@@ -542,7 +534,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             body = self.volumes_client.show_volume(volume_id)['volume']
             self.volumes_client.detach_volume(volume_id)
-            self.volumes_client.wait_for_volume_status(volume_id, 'available')
+            waiters.wait_for_volume_resource_status(self.volumes_client,
+                                               volume_id, 'available')
         except lib_exc.NotFound:
             return
 
@@ -555,7 +548,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for volume in range(0, total_volumes):
             self.volumes_client.detach_volume(volumes[volume])
             LOG.debug('Volume detach operation completed %s' % volume)
-            waiters.wait_for_volume_status(self.volumes_client,
+            waiters.wait_for_volume_resource_status(self.volumes_client,
                                            volumes[volume], 'available')
 
     '''
@@ -1789,7 +1782,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''Set a volume as bootable'''
 
     def set_volume_as_bootable(self, volume_id, bootable=True):
-        vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable)
+        vol_resp = self.volumes_client.set_bootable_volume(volume_id, bootable=True)
         LOG.debug("Volume bootable response: " + str(vol_resp))
         return vol_resp
 
