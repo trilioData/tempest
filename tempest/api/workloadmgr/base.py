@@ -27,7 +27,7 @@ from tempest import config
 import tempest.test
 from tempest.common import waiters
 from oslo_config import cfg
-from tempest_lib import exceptions as lib_exc
+from tempest.lib import exceptions as lib_exc
 from datetime import datetime
 from datetime import timedelta
 from tempest import tvaultconf
