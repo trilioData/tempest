@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 from tempest import tvaultconf
 import json
 import yaml
@@ -41,11 +42,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
     def test_1_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfromvol")
@@ -173,8 +173,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'nested_security'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
     def test_2_regression(self):
         reporting.add_test_script(str(__name__) + "_nested_security")
         try:
@@ -189,8 +189,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'inplace'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_3_regression(self):
         reporting.add_test_script(str(__name__) + "_inplace_restore_cli")
         try:
@@ -379,8 +379,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.delete_volumes(self.restored_volumes)
 
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_4_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_default_values")
@@ -561,8 +561,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
     def test_5_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_bootfromvol")
@@ -744,8 +744,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
     def test_6_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfrom_image")

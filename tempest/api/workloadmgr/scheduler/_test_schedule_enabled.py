@@ -20,13 +20,13 @@ from tempest import api
 import time
 import datetime
 import json
-from tempest import test
+from tempest.lib import decorators
 from tempest import config
 from tempest.api.workloadmgr import base
 from apscheduler.schedulers.blocking import BlockingScheduler
 import apscheduler
 import sys
-sys.path.append("/opt/stack/tempest")
+sys.path.append(os.getcwd())
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 # logging.basicConfig()
@@ -42,8 +42,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         cls.client = cls.os.wlm_client
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_workload(self):
         self.total_workloads = 1
         self.vms_per_workload = 1
