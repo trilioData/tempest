@@ -326,11 +326,11 @@ class Manager(clients.ServiceClients):
             authurl = CONF.identity.uri_v3
             endpoint = CONF.identity.v3_endpoint_type
         self.wlm_client = client.Client(1,
-                                        CONF.auth.admin_username,
-                                        CONF.auth.admin_password,
-                                        CONF.auth.admin_project_name,
+                                        CONF.identity.username,
+                                        CONF.identity.password,
+                                        CONF.identity.project_name,
                                         authurl,
-                                        CONF.auth.admin_domain_name,
+                                        CONF.identity.domain_name,
                                         insecure=CONF.wlm.insecure,
                                         region_name=CONF.identity.region,
                                         tenant_id=CONF.wlm.os_tenant_id,
@@ -340,8 +340,8 @@ class Manager(clients.ServiceClients):
                                         retries=CONF.wlm.retries,
                                         http_log_debug=False,
                                         cacert=CONF.wlm.os_cacert,
-                                        project_domain_name=CONF.auth.admin_domain_name,
-                                        user_domain_name=CONF.auth.admin_domain_name)
+                                        project_domain_name=CONF.identity.domain_name,
+                                        user_domain_name=CONF.identity.domain_name)
 
         try:
             self.wlm_client.authenticate()
