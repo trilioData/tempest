@@ -14,7 +14,7 @@
 
 from tempest.api.workloadmgr import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -37,11 +37,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
         reporting.add_test_script(str(__name__))
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_before_upgrade(self):
         self.vms_per_workload = 1
         self.volume_size = 1
