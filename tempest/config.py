@@ -466,6 +466,9 @@ ComputeGroup = [
     cfg.IntOpt('flavor_vcpus',
                default=4,
                help="VCPUS for the flavor"),
+    cfg.StrOpt('fvm_image_ref',
+               help="Valid file manager image reference to be used in snasphot mount tests. "
+                    "This is a required option"),
 ]
 
 placement_group = cfg.OptGroup(name='placement',
@@ -926,6 +929,9 @@ ValidationGroup = [
                default='public',
                help="Network used for SSH connections. Ignored if "
                     "connect_method=floating."),
+    cfg.StrOpt('fvm_ssh_user',
+               default="ubuntu",
+               help="User name used to authenticate to Trilio File Recovery Manager instance."),
 ]
 
 volume_group = cfg.OptGroup(name='volume',
