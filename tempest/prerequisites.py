@@ -14,23 +14,23 @@ CONF = config.CONF
 
 def small_workload(self):
     try:
-       LOG.debug("Running prerequisites for : small_workload")
+        LOG.debug("Running prerequisites for : small_workload")
 
-       # Create volume
-       self.volume_id = self.create_volume(volume_cleanup=False)
-       LOG.debug("Volume ID: " + str(self.volume_id))
+        # Create volume
+        self.volume_id = self.create_volume(volume_cleanup=False)
+        LOG.debug("Volume ID: " + str(self.volume_id))
 
-       # create vm
-       self.vm_id = self.create_vm(vm_cleanup=False)
-       LOG.debug("Vm ID: " + str(self.vm_id))
+        # create vm
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("Vm ID: " + str(self.vm_id))
 
-       # Attach volume to the instance
-       self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
-       LOG.debug("Volume attached")
+        # Attach volume to the instance
+        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
+        LOG.debug("Volume attached")
 
     except Exception as err:
-       self.exception = err
-       LOG.error("Exception" + str(self.exception))
+        self.exception = err
+        LOG.error("Exception" + str(self.exception))
 
 
 def inplace(self):
@@ -62,14 +62,30 @@ def inplace(self):
         self.original_fingerprint = self.create_key_pair(
             tvaultconf.key_pair_name)
         ts = str(datetime.datetime.now()).replace('.', '-')
-        security_group_id = self.create_security_group("sec_group_{}".format(
-            tvaultconf.security_group_name + ts), " security group {}".format("test_sec"), secgrp_cleanup=True)
-        self.add_security_group_rule(parent_group_id=security_group_id, ip_protocol="TCP", from_port="1", to_port=randint(1, 65535)
-                                     )
-        self.add_security_group_rule(parent_group_id=security_group_id, ip_protocol="UDP", from_port="1", to_port=randint(1, 65535)
-                                     )
+        security_group_id = self.create_security_group(
+            "sec_group_{}".format(
+                tvaultconf.security_group_name + ts),
+            " security group {}".format("test_sec"),
+            secgrp_cleanup=True)
         self.add_security_group_rule(
-            parent_group_id=security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(flavor_id == 0):
             flavor_id = self.create_flavor(tvaultconf.flavor_name)
@@ -82,15 +98,23 @@ def inplace(self):
                   " volumes created: " + str(self.volumes_list))
 
         vm_name = "tempest_test_vm_1"
-        vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id,
-                               flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+        vm_id = self.create_vm(
+            vm_name=vm_name,
+            security_group_id=security_group_id,
+            flavor_id=flavor_id,
+            key_pair=tvaultconf.key_pair_name,
+            vm_cleanup=True)
         self.workload_instances.append(vm_id)
         self.workload_volumes.append(self.volumes_list[0])
         self.attach_volume(str(self.volumes_list[0]), vm_id, device=volumes[0])
 
         vm_name = "tempest_test_vm_2"
-        vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id,
-                               flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+        vm_id = self.create_vm(
+            vm_name=vm_name,
+            security_group_id=security_group_id,
+            flavor_id=flavor_id,
+            key_pair=tvaultconf.key_pair_name,
+            vm_cleanup=True)
         self.workload_instances.append(vm_id)
         self.workload_volumes.append(self.volumes_list[1])
         self.workload_volumes.append(self.volumes_list[2])
@@ -227,14 +251,30 @@ def bootfrom_image_with_floating_ips(self):
         self.original_fingerprint = self.create_key_pair(
             tvaultconf.key_pair_name)
         ts = str(datetime.datetime.now()).replace('.', '-')
-        security_group_id = self.create_security_group("sec_group_{}".format(
-            tvaultconf.security_group_name + ts), " security group {}".format("test_sec"), secgrp_cleanup=True)
-        self.add_security_group_rule(parent_group_id=security_group_id, ip_protocol="TCP", from_port="1", to_port=randint(1, 65535)
-                                     )
-        self.add_security_group_rule(parent_group_id=security_group_id, ip_protocol="UDP", from_port="1", to_port=randint(1, 65535)
-                                     )
+        security_group_id = self.create_security_group(
+            "sec_group_{}".format(
+                tvaultconf.security_group_name + ts),
+            " security group {}".format("test_sec"),
+            secgrp_cleanup=True)
         self.add_security_group_rule(
-            parent_group_id=security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(flavor_id == 0):
             flavor_id = self.create_flavor(tvaultconf.flavor_name)
@@ -244,8 +284,12 @@ def bootfrom_image_with_floating_ips(self):
             vm_name = "tempest_test_vm_" + str(vm + 1)
             volume_id1 = self.create_volume()
             volume_id2 = self.create_volume()
-            vm_id = self.create_vm(vm_name=vm_name, security_group_id=security_group_id,
-                                   flavor_id=flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+            vm_id = self.create_vm(
+                vm_name=vm_name,
+                security_group_id=security_group_id,
+                flavor_id=flavor_id,
+                key_pair=tvaultconf.key_pair_name,
+                vm_cleanup=True)
             self.workload_instances.append(vm_id)
             self.workload_volumes.append(volume_id1)
             self.workload_volumes.append(volume_id2)
@@ -323,14 +367,30 @@ def selective_basic(self):
         self.original_fingerprint = self.create_key_pair(
             tvaultconf.key_pair_name)
         ts = str(datetime.datetime.now()).replace('.', '-')
-        self.security_group_id = self.create_security_group("sec_group_{}".format(
-            tvaultconf.security_group_name + ts), " security group {}".format("test_sec"), secgrp_cleanup=True)
-        self.add_security_group_rule(parent_group_id=self.security_group_id, ip_protocol="TCP", from_port="1", to_port=randint(1, 65535)
-                                     )
-        self.add_security_group_rule(parent_group_id=self.security_group_id, ip_protocol="UDP", from_port="1", to_port=randint(1, 65535)
-                                     )
+        self.security_group_id = self.create_security_group(
+            "sec_group_{}".format(
+                tvaultconf.security_group_name + ts),
+            " security group {}".format("test_sec"),
+            secgrp_cleanup=True)
         self.add_security_group_rule(
-            parent_group_id=self.security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
         if(self.flavor_id == 0):
             self.flavor_id = self.create_flavor(tvaultconf.flavor_name)
@@ -340,8 +400,12 @@ def selective_basic(self):
             vm_name = "tempest_test_vm_" + str(vm + 1)
             volume_id1 = self.create_volume()
             volume_id2 = self.create_volume()
-            vm_id = self.create_vm(vm_name=vm_name, security_group_id=self.security_group_id,
-                                   flavor_id=self.flavor_id, key_pair=tvaultconf.key_pair_name, vm_cleanup=True)
+            vm_id = self.create_vm(
+                vm_name=vm_name,
+                security_group_id=self.security_group_id,
+                flavor_id=self.flavor_id,
+                key_pair=tvaultconf.key_pair_name,
+                vm_cleanup=True)
             self.workload_instances.append(vm_id)
             self.workload_volumes.append(volume_id1)
             self.workload_volumes.append(volume_id2)
@@ -388,14 +452,30 @@ def filesearch(self):
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
         ts = str(datetime.datetime.now()).replace('.', '-')
-        self.security_group_id = self.create_security_group("sec_group_{}".format(
-            tvaultconf.security_group_name + ts), " security group {}".format("test_sec"), secgrp_cleanup=False)
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="TCP", from_port="1", to_port=randint(1, 65535))
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="UDP", from_port="1", to_port=randint(1, 65535))
+        self.security_group_id = self.create_security_group(
+            "sec_group_{}".format(
+                tvaultconf.security_group_name + ts),
+            " security group {}".format("test_sec"),
+            secgrp_cleanup=False)
         self.add_security_group_rule(
-            parent_group_id=self.security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         floating_ips_list = self.get_floating_ips()
 
         # Create two volumes, Launch two instances, Attach volumes to the instances and Assign Floating IP's
@@ -408,8 +488,12 @@ def filesearch(self):
                     self.create_volume(volume_cleanup=False))
                 LOG.debug("Volume-" + str(n + j + 1) +
                           " ID: " + str(self.volumes_ids[n + j]))
-            self.instances_ids.append(self.create_vm(vm_cleanup=False, vm_name=vm_name,
-                                                     key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id))
+            self.instances_ids.append(
+                self.create_vm(
+                    vm_cleanup=False,
+                    vm_name=vm_name,
+                    key_pair=tvaultconf.key_pair_name,
+                    security_group_id=self.security_group_id))
             LOG.debug("VM-" + str(i + 1) + " ID: " +
                       str(self.instances_ids[i]))
             self.attach_volume(
@@ -435,8 +519,11 @@ def filesearch(self):
             self.ssh.close()
 
         # Create workload
-        self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel,
-                                        workload_name=tvaultconf.workload_name, workload_cleanup=False)
+        self.wid = self.workload_create(
+            self.instances_ids,
+            tvaultconf.parallel,
+            workload_name=tvaultconf.workload_name,
+            workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
         workload_available = self.wait_for_workload_tobe_available(self.wid)
 
@@ -475,7 +562,7 @@ def filesearch(self):
         # Add two files to vm2 to path /home/ubuntu/mount_data_c
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[1]))
-        pth = "//home/" + str(CONF.compute.image_ssh_user) + "/mount_data_c"
+        pth = "//home/" + str(CONF.validation.image_ssh_user) + "/mount_data_c"
         self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
         self.ssh.close()
 
@@ -493,7 +580,7 @@ def filesearch(self):
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))
-        pth = "//home/" + str(CONF.compute.image_ssh_user) + "/mount_data_b"
+        pth = "//home/" + str(CONF.validation.image_ssh_user) + "/mount_data_b"
         self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
         self.ssh.close()
 
@@ -535,8 +622,11 @@ def basic_workload(self):
 
         # Create workload
         self.workload_instances.append(self.vm_id)
-        self.wid = self.workload_create(self.workload_instances, tvaultconf.parallel,
-                                        workload_name=tvaultconf.workload_name, workload_cleanup=False)
+        self.wid = self.workload_create(
+            self.workload_instances,
+            tvaultconf.parallel,
+            workload_name=tvaultconf.workload_name,
+            workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
 
     except Exception as err:
@@ -554,7 +644,9 @@ def bootfromvol_workload(self):
 
         for vm in range(0, self.vms_per_workload):
             self.volume_id = self.create_volume(
-                size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
+                size=tvaultconf.bootfromvol_vol_size,
+                image_id=CONF.compute.image_ref,
+                volume_cleanup=False)
             self.workload_volumes.append(self.volume_id)
             self.set_volume_as_bootable(self.volume_id)
             self.block_mapping_details = [{"source_type": "volume",
@@ -563,12 +655,16 @@ def bootfromvol_workload(self):
                                            "uuid": self.volume_id,
                                            "destination_type": "volume"}]
             self.vm_id = self.create_vm(
-                image_id="", block_mapping_data=self.block_mapping_details, vm_cleanup=False)
+                image_id="",
+                block_mapping_data=self.block_mapping_details,
+                vm_cleanup=False)
             self.workload_instances.append(self.vm_id)
 
         # Create workload
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel, workload_cleanup=False)
+            self.workload_instances,
+            tvaultconf.parallel,
+            workload_cleanup=False)
         if (self.wait_for_workload_tobe_available(self.workload_id) == False):
             reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
             raise Exception("Workload creation failed")
@@ -627,13 +723,28 @@ def bootfromvol_workload_medium(self):
         ts = str(datetime.datetime.now()).replace('.', '-')
 
         self.security_group_id = self.create_security_group(
-            tvaultconf.security_group_name + ts, "tempest_sample_description", secgrp_cleanup=False)
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="TCP", from_port="1", to_port=randint(1, 65535))
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="UDP", from_port="1", to_port=randint(1, 65535))
+            tvaultconf.security_group_name + ts,
+            "tempest_sample_description",
+            secgrp_cleanup=False)
         self.add_security_group_rule(
-            parent_group_id=self.security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         LOG.debug("security group id" + str(self.security_group_id))
 
         self.flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
@@ -644,7 +755,9 @@ def bootfromvol_workload_medium(self):
 
         for vm in range(0, self.vms_per_workload):
             self.volume_id_1 = self.create_volume(
-                size=tvaultconf.bootfromvol_vol_size, image_id=CONF.compute.image_ref, volume_cleanup=False)
+                size=tvaultconf.bootfromvol_vol_size,
+                image_id=CONF.compute.image_ref,
+                volume_cleanup=False)
             self.volume_id_2 = self.create_volume(volume_cleanup=False)
             self.volume_id_3 = self.create_volume(volume_cleanup=False)
             self.workload_volumes.append(self.volume_id_1)
@@ -657,8 +770,13 @@ def bootfromvol_workload_medium(self):
                                            "uuid": self.volume_id_1,
                                            "destination_type": "volume"}]
 
-            self.vm_id = self.create_vm(image_id="", security_group_id=self.security_group_id, flavor_id=self.flavor_id,
-                                        key_pair=tvaultconf.key_pair_name, block_mapping_data=self.block_mapping_details, vm_cleanup=False)
+            self.vm_id = self.create_vm(
+                image_id="",
+                security_group_id=self.security_group_id,
+                flavor_id=self.flavor_id,
+                key_pair=tvaultconf.key_pair_name,
+                block_mapping_data=self.block_mapping_details,
+                vm_cleanup=False)
             self.attach_volume(self.volume_id_2, self.vm_id, device=volumes[0])
             self.attach_volume(self.volume_id_3, self.vm_id, device=volumes[1])
             self.workload_instances.append(self.vm_id)
@@ -719,7 +837,9 @@ def bootfromvol_workload_medium(self):
 
         # Create workload
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel, workload_cleanup=False)
+            self.workload_instances,
+            tvaultconf.parallel,
+            workload_cleanup=False)
         if (self.wait_for_workload_tobe_available(self.workload_id) == False):
             self.exception = "Create_Workload"
             raise Exception(self.exception)
@@ -757,13 +877,28 @@ def nested_security(self):
         LOG.debug("create initial security groups")
         ts = "".join(str(datetime.datetime.now()).replace('.', '-').split())
         self.security_group_id = self.create_security_group(
-            tvaultconf.security_group_name + ts, "tempest_sample_description", secgrp_cleanup=False)
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="TCP", from_port="1", to_port=randint(1, 65535))
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="UDP", from_port="1", to_port=randint(1, 65535))
+            tvaultconf.security_group_name + ts,
+            "tempest_sample_description",
+            secgrp_cleanup=False)
         self.add_security_group_rule(
-            parent_group_id=self.security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         LOG.debug("security group id" + str(self.security_group_id))
         self.security_group_list.append(self.security_group_id)
 
@@ -788,14 +923,30 @@ def snapshot_mount(self):
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
         ts = str(datetime.datetime.now()).replace('.', '-')
-        self.security_group_id = self.create_security_group("sec_group_{}".format(
-            tvaultconf.security_group_name + ts), " security group {}".format("test_sec"), secgrp_cleanup=False)
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="TCP", from_port="1", to_port=randint(1, 65535))
-        self.add_security_group_rule(parent_group_id=self.security_group_id,
-                                     ip_protocol="UDP", from_port="1", to_port=randint(1, 65535))
+        self.security_group_id = self.create_security_group(
+            "sec_group_{}".format(
+                tvaultconf.security_group_name + ts),
+            " security group {}".format("test_sec"),
+            secgrp_cleanup=False)
         self.add_security_group_rule(
-            parent_group_id=self.security_group_id, ip_protocol="TCP", from_port=22, to_port=22)
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="UDP",
+            from_prt="1",
+            to_prt=randint(
+                1,
+                65535))
+        self.add_security_group_rule(
+            parent_grp_id=self.security_group_id,
+            ip_proto="TCP",
+            from_prt=22,
+            to_prt=22)
         self.floating_ips_list = self.get_floating_ips()
         floating_ips_list = self.floating_ips_list
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
@@ -808,8 +959,12 @@ def snapshot_mount(self):
                     self.create_volume(volume_cleanup=False))
                 LOG.debug("Volume-" + str(n + j + 1) +
                           " ID: " + str(self.volumes_ids[n + j]))
-            self.instances_ids.append(self.create_vm(vm_cleanup=False, vm_name=vm_name,
-                                                     key_pair=tvaultconf.key_pair_name, security_group_id=self.security_group_id))
+            self.instances_ids.append(
+                self.create_vm(
+                    vm_cleanup=False,
+                    vm_name=vm_name,
+                    key_pair=tvaultconf.key_pair_name,
+                    security_group_id=self.security_group_id))
             LOG.debug("VM-" + str(i + 1) + " ID: " +
                       str(self.instances_ids[i]))
             self.attach_volume(
@@ -822,8 +977,13 @@ def snapshot_mount(self):
 
         # create file manager instance
         fvm_name = "Test_tempest_fvm_1"
-        self.fvm_id = self.create_vm(vm_cleanup=False, vm_name=fvm_name, key_pair=tvaultconf.key_pair_name,
-                                     security_group_id=self.security_group_id, image_id=CONF.compute.fvm_image_ref, flavor_id=CONF.compute.flavor_ref_alt)
+        self.fvm_id = self.create_vm(
+            vm_cleanup=False,
+            vm_name=fvm_name,
+            key_pair=tvaultconf.key_pair_name,
+            security_group_id=self.security_group_id,
+            image_id=CONF.compute.fvm_image_ref,
+            flavor_id=CONF.compute.flavor_ref_alt)
         time.sleep(10)
         self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
@@ -848,13 +1008,16 @@ def snapshot_mount(self):
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))
-        pth = "//home/" + str(CONF.compute.image_ssh_user) + "/mount_data_b"
+        pth = "//home/" + str(CONF.validation.image_ssh_user) + "/mount_data_b"
         self.addCustomfilesOnLinuxVM(self.ssh, pth, 1)
         self.ssh.close()
 
         # Create workload
-        self.wid = self.workload_create(self.instances_ids, tvaultconf.parallel,
-                                        workload_name=tvaultconf.workload_name, workload_cleanup=False)
+        self.wid = self.workload_create(
+            self.instances_ids,
+            tvaultconf.parallel,
+            workload_name=tvaultconf.workload_name,
+            workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
         workload_available = self.wait_for_workload_tobe_available(self.wid)
 

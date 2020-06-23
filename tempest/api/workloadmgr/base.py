@@ -1220,15 +1220,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_floating_ips(self):
         floating_ips_list = []
-        get_ips_response = self.floating_ips_client.list_floating_ips()
+        get_ips_response = self.floating_ips_client.list_floatingips()
         LOG.debug("get floating ips response: " + str(get_ips_response))
-        floating_ips = get_ips_response['floating_ips']
+        floating_ips = get_ips_response['floatingips']
         for ip in floating_ips:
-            LOG.debug("instanceid: " + str(ip['instance_id']))
+            LOG.debug("portid: " + str(ip['port_id']))
             if str(
-                ip['instance_id']) == "None" or str(
-                ip['instance_id']) == "":
-                floating_ips_list.append(ip['ip'])
+                ip['port_id']) == "None" or str(
+                ip['port_id']) == "":
+                floating_ips_list.append(ip['floating_ip_address'])
         LOG.debug('floating_ips' + str(floating_ips_list))
         return floating_ips_list
 
@@ -1241,8 +1241,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         floating_ip,
         server_id,
         floatingip_cleanup=False):
-        set_response = self.floating_ips_client.associate_floating_ip_to_server(
-            floating_ip, server_id)
+        port_details = self.ports_client.list_ports(device_id=server_id)['ports']
+        floating_ip_id = self.floating_ips_client.list_floatingips(
+            floating_ip_address=floating_ip)['floatingips']
+        set_response = self.floating_ips_client.update_floatingip(
+            floating_ip_id[0]['id'], port_id=port_details[0]['id'])
         # self.SshRemoteMachineConnectionWithRSAKey(floating_ip)
         if(tvaultconf.cleanup and floatingip_cleanup):
             self.addCleanup(
@@ -1616,7 +1619,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''floating ip availability'''
 
     def get_floating_ip_status(self, ip):
-        floating_ip_status = self.floating_ips_client.show_floating_ip(ip)
+        floating_ip_status = self.floating_ips_client.show_floatingip(ip)
         LOG.debug("floating ip details fetched: " + str(floating_ip_status))
 
     '''get network name  by id'''
@@ -2319,23 +2322,42 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def add_security_group_rule(
         self,
-        parent_group_id="",
-        remote_group_id="",
-        ip_protocol="",
-        from_port=1,
-        to_port=40000):
-        LOG.debug("parent group id: {}".format(str(parent_group_id)))
-        LOG.debug("remote_group_id: {}".format(str(remote_group_id)))
-        if remote_group_id != "":
+        parent_grp_id="",
+        remote_grp_id="",
+        ip_proto="",
+        from_prt=1,
+        to_prt=40000):
+        LOG.debug("parent group id: {}".format(str(parent_grp_id)))
+        LOG.debug("remote_group_id: {}".format(str(remote_grp_id)))
+        if remote_grp_id != "":
             self.security_group_rules_client.create_security_group_rule(
-                parent_group_id=str(parent_group_id),
-                group_id=str(remote_group_id),
-                ip_protocol=ip_protocol,
-                from_port=from_port,
-                to_port=to_port)
+                security_group_id=parent_grp_id,
+                remote_group_id=remote_grp_id,
+                protocol=ip_proto,
+                port_range_min=from_prt,
+                port_range_max=to_prt,
+                direction="ingress")
+            self.security_group_rules_client.create_security_group_rule(
+                security_group_id=parent_grp_id,
+                remote_group_id=remote_grp_id,
+                protocol=ip_proto,
+                port_range_min=from_prt,
+                port_range_max=to_prt,
+                direction="egress")
         else:
-            self.security_group_rules_client.create_security_group_rule(parent_group_id=str(
-                parent_group_id), ip_protocol=ip_protocol, from_port=from_port, to_port=to_port)
+            self.security_group_rules_client.create_security_group_rule(
+                security_group_id=parent_grp_id,
+                protocol=ip_proto,
+                port_range_min=from_prt,
+                port_range_max=to_prt,
+                direction="ingress")
+            self.security_group_rules_client.create_security_group_rule(
+                security_group_id=parent_grp_id,
+                protocol=ip_proto,
+                port_range_min=from_prt,
+                port_range_max=to_prt,
+                direction="egress")
+
 
     '''
     delete some files on linux
@@ -2807,7 +2829,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         file_path_to_search="/home/ubuntu/tvault-mounts/mounts",
         file_name="File_1"):
         try:
-            LOG.debug("build comand to serach file")
+            cmd = "ls -la " + file_path_to_search + "/Test_*/vda*"
+            stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
+            LOG.debug("List files output: " + str(stdout.read()))
+            LOG.debug("build comand to search file")
             buildCommand = "find " + file_path_to_search + " -name " + file_name
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
