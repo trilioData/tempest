@@ -35,6 +35,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_create")
         try:
             global policy_id
+            policy_create_error_str = "Policy doesn't allow workload:policy_create to be performed."
+
             # Create workload policy by admin user
             policy_id = self.workload_policy_create(
                 interval=tvaultconf.interval, policy_cleanup=False)
@@ -69,8 +71,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 "' --policy-fields fullbackup_interval='" + \
                 tvaultconf.fullbackup_interval + "' nonadmin_policy"
             LOG.debug("policy_create_command#### " + policy_create_command)
-            rc = cli_parser.cli_returncode(policy_create_command)
-            if rc != 0:
+            error = cli_parser.cli_error(policy_create_command)
+            if error and (str(error.strip('\n')).find(policy_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not create workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -93,6 +95,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_update")
         try:
             global policy_id
+            policy_update_error_str = "Policy doesn't allow workload:policy_update to be performed."
+
             # Update workload policy by admin user
             updated_status = self.workload_policy_update(
                 policy_id,
@@ -137,8 +141,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_update_command = command_argument_string.policy_update + "interval='" + tvaultconf.interval_update + "' --policy-fields retention_policy_value='" +\
                 tvaultconf.retention_policy_value_update + "' --policy-fields fullbackup_interval='" + tvaultconf.fullbackup_interval_update + \
                 "' --display-name 'policy_update' " + str(policy_id)
-            rc = cli_parser.cli_returncode(policy_update_command)
-            if rc != 0:
+            error = cli_parser.cli_error(policy_update_command)
+            if error and (str(error.strip('\n')).find(policy_update_error_str) != -1): 
                 reporting.add_test_step(
                     "Can not update workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -161,6 +165,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_assign")
         try:
             global policy_id
+            policy_assign_error_str = "User does not have admin privileges"
+
             # Assign workload policy to projects by admin user
             admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
@@ -260,8 +266,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             project_id = CONF.identity.tenant_id
             policy_assign_command = command_argument_string.policy_assign + \
                 str(project_id) + " " + str(policy_id)
-            rc = cli_parser.cli_returncode(policy_assign_command)
-            if rc != 0:
+            error = cli_parser.cli_error(policy_assign_command)
+            if error and (str(error.strip('\n')).find(policy_assign_error_str) != -1):
                 reporting.add_test_step(
                     "Cannot assign workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -509,6 +515,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
             global policy_id
+            policy_delete_error_str = "Policy doesn't allow workload:policy_delete to be performed."
 
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
@@ -517,8 +524,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Delete workload policy by nonadmin user using CLI
             policy_delete_command = command_argument_string.policy_delete + \
                 str(policy_id)
-            rc = cli_parser.cli_returncode(policy_delete_command)
-            if rc != 0:
+            error = cli_parser.cli_error(policy_delete_command)
+            if error and (str(error.strip('\n')).find(policy_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not delete workload policy by nonadmin user",
                     tvaultconf.PASS)
