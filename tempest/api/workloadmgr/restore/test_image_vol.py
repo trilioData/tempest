@@ -141,7 +141,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Sleeping for 40 sec")
             time.sleep(40)
 
-            if CONF.compute.ssh_user == 'ubuntu':
+            if CONF.validation.ssh_user == 'ubuntu':
                 self.install_qemu_ga(floating_ip_1)
             self.data_ops(floating_ip_1, mount_points[0], 3)
             LOG.debug("Created disk and mounted the attached volume")
