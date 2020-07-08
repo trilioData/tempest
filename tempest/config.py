@@ -821,6 +821,10 @@ NetworkGroup = [
                default="",
                help="Id of the private network that provides internal "
                     "connectivity"),
+    cfg.StrOpt('alt_internal_network_id',
+               default="",
+               help="Id of the private network that provides internal "
+                    "connectivity"),
 ]
 
 network_feature_group = cfg.OptGroup(name='network-feature-enabled',

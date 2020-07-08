@@ -45,15 +45,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 secgrp_cleanup=True)
             sec_groups.append(sgid)
             self.add_security_group_rule(
-                parent_group_id=sgid,
-                ip_protocol=random.choice(ip_protocols),
-                from_port=2000,
-                to_port=2100)
+                parent_grp_id=sgid,
+                ip_proto=random.choice(ip_protocols),
+                from_prt=2000,
+                to_prt=2100)
             self.add_security_group_rule(
-                parent_group_id=sgid,
-                ip_protocol="TCP",
-                from_port=22,
-                to_port=22)
+                parent_grp_id=sgid,
+                ip_proto="TCP",
+                from_prt=22,
+                to_prt=22)
         return(sec_groups)
 
     def multiple_vms(self, vm_count, key_pairs, sec_groups):
