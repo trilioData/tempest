@@ -905,7 +905,7 @@ ValidationGroup = [
     cfg.IntOpt('ssh_timeout',
                default=300,
                help='Timeout in seconds to wait for the ssh banner.'),
-    cfg.StrOpt('image_ssh_user',
+    cfg.StrOpt('ssh_user',
                default="root",
                help="User name used to authenticate to an instance."),
     cfg.StrOpt('image_ssh_password',
