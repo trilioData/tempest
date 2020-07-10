@@ -2840,7 +2840,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
             output = stdout.read()
-            LOG.debug("file search command output: %s", output)
+            LOG.debug("snapshot mount file search output: %s", output)
             return(output)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2914,8 +2914,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def delete_router_interfaces(self, router_id):
-        interfaces = self.routers_client.list_router_interfaces(router_id)[
-            'ports']
+        interfaces = self.ports_client.list_ports()['ports']
         for interface in interfaces:
             if interface['device_owner'] == 'network:router_interface':
                 for i in interface['fixed_ips']:
@@ -3008,39 +3007,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             routers[router['router']['name']] = router['router']['id']
 
         networkslist = self.networks_client.list_networks()['networks']
-        self.routers_client.add_router_interface(
-            routers['Router-1'], subnet_id=subnets['PS-1'])
-        self.routers_client.add_router_interface(
-            routers['Router-1'], subnet_id=subnets['PS-2'])
-        self.routers_client.add_router_interface(
-            routers['Router-3'], subnet_id=subnets['PS-3'])
-        self.routers_client.add_router_interface(
-            routers['Router-2'], subnet_id=subnets['PS-4'])
+        self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-1'])
+        self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-2'])
+        self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
+        self.routers_client.add_router_interface(routers['Router-2'], subnet_id=subnets['PS-4'])
         portid1 = self.ports_client.create_port(
             **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.4'}]})['port']['id']
-        self.network_client.add_router_interface_with_port_id(
-            routers['Router-2'], portid1)
-        portid2 = self.network_client.create_port(
+        self.routers_client.add_router_interface(routers['Router-2'], port_id=portid1)
+        portid2 = self.ports_client.create_port(
             **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.5'}]})['port']['id']
-        portid3 = self.network_client.create_port(
+        portid3 = self.ports_client.create_port(
             **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.6'}]})['port']['id']
-        self.network_client.add_router_interface_with_port_id(
-            routers['Router-4'], portid2)
-        self.network_client.add_router_interface_with_port_id(
-            routers['Router-5'], portid3)
-        self.network_client.add_router_interface_with_subnet_id(
-            routers['Router-4'], subnets['PS-5'])
+        self.routers_client.add_router_interface(routers['Router-4'], port_id=portid2)
+        self.routers_client.add_router_interface(routers['Router-5'], port_id=portid3)
+        self.routers_client.add_router_interface(routers['Router-4'], subnet_id=subnets['PS-5'])
         portid4 = self.network_client.create_port(
             **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.3'}]})['port']['id']
-        self.network_client.add_router_interface_with_port_id(
-            routers['Router-5'], portid4)
+        self.routers_client.add_router_interface(routers['Router-5'], port_id=portid4)
 
         for router_name, router_id in list(routers.items()):
             if router_name == 'Router-1':
-                self.network_client.update_router(
+                self.routers_client.update_router(
                     router_id, **{'routes': [{'destination': '10.10.5.0/24', 'nexthop': '10.10.2.6'}]})
             elif router_name in ['Router-4', 'Router-5']:
-                self.network_client.update_router(
+                self.routers_client.update_router(
                     router_id, **{'routes': [{'destination': '10.10.1.0/24', 'nexthop': '10.10.2.1'}]})
 
         return networkslist
