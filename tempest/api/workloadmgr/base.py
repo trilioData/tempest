@@ -2840,7 +2840,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
             output = stdout.read()
-            LOG.debug("snapshot mount file search output: %s", output)
+            LOG.debug(output)
             return(output)
         except Exception as e:
             LOG.debug("Exception: " + str(e))
@@ -2914,14 +2914,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def delete_router_interfaces(self, router_id):
-        interfaces = self.ports_client.list_ports()['ports']
+        interfaces = self.ports_client.list_ports(device_owner='network:router_interface')['ports']
         for interface in interfaces:
-            if interface['device_owner'] == 'network:router_interface':
-                for i in interface['fixed_ips']:
-                    self.routers_client.remove_router_interface(
-                        router_id, subnet_id=i['subnet_id'])
-            else:
-                pass
+            for i in interface['fixed_ips']:
+                self.routers_client.remove_router_interface(
+                                    interface['device_id'], subnet_id=i['subnet_id'])
 
     '''
     Method returns the auditlog information
@@ -3021,7 +3018,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.routers_client.add_router_interface(routers['Router-4'], port_id=portid2)
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid3)
         self.routers_client.add_router_interface(routers['Router-4'], subnet_id=subnets['PS-5'])
-        portid4 = self.network_client.create_port(
+        portid4 = self.ports_client.create_port(
             **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.3'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid4)
 
@@ -3062,7 +3059,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for each_subnet in sbnts:
             subnets[each_subnet['name']] = each_subnet
 
-        rs = self.network_client.list_routers()['routers']
+        rs = self.routers_client.list_routers()['routers']
         rts = [{str(i): str(j) for i,
                 j in list(x.items()) if i not in ('external_gateway_info',
                                                   'created_at',
@@ -3075,8 +3072,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         interfaces = {}
         for router in self.get_router_ids():
-            interfaceslist = self.network_client.list_router_interfaces(router)[
-                'ports']
+            interfaceslist = self.ports_client.list_ports()['ports']
             intrfs = [{str(i): str(j) for i,
                        j in list(x.items()) if i not in ('network_id',
                                                          'created_at',
@@ -3088,7 +3084,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                          'security_groups',
                                                          'port_security_enabled',
                                                          'revision_number')} for x in interfaceslist]
-            interfaces[self.network_client.show_router(
+            interfaces[self.routers_client.show_router(
                 router)['router']['name']] = intrfs
         return(networks, subnets, routers, interfaces)
 

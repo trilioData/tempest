@@ -97,9 +97,6 @@ function configure_tempest
     then
         iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation True
         iniset $TEMPEST_CONFIG wlm insecure True
-    else
-        iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation False
-        iniset $TEMPEST_CONFIG wlm insecure False
     fi
 
     # Oslo
