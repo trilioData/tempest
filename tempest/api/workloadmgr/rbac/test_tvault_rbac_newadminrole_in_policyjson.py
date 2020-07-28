@@ -27,6 +27,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault_rbac_newadminrole_in_policyjson(self):
         try:
+            storage_usage_error_str = "Policy doesn't allow workload:get_storage_usage to be performed."
+            get_nodes_error_str = "Policy doesn't allow workload:get_nodes to be performed."
+
             # Change policy.json file on tvault to change role and rule
             self.change_policyjson_file("newadmin", "newadmin_api")
 
@@ -37,13 +40,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_storage_usage CLI by newadmin role
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
-            rc = cli_parser.cli_returncode(get_storage_usage)
-            if rc != 0:
+            error = cli_parser.cli_error(get_storage_usage)
+            if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
                 reporting.add_test_step(
-                    "Execute get_storage_usage  command by newadmin role",
+                    "Execute get_storage_usage command by newadmin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command  get_storage_usage did not execute correctly  by new-admin")
             else:
                 reporting.add_test_step(
                     "Execute get_storage_usage command by new-admin role",
@@ -54,13 +55,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_nodes CLI by newadmin role
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
-            rc = cli_parser.cli_returncode(get_nodes)
-            if rc != 0:
+            error = cli_parser.cli_error(get_nodes)
+            if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
                 reporting.add_test_step(
                     "Execute get_nodes command by newadmin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command get_nodes did not execute by new-admin")
             else:
                 reporting.add_test_step(
                     "Execute get_nodes command by newadmin role",
@@ -74,8 +73,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_storage_usage CLI by admin
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
-            rc = cli_parser.cli_returncode(get_storage_usage)
-            if rc != 0:
+            error = cli_parser.cli_error(get_storage_usage)
+            if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage command by admin role ",
                     tvaultconf.PASS)
@@ -85,14 +84,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command get_storage_usage executed correctly by admin")
 
             # Run get_nodes CLI by admin
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
-            rc = cli_parser.cli_returncode(get_nodes)
-            if rc != 0:
+            error = cli_parser.cli_error(get_nodes)
+            if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_nodes command by admin role",
                     tvaultconf.PASS)
@@ -101,8 +98,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_nodes command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command get_nodes executed correctly by admin")
 
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
@@ -111,8 +106,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_storage_usage CLI by non-admin
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
-            rc = cli_parser.cli_returncode(get_storage_usage)
-            if rc != 0:
+            error = cli_parser.cli_error(get_storage_usage)
+            if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage  command by non-admin",
                     tvaultconf.PASS)
@@ -122,14 +117,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage command by non-admin",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command get_storage_usage executed by nonadmin")
 
             # Run get_nodes CLI by nonadmin
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
-            rc = cli_parser.cli_returncode(get_nodes)
-            if rc != 0:
+            error = cli_parser.cli_error(get_nodes)
+            if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_nodes command by non-admin",
                     tvaultconf.PASS)
@@ -138,7 +131,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_nodes command by non-admin",
                     tvaultconf.FAIL)
-                raise Exception("Command get_nodes executed by nonadmin")
 
             reporting.set_test_script_status(tvaultconf.PASS)
             reporting.test_case_to_write()
