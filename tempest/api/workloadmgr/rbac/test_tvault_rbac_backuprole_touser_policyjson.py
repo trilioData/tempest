@@ -30,6 +30,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_tvault_rbac_backuprole_touser_policyjson(self):
         try:
             workload_create_error_str = "Policy doesn't allow workload:workload_create to be performed."
+            snapshot_create_error_str = "Policy doesn't allow workload:workload_snapshot to be performed."
+            restore_create_error_str = "Policy doesn't allow snapshot:snapshot_restore to be performed."
+            workload_delete_error_str = "Policy doesn't allow workload:workload_delete to be performed."
+            snapshot_delete_error_str = "Policy doesn't allow snapshot:snapshot_delete to be performed."
+            restore_delete_error_str = "Policy doesn't allow restore:restore_delete to be performed."
 
             # Change policy.json file on tvault to change role and rule
             self.change_policyjson_file("backup", "backup_api")
@@ -50,8 +55,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI by backup role
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.instances_id[0])
-            rc = cli_parser.cli_returncode(workload_create)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_create)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload creation unsuccessful by backup role")
                 raise Exception(
                     "RBAC policy fails for workload creation by backup role")
@@ -70,8 +75,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_create = command_argument_string.snapshot_create + \
                 str(self.wid1)
             LOG.debug("snapshot_create command: " + str(snapshot_create))
-            rc = cli_parser.cli_returncode(snapshot_create)
-            if rc != 0:
+            error = cli_parser.cli_error(snapshot_create)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
                 reporting.add_test_step(
                     "Execute snapshot_create command by backup role",
                     tvaultconf.FAIL)
@@ -99,8 +104,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create one-click restore using CLI command by backup role
             restore_command = command_argument_string.oneclick_restore + \
                 " " + str(self.snapshot_id1)
-            rc = cli_parser.cli_returncode(restore_command)
-            if rc != 0:
+            error = cli_parser.cli_error(restore_command)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
                 reporting.add_test_step(
                     "Execute snapshot-oneclick-restore command by backup role",
                     tvaultconf.FAIL)
@@ -146,11 +151,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Command workload_create executed correctly by admin role")
 
             # Run snapshot_create CLI by admin role
+            import pdb; pdb.set_trace()
             snapshot_create = command_argument_string.snapshot_create + \
                 str(self.wid1)
             LOG.debug("snapshot_create command: " + str(snapshot_create))
             error = cli_parser.cli_error(snapshot_create)
-            if error:
+            if error and (str(error.strip('\n')).find(snapshot_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute snapshot_create command by admin role",
                     tvaultconf.PASS)
@@ -167,7 +173,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             restore_command = command_argument_string.oneclick_restore + \
                 " " + str(self.snapshot_id1)
             error = cli_parser.cli_error(restore_command)
-            if error:
+            if error and (str(error.strip('\n')).find(restore_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute restore_create command by admin role",
                     tvaultconf.PASS)
@@ -184,7 +190,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             restore_delete = command_argument_string.restore_delete + \
                 str(self.restore_id1)
             error = cli_parser.cli_error(restore_delete)
-            if error:
+            if error and (str(error.strip('\n')).find(restore_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute restore_delete command by admin role",
                     tvaultconf.PASS)
@@ -201,7 +207,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_delete = command_argument_string.snapshot_delete + \
                 str(self.snapshot_id1)
             error = cli_parser.cli_error(snapshot_delete)
-            if error:
+            if error and (str(error.strip('\n')).find(snapshot_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute snapshot_delete command by admin role",
                     tvaultconf.PASS)
@@ -218,7 +224,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             workload_delete = command_argument_string.workload_delete + \
                 str(self.wid1)
             error = cli_parser.cli_error(workload_delete)
-            if error:
+            if error and (str(error.strip('\n')).find(workload_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute workload_delete command by admin role",
                     tvaultconf.PASS)
@@ -238,8 +244,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI by default role
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.restore_vm_id1)
-            rc = cli_parser.cli_returncode(workload_create)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_create)
+            if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug(
                     "Command workload_create did not execute correctly by default role")
                 reporting.add_test_step(
@@ -255,8 +261,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run snapshot_create CLI by default role
             snapshot_create = command_argument_string.snapshot_create + \
                 str(self.wid1)
-            rc = cli_parser.cli_returncode(snapshot_create)
-            if rc != 0:
+            error = cli_parser.cli_error(snapshot_create)
+            if error and (str(error.strip('\n')).find(snapshot_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute snapshot_create command by default role",
                     tvaultconf.PASS)
@@ -272,8 +278,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create one-click restore using CLI by default role
             restore_command = command_argument_string.oneclick_restore + \
                 " " + str(self.snapshot_id1)
-            rc = cli_parser.cli_returncode(restore_command)
-            if rc != 0:
+            error = cli_parser.cli_error(restore_command)
+            if error and (str(error.strip('\n')).find(restore_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute restore_create command by default role",
                     tvaultconf.PASS)
@@ -289,8 +295,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run restore_delete CLI by default role
             restore_delete = command_argument_string.restore_delete + \
                 str(self.restore_id1)
-            rc = cli_parser.cli_returncode(restore_delete)
-            if rc != 0:
+            error = cli_parser.cli_error(restore_delete)
+            if error and (str(error.strip('\n')).find(restore_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute restore_delete command by default role",
                     tvaultconf.PASS)
@@ -306,9 +312,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run snapshot_delete CLI by default role
             snapshot_delete = command_argument_string.snapshot_delete + \
                 str(self.snapshot_id1)
-            LOG.debug("snapshot_delete command: " + str(snapshot_create))
-            rc = cli_parser.cli_returncode(snapshot_delete)
-            if rc != 0:
+            LOG.debug("snapshot_delete command: " + str(snapshot_delete))
+            error = cli_parser.cli_error(snapshot_delete)
+            if error and (str(error.strip('\n')).find(snapshot_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute snapshot_delete command by default role",
                     tvaultconf.PASS)
@@ -324,8 +330,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Delete workload with CLI by default role
             workload_delete = command_argument_string.workload_delete + \
                 str(self.wid1)
-            rc = cli_parser.cli_returncode(workload_delete)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_delete)
+            if error and (str(error.strip('\n')).find(workload_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute workload_delete command by default role",
                     tvaultconf.PASS)
@@ -345,8 +351,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run restore_delete CLI by backup role
             restore_delete = command_argument_string.restore_delete + \
                 str(self.restore_id1)
-            rc = cli_parser.cli_returncode(restore_delete)
-            if rc != 0:
+            error = cli_parser.cli_error(restore_delete)
+            if error and (str(error.strip('\n')).find(restore_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Execute  restore_delete command by backup role",
                     tvaultconf.FAIL)
@@ -368,9 +374,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run snapshot_delete CLI by backup role
             snapshot_delete = command_argument_string.snapshot_delete + \
                 str(self.snapshot_id1)
-            LOG.debug("snapshot_delete command: " + str(snapshot_create))
-            rc = cli_parser.cli_returncode(snapshot_delete)
-            if rc != 0:
+            LOG.debug("snapshot_delete command: " + str(snapshot_delete))
+            error = cli_parser.cli_error(snapshot_delete)
+            if error and (str(error.strip('\n')).find(snapshot_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Execute snapshot_delete command by backup role",
                     tvaultconf.FAIL)
@@ -388,8 +394,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Delete workload with CLI by backup role
             workload_delete = command_argument_string.workload_delete + \
                 str(self.wid1)
-            rc = cli_parser.cli_returncode(workload_delete)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_delete)
+            if error and (str(error.strip('\n')).find(workload_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Execute workload_delete command by backup role",
                     tvaultconf.FAIL)
