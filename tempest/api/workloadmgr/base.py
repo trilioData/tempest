@@ -2116,40 +2116,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_dbusername,
                         tvaultconf.tvault_password)
             if role == "newadmin":
-                LOG.debug("Add new_admin role in policy.json : %s", role)
-                role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
-                    rule, role)
-                LOG.debug("Assign new_admin rule to workload storage usage command : %s", rule)
-                rule_assign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:admin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign new_admin rule to get_nodes command : %s", rule)
-                rule_assign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:admin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_add_command + "; " + rule_assign_command1 + "; " + rule_assign_command2
-                stdin, stdout, stderr = ssh.exec_command(commands)
-                if(tvaultconf.cleanup and policy_changes_cleanup):
-                    self.addCleanup(self.revert_changes_policyjson, "admin_api")
-                ssh.close()
+                old_rule = "admin_api"
+                LOG.debug("Add %s role in policy.json", role)
+                operations = ["workload:get_storage_usage", "workload:get_nodes"]
+
             elif role == "backup":
-                LOG.debug("Add backup role in policy.json : %s", role)
-                role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
+                old_rule = "admin_or_owner"
+                LOG.debug("Add %s role in policy.json", role)
+                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+            role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
                     rule, role)
-                LOG.debug("Assign backup_api rule to snapshot_create command : %s", rule)
-                rule_assign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:admin_or_owner"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign backup_api rule to snapshot_delete command : %s", rule)
-                rule_assign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:admin_or_owner"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign backup_api rule to workload_create command : %s", rule)
-                rule_assign_command3 = 'sed -i \'s/"workload:workload_create": "rule:admin_or_owner"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign backup_api rule to workload_delete command : %s", rule)
-                rule_assign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:admin_or_owner"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign backup_api rule to restore_create command : %s", rule)
-                rule_assign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:admin_or_owner"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Assign backup_api rule to restore_delete command : %s", rule)
-                rule_assign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:admin_or_owner"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_add_command + "; " + rule_assign_command1 + "; " + rule_assign_command2 + "; " + \
-                    rule_assign_command3 + "; " + rule_assign_command4 + "; " + rule_assign_command5 + "; " + \
-                    rule_assign_command6
-                stdin, stdout, stderr = ssh.exec_command(commands)
+            rule_assign_command = ""
+            for op in operations:
+                rule_assign_command += '; ' + 'sed -i \'s/"{2}": "rule:{1}"/"{2}": "rule:{0}"/g\'  \
+                                 /etc/workloadmgr/policy.json'.format(rule, old_rule, op)
+            LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
+            commands = role_add_command + rule_assign_command
+            LOG.debug("Commands to add role: %s", commands)
+            stdin, stdout, stderr = ssh.exec_command(commands)
             if(tvaultconf.cleanup and policy_changes_cleanup):
-                self.addCleanup(self.revert_changes_policyjson, "admin_or_owner")
+                self.addCleanup(self.revert_changes_policyjson, old_rule)
             ssh.close()
 
     '''
@@ -2163,35 +2151,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_dbusername,
                         tvaultconf.tvault_password)
-            role_delete_command = "sed -i '2d' /etc/workloadmgr/policy.json"
             if rule == "admin_api":
-                LOG.debug("Delete new_admin role in policy.json")
-                LOG.debug("Reassign admin rule to workload storage usage command")
-                rule_reassign_command1 = 'sed -i \'s/"workload:get_storage_usage": "rule:newadmin_api"/"workload:get_storage_usage": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Ressign admin rule to get_nodes command")
-                rule_reassign_command2 = 'sed -i \'s/"workload:get_nodes": "rule:newadmin_api"/"workload:get_nodes": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2
-                stdin, stdout, stderr = ssh.exec_command(commands)
-                ssh.close()
+                role = "newadmin_api"
+                operations = ["workload:get_storage_usage", "workload:get_nodes"]
+
             elif rule == "admin_or_owner":
-                LOG.debug("Delete backup role in policy.json")
-                LOG.debug("Reassign admin_or_owner rule to snapshot_create command : %s", rule)
-                rule_reassign_command1 = 'sed -i \'s/"workload:workload_snapshot": "rule:backup_api"/"workload:workload_snapshot": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Reassign admin_or_owner rule to snapshot_delete command : %s", rule)
-                rule_reassign_command2 = 'sed -i \'s/"snapshot:snapshot_delete": "rule:backup_api"/"snapshot:snapshot_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Reassign admin_or_owner rule to workload_create command : %s", rule)
-                rule_reassign_command3 = 'sed -i \'s/"workload:workload_create": "rule:backup_api"/"workload:workload_create": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Reassign admin_or_owner rule to workload_delete command : %s", rule)
-                rule_reassign_command4 = 'sed -i \'s/"workload:workload_delete": "rule:backup_api"/"workload:workload_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Reassign admin_or_owner rule to restore_create command : %s", rule)
-                rule_reassign_command5 = 'sed -i \'s/"snapshot:snapshot_restore": "rule:backup_api"/"snapshot:snapshot_restore": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                LOG.debug("Reassign admin_or_owner rule to restore_delete command : %s", rule)
-                rule_reassign_command6 = 'sed -i \'s/"restore:restore_delete": "rule:backup_api"/"restore:restore_delete": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule)
-                commands = role_delete_command + "; " + rule_reassign_command1 + "; " + rule_reassign_command2 + "; " + \
-                    rule_reassign_command3 + "; " + rule_reassign_command4 + "; " + rule_reassign_command5 + "; " + \
-                    rule_reassign_command6
-                stdin, stdout, stderr = ssh.exec_command(commands)
-                ssh.close()
+                role = "backup_api"
+                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create", 
+                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+            role_delete_command = "sed -i '/{0}\":/d' /etc/workloadmgr/policy.json".format(role)
+            rule_reassign_command = ""
+            for op in operations:
+                rule_reassign_command += '; ' + 'sed -i \'s/"{2}": "rule:{1}"/"{2}": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule, role, op)
+            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", role_delete_command, rule_reassign_command)
+            commands = role_delete_command + rule_reassign_command
+            LOG.debug("Commands to revert policy changes: %s", commands)
+            stdin, stdout, stderr = ssh.exec_command(commands)
+            ssh.close()
 
     '''
     add security group rule
