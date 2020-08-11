@@ -14,25 +14,35 @@
 #    under the License.
 
 from tempest.api.compute import base
+from tempest.lib.common.utils import data_utils
 
 
-class BaseKeypairTest(base.BaseComputeTest):
+class BaseKeypairTest(base.BaseV2ComputeTest):
     """Base test case class for all keypair API tests."""
 
-    _api_version = 2
+    def _delete_keypair(self, keypair_name, client=None, **params):
+        if not client:
+            client = self.keypairs_client
+        client.delete_keypair(keypair_name, **params)
 
-    @classmethod
-    def setup_clients(cls):
-        super(BaseKeypairTest, cls).setup_clients()
-        cls.client = cls.keypairs_client
-
-    def _delete_keypair(self, keypair_name):
-        self.client.delete_keypair(keypair_name)
-
-    def _create_keypair(self, keypair_name, pub_key=None):
+    def create_keypair(self, keypair_name=None,
+                       pub_key=None, keypair_type=None,
+                       user_id=None, client=None):
+        if not client:
+            client = self.keypairs_client
+        if keypair_name is None:
+            keypair_name = data_utils.rand_name(
+                self.__class__.__name__ + '-keypair')
         kwargs = {'name': keypair_name}
+        delete_params = {}
         if pub_key:
             kwargs.update({'public_key': pub_key})
-        body = self.client.create_keypair(**kwargs)['keypair']
-        self.addCleanup(self._delete_keypair, keypair_name)
+        if keypair_type:
+            kwargs.update({'type': keypair_type})
+        if user_id:
+            kwargs.update({'user_id': user_id})
+            delete_params['user_id'] = user_id
+        body = client.create_keypair(**kwargs)['keypair']
+        self.addCleanup(self._delete_keypair, keypair_name,
+                        client, **delete_params)
         return body

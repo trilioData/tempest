@@ -14,227 +14,100 @@
 #    under the License.
 
 import atexit
-import functools
 import os
-import re
 import sys
-import time
-import urllib
-import uuid
-import glob
 
+import debtcollector.moves
 import fixtures
 from oslo_log import log as logging
-from oslo_serialization import jsonutils as json
-from oslo_utils import importutils
 import six
-import testscenarios
 import testtools
 
 from tempest import clients
-from tempest import tvaultconf
-from tempest.common import cred_client
-from tempest.common import credentials
-from tempest.common import fixed_network
-import tempest.common.generator.valid_generator as valid
-import tempest.common.validation_resources as vresources
+from tempest.common import credentials_factory as credentials
+from tempest.common import utils
+from tempest import config
+from tempest.lib import base as lib_base
+from tempest.lib.common import fixed_network
+from tempest.lib.common import profiler
+from tempest.lib.common import validation_resources as vr
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
+
 from tempest import config
 from tempest import exceptions
 from tempest import prerequisites
 from tempest import tvaultconf
 
 LOG = logging.getLogger(__name__)
+
 CONF = config.CONF
 
 """A decorator which applies pre-requisites capabilities to a function when called with a 'type'. Pre-requisites functions must be defined in prerequisites.py. If tvaultconf.pre_req is found to be False, this decorator will return to the same fucntion and will pick the parameters from set vms_file, volumes_file, workloads_file."""
 def pre_req(arg1):
     def decorator(function):
-	
-	def wrapper(*args):
-	    if (arg1['type'] == 'small_workload') and (tvaultconf.pre_req==True):
-		prerequisites.small_workload(args[0])
-	    elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
+
+        def wrapper(*args):
+            if (arg1['type'] == 'small_workload') and (tvaultconf.pre_req==True):
+                prerequisites.small_workload(args[0])
+            elif (arg1['type'] == 'inplace') and (tvaultconf.pre_req==True):
                 prerequisites.inplace(args[0])
-	    elif (arg1['type'] == 'selective_basic') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'selective_basic') and (tvaultconf.pre_req==True):
                 prerequisites.selective_basic(args[0])
-	    elif (arg1['type'] == 'filesearch') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'filesearch') and (tvaultconf.pre_req==True):
                 prerequisites.filesearch(args[0])
-	    elif (arg1['type'] == 'basic_workload') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'basic_workload') and (tvaultconf.pre_req==True):
                 prerequisites.basic_workload(args[0])
-	    elif (arg1['type'] == 'bootfromvol_workload') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'bootfromvol_workload') and (tvaultconf.pre_req==True):
                 prerequisites.bootfromvol_workload(args[0])
-	    elif (arg1['type'] == 'config_backup') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'config_backup') and (tvaultconf.pre_req==True):
                 prerequisites.config_backup(args[0])
-	    elif (arg1['type'] == 'config_workload') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'config_workload') and (tvaultconf.pre_req==True):
                 prerequisites.config_workload(args[0])
-	    elif (arg1['type'] == 'bootfromvol_workload_medium') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'bootfromvol_workload_medium') and (tvaultconf.pre_req==True):
                 prerequisites.bootfromvol_workload_medium(args[0])
-	    elif (arg1['type'] == 'bootfrom_image_with_floating_ips') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'bootfrom_image_with_floating_ips') and (tvaultconf.pre_req==True):
                 prerequisites.bootfrom_image_with_floating_ips(args[0])
-	    elif (arg1['type'] == 'nested_security') and (tvaultconf.pre_req==True):
+            elif (arg1['type'] == 'nested_security') and (tvaultconf.pre_req==True):
                 prerequisites.nested_security(args[0])
             elif (arg1['type'] == 'snapshot_mount') and (tvaultconf.pre_req==True):
                 prerequisites.snapshot_mount(args[0])
             elif tvaultconf.pre_req==False:
                 LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
-		prerequisites.load_prerequisites_data(args[0],arg1['type'])
-	    else:
-		LOG.debug("Prerequisite is set to true but invalid pre_requisite type provided")
-		raise Exception("Prerequisite is set to true but invalid pre_requisite type provided")
-	    function(*args)
-	return wrapper
-    return decorator
-
-
-def attr(**kwargs):
-    """A decorator which applies the testtools attr decorator
-
-    This decorator applies the testtools.testcase.attr if it is in the list of
-    attributes to testtools we want to apply.
-    """
-
-    def decorator(f):
-        if 'type' in kwargs and isinstance(kwargs['type'], str):
-            f = testtools.testcase.attr(kwargs['type'])(f)
-        elif 'type' in kwargs and isinstance(kwargs['type'], list):
-            for attr in kwargs['type']:
-                f = testtools.testcase.attr(attr)(f)
-        return f
-
-    return decorator
-
-
-def idempotent_id(id):
-    """Stub for metadata decorator"""
-    if not isinstance(id, six.string_types):
-        raise TypeError('Test idempotent_id must be string not %s'
-                        '' % type(id).__name__)
-    uuid.UUID(id)
-
-    def decorator(f):
-        f = testtools.testcase.attr('id-%s' % id)(f)
-        if f.__doc__:
-            f.__doc__ = 'Test idempotent id: %s\n%s' % (id, f.__doc__)
-        else:
-            f.__doc__ = 'Test idempotent id: %s' % id
-        return f
-    return decorator
-
-
-def get_service_list():
-    service_list = {
-        'compute': CONF.service_available.nova,
-        'image': CONF.service_available.glance,
-        'baremetal': CONF.service_available.ironic,
-        'volume': CONF.service_available.cinder,
-        'orchestration': CONF.service_available.heat,
-        # NOTE(mtreinish) nova-network will provide networking functionality
-        # if neutron isn't available, so always set to True.
-        'network': True,
-        'identity': True,
-        'object_storage': CONF.service_available.swift,
-        'dashboard': CONF.service_available.horizon,
-        'telemetry': CONF.service_available.ceilometer,
-        'data_processing': CONF.service_available.sahara,
-        'database': CONF.service_available.trove
-    }
-    return service_list
-
-
-def services(*args):
-    """A decorator used to set an attr for each service used in a test case
-
-    This decorator applies a testtools attr for each service that gets
-    exercised by a test case.
-    """
-    def decorator(f):
-        services = ['compute', 'image', 'baremetal', 'volume', 'orchestration',
-                    'network', 'identity', 'object_storage', 'dashboard',
-                    'telemetry', 'data_processing', 'database']
-        for service in args:
-            if service not in services:
-                raise exceptions.InvalidServiceTag('%s is not a valid '
-                                                   'service' % service)
-        attr(type=list(args))(f)
-
-        @functools.wraps(f)
-        def wrapper(self, *func_args, **func_kwargs):
-            service_list = get_service_list()
-
-            for service in args:
-                if not service_list[service]:
-                    msg = 'Skipped because the %s service is not available' % (
-                        service)
-                    raise testtools.TestCase.skipException(msg)
-            return f(self, *func_args, **func_kwargs)
+                prerequisites.load_prerequisites_data(args[0],arg1['type'])
+            else:
+                LOG.debug("Prerequisite is set to true but invalid pre_requisite type provided")
+                raise Exception("Prerequisite is set to true but invalid pre_requisite type provided")
+            function(*args)
         return wrapper
     return decorator
 
 
-def stresstest(**kwargs):
-    """Add stress test decorator
-
-    For all functions with this decorator a attr stress will be
-    set automatically.
-
-    @param class_setup_per: allowed values are application, process, action
-           ``application``: once in the stress job lifetime
-           ``process``: once in the worker process lifetime
-           ``action``: on each action
-    @param allow_inheritance: allows inheritance of this attribute
-    """
-    def decorator(f):
-        if 'class_setup_per' in kwargs:
-            setattr(f, "st_class_setup_per", kwargs['class_setup_per'])
-        else:
-            setattr(f, "st_class_setup_per", 'process')
-        if 'allow_inheritance' in kwargs:
-            setattr(f, "st_allow_inheritance", kwargs['allow_inheritance'])
-        else:
-            setattr(f, "st_allow_inheritance", False)
-        attr(type='stress')(f)
-        return f
-    return decorator
+# TODO(oomichi): This test.idempotent_id should be removed after all projects
+# switch to use decorators.idempotent_id.
+idempotent_id = debtcollector.moves.moved_function(
+    decorators.idempotent_id, 'idempotent_id', __name__,
+    version='Mitaka', removal_version='?')
 
 
-def requires_ext(**kwargs):
-    """A decorator to skip tests if an extension is not enabled
-
-    @param extension
-    @param service
-    """
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*func_args, **func_kwargs):
-            if not is_extension_enabled(kwargs['extension'],
-                                        kwargs['service']):
-                msg = "Skipped because %s extension: %s is not enabled" % (
-                    kwargs['service'], kwargs['extension'])
-                raise testtools.TestCase.skipException(msg)
-            return func(*func_args, **func_kwargs)
-        return wrapper
-    return decorator
+attr = debtcollector.moves.moved_function(
+    decorators.attr, 'attr', __name__,
+    version='Pike', removal_version='?')
 
 
-def is_extension_enabled(extension_name, service):
-    """A function that will check the list of enabled extensions from config
+services = debtcollector.moves.moved_function(
+    utils.services, 'services', __name__,
+    version='Pike', removal_version='?')
 
-    """
-    config_dict = {
-        'compute': CONF.compute_feature_enabled.api_extensions,
-        'volume': CONF.volume_feature_enabled.api_extensions,
-        'network': CONF.network_feature_enabled.api_extensions,
-        'object': CONF.object_storage_feature_enabled.discoverable_apis,
-        'identity': CONF.identity_feature_enabled.api_extensions
-    }
-    if len(config_dict[service]) == 0:
-        return False
-    if config_dict[service][0] == 'all':
-        return True
-    if extension_name in config_dict[service]:
-        return True
-    return False
 
+requires_ext = debtcollector.moves.moved_function(
+    utils.requires_ext, 'requires_ext', __name__,
+    version='Pike', removal_version='?')
+
+
+is_extension_enabled = debtcollector.moves.moved_function(
+    utils.is_extension_enabled, 'is_extension_enabled', __name__,
+    version='Pike', removal_version='?')
 
 at_exit_set = set()
 
@@ -242,9 +115,9 @@ at_exit_set = set()
 def validate_tearDownClass():
     if at_exit_set:
         LOG.error(
-            "tearDownClass does not call the super's "
-            "tearDownClass in these classes: \n"
-            + str(at_exit_set))
+            "tearDownClass does not call the super's tearDownClass in "
+            "these classes:\n"
+            "  %s", at_exit_set)
 
 
 atexit.register(validate_tearDownClass)
@@ -253,6 +126,7 @@ atexit.register(validate_tearDownClass)
 class BaseTestCase(testtools.testcase.WithAttributes,
                    testtools.TestCase):
     """The test base class defines Tempest framework for class level fixtures.
+
     `setUpClass` and `tearDownClass` are defined here and cannot be overwritten
     by subclasses (enforced via hacking rule T105).
 
@@ -270,17 +144,24 @@ class BaseTestCase(testtools.testcase.WithAttributes,
     - resource_cleanup
     """
 
-    setUpClassCalled = False
-    _service = None
-
     # NOTE(andreaf) credentials holds a list of the credentials to be allocated
     # at class setup time. Credential types can be 'primary', 'alt', 'admin' or
     # a list of roles - the first element of the list being a label, and the
     # rest the actual roles
     credentials = []
+
+    # Track if setUpClass was invoked
+    __setupclass_called = False
+
+    # Network resources to be provisioned for the requested test credentials.
+    # Only used with the dynamic credentials provider.
+    _network_resources = {}
+
+    # Stack of resource cleanups
+    _class_cleanups = []
+
     # Resources required to validate a server using ssh
-    validation_resources = {}
-    network_resources = {}
+    _validation_resources = {}
 
     # NOTE(sdague): log_format is defined inline here instead of using the oslo
     # default because going through the config path recouples config to the
@@ -288,37 +169,78 @@ class BaseTestCase(testtools.testcase.WithAttributes,
     log_format = ('%(asctime)s %(process)d %(levelname)-8s '
                   '[%(name)s] %(message)s')
 
+    # Client manager class to use in this test case.
+    client_manager = clients.Manager
+
+    # A way to adjust slow test classes
+    TIMEOUT_SCALING_FACTOR = 1
+
+    @classmethod
+    def _reset_class(cls):
+        cls.__setup_credentials_called = False
+        cls.__resource_cleanup_called = False
+        cls.__skip_checks_called = False
+        # Stack of callable to be invoked in reverse order
+        cls._class_cleanups = []
+        # Stack of (name, callable) to be invoked in reverse order at teardown
+        cls._teardowns = []
+
     @classmethod
     def setUpClass(cls):
+        cls.__setupclass_called = True
+        # Reset state
+        cls._reset_class()
         # It should never be overridden by descendants
         if hasattr(super(BaseTestCase, cls), 'setUpClass'):
             super(BaseTestCase, cls).setUpClass()
-        cls.setUpClassCalled = True
-        # Stack of (name, callable) to be invoked in reverse order at teardown
-        cls.teardowns = []
         # All the configuration checks that may generate a skip
-        cls.skip_checks()
+        # TODO(gmann): cls.handle_skip_exception is really workaround for
+        # testtools bug- https://github.com/testing-cabal/testtools/issues/272
+        # stestr which is used by Tempest internally to run the test switch
+        # the customize test runner(which use stdlib unittest) for >=py3.5
+        # else testtools.run.- https://github.com/mtreinish/stestr/pull/265
+        # These two test runner are not compatible due to skip exception
+        # handling(due to unittest2). testtools.run treat unittestt.SkipTest
+        # as error and stdlib unittest treat unittest2.case.SkipTest raised
+        # by testtools.TestCase.skipException.
+        # The below workaround can be removed once testtools fix issue# 272.
+        orig_skip_exception = testtools.TestCase.skipException
+        lib_base._handle_skip_exception()
         try:
+            cls.skip_checks()
+
+            if not cls.__skip_checks_called:
+                raise RuntimeError(
+                    "skip_checks for %s did not call the super's "
+                    "skip_checks" % cls.__name__)
             # Allocation of all required credentials and client managers
-            cls.teardowns.append(('credentials', cls.clear_credentials))
+            cls._teardowns.append(('credentials', cls.clear_credentials))
             cls.setup_credentials()
+            if not cls.__setup_credentials_called:
+                raise RuntimeError("setup_credentials for %s did not call the "
+                                   "super's setup_credentials" % cls.__name__)
             # Shortcuts to clients
             cls.setup_clients()
             # Additional class-wide test resources
-            cls.teardowns.append(('resources', cls.resource_cleanup))
+            cls._teardowns.append(('resources', cls.resource_cleanup))
             cls.resource_setup()
         except Exception:
             etype, value, trace = sys.exc_info()
-            LOG.info("%s raised in %s.setUpClass. Invoking tearDownClass." % (
-                     etype, cls.__name__))
+            LOG.info("%s raised in %s.setUpClass. Invoking tearDownClass.",
+                     etype, cls.__name__)
             cls.tearDownClass()
             try:
                 six.reraise(etype, value, trace)
             finally:
                 del trace  # to avoid circular refs
+        finally:
+            testtools.TestCase.skipException = orig_skip_exception
 
     @classmethod
     def tearDownClass(cls):
+        # insert pdb breakpoint when pause_teardown is enabled
+        if CONF.pause_teardown:
+            cls.insert_pdb_breakpoint()
         at_exit_set.discard(cls)
         # It should never be overridden by descendants
         if hasattr(super(BaseTestCase, cls), 'tearDownClass'):
@@ -329,25 +251,36 @@ class BaseTestCase(testtools.testcase.WithAttributes,
         # If there was no exception during setup we shall re-raise the first
         # exception in teardown
         re_raise = (etype is None)
-        while cls.teardowns:
-            name, teardown = cls.teardowns.pop()
+        while cls._teardowns:
+            name, teardown = cls._teardowns.pop()
             # Catch any exception in tearDown so we can re-raise the original
             # exception at the end
             try:
                 teardown()
+                if name == 'resources':
+                    if not cls.__resource_cleanup_called:
+                        raise RuntimeError(
+                            "resource_cleanup for %s did not call the "
+                            "super's resource_cleanup" % cls.__name__)
             except Exception as te:
                 sys_exec_info = sys.exc_info()
                 tetype = sys_exec_info[0]
-                # TODO(andreaf): Till we have the ability to cleanup only
-                # resources that were successfully setup in resource_cleanup,
-                # log AttributeError as info instead of exception.
+                # TODO(andreaf): Resource cleanup is often implemented by
+                # storing an array of resources at class level, and cleaning
+                # them up during `resource_cleanup`.
+                # In case of failure during setup, some resource arrays might
+                # not be defined at all, in which case the cleanup code might
+                # trigger an AttributeError. In such cases we log
+                # AttributeError as info instead of exception. Once all
+                # cleanups are migrated to addClassResourceCleanup we can
+                # remove this.
                 if tetype is AttributeError and name == 'resources':
-                    LOG.info("tearDownClass of %s failed: %s" % (name, te))
+                    LOG.info("tearDownClass of %s failed: %s", name, te)
                 else:
-                    LOG.exception("teardown of %s failed: %s" % (name, te))
+                    LOG.exception("teardown of %s failed: %s", name, te)
                 if not etype:
                     etype, value, trace = sys_exec_info
-        # If exceptions were raised during teardown, an not before, re-raise
+        # If exceptions were raised during teardown, and not before, re-raise
         # the first one
         if re_raise and etype is not None:
             try:
@@ -355,20 +288,72 @@ class BaseTestCase(testtools.testcase.WithAttributes,
             finally:
                 del trace  # to avoid circular refs
 
+    def tearDown(self):
+        super(BaseTestCase, self).tearDown()
+        # insert pdb breakpoint when pause_teardown is enabled
+        if CONF.pause_teardown:
+            BaseTestCase.insert_pdb_breakpoint()
+
+        if CONF.profiler.key:
+            profiler.disable()
+
+    @classmethod
+    def insert_pdb_breakpoint(cls):
+        """Add pdb breakpoint.
+
+        This can help in debugging process, cleaning of resources is
+        paused, so they can be examined.
+        """
+        import pdb
+        pdb.set_trace()
+
     @classmethod
     def skip_checks(cls):
-        """Class level skip checks. Subclasses verify in here all
-        conditions that might prevent the execution of the entire test class.
-        Checks implemented here may not make use API calls, and should rely on
-        configuration alone.
-        In general skip checks that require an API call are discouraged.
-        If one is really needed it may be implemented either in the
-        resource_setup or at test level.
+        """Class level skip checks.
+
+        Subclasses verify in here all conditions that might prevent the
+        execution of the entire test class. Skipping here prevents any other
+        class fixture from being executed i.e. no credentials or other
+        resource allocation will happen.
+
+        Tests defined in the test class will no longer appear in test results.
+        The `setUpClass` for the entire test class will be marked as SKIPPED
+        instead.
+
+        At this stage no test credentials are available, so skip checks
+        should rely on configuration alone. This is deliberate since skips
+        based on the result of an API call are discouraged.
+
+        The following checks are implemented in `test.py` already:
+
+        - check that alt credentials are available when requested by the test
+        - check that admin credentials are available when requested by the test
+        - check that the identity version specified by the test is marked as
+          enabled in the configuration
+
+        Overriders of skip_checks must always invoke skip_check on `super`
+        first.
+
+        Example::
+
+            @classmethod
+            def skip_checks(cls):
+                super(Example, cls).skip_checks()
+                if not CONF.service_available.my_service:
+                    skip_msg = ("%s skipped as my_service is not available")
+                    raise cls.skipException(skip_msg % cls.__name__)
         """
-        if 'admin' in cls.credentials and not credentials.is_admin_available():
-            msg = "Missing Identity Admin API credentials in configuration."
-            raise cls.skipException(msg)
-        if 'alt' in cls.credentials and not credentials.is_alt_available():
+        cls.__skip_checks_called = True
+        identity_version = cls.get_identity_version()
+        # setting force_tenant_isolation to True also needs admin credentials.
+        if ('admin' in cls.credentials or
+                getattr(cls, 'force_tenant_isolation', False)):
+            if not credentials.is_admin_available(
+                    identity_version=identity_version):
+                raise cls.skipException(
+                    "Missing Identity Admin API credentials in configuration.")
+        if 'alt' in cls.credentials and not credentials.is_alt_available(
+                identity_version=identity_version):
             msg = "Missing a 2nd set of API credentials in configuration."
             raise cls.skipException(msg)
         if hasattr(cls, 'identity_version'):
@@ -381,11 +366,70 @@ class BaseTestCase(testtools.testcase.WithAttributes,
 
     @classmethod
     def setup_credentials(cls):
-        """Allocate credentials and the client managers from them.
-        A test class that requires network resources must override
-        setup_credentials and defined the required resources before super
-        is invoked.
+        """Allocate credentials and create the client managers from them.
+
+        `setup_credentials` looks for the content of the `credentials`
+        attribute in the test class. If the value is a non-empty collection,
+        a credentials provider is setup, and credentials are provisioned or
+        allocated based on the content of the collection. Every set of
+        credentials is associated to an object of type `cls.client_manager`.
+        The client manager is accessible by tests via class attribute
+        `os_[type]`:
+
+        Valid values in `credentials` are:
+
+        - 'primary':
+            A normal user is provisioned.
+            It can be used only once. Multiple entries will be ignored.
+            Clients are available at os_primary.
+        - 'alt':
+            A normal user other than 'primary' is provisioned.
+            It can be used only once. Multiple entries will be ignored.
+            Clients are available at os_alt.
+        - 'admin':
+            An admin user is provisioned.
+            It can be used only once. Multiple entries will be ignored.
+            Clients are available at os_admin.
+        - A list in the format ['any_label', 'role1', ... , 'roleN']:
+            A client with roles <list>[1:] is provisioned.
+            It can be used multiple times, with unique labels.
+            Clients are available at os_roles_<list>[0].
+
+        By default network resources are allocated (in case of dynamic
+        credentials). Tests that do not need network or that require a
+        custom network setup must specify which network resources shall
+        be provisioned using the `set_network_resources()` method (note
+        that it must be invoked before the `setup_credentials` is
+        invoked on super).
+
+        Example::
+
+            class TestWithCredentials(test.BaseTestCase):
+
+                credentials = ['primary', 'admin',
+                               ['special', 'special_role1']]
+
+                @classmethod
+                def setup_credentials(cls):
+                    # set_network_resources must be called first
+                    cls.set_network_resources(network=True)
+                    super(TestWithCredentials, cls).setup_credentials()
+
+                @classmethod
+                def setup_clients(cls):
+                    cls.servers = cls.os_primary.compute.ServersClient()
+                    cls.admin_servers = cls.os_admin.compute.ServersClient()
+                    # certain API calls may require a user with a specific
+                    # role assigned. In this example `special_role1` is
+                    # assigned to the user in `cls.os_roles_special`.
+                    cls.special_servers = (
+                        cls.os_roles_special.compute.ServersClient())
+
+                def test_special_servers(self):
+                    # Do something with servers
+                    pass
         """
+        cls.__setup_credentials_called = True
         for credentials_type in cls.credentials:
             # This may raise an exception in case credentials are not available
             # In that case we want to let the exception through and the test
@@ -394,16 +438,32 @@ class BaseTestCase(testtools.testcase.WithAttributes,
                 manager = cls.get_client_manager(
                     credential_type=credentials_type)
                 setattr(cls, 'os_%s' % credentials_type, manager)
+                # NOTE(jordanP): Tempest should use os_primary, os_admin
+                # and os_alt throughout its code base but we keep the aliases
+                # around for a while for Tempest plugins. Aliases should be
+                # removed eventually.
                 # Setup some common aliases
-                # TODO(andreaf) The aliases below are a temporary hack
-                # to avoid changing too much code in one patch. They should
-                # be removed eventually
                 if credentials_type == 'primary':
-                    cls.os = cls.manager = cls.os_primary
+                    cls.os = debtcollector.moves.moved_read_only_property(
+                        'os', 'os_primary', version='Pike',
+                        removal_version='Queens')
+                    cls.manager =\
+                        debtcollector.moves.moved_read_only_property(
+                            'manager', 'os_primary', version='Pike',
+                            removal_version='Queens')
                 if credentials_type == 'admin':
-                    cls.os_adm = cls.admin_manager = cls.os_admin
+                    cls.os_adm = debtcollector.moves.moved_read_only_property(
+                        'os_adm', 'os_admin', version='Pike',
+                        removal_version='Queens')
+                    cls.admin_manager =\
+                        debtcollector.moves.moved_read_only_property(
+                            'admin_manager', 'os_admin', version='Pike',
+                            removal_version='Queens')
                 if credentials_type == 'alt':
-                    cls.alt_manager = cls.os_alt
+                    cls.alt_manager =\
+                        debtcollector.moves.moved_read_only_property(
+                            'alt_manager', 'os_alt', version='Pike',
+                            removal_version='Queens')
             elif isinstance(credentials_type, list):
                 manager = cls.get_client_manager(roles=credentials_type[1:],
                                                  force_new=True)
@@ -411,48 +471,191 @@ class BaseTestCase(testtools.testcase.WithAttributes,
 
     @classmethod
     def setup_clients(cls):
-        """Create links to the clients into the test object."""
-        # TODO(andreaf) There is a fair amount of code that could me moved from
-        # base / test classes in here. Ideally tests should be able to only
-        # specify which client is `client` and nothing else.
+        """Create aliases to the clients in the client managers.
+
+        `setup_clients` is invoked after the credential provisioning step.
+        Client manager objects are available to tests already. The purpose
+        of this helper is to setup shortcuts to specific clients that are
+        useful for the tests implemented in the test class.
+
+        Its purpose is mostly for code readability, however it should be used
+        carefully to avoid doing exactly the opposite, i.e. making the code
+        unreadable and hard to debug. If aliases are defined in a super class
+        it won't be obvious what they refer to, so it's good practice to define
+        all aliases used in the class. Aliases are meant to be shortcuts to
+        be used in tests, not shortcuts to avoid helper method attributes.
+        If an helper method starts relying on a client alias and a subclass
+        overrides that alias, it will become rather difficult to understand
+        what the helper method actually does.
+
+        Example::
+
+            class TestDoneItRight(test.BaseTestCase):
+
+                credentials = ['primary', 'alt']
+
+                @classmethod
+                def setup_clients(cls):
+                    super(TestDoneItRight, cls).setup_clients()
+                    cls.servers = cls.os_primary.ServersClient()
+                    cls.servers_alt = cls.os_alt.ServersClient()
+
+                def _a_good_helper(self, clients):
+                    # Some complex logic we're going to use many times
+                    servers = clients.ServersClient()
+                    vm = servers.create_server(...)
+
+                    def delete_server():
+                        test_utils.call_and_ignore_notfound_exc(
+                            servers.delete_server, vm['id'])
+
+                    self.addCleanup(self.delete_server)
+                    return vm
+
+                def test_with_servers(self):
+                    vm = self._a_good_helper(os.primary)
+                    vm_alt = self._a_good_helper(os.alt)
+                    cls.servers.show_server(vm['id'])
+                    cls.servers_alt.show_server(vm_alt['id'])
+        """
         pass
 
     @classmethod
     def resource_setup(cls):
         """Class level resource setup for test cases.
+
+        `resource_setup` is invoked once all credentials (and related network
+        resources have been provisioned and after client aliases - if any -
+        have been defined.
+
+        The use case for `resource_setup` is test optimization: provisioning
+        of project-specific "expensive" resources that are not dirtied by tests
+        and can thus safely be re-used by multiple tests.
+
+        System wide resources shared by all tests could instead be provisioned
+        only once, before the test run.
+
+        Resources provisioned here must be cleaned up during
+        `resource_cleanup`. This is best achieved by scheduling a cleanup via
+        `addClassResourceCleanup`.
+
+        Some test resources have an asynchronous delete process. It's best
+        practice for them to schedule a wait for delete via
+        `addClassResourceCleanup` to avoid having resources in process of
+        deletion when we reach the credentials cleanup step.
+
+        Example::
+
+            @classmethod
+            def resource_setup(cls):
+                super(MyTest, cls).resource_setup()
+                servers = cls.os_primary.compute.ServersClient()
+                # Schedule delete and wait so that we can first delete the
+                # two servers and then wait for both to delete
+                # Create server 1
+                cls.shared_server = servers.create_server()
+                # Create server 2. If something goes wrong we schedule cleanup
+                # of server 1 anyways.
+                try:
+                    cls.shared_server2 = servers.create_server()
+                    # Wait server 2
+                    cls.addClassResourceCleanup(
+                        waiters.wait_for_server_termination,
+                        servers, cls.shared_server2['id'],
+                        ignore_error=False)
+                finally:
+                    # Wait server 1
+                    cls.addClassResourceCleanup(
+                        waiters.wait_for_server_termination,
+                        servers, cls.shared_server['id'],
+                        ignore_error=False)
+                        # Delete server 1
+                    cls.addClassResourceCleanup(
+                        test_utils.call_and_ignore_notfound_exc,
+                        servers.delete_server,
+                        cls.shared_server['id'])
+                    # Delete server 2 (if it was created)
+                    if hasattr(cls, 'shared_server2'):
+                        cls.addClassResourceCleanup(
+                            test_utils.call_and_ignore_notfound_exc,
+                            servers.delete_server,
+                            cls.shared_server2['id'])
         """
-        if hasattr(cls, "os"):
-            cls.validation_resources = vresources.create_validation_resources(
-                cls.os, cls.validation_resources)
-        else:
-            LOG.warn("Client manager not found, validation resources not"
-                     " created")
+        pass
 
     @classmethod
     def resource_cleanup(cls):
         """Class level resource cleanup for test cases.
-        Resource cleanup must be able to handle the case of partially setup
-        resources, in case a failure during `resource_setup` should happen.
+
+        Resource cleanup processes the stack of cleanups produced by
+        `addClassResourceCleanup` and then cleans up validation resources
+        if any were provisioned.
+
+        All cleanups are processed whatever the outcome. Exceptions are
+        accumulated and re-raised as a `MultipleExceptions` at the end.
+
+        In most cases test cases won't need to override `resource_cleanup`,
+        but if they do they must invoke `resource_cleanup` on super.
+
+        Example::
+
+            class TestWithReallyComplexCleanup(test.BaseTestCase):
+
+                @classmethod
+                def resource_setup(cls):
+                    # provision resource A
+                    cls.addClassResourceCleanup(delete_resource, A)
+                    # provision resource B
+                    cls.addClassResourceCleanup(delete_resource, B)
+
+                @classmethod
+                def resource_cleanup(cls):
+                    # It's possible to override resource_cleanup but in most
+                    # cases it shouldn't be required. Nothing that may fail
+                    # should be executed before the call to super since it
+                    # might cause resource leak in case of error.
+                    super(TestWithReallyComplexCleanup, cls).resource_cleanup()
+                    # At this point test credentials are still available but
+                    # anything from the cleanup stack has been already deleted.
         """
-        if cls.validation_resources:
-            if hasattr(cls, "os"):
-                vresources.clear_validation_resources(cls.os,
-                                                      cls.validation_resources)
-                cls.validation_resources = {}
-            else:
-                LOG.warn("Client manager not found, validation resources not"
-                         " deleted")
+        cls.__resource_cleanup_called = True
+        cleanup_errors = []
+        while cls._class_cleanups:
+            try:
+                fn, args, kwargs = cls._class_cleanups.pop()
+                fn(*args, **kwargs)
+            except Exception:
+                cleanup_errors.append(sys.exc_info())
+        if cleanup_errors:
+            raise testtools.MultipleExceptions(*cleanup_errors)
+
+    @classmethod
+    def addClassResourceCleanup(cls, fn, *arguments, **keywordArguments):
+        """Add a cleanup function to be called during resource_cleanup.
+
+        Functions added with addClassResourceCleanup will be called in reverse
+        order of adding at the beginning of resource_cleanup, before any
+        credential, networking or validation resources cleanup is processed.
+
+        If a function added with addClassResourceCleanup raises an exception,
+        the error will be recorded as a test error, and the next cleanup will
+        then be run.
+
+        Cleanup functions are always called during the test class tearDown
+        fixture, even if an exception occured during setUp or tearDown.
+        """
+        cls._class_cleanups.append((fn, arguments, keywordArguments))
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-        if not self.setUpClassCalled:
-            raise RuntimeError("setUpClass does not calls the super's"
-                               "setUpClass in the "
-                               + self.__class__.__name__)
+        if not self.__setupclass_called:
+            raise RuntimeError("setUpClass does not calls the super's "
+                               "setUpClass in the " +
+                               self.__class__.__name__)
         at_exit_set.add(self.__class__)
         test_timeout = os.environ.get('OS_TEST_TIMEOUT', 0)
         try:
-            test_timeout = int(test_timeout)
+            test_timeout = int(test_timeout) * self.TIMEOUT_SCALING_FACTOR
         except ValueError:
             test_timeout = 0
         if test_timeout > 0:
@@ -467,52 +670,40 @@ class BaseTestCase(testtools.testcase.WithAttributes,
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
         if (os.environ.get('OS_LOG_CAPTURE') != 'False' and
-            os.environ.get('OS_LOG_CAPTURE') != '0'):
+                os.environ.get('OS_LOG_CAPTURE') != '0'):
             self.useFixture(fixtures.LoggerFixture(nuke_handlers=False,
                                                    format=self.log_format,
                                                    level=None))
+        if CONF.profiler.key:
+            profiler.enable(CONF.profiler.key)
 
     @property
     def credentials_provider(self):
         return self._get_credentials_provider()
 
-    @property
-    def identity_utils(self):
-        """A client that abstracts v2 and v3 identity operations.
-
-        This can be used for creating and tearing down projects in tests. It
-        should not be used for testing identity features.
-        """
-        if CONF.identity.auth_version == 'v2':
-            client = self.os_admin.identity_client
-        else:
-            client = self.os_admin.identity_v3_client
-
-        try:
-            domain = client.auth_provider.credentials.project_domain_name
-        except AttributeError:
-            domain = 'Default'
-
-        return cred_client.get_creds_client(client, domain)
+    @classmethod
+    def get_identity_version(cls):
+        """Returns the identity version used by the test class"""
+        identity_version = getattr(cls, 'identity_version', None)
+        return identity_version or CONF.identity.auth_version
 
     @classmethod
     def _get_credentials_provider(cls):
         """Returns a credentials provider
 
         If no credential provider exists yet creates one.
-        It uses self.identity_version if defined, or the configuration value
+        It always use the configuration value from identity.auth_version,
+        since we always want to provision accounts with the current version
+        of the identity API.
         """
         if (not hasattr(cls, '_creds_provider') or not cls._creds_provider or
                 not cls._creds_provider.name == cls.__name__):
             force_tenant_isolation = getattr(cls, 'force_tenant_isolation',
                                              False)
-            identity_version = getattr(cls, 'identity_version', None)
-            identity_version = identity_version or CONF.identity.auth_version
 
             cls._creds_provider = credentials.get_credentials_provider(
-                name=cls.__name__, network_resources=cls.network_resources,
-                force_tenant_isolation=force_tenant_isolation,
-                identity_version=identity_version)
+                name=cls.__name__, network_resources=cls._network_resources,
+                force_tenant_isolation=force_tenant_isolation)
         return cls._creds_provider
 
     @classmethod
@@ -526,7 +717,7 @@ class BaseTestCase(testtools.testcase.WithAttributes,
         :param credential_type: string - primary, alt or admin
         :param roles: list of roles
 
-        :returns the created client manager
+        :returns: the created client manager
         :raises skipException: if the requested credentials are not available
         """
         if all([roles, credential_type]):
@@ -552,342 +743,202 @@ class BaseTestCase(testtools.testcase.WithAttributes,
             if hasattr(cred_provider, credentials_method):
                 creds = getattr(cred_provider, credentials_method)()
             else:
-                raise exceptions.InvalidCredentials(
+                raise lib_exc.InvalidCredentials(
                     "Invalid credentials type %s" % credential_type)
-        return clients.Manager(credentials=creds, service=cls._service)
+        manager = cls.client_manager(credentials=creds.credentials)
+        # NOTE(andreaf) Ensure credentials have user and project id fields.
+        # It may not be the case when using pre-provisioned credentials.
+        manager.auth_provider.set_auth()
+        return manager
 
     @classmethod
     def clear_credentials(cls):
-        """
-        Clears creds if set
-        """
+        """Clears creds if set"""
         if hasattr(cls, '_creds_provider'):
             cls._creds_provider.clear_creds()
 
-    @classmethod
-    def set_validation_resources(cls, keypair=None, floating_ip=None,
-                                 security_group=None,
-                                 security_group_rules=None):
-        """Specify which ssh server validation resources should be created.
-        Each of the argument must be set to either None, True or False, with
-        None - use default from config (security groups and security group
-               rules get created when set to None)
-        False - Do not create the validation resource
-        True - create the validation resource
+    @staticmethod
+    def _validation_resources_params_from_conf():
+        return dict(
+            keypair=(CONF.validation.auth_method.lower() == "keypair"),
+            floating_ip=(CONF.validation.connect_method.lower() == "floating"),
+            security_group=CONF.validation.security_group,
+            security_group_rules=CONF.validation.security_group_rules,
+            use_neutron=CONF.service_available.neutron,
+            ethertype='IPv' + str(CONF.validation.ip_version_for_ssh),
+            floating_network_id=CONF.network.public_network_id,
+            floating_network_name=CONF.network.floating_network_name)
 
-        @param keypair
-        @param security_group
-        @param security_group_rules
-        @param floating_ip
+    @classmethod
+    def get_class_validation_resources(cls, os_clients):
+        """Provision validation resources according to configuration
+
+        This is a wrapper around `create_validation_resources` from
+        `tempest.common.validation_resources` that passes parameters from
+        Tempest configuration. Only one instance of class level
+        validation resources is managed by the helper, so If resources
+        were already provisioned before, existing ones will be returned.
+
+        Resources are returned as a dictionary. They are also scheduled for
+        automatic cleanup during class teardown using
+        `addClassResourcesCleanup`.
+
+        If `CONF.validation.run_validation` is False no resource will be
+        provisioned at all.
+
+        @param os_clients: Clients to be used to provision the resources.
         """
         if not CONF.validation.run_validation:
             return
-        if keypair is None:
-            if CONF.validation.auth_method.lower() == "keypair":
-                keypair = True
-            else:
-                keypair = False
-        if floating_ip is None:
-            if CONF.validation.connect_method.lower() == "floating":
-                floating_ip = True
-            else:
-                floating_ip = False
-        if security_group is None:
-            security_group = CONF.validation.security_group
-        if security_group_rules is None:
-            security_group_rules = CONF.validation.security_group_rules
 
-        if not cls.validation_resources:
-            cls.validation_resources = {
-                'keypair': keypair,
-                'security_group': security_group,
-                'security_group_rules': security_group_rules,
-                'floating_ip': floating_ip}
+        if os_clients in cls._validation_resources:
+            return cls._validation_resources[os_clients]
+
+        if (CONF.validation.ip_version_for_ssh not in (4, 6) and
+                CONF.service_available.neutron):
+            msg = "Invalid IP version %s in ip_version_for_ssh. Use 4 or 6"
+            raise lib_exc.InvalidConfiguration(
+                msg % CONF.validation.ip_version_for_ssh)
+
+        resources = vr.create_validation_resources(
+            os_clients,
+            **cls._validation_resources_params_from_conf())
+
+        cls.addClassResourceCleanup(
+            vr.clear_validation_resources, os_clients,
+            use_neutron=CONF.service_available.neutron,
+            **resources)
+        cls._validation_resources[os_clients] = resources
+        return resources
+
+    def get_test_validation_resources(self, os_clients):
+        """Returns a dict of validation resources according to configuration
+
+        Initialise a validation resources fixture based on configuration.
+        Start the fixture and returns the validation resources.
+
+        If `CONF.validation.run_validation` is False no resource will be
+        provisioned at all.
+
+        @param os_clients: Clients to be used to provision the resources.
+        """
+
+        params = {}
+        # Test will try to use the fixture, so for this to be useful
+        # we must return a fixture. If validation is disabled though
+        # we don't need to provision anything, which is the default
+        # behavior for the fixture.
+        if CONF.validation.run_validation:
+            params = self._validation_resources_params_from_conf()
+
+        validation = self.useFixture(
+            vr.ValidationResourcesFixture(os_clients, **params))
+        return validation.resources
 
     @classmethod
     def set_network_resources(cls, network=False, router=False, subnet=False,
                               dhcp=False):
         """Specify which network resources should be created
 
+        The dynamic credentials provider by default provisions network
+        resources for each user/project that is provisioned. This behavior
+        can be altered using this method, which allows tests to define which
+        specific network resources to be provisioned - none if no parameter
+        is specified.
+
+        This method is designed so that only the network resources set on the
+        leaf class are honoured.
+
+        Credentials are provisioned as part of the class setup fixture,
+        during the `setup_credentials` step. For this to be effective this
+        helper must be invoked before super's `setup_credentials` is executed.
+
         @param network
         @param router
         @param subnet
         @param dhcp
+
+        Example::
+
+            @classmethod
+            def setup_credentials(cls):
+                # Do not setup network resources for this test
+                cls.set_network_resources()
+                super(MyTest, cls).setup_credentials()
         """
-        # network resources should be set only once from callers
+        # If this is invoked after the credentials are setup, it won't take
+        # any effect. To avoid this situation, fail the test in case this was
+        # invoked too late in the test lifecycle.
+        if cls.__setup_credentials_called:
+            raise RuntimeError(
+                "set_network_resources invoked after setup_credentials on the "
+                "super class has been already invoked. For "
+                "set_network_resources to have effect please invoke it before "
+                "the call to super().setup_credentials")
+
+        # Network resources should be set only once from callers
         # in order to ensure that even if it's called multiple times in
         # a chain of overloaded methods, the attribute is set only
-        # in the leaf class
-        if not cls.network_resources:
-            cls.network_resources = {
+        # in the leaf class.
+        if not cls._network_resources:
+            cls._network_resources = {
                 'network': network,
                 'router': router,
                 'subnet': subnet,
                 'dhcp': dhcp}
 
     @classmethod
-    def get_tenant_network(cls):
+    def get_tenant_network(cls, credentials_type='primary'):
         """Get the network to be used in testing
+
+        :param credentials_type: The type of credentials for which to get the
+                                 tenant network
 
         :return: network dict including 'id' and 'name'
         """
+        # Get a manager for the given credentials_type, but at least
+        # always fall back on getting the manager for primary credentials
+        if isinstance(credentials_type, six.string_types):
+            manager = cls.get_client_manager(credential_type=credentials_type)
+        elif isinstance(credentials_type, list):
+            manager = cls.get_client_manager(roles=credentials_type[1:])
+        else:
+            manager = cls.get_client_manager()
+
         # Make sure cred_provider exists and get a network client
-        networks_client = cls.get_client_manager().compute_networks_client
+        networks_client = manager.networks_client
         cred_provider = cls._get_credentials_provider()
         # In case of nova network, isolated tenants are not able to list the
-        # network configured in fixed_network_name, even if the can use it
+        # network configured in fixed_network_name, even if they can use it
         # for their servers, so using an admin network client to validate
         # the network name
         if (not CONF.service_available.neutron and
-                credentials.is_admin_available()):
+                credentials.is_admin_available(
+                    identity_version=cls.get_identity_version())):
             admin_creds = cred_provider.get_admin_creds()
-            admin_manager = clients.Manager(admin_creds)
+            admin_manager = clients.Manager(admin_creds.credentials)
             networks_client = admin_manager.compute_networks_client
-        return fixed_network.get_tenant_network(cred_provider,
-                                                networks_client)
+        return fixed_network.get_tenant_network(
+            cred_provider, networks_client, CONF.compute.fixed_network_name)
 
-    def assertEmpty(self, list, msg=None):
-        self.assertTrue(len(list) == 0, msg)
+    def assertEmpty(self, items, msg=None):
+        """Asserts whether a sequence or collection is empty
 
-    def assertNotEmpty(self, list, msg=None):
-        self.assertTrue(len(list) > 0, msg)
-
-
-class NegativeAutoTest(BaseTestCase):
-
-    _resources = {}
-
-    @classmethod
-    def setUpClass(cls):
-        super(NegativeAutoTest, cls).setUpClass()
-        os = cls.get_client_manager(credential_type='primary')
-        cls.client = os.negative_client
-
-    @staticmethod
-    def load_tests(*args):
+        :param items: sequence or collection to be tested
+        :param msg: message to be passed to the AssertionError
+        :raises AssertionError: when items is not empty
         """
-        Wrapper for testscenarios to set the mandatory scenarios variable
-        only in case a real test loader is in place. Will be automatically
-        called in case the variable "load_tests" is set.
+        if msg is None:
+            msg = "sequence or collection is not empty: %s" % items
+        self.assertFalse(items, msg)
+
+    def assertNotEmpty(self, items, msg=None):
+        """Asserts whether a sequence or collection is not empty
+
+        :param items: sequence or collection to be tested
+        :param msg: message to be passed to the AssertionError
+        :raises AssertionError: when items is empty
         """
-        if getattr(args[0], 'suiteClass', None) is not None:
-            loader, standard_tests, pattern = args
-        else:
-            standard_tests, module, loader = args
-        for test in testtools.iterate_tests(standard_tests):
-            schema = getattr(test, '_schema', None)
-            if schema is not None:
-                setattr(test, 'scenarios',
-                        NegativeAutoTest.generate_scenario(schema))
-        return testscenarios.load_tests_apply_scenarios(*args)
-
-    @staticmethod
-    def generate_scenario(description):
-        """
-        Generates the test scenario list for a given description.
-
-        :param description: A file or dictionary with the following entries:
-            name (required) name for the api
-            http-method (required) one of HEAD,GET,PUT,POST,PATCH,DELETE
-            url (required) the url to be appended to the catalog url with '%s'
-                for each resource mentioned
-            resources: (optional) A list of resource names such as "server",
-                "flavor", etc. with an element for each '%s' in the url. This
-                method will call self.get_resource for each element when
-                constructing the positive test case template so negative
-                subclasses are expected to return valid resource ids when
-                appropriate.
-            json-schema (optional) A valid json schema that will be used to
-                create invalid data for the api calls. For "GET" and "HEAD",
-                the data is used to generate query strings appended to the url,
-                otherwise for the body of the http call.
-        """
-        LOG.debug(description)
-        generator = importutils.import_class(
-            CONF.negative.test_generator)()
-        generator.validate_schema(description)
-        schema = description.get("json-schema", None)
-        resources = description.get("resources", [])
-        scenario_list = []
-        expected_result = None
-        for resource in resources:
-            if isinstance(resource, dict):
-                expected_result = resource['expected_result']
-                resource = resource['name']
-            LOG.debug("Add resource to test %s" % resource)
-            scn_name = "inv_res_%s" % (resource)
-            scenario_list.append((scn_name, {"resource": (resource,
-                                                          str(uuid.uuid4())),
-                                             "expected_result": expected_result
-                                             }))
-        if schema is not None:
-            for scenario in generator.generate_scenarios(schema):
-                scenario_list.append((scenario['_negtest_name'],
-                                      scenario))
-        LOG.debug(scenario_list)
-        return scenario_list
-
-    def execute(self, description):
-        """
-        Execute a http call on an api that are expected to
-        result in client errors. First it uses invalid resources that are part
-        of the url, and then invalid data for queries and http request bodies.
-
-        :param description: A json file or dictionary with the following
-        entries:
-            name (required) name for the api
-            http-method (required) one of HEAD,GET,PUT,POST,PATCH,DELETE
-            url (required) the url to be appended to the catalog url with '%s'
-                for each resource mentioned
-            resources: (optional) A list of resource names such as "server",
-                "flavor", etc. with an element for each '%s' in the url. This
-                method will call self.get_resource for each element when
-                constructing the positive test case template so negative
-                subclasses are expected to return valid resource ids when
-                appropriate.
-            json-schema (optional) A valid json schema that will be used to
-                create invalid data for the api calls. For "GET" and "HEAD",
-                the data is used to generate query strings appended to the url,
-                otherwise for the body of the http call.
-
-        """
-        LOG.info("Executing %s" % description["name"])
-        LOG.debug(description)
-        generator = importutils.import_class(
-            CONF.negative.test_generator)()
-        schema = description.get("json-schema", None)
-        method = description["http-method"]
-        url = description["url"]
-        expected_result = None
-        if "default_result_code" in description:
-            expected_result = description["default_result_code"]
-
-        resources = [self.get_resource(r) for
-                     r in description.get("resources", [])]
-
-        if hasattr(self, "resource"):
-            # Note(mkoderer): The resources list already contains an invalid
-            # entry (see get_resource).
-            # We just send a valid json-schema with it
-            valid_schema = None
-            if schema:
-                valid_schema = \
-                    valid.ValidTestGenerator().generate_valid(schema)
-            new_url, body = self._http_arguments(valid_schema, url, method)
-        elif hasattr(self, "_negtest_name"):
-            schema_under_test = \
-                valid.ValidTestGenerator().generate_valid(schema)
-            local_expected_result = \
-                generator.generate_payload(self, schema_under_test)
-            if local_expected_result is not None:
-                expected_result = local_expected_result
-            new_url, body = \
-                self._http_arguments(schema_under_test, url, method)
-        else:
-            raise Exception("testscenarios are not active. Please make sure "
-                            "that your test runner supports the load_tests "
-                            "mechanism")
-
-        if "admin_client" in description and description["admin_client"]:
-            if not credentials.is_admin_available():
-                msg = ("Missing Identity Admin API credentials in"
-                       "configuration.")
-                raise self.skipException(msg)
-            creds = self.credentials_provider.get_admin_creds()
-            os_adm = clients.Manager(credentials=creds)
-            client = os_adm.negative_client
-        else:
-            client = self.client
-        resp, resp_body = client.send_request(method, new_url,
-                                              resources, body=body)
-        self._check_negative_response(expected_result, resp.status, resp_body)
-
-    def _http_arguments(self, json_dict, url, method):
-        LOG.debug("dict: %s url: %s method: %s" % (json_dict, url, method))
-        if not json_dict:
-            return url, None
-        elif method in ["GET", "HEAD", "PUT", "DELETE"]:
-            return "%s?%s" % (url, urllib.urlencode(json_dict)), None
-        else:
-            return url, json.dumps(json_dict)
-
-    def _check_negative_response(self, expected_result, result, body):
-        self.assertTrue(result >= 400 and result < 500 and result != 413,
-                        "Expected client error, got %s:%s" %
-                        (result, body))
-        self.assertTrue(expected_result is None or expected_result == result,
-                        "Expected %s, got %s:%s" %
-                        (expected_result, result, body))
-
-    @classmethod
-    def set_resource(cls, name, resource):
-        """
-        This function can be used in setUpClass context to register a resoruce
-        for a test.
-
-        :param name: The name of the kind of resource such as "flavor", "role",
-            etc.
-        :resource: The id of the resource
-        """
-        cls._resources[name] = resource
-
-    def get_resource(self, name):
-        """
-        Return a valid uuid for a type of resource. If a real resource is
-        needed as part of a url then this method should return one. Otherwise
-        it can return None.
-
-        :param name: The name of the kind of resource such as "flavor", "role",
-            etc.
-        """
-        if isinstance(name, dict):
-            name = name['name']
-        if hasattr(self, "resource") and self.resource[0] == name:
-            LOG.debug("Return invalid resource (%s) value: %s" %
-                      (self.resource[0], self.resource[1]))
-            return self.resource[1]
-        if name in self._resources:
-            return self._resources[name]
-        return None
-
-
-def SimpleNegativeAutoTest(klass):
-    """
-    This decorator registers a test function on basis of the class name.
-    """
-    @attr(type=['negative'])
-    def generic_test(self):
-        if hasattr(self, '_schema'):
-            self.execute(self._schema)
-
-    cn = klass.__name__
-    cn = cn.replace('JSON', '')
-    cn = cn.replace('Test', '')
-    # NOTE(mkoderer): replaces uppercase chars inside the class name with '_'
-    lower_cn = re.sub('(?<!^)(?=[A-Z])', '_', cn).lower()
-    func_name = 'test_%s' % lower_cn
-    setattr(klass, func_name, generic_test)
-    return klass
-
-
-def call_until_true(func, duration, sleep_for):
-    """
-    Call the given function until it returns True (and return True) or
-    until the specified duration (in seconds) elapses (and return
-    False).
-
-    :param func: A zero argument callable that returns True on success.
-    :param duration: The number of seconds for which to attempt a
-        successful call of the function.
-    :param sleep_for: The number of seconds to sleep after an unsuccessful
-                      invocation of the function.
-    """
-    now = time.time()
-    timeout = now + duration
-    while now < timeout:
-        if func():
-            return True
-        time.sleep(sleep_for)
-        now = time.time()
-    return False
-
+        if msg is None:
+            msg = "sequence or collection is empty."
+        self.assertTrue(items, msg)

@@ -14,13 +14,11 @@
 
 import re
 
-import six
 from testtools import helpers
 
 
 class ExistsAllResponseHeaders(object):
-    """
-    Specific matcher to check the existence of Swift's response headers
+    """Specific matcher to check the existence of Swift's response headers
 
     This matcher checks the existence of common headers for each HTTP method
     or the target, which means account, container or object.
@@ -29,20 +27,42 @@ class ExistsAllResponseHeaders(object):
     checked in each test code.
     """
 
-    def __init__(self, target, method):
-        """
+    def __init__(self, target, method, policies=None):
+        """Initialization of ExistsAllResponseHeaders
+
         param: target Account/Container/Object
         param: method PUT/GET/HEAD/DELETE/COPY/POST
         """
         self.target = target
         self.method = method
+        self.policies = policies or []
+
+    def _content_length_required(self, resp):
+        # Verify whether given HTTP response must contain content-length.
+        # Take into account the exceptions defined in RFC 7230.
+        if resp.status in range(100, 200) or resp.status == 204:
+            return False
+
+        return True
 
     def match(self, actual):
+        """Check headers
+
+        param: actual HTTP response object containing headers and status
         """
-        param: actual HTTP response headers
-        """
-        # Check common headers for all HTTP methods
-        if 'content-length' not in actual:
+        # Check common headers for all HTTP methods.
+        #
+        # Please note that for 1xx and 204 responses Content-Length presence
+        # is not checked intensionally. According to RFC 7230 a server MUST
+        # NOT send the header in such responses. Thus, clients should not
+        # depend on this header. However, the standard does not require them
+        # to validate the server's behavior. We leverage that to not refuse
+        # any implementation violating it like Swift [1] or some versions of
+        # Ceph RadosGW [2].
+        # [1] https://bugs.launchpad.net/swift/+bug/1537811
+        # [2] http://tracker.ceph.com/issues/13582
+        if ('content-length' not in actual and
+                self._content_length_required(actual)):
             return NonExistentHeader('content-length')
         if 'content-type' not in actual:
             return NonExistentHeader('content-type')
@@ -64,11 +84,63 @@ class ExistsAllResponseHeaders(object):
                     return NonExistentHeader('x-account-container-count')
                 if 'x-account-object-count' not in actual:
                     return NonExistentHeader('x-account-object-count')
+                if int(actual['x-account-container-count']) > 0:
+                    acct_header = "x-account-storage-policy-"
+                    matched_policy_count = 0
+
+                    # Loop through the policies and look for account
+                    # usage data.  There should be at least 1 set
+                    for policy in self.policies:
+                        front_header = acct_header + policy['name'].lower()
+
+                        usage_policies = [
+                            front_header + '-bytes-used',
+                            front_header + '-object-count',
+                            front_header + '-container-count'
+                        ]
+
+                        # There should be 3 usage values for a give storage
+                        # policy in an account bytes, object count, and
+                        # container count
+                        policy_hdrs = sum(1 for use_hdr in usage_policies
+                                          if use_hdr in actual)
+
+                        # If there are less than 3 headers here then 1 is
+                        # missing, let's figure out which one and report
+                        if policy_hdrs == 3:
+                            matched_policy_count = matched_policy_count + 1
+                        else:
+                            if policy_hdrs > 0 and policy_hdrs < 3:
+                                for use_hdr in usage_policies:
+                                    if use_hdr not in actual:
+                                        return NonExistentHeader(use_hdr)
+
+                    # Only flag an error if actual policies have been read and
+                    # no usage has been found
+                    if self.policies and matched_policy_count == 0:
+                        return GenericError("No storage policy usage headers")
+
             elif self.target == 'Container':
                 if 'x-container-bytes-used' not in actual:
                     return NonExistentHeader('x-container-bytes-used')
                 if 'x-container-object-count' not in actual:
                     return NonExistentHeader('x-container-object-count')
+                if 'x-storage-policy' not in actual:
+                    return NonExistentHeader('x-storage-policy')
+                else:
+                    policy_name = actual['x-storage-policy']
+
+                    # loop through the policies and ensure that
+                    # the value in the container header matches
+                    # one of the storage policies
+                    for policy in self.policies:
+                        if policy['name'] == policy_name:
+                            break
+                    else:
+                        # Ensure that there are actual policies stored
+                        if self.policies:
+                            return InvalidHeaderValue('x-storage-policy',
+                                                      policy_name)
             elif self.target == 'Object':
                 if 'etag' not in actual:
                     return NonExistentHeader('etag')
@@ -94,11 +166,21 @@ class ExistsAllResponseHeaders(object):
         return None
 
 
+class GenericError(object):
+    """Informs an error message of a generic error during header evaluation"""
+
+    def __init__(self, body):
+        self.body = body
+
+    def describe(self):
+        return "%s" % self.body
+
+    def get_details(self):
+        return {}
+
+
 class NonExistentHeader(object):
-    """
-    Informs an error message for end users in the case of missing a
-    certain header in Swift's responses
-    """
+    """Informs an error message in the case of missing a certain header"""
 
     def __init__(self, header):
         self.header = header
@@ -110,10 +192,22 @@ class NonExistentHeader(object):
         return {}
 
 
+class InvalidHeaderValue(object):
+    """Informs an error message when a header contains a bad value"""
+
+    def __init__(self, header, value):
+        self.header = header
+        self.value = value
+
+    def describe(self):
+        return "InvalidValue (%s, %s)" % (self.header, self.value)
+
+    def get_details(self):
+        return {}
+
+
 class AreAllWellFormatted(object):
-    """
-    Specific matcher to check the correctness of formats of values of Swift's
-    response headers
+    """Specific matcher to check the correctness of formats of values
 
     This matcher checks the format of values of response headers.
     When checking the format of values of 'specific' headers such as
@@ -122,7 +216,7 @@ class AreAllWellFormatted(object):
     """
 
     def match(self, actual):
-        for key, value in six.iteritems(actual):
+        for key, value in actual.items():
             if key in ('content-length', 'x-account-bytes-used',
                        'x-account-container-count', 'x-account-object-count',
                        'x-container-bytes-used', 'x-container-object-count')\
@@ -131,9 +225,9 @@ class AreAllWellFormatted(object):
             elif key in ('content-type', 'date', 'last-modified',
                          'x-copied-from-last-modified') and not value:
                 return InvalidFormat(key, value)
-            elif key == 'x-timestamp' and not re.match("^\d+\.?\d*\Z", value):
+            elif key == 'x-timestamp' and not re.match(r"^\d+\.?\d*\Z", value):
                 return InvalidFormat(key, value)
-            elif key == 'x-copied-from' and not re.match("\S+/\S+", value):
+            elif key == 'x-copied-from' and not re.match(r"\S+/\S+", value):
                 return InvalidFormat(key, value)
             elif key == 'x-trans-id' and \
                 not re.match("^tx[0-9a-f]{21}-[0-9a-f]{10}.*", value):
@@ -149,10 +243,7 @@ class AreAllWellFormatted(object):
 
 
 class InvalidFormat(object):
-    """
-    Informs an error message for end users if a format of a certain header
-    is invalid
-    """
+    """Informs an error message if a format of a certain header is invalid"""
 
     def __init__(self, key, value):
         self.key = key
@@ -166,8 +257,9 @@ class InvalidFormat(object):
 
 
 class MatchesDictExceptForKeys(object):
-    """Matches two dictionaries. Verifies all items are equals except for those
-    identified by a list of keys.
+    """Matches two dictionaries.
+
+    Verifies all items are equals except for those identified by a list of keys
     """
 
     def __init__(self, expected, excluded_keys=None):

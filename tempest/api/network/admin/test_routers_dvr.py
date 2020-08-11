@@ -13,17 +13,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.api.network import base_routers as base
-from tempest.common.utils import data_utils
-from tempest import test
+import testtools
+
+from tempest.api.network import base
+from tempest.common import utils
+from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
 
 
-class RoutersTestDVR(base.BaseRouterTest):
+class RoutersTestDVR(base.BaseAdminNetworkTest):
 
     @classmethod
-    def resource_setup(cls):
+    def skip_checks(cls):
+        super(RoutersTestDVR, cls).skip_checks()
         for ext in ['router', 'dvr']:
-            if not test.is_extension_enabled(ext, 'network'):
+            if not utils.is_extension_enabled(ext, 'network'):
                 msg = "%s extension not enabled." % ext
                 raise cls.skipException(msg)
         # The check above will pass if api_extensions=all, which does
@@ -32,17 +37,21 @@ class RoutersTestDVR(base.BaseRouterTest):
         # admin credentials to create router with distributed=True attribute
         # and checking for BadRequest exception and that the resulting router
         # has a distributed attribute.
+
+    @classmethod
+    def resource_setup(cls):
         super(RoutersTestDVR, cls).resource_setup()
         name = data_utils.rand_name('pretest-check')
-        router = cls.admin_client.create_router(name)
-        cls.admin_client.delete_router(router['router']['id'])
+        router = cls.admin_routers_client.create_router(name=name)
+        cls.admin_routers_client.delete_router(router['router']['id'])
         if 'distributed' not in router['router']:
             msg = "'distributed' flag not found. DVR Possibly not enabled"
             raise cls.skipException(msg)
 
-    @test.idempotent_id('08a2a0a8-f1e4-4b34-8e30-e522e836c44e')
+    @decorators.idempotent_id('08a2a0a8-f1e4-4b34-8e30-e522e836c44e')
     def test_distributed_router_creation(self):
-        """
+        """Test distributed router creation
+
         Test uses administrative credentials to creates a
         DVR (Distributed Virtual Routing) router using the
         distributed=True.
@@ -52,14 +61,17 @@ class RoutersTestDVR(base.BaseRouterTest):
         set to True
         """
         name = data_utils.rand_name('router')
-        router = self.admin_client.create_router(name, distributed=True)
-        self.addCleanup(self.admin_client.delete_router,
+        router = self.admin_routers_client.create_router(name=name,
+                                                         distributed=True)
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.admin_routers_client.delete_router,
                         router['router']['id'])
         self.assertTrue(router['router']['distributed'])
 
-    @test.idempotent_id('8a0a72b4-7290-4677-afeb-b4ffe37bc352')
+    @decorators.idempotent_id('8a0a72b4-7290-4677-afeb-b4ffe37bc352')
     def test_centralized_router_creation(self):
-        """
+        """Test centralized router creation
+
         Test uses administrative credentials to creates a
         CVR (Centralized Virtual Routing) router using the
         distributed=False.
@@ -70,17 +82,22 @@ class RoutersTestDVR(base.BaseRouterTest):
         as opposed to a "Distributed Virtual Router"
         """
         name = data_utils.rand_name('router')
-        router = self.admin_client.create_router(name, distributed=False)
-        self.addCleanup(self.admin_client.delete_router,
+        router = self.admin_routers_client.create_router(name=name,
+                                                         distributed=False)
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.admin_routers_client.delete_router,
                         router['router']['id'])
         self.assertFalse(router['router']['distributed'])
 
-    @test.idempotent_id('acd43596-c1fb-439d-ada8-31ad48ae3c2e')
+    @decorators.idempotent_id('acd43596-c1fb-439d-ada8-31ad48ae3c2e')
+    @testtools.skipUnless(utils.is_extension_enabled('l3-ha', 'network'),
+                          'HA routers are not available.')
     def test_centralized_router_update_to_dvr(self):
-        """
+        """Test centralized router update
+
         Test uses administrative credentials to creates a
         CVR (Centralized Virtual Routing) router using the
-        distributed=False.Then it will "update" the router
+        distributed=False. Then it will "update" the router
         distributed attribute to True
 
         Acceptance
@@ -89,12 +106,22 @@ class RoutersTestDVR(base.BaseRouterTest):
         attribute will be set to True
         """
         name = data_utils.rand_name('router')
+        tenant_id = self.routers_client.tenant_id
         # router needs to be in admin state down in order to be upgraded to DVR
-        router = self.admin_client.create_router(name, distributed=False,
-                                                 admin_state_up=False)
-        self.addCleanup(self.admin_client.delete_router,
-                        router['router']['id'])
+        # l3ha routers are not upgradable to dvr, make it explicitly non ha
+        router = self.admin_routers_client.create_router(name=name,
+                                                         distributed=False,
+                                                         admin_state_up=False,
+                                                         ha=False,
+                                                         tenant_id=tenant_id)
+        router_id = router['router']['id']
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.admin_routers_client.delete_router, router_id)
         self.assertFalse(router['router']['distributed'])
-        router = self.admin_client.update_router(router['router']['id'],
-                                                 distributed=True)
+        router = self.admin_routers_client.update_router(
+            router_id, distributed=True)
         self.assertTrue(router['router']['distributed'])
+        show_body = self.admin_routers_client.show_router(router_id)
+        self.assertTrue(show_body['router']['distributed'])
+        show_body = self.routers_client.show_router(router_id)
+        self.assertNotIn('distributed', show_body['router'])

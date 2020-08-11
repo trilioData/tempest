@@ -19,12 +19,11 @@ import argparse
 import gzip
 import os
 import re
-import StringIO
 import sys
-import urllib2
 
+import six
+import six.moves.urllib.request as urlreq
 import yaml
-
 
 # DEVSTACK_GATE_GRENADE is either unset if grenade is not running
 # or a string describing what type of grenade run to perform.
@@ -54,7 +53,6 @@ allowed_dirty = set([
     'q-meta',
     'q-metering',
     'q-svc',
-    'q-vpn',
     's-proxy'])
 
 
@@ -64,21 +62,21 @@ def process_files(file_specs, url_specs, whitelists):
     for (name, filename) in file_specs:
         whitelist = whitelists.get(name, [])
         with open(filename) as content:
-            if scan_content(name, content, regexp, whitelist):
+            if scan_content(content, regexp, whitelist):
                 logs_with_errors.append(name)
     for (name, url) in url_specs:
         whitelist = whitelists.get(name, [])
-        req = urllib2.Request(url)
+        req = urlreq.Request(url)
         req.add_header('Accept-Encoding', 'gzip')
-        page = urllib2.urlopen(req)
-        buf = StringIO.StringIO(page.read())
+        page = urlreq.urlopen(req)
+        buf = six.StringIO(page.read())
         f = gzip.GzipFile(fileobj=buf)
-        if scan_content(name, f.read().splitlines(), regexp, whitelist):
+        if scan_content(f.read().splitlines(), regexp, whitelist):
             logs_with_errors.append(name)
     return logs_with_errors
 
 
-def scan_content(name, content, regexp, whitelist):
+def scan_content(content, regexp, whitelist):
     had_errors = False
     for line in content:
         if not line.startswith("Stderr:") and regexp.match(line):
@@ -96,16 +94,16 @@ def scan_content(name, content, regexp, whitelist):
 
 
 def collect_url_logs(url):
-    page = urllib2.urlopen(url)
+    page = urlreq.urlopen(url)
     content = page.read()
-    logs = re.findall('(screen-[\w-]+\.txt\.gz)</a>', content)
+    logs = re.findall(r'(screen-[\w-]+\.txt\.gz)</a>', content)
     return logs
 
 
 def main(opts):
     if opts.directory and opts.url or not (opts.directory or opts.url):
         print("Must provide exactly one of -d or -u")
-        exit(1)
+        return 1
     print("Checking logs...")
     WHITELIST_FILE = os.path.join(
         os.path.abspath(os.path.dirname(os.path.dirname(__file__))),
@@ -138,7 +136,7 @@ def main(opts):
     with open(WHITELIST_FILE) as stream:
         loaded = yaml.safe_load(stream)
         if loaded:
-            for (name, l) in loaded.iteritems():
+            for (name, l) in six.iteritems(loaded):
                 for w in l:
                     assert 'module' in w, 'no module in %s' % name
                     assert 'message' in w, 'no message in %s' % name
@@ -163,6 +161,7 @@ def main(opts):
         return 1
     print("ok")
     return 0
+
 
 usage = """
 Find non-white-listed log errors in log files from a devstack-gate run.

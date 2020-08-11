@@ -13,58 +13,47 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid
-
-from tempest_lib import exceptions as lib_exc
+import testtools
 
 from tempest.api.compute.floating_ips import base
-from tempest.common.utils import data_utils
 from tempest import config
-from tempest import test
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 CONF = config.CONF
 
 
 class FloatingIPsNegativeTestJSON(base.BaseFloatingIPsTest):
-    server_id = None
 
-    @classmethod
-    def setup_clients(cls):
-        super(FloatingIPsNegativeTestJSON, cls).setup_clients()
-        cls.client = cls.floating_ips_client
+    max_microversion = '2.35'
 
     @classmethod
     def resource_setup(cls):
         super(FloatingIPsNegativeTestJSON, cls).resource_setup()
 
-        # Server creation
-        server = cls.create_test_server(wait_until='ACTIVE')
-        cls.server_id = server['id']
         # Generating a nonexistent floatingIP id
-        cls.floating_ip_ids = []
         body = cls.client.list_floating_ips()['floating_ips']
-        for i in range(len(body)):
-            cls.floating_ip_ids.append(body[i]['id'])
+        floating_ip_ids = [floating_ip['id'] for floating_ip in body]
         while True:
-            cls.non_exist_id = data_utils.rand_int_id(start=999)
             if CONF.service_available.neutron:
-                cls.non_exist_id = str(uuid.uuid4())
-            if cls.non_exist_id not in cls.floating_ip_ids:
+                cls.non_exist_id = data_utils.rand_uuid()
+            else:
+                cls.non_exist_id = data_utils.rand_int_id(start=999)
+            if cls.non_exist_id not in floating_ip_ids:
                 break
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('6e0f059b-e4dd-48fb-8207-06e3bba5b074')
-    @test.services('network')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('6e0f059b-e4dd-48fb-8207-06e3bba5b074')
     def test_allocate_floating_ip_from_nonexistent_pool(self):
         # Negative test:Allocation of a new floating IP from a nonexistent_pool
         # to a project should fail
         self.assertRaises(lib_exc.NotFound,
                           self.client.create_floating_ip,
-                          "non_exist_pool")
+                          pool="non_exist_pool")
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('ae1c55a8-552b-44d4-bfb6-2a115a15d0ba')
-    @test.services('network')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('ae1c55a8-552b-44d4-bfb6-2a115a15d0ba')
     def test_delete_nonexistent_floating_ip(self):
         # Negative test:Deletion of a nonexistent floating IP
         # from project should fail
@@ -73,9 +62,19 @@ class FloatingIPsNegativeTestJSON(base.BaseFloatingIPsTest):
         self.assertRaises(lib_exc.NotFound, self.client.delete_floating_ip,
                           self.non_exist_id)
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('595fa616-1a71-4670-9614-46564ac49a4c')
-    @test.services('network')
+
+class FloatingIPsAssociationNegativeTestJSON(base.BaseFloatingIPsTest):
+
+    max_microversion = '2.43'
+
+    @classmethod
+    def resource_setup(cls):
+        super(FloatingIPsAssociationNegativeTestJSON, cls).resource_setup()
+        cls.server = cls.create_test_server(wait_until='ACTIVE')
+        cls.server_id = cls.server['id']
+
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('595fa616-1a71-4670-9614-46564ac49a4c')
     def test_associate_nonexistent_floating_ip(self):
         # Negative test:Association of a non existent floating IP
         # to specific server should fail
@@ -84,9 +83,8 @@ class FloatingIPsNegativeTestJSON(base.BaseFloatingIPsTest):
                           self.client.associate_floating_ip_to_server,
                           "0.0.0.0", self.server_id)
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('0a081a66-e568-4e6b-aa62-9587a876dca8')
-    @test.services('network')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('0a081a66-e568-4e6b-aa62-9587a876dca8')
     def test_dissociate_nonexistent_floating_ip(self):
         # Negative test:Dissociation of a non existent floating IP should fail
         # Dissociating non existent floating IP
@@ -94,12 +92,34 @@ class FloatingIPsNegativeTestJSON(base.BaseFloatingIPsTest):
                           self.client.disassociate_floating_ip_from_server,
                           "0.0.0.0", self.server_id)
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('804b4fcb-bbf5-412f-925d-896672b61eb3')
-    @test.services('network')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('804b4fcb-bbf5-412f-925d-896672b61eb3')
     def test_associate_ip_to_server_without_passing_floating_ip(self):
         # Negative test:Association of empty floating IP to specific server
         # should raise NotFound or BadRequest(In case of Nova V2.1) exception.
         self.assertRaises((lib_exc.NotFound, lib_exc.BadRequest),
                           self.client.associate_floating_ip_to_server,
                           '', self.server_id)
+
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('58a80596-ffb2-11e6-9393-fa163e4fa634')
+    @testtools.skipUnless(CONF.network.public_network_id,
+                          'The public_network_id option must be specified.')
+    def test_associate_ip_to_server_with_floating_ip(self):
+        # The VM have one port
+        # Associate floating IP A to the VM
+        # Associate floating IP B which is from same pool with floating IP A
+        # to the VM, should raise BadRequest exception
+        body = self.client.create_floating_ip(
+            pool=CONF.network.public_network_id)['floating_ip']
+        self.addCleanup(self.client.delete_floating_ip, body['id'])
+        self.client.associate_floating_ip_to_server(body['ip'], self.server_id)
+        self.addCleanup(self.client.disassociate_floating_ip_from_server,
+                        body['ip'], self.server_id)
+
+        body = self.client.create_floating_ip(
+            pool=CONF.network.public_network_id)['floating_ip']
+        self.addCleanup(self.client.delete_floating_ip, body['id'])
+        self.assertRaises(lib_exc.BadRequest,
+                          self.client.associate_floating_ip_to_server,
+                          body['ip'], self.server_id)

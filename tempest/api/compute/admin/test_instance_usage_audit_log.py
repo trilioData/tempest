@@ -18,7 +18,7 @@ import datetime
 from six.moves.urllib import parse as urllib
 
 from tempest.api.compute import base
-from tempest import test
+from tempest.lib import decorators
 
 
 class InstanceUsageAuditLogTestJSON(base.BaseV2ComputeAdminTest):
@@ -26,32 +26,16 @@ class InstanceUsageAuditLogTestJSON(base.BaseV2ComputeAdminTest):
     @classmethod
     def setup_clients(cls):
         super(InstanceUsageAuditLogTestJSON, cls).setup_clients()
-        cls.adm_client = cls.os_adm.instance_usages_audit_log_client
+        cls.adm_client = cls.os_admin.instance_usages_audit_log_client
 
-    @test.idempotent_id('25319919-33d9-424f-9f99-2c203ee48b9d')
+    @decorators.idempotent_id('25319919-33d9-424f-9f99-2c203ee48b9d')
     def test_list_instance_usage_audit_logs(self):
         # list instance usage audit logs
-        body = (self.adm_client.list_instance_usage_audit_logs()
-                ["instance_usage_audit_logs"])
-        expected_items = ['total_errors', 'total_instances', 'log',
-                          'num_hosts_running', 'num_hosts_done',
-                          'num_hosts', 'hosts_not_run', 'overall_status',
-                          'period_ending', 'period_beginning',
-                          'num_hosts_not_run']
-        for item in expected_items:
-            self.assertIn(item, body)
+        self.adm_client.list_instance_usage_audit_logs()
 
-    @test.idempotent_id('6e40459d-7c5f-400b-9e83-449fbc8e7feb')
+    @decorators.idempotent_id('6e40459d-7c5f-400b-9e83-449fbc8e7feb')
     def test_get_instance_usage_audit_log(self):
         # Get instance usage audit log before specified time
         now = datetime.datetime.now()
-        body = (self.adm_client.show_instance_usage_audit_log(
+        self.adm_client.show_instance_usage_audit_log(
             urllib.quote(now.strftime("%Y-%m-%d %H:%M:%S")))
-            ["instance_usage_audit_log"])
-
-        expected_items = ['total_errors', 'total_instances', 'log',
-                          'num_hosts_running', 'num_hosts_done', 'num_hosts',
-                          'hosts_not_run', 'overall_status', 'period_ending',
-                          'period_beginning', 'num_hosts_not_run']
-        for item in expected_items:
-            self.assertIn(item, body)

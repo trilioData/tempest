@@ -16,30 +16,35 @@
 import netaddr
 
 from tempest.api.compute import base
+from tempest.common import utils
 from tempest import config
-from tempest import exceptions
-from tempest import test
+from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions
 
 CONF = config.CONF
 
 
+# TODO(stephenfin): Remove this test class once the nova queens branch goes
+# into extended maintenance mode.
 class FloatingIPsBulkAdminTestJSON(base.BaseV2ComputeAdminTest):
-    """
-    Tests Floating IPs Bulk APIs Create, List and  Delete that
-    require admin privileges.
+    """Tests Floating IPs Bulk APIs that require admin privileges.
+
     API documentation - http://docs.openstack.org/api/openstack-compute/2/
     content/ext-os-floating-ips-bulk.html
     """
+    max_microversion = '2.35'
+    depends_on_nova_network = True
 
     @classmethod
     def setup_clients(cls):
         super(FloatingIPsBulkAdminTestJSON, cls).setup_clients()
-        cls.client = cls.os_adm.floating_ips_bulk_client
+        cls.client = cls.os_admin.floating_ips_bulk_client
 
     @classmethod
     def resource_setup(cls):
         super(FloatingIPsBulkAdminTestJSON, cls).resource_setup()
-        cls.ip_range = CONF.compute.floating_ip_range
+        cls.ip_range = CONF.validation.floating_ip_range
         cls.verify_unallocated_floating_ip_range(cls.ip_range)
 
     @classmethod
@@ -55,14 +60,8 @@ class FloatingIPsBulkAdminTestJSON(base.BaseV2ComputeAdminTest):
                 raise exceptions.InvalidConfiguration(msg)
         return
 
-    def _delete_floating_ips_bulk(self, ip_range):
-        try:
-            self.client.delete_floating_ips_bulk(ip_range)
-        except Exception:
-            pass
-
-    @test.idempotent_id('2c8f145f-8012-4cb8-ac7e-95a587f0e4ab')
-    @test.services('network')
+    @decorators.idempotent_id('2c8f145f-8012-4cb8-ac7e-95a587f0e4ab')
+    @utils.services('network')
     def test_create_list_delete_floating_ips_bulk(self):
         # Create, List  and delete the Floating IPs Bulk
         pool = 'test_pool'
@@ -74,10 +73,11 @@ class FloatingIPsBulkAdminTestJSON(base.BaseV2ComputeAdminTest):
                                                      pool,
                                                      interface)
                 ['floating_ips_bulk_create'])
-        self.addCleanup(self._delete_floating_ips_bulk, self.ip_range)
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.client.delete_floating_ips_bulk, self.ip_range)
         self.assertEqual(self.ip_range, body['ip_range'])
         ips_list = self.client.list_floating_ips_bulk()['floating_ip_info']
-        self.assertNotEqual(0, len(ips_list))
+        self.assertNotEmpty(ips_list)
         for ip in netaddr.IPNetwork(self.ip_range).iter_hosts():
             self.assertIn(str(ip), map(lambda x: x['address'], ips_list))
         body = (self.client.delete_floating_ips_bulk(self.ip_range)

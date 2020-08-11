@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/bin/bash -x
 BASE_DIR="$(pwd)"
 
 if [ -f $BASE_DIR/vms_file ]; then
@@ -40,13 +39,27 @@ function usage {
 }
 
 function list-failing-cases {
-    ${wrapper} testr failing
+    ${wrapper} stestr failing
 }
 
 function list_tests() {
-    ${wrapper} testr list-tests $testrargs
+    ${wrapper} stestr list-tests $testrargs
 }
 
+function check_py_version() {
+    py_str="python2"
+    if ! hash python2; then
+        echo "python2 is not installed"
+        if ! hash python3; then
+            echo "python3 is not installed"
+            exit 1
+        else
+            echo "python3 is installed"
+            py_str="python3"
+        fi
+    fi
+    echo $py_str
+}
 
 testrargs=""
 venv=${VENV:-.venv}
@@ -72,6 +85,13 @@ then
     exit 1
 fi
 
+if [ ! -z $PYTHON_VERSION ]
+then
+   py_str="python"$PYTHON_VERSION
+   echo $py_str
+else
+   check_py_version
+fi
 eval set -- $options
 first_uu=yes
 
@@ -121,14 +141,14 @@ if [ $no_site_packages -eq 1 ]; then
   installvenvopts="--no-site-packages"
 fi
 
-function testr_init {
+function stestr_init {
   if [ ! -d .testrepository ]; then
-      ${wrapper} testr init
+      ${wrapper} stestr init
   fi
 }
 
 function run_tests {
-  testr_init
+  stestr_init
   ${wrapper} find . -type f -name "*.pyc" -delete
   export OS_TEST_TIMEOUT=172800
   export OS_TEST_PATH=./tempest/test_discover
@@ -136,23 +156,24 @@ function run_tests {
       if [ "$testrargs" = "" ]; then
            testrargs="discover ./tempest/test_discover"
       fi
-      ${wrapper} python -m testtools.run $testrargs
+      ${wrapper} $py_str -m testtools.run $testrargs
       return $?
   fi
-
+  echo $filepath_arg
+  echo $py_str
   if [ -z "$filepath_arg" ]; then
-      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python*/site-packages/testrepository/testcommand.py
       if [ $serial -eq 1 ]; then
-          ${wrapper} testr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       else
-          ${wrapper} testr run --parallel --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit $testrargs | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       fi
   else
-      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"'$tests_filter_option'\"/g' .venv/lib/python2.7/site-packages/testrepository/testcommand.py
+      sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"'$tests_filter_option'\"/g' .venv/lib/python*/site-packages/testrepository/testcommand.py
       if [ $serial -eq 1 ]; then
-          ${wrapper} testr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       else
-          ${wrapper} testr run --parallel --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
+          ${wrapper} stestr run --subunit "$filepath_arg" | ${wrapper} subunit-2to1 | ${wrapper} tools/colorizer.py
       fi
   fi
 }
@@ -166,21 +187,21 @@ then
   fi
   if [ $update -eq 1 ]; then
       echo "Updating virtualenv..."
-      python tools/install_venv.py $installvenvopts
+      $py_str tools/install_venv.py $installvenvopts
   fi
   if [ -e ${venv} ]; then
     wrapper="${with_venv}"
   else
     if [ $always_venv -eq 1 ]; then
       # Automatically install the virtualenv
-      python tools/install_venv.py $installvenvopts
+      $py_str tools/install_venv.py $installvenvopts
       wrapper="${with_venv}"
     else
       echo -e "No virtual environment found...create one? (Y/n) \c"
       read use_ve
       if [ "x$use_ve" = "xY" -o "x$use_ve" = "x" -o "x$use_ve" = "xy" ]; then
         # Install the virtualenv and run the test suite in it
-        python tools/install_venv.py $installvenvopts
+        $py_str tools/install_venv.py $installvenvopts
         wrapper=${with_venv}
       fi
     fi
@@ -191,5 +212,4 @@ run_tests
 retval=$?
 
 exit $retval
-
 

@@ -13,14 +13,12 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest_lib import exceptions as lib_exc
-
 from tempest.api.object_storage import base
-from tempest.common.utils import data_utils
-from tempest import config
-from tempest import test
+from tempest.common import utils
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
-CONF = config.CONF
 QUOTA_BYTES = 10
 QUOTA_COUNT = 3
 
@@ -33,27 +31,27 @@ class ContainerQuotasTest(base.BaseObjectTest):
 
         Quotas are set by adding meta values to the container,
         and are validated when set:
-          - X-Container-Meta-Quota-Bytes:
+
+        - X-Container-Meta-Quota-Bytes:
                      Maximum size of the container, in bytes.
-          - X-Container-Meta-Quota-Count:
+        - X-Container-Meta-Quota-Count:
                      Maximum object count of the container.
         """
         super(ContainerQuotasTest, self).setUp()
-        self.container_name = data_utils.rand_name(name="TestContainer")
-        self.container_client.create_container(self.container_name)
+        self.container_name = self.create_container()
         metadata = {"quota-bytes": str(QUOTA_BYTES),
                     "quota-count": str(QUOTA_COUNT), }
-        self.container_client.update_container_metadata(
-            self.container_name, metadata)
+        self.container_client.create_update_or_delete_container_metadata(
+            self.container_name, create_update_metadata=metadata)
 
     def tearDown(self):
         """Cleans the container of any object after each test."""
-        self.delete_containers([self.container_name])
+        self.delete_containers()
         super(ContainerQuotasTest, self).tearDown()
 
-    @test.idempotent_id('9a0fb034-86af-4df0-86fa-f8bd7db21ae0')
-    @test.requires_ext(extension='container_quotas', service='object')
-    @test.attr(type="smoke")
+    @decorators.idempotent_id('9a0fb034-86af-4df0-86fa-f8bd7db21ae0')
+    @utils.requires_ext(extension='container_quotas', service='object')
+    @decorators.attr(type="smoke")
     def test_upload_valid_object(self):
         """Attempts to uploads an object smaller than the bytes quota."""
         object_name = data_utils.rand_name(name="TestObject")
@@ -68,11 +66,11 @@ class ContainerQuotasTest(base.BaseObjectTest):
         nafter = self._get_bytes_used()
         self.assertEqual(nbefore + len(data), nafter)
 
-    @test.idempotent_id('22eeeb2b-3668-4160-baef-44790f65a5a0')
-    @test.requires_ext(extension='container_quotas', service='object')
-    @test.attr(type="smoke")
+    @decorators.idempotent_id('22eeeb2b-3668-4160-baef-44790f65a5a0')
+    @utils.requires_ext(extension='container_quotas', service='object')
+    @decorators.attr(type="smoke")
     def test_upload_large_object(self):
-        """Attempts to upload an object lagger than the bytes quota."""
+        """Attempts to upload an object larger than the bytes quota."""
         object_name = data_utils.rand_name(name="TestObject")
         data = data_utils.arbitrary_string(QUOTA_BYTES + 1)
 
@@ -85,9 +83,9 @@ class ContainerQuotasTest(base.BaseObjectTest):
         nafter = self._get_bytes_used()
         self.assertEqual(nbefore, nafter)
 
-    @test.idempotent_id('3a387039-697a-44fc-a9c0-935de31f426b')
-    @test.requires_ext(extension='container_quotas', service='object')
-    @test.attr(type="smoke")
+    @decorators.idempotent_id('3a387039-697a-44fc-a9c0-935de31f426b')
+    @utils.requires_ext(extension='container_quotas', service='object')
+    @decorators.attr(type="smoke")
     def test_upload_too_many_objects(self):
         """Attempts to upload many objects that exceeds the count limit."""
         for _ in range(QUOTA_COUNT):

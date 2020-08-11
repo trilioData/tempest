@@ -13,18 +13,18 @@
 # under the License.
 
 from tempest.api.network import base
-from tempest.common.utils import data_utils
+from tempest.common import utils
 from tempest import config
-from tempest import test
-from tempest_lib import exceptions as lib_exc
+from tempest.lib.common.utils import data_utils
+from tempest.lib.common.utils import test_utils
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 CONF = config.CONF
 
 
 class SubnetPoolsTestJSON(base.BaseNetworkTest):
-    """
-    Tests the following operations in the subnetpools API using the REST client
-    for Neutron:
+    """Tests the following operations in the subnetpools API:
 
         Create a subnet pool.
         Update a subnet pool.
@@ -32,7 +32,7 @@ class SubnetPoolsTestJSON(base.BaseNetworkTest):
         Lists subnet pool.
         Show subnet pool details.
 
-    v2.0 of the Neutron API is assumed. It is assumed that subnetpools
+    v2.0 of the Neutron API is assumed. It is assumed that subnet_allocation
     options mentioned in the [network-feature-enabled] section and
     default_network option mentioned in the [network] section of
     etc/tempest.conf:
@@ -42,37 +42,33 @@ class SubnetPoolsTestJSON(base.BaseNetworkTest):
     @classmethod
     def skip_checks(cls):
         super(SubnetPoolsTestJSON, cls).skip_checks()
-        if not test.is_extension_enabled('subnetpools', 'network'):
-            msg = "subnet pools extension not enabled."
+        if not utils.is_extension_enabled('subnet_allocation', 'network'):
+            msg = "subnet_allocation extension not enabled."
             raise cls.skipException(msg)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('62595970-ab1c-4b7f-8fcc-fddfe55e9811')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('62595970-ab1c-4b7f-8fcc-fddfe55e9811')
     def test_create_list_show_update_delete_subnetpools(self):
         subnetpool_name = data_utils.rand_name('subnetpools')
         # create subnet pool
         prefix = CONF.network.default_network
-        body = self.client.create_subnetpools(name=subnetpool_name,
-                                              prefixes=prefix)
+        body = self.subnetpools_client.create_subnetpool(name=subnetpool_name,
+                                                         prefixes=prefix)
         subnetpool_id = body["subnetpool"]["id"]
-        self.addCleanup(self._cleanup_subnetpools, subnetpool_id)
+        self.addCleanup(test_utils.call_and_ignore_notfound_exc,
+                        self.subnetpools_client.delete_subnetpool,
+                        subnetpool_id)
         self.assertEqual(subnetpool_name, body["subnetpool"]["name"])
         # get detail about subnet pool
-        body = self.client.show_subnetpools(subnetpool_id)
+        body = self.subnetpools_client.show_subnetpool(subnetpool_id)
         self.assertEqual(subnetpool_name, body["subnetpool"]["name"])
         # update the subnet pool
         subnetpool_name = data_utils.rand_name('subnetpools_update')
-        body = self.client.update_subnetpools(subnetpool_id,
-                                              name=subnetpool_name)
+        body = self.subnetpools_client.update_subnetpool(subnetpool_id,
+                                                         name=subnetpool_name)
         self.assertEqual(subnetpool_name, body["subnetpool"]["name"])
         # delete subnet pool
-        body = self.client.delete_subnetpools(subnetpool_id)
-        self.assertRaises(lib_exc.NotFound, self.client.show_subnetpools,
+        body = self.subnetpools_client.delete_subnetpool(subnetpool_id)
+        self.assertRaises(lib_exc.NotFound,
+                          self.subnetpools_client.show_subnetpool,
                           subnetpool_id)
-
-    def _cleanup_subnetpools(self, subnetpool_id):
-        # this is used to cleanup the resources
-        try:
-            self.client.delete_subnetpools(subnetpool_id)
-        except lib_exc.NotFound:
-            pass
