@@ -14,16 +14,23 @@
 #    under the License.
 
 import netaddr
-from tempest_lib import decorators
+import testtools
 
 from tempest.api.compute import base
+from tempest.common import utils
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
+from tempest.lib import exceptions
 
 CONF = config.CONF
 
 
+# TODO(mriedem): Remove this test class once the nova queens branch goes into
+# extended maintenance mode.
 class VirtualInterfacesTestJSON(base.BaseV2ComputeTest):
+    max_microversion = '2.43'
+
+    depends_on_nova_network = True
 
     @classmethod
     def setup_credentials(cls):
@@ -39,23 +46,25 @@ class VirtualInterfacesTestJSON(base.BaseV2ComputeTest):
     @classmethod
     def resource_setup(cls):
         super(VirtualInterfacesTestJSON, cls).resource_setup()
-        server = cls.create_test_server(wait_until='ACTIVE')
-        cls.server_id = server['id']
+        cls.server = cls.create_test_server(wait_until='ACTIVE')
 
-    @decorators.skip_because(bug="1183436",
-                             condition=CONF.service_available.neutron)
-    @test.idempotent_id('96c4e2ef-5e4d-4d7f-87f5-fed6dca18016')
-    @test.services('network')
+    @decorators.idempotent_id('96c4e2ef-5e4d-4d7f-87f5-fed6dca18016')
+    @utils.services('network')
     def test_list_virtual_interfaces(self):
         # Positive test:Should be able to GET the virtual interfaces list
         # for a given server_id
-        output = self.client.list_virtual_interfaces(self.server_id)
-        self.assertIsNotNone(output)
-        virt_ifaces = output
-        self.assertNotEqual(0, len(virt_ifaces['virtual_interfaces']),
-                            'Expected virtual interfaces, got 0 interfaces.')
-        for virt_iface in virt_ifaces['virtual_interfaces']:
-            mac_address = virt_iface['mac_address']
-            self.assertTrue(netaddr.valid_mac(mac_address),
-                            "Invalid mac address detected. mac address: %s"
-                            % mac_address)
+
+        if CONF.service_available.neutron:
+            with testtools.ExpectedException(exceptions.BadRequest):
+                self.client.list_virtual_interfaces(self.server['id'])
+        else:
+            output = self.client.list_virtual_interfaces(self.server['id'])
+            virt_ifaces = output['virtual_interfaces']
+            self.assertNotEmpty(virt_ifaces,
+                                'Expected virtual interfaces, got 0 '
+                                'interfaces.')
+            for virt_iface in virt_ifaces:
+                mac_address = virt_iface['mac_address']
+                self.assertTrue(netaddr.valid_mac(mac_address),
+                                "Invalid mac address detected. mac address: %s"
+                                % mac_address)

@@ -12,15 +12,14 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import uuid
-
-import mock
+import fixtures
 from oslo_config import cfg
-from oslotest import mockpatch
 import testtools
 
+from tempest.common import utils
 from tempest import config
 from tempest import exceptions
+from tempest.lib.common.utils import data_utils
 from tempest import test
 from tempest.tests import base
 from tempest.tests import fake_config
@@ -30,37 +29,14 @@ class BaseDecoratorsTest(base.TestCase):
     def setUp(self):
         super(BaseDecoratorsTest, self).setUp()
         self.config_fixture = self.useFixture(fake_config.ConfigFixture())
-        self.stubs.Set(config, 'TempestConfigPrivate', fake_config.FakePrivate)
+        self.patchobject(config, 'TempestConfigPrivate',
+                         fake_config.FakePrivate)
 
 
-class TestAttrDecorator(BaseDecoratorsTest):
-    def _test_attr_helper(self, expected_attrs, **decorator_args):
-        @test.attr(**decorator_args)
-        def foo():
-            pass
-
-        # By our test.attr decorator the attribute __testtools_attrs will be
-        # set only for 'type' argument, so we test it first.
-        if 'type' in decorator_args:
-            # this is what testtools sets
-            self.assertEqual(getattr(foo, '__testtools_attrs'),
-                             set(expected_attrs))
-
-    def test_attr_without_type(self):
-        self._test_attr_helper(expected_attrs='baz', bar='baz')
-
-    def test_attr_decorator_with_list_type(self):
-        # if type is 'smoke' we'll get the original list of types
-        self._test_attr_helper(expected_attrs=['smoke', 'foo'],
-                               type=['smoke', 'foo'])
-
-    def test_attr_decorator_with_unknown_type(self):
-        self._test_attr_helper(expected_attrs=['foo'], type='foo')
-
-    def test_attr_decorator_with_duplicated_type(self):
-        self._test_attr_helper(expected_attrs=['foo'], type=['foo', 'foo'])
-
-
+# NOTE: The test module is for tempest.test.idempotent_id.
+# After all projects switch to use decorators.idempotent_id,
+# we can remove tempest.test.idempotent_id as well as this
+# test module
 class TestIdempotentIdDecorator(BaseDecoratorsTest):
 
     def _test_helper(self, _id, **decorator_args):
@@ -79,13 +55,13 @@ class TestIdempotentIdDecorator(BaseDecoratorsTest):
         return foo
 
     def test_positive(self):
-        _id = str(uuid.uuid4())
+        _id = data_utils.rand_uuid()
         foo = self._test_helper(_id)
         self.assertIn('id-%s' % _id, getattr(foo, '__testtools_attrs'))
         self.assertTrue(foo.__doc__.startswith('Test idempotent id: %s' % _id))
 
     def test_positive_without_doc(self):
-        _id = str(uuid.uuid4())
+        _id = data_utils.rand_uuid()
         foo = self._test_helper_without_doc(_id)
         self.assertTrue(foo.__doc__.startswith('Test idempotent id: %s' % _id))
 
@@ -101,7 +77,7 @@ class TestIdempotentIdDecorator(BaseDecoratorsTest):
 class TestServicesDecorator(BaseDecoratorsTest):
     def _test_services_helper(self, *decorator_args):
         class TestFoo(test.BaseTestCase):
-            @test.services(*decorator_args)
+            @utils.services(*decorator_args)
             def test_bar(self):
                 return 0
 
@@ -125,14 +101,14 @@ class TestServicesDecorator(BaseDecoratorsTest):
                           'bad_service')
 
     def test_services_decorator_with_service_valid_and_unavailable(self):
-        self.useFixture(mockpatch.PatchObject(test.CONF.service_available,
-                                              'cinder', False))
+        self.useFixture(fixtures.MockPatchObject(test.CONF.service_available,
+                                                 'cinder', False))
         self.assertRaises(testtools.TestCase.skipException,
                           self._test_services_helper, 'compute',
                           'volume')
 
     def test_services_list(self):
-        service_list = test.get_service_list()
+        service_list = utils.get_service_list()
         for service in service_list:
             try:
                 self._test_services_helper(service)
@@ -140,7 +116,7 @@ class TestServicesDecorator(BaseDecoratorsTest):
                 self.fail('%s is not listed in the valid service tag list'
                           % service)
             except KeyError:
-                # NOTE(mtreinish): This condition is to test for a entry in
+                # NOTE(mtreinish): This condition is to test for an entry in
                 # the outer decorator list but not in the service_list dict.
                 # However, because we're looping over the service_list dict
                 # it's unlikely we'll trigger this. So manual review is still
@@ -154,36 +130,6 @@ class TestServicesDecorator(BaseDecoratorsTest):
                 continue
 
 
-class TestStressDecorator(BaseDecoratorsTest):
-    def _test_stresstest_helper(self, expected_frequency='process',
-                                expected_inheritance=False,
-                                **decorator_args):
-        @test.stresstest(**decorator_args)
-        def foo():
-            pass
-        self.assertEqual(getattr(foo, 'st_class_setup_per'),
-                         expected_frequency)
-        self.assertEqual(getattr(foo, 'st_allow_inheritance'),
-                         expected_inheritance)
-        self.assertEqual(set(['stress']), getattr(foo, '__testtools_attrs'))
-
-    def test_stresstest_decorator_default(self):
-        self._test_stresstest_helper()
-
-    def test_stresstest_decorator_class_setup_frequency(self):
-        self._test_stresstest_helper('process', class_setup_per='process')
-
-    def test_stresstest_decorator_class_setup_frequency_non_default(self):
-        self._test_stresstest_helper(expected_frequency='application',
-                                     class_setup_per='application')
-
-    def test_stresstest_decorator_set_frequency_and_inheritance(self):
-        self._test_stresstest_helper(expected_frequency='application',
-                                     expected_inheritance=True,
-                                     class_setup_per='application',
-                                     allow_inheritance=True)
-
-
 class TestRequiresExtDecorator(BaseDecoratorsTest):
     def setUp(self):
         super(TestRequiresExtDecorator, self).setUp()
@@ -193,7 +139,7 @@ class TestRequiresExtDecorator(BaseDecoratorsTest):
     def _test_requires_ext_helper(self, expected_to_skip=True,
                                   **decorator_args):
         class TestFoo(test.BaseTestCase):
-            @test.requires_ext(**decorator_args)
+            @utils.requires_ext(**decorator_args)
             def test_bar(self):
                 return 0
 
@@ -201,7 +147,13 @@ class TestRequiresExtDecorator(BaseDecoratorsTest):
         if expected_to_skip:
             self.assertRaises(testtools.TestCase.skipException, t.test_bar)
         else:
-            self.assertEqual(t.test_bar(), 0)
+            try:
+                self.assertEqual(t.test_bar(), 0)
+            except testtools.TestCase.skipException:
+                # We caught a skipException but we didn't expect to skip
+                # this test so raise a hard test failure instead.
+                raise testtools.TestCase.failureException(
+                    "Not supposed to skip")
 
     def test_requires_ext_decorator(self):
         self._test_requires_ext_helper(expected_to_skip=False,
@@ -213,7 +165,7 @@ class TestRequiresExtDecorator(BaseDecoratorsTest):
                                        service='compute')
 
     def test_requires_ext_decorator_with_all_ext_enabled(self):
-        cfg.CONF.set_default('api_extensions', 'all',
+        cfg.CONF.set_default('api_extensions', ['all'],
                              group='compute-feature-enabled')
         self._test_requires_ext_helper(expected_to_skip=False,
                                        extension='random_ext',
@@ -224,19 +176,3 @@ class TestRequiresExtDecorator(BaseDecoratorsTest):
                           self._test_requires_ext_helper,
                           extension='enabled_ext',
                           service='bad_service')
-
-
-class TestSimpleNegativeDecorator(BaseDecoratorsTest):
-    @test.SimpleNegativeAutoTest
-    class FakeNegativeJSONTest(test.NegativeAutoTest):
-        _schema = {}
-
-    def test_testfunc_exist(self):
-        self.assertIn("test_fake_negative", dir(self.FakeNegativeJSONTest))
-
-    @mock.patch('tempest.test.NegativeAutoTest.execute')
-    def test_testfunc_calls_execute(self, mock):
-        obj = self.FakeNegativeJSONTest("test_fake_negative")
-        self.assertIn("test_fake_negative", dir(obj))
-        obj.test_fake_negative()
-        mock.assert_called_once_with(self.FakeNegativeJSONTest._schema)

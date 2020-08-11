@@ -14,16 +14,17 @@ multiple OpenStack services to exercise the touch points between them.
 
 Any scenario test should have a real-life use case. An example would be:
 
- - "As operator I want to start with a blank environment":
-    1. upload a glance image
-    2. deploy a vm from it
-    3. ssh to the guest
-    4. create a snapshot of the vm
+- "As operator I want to start with a blank environment":
+
+  1. upload a glance image
+  2. deploy a vm from it
+  3. ssh to the guest
+  4. create a snapshot of the vm
 
 
-Why are these tests in tempest?
+Why are these tests in Tempest?
 -------------------------------
-This is one of tempests core purposes, testing the integration between
+This is one of Tempest's core purposes, testing the integration between
 projects.
 
 
@@ -43,7 +44,7 @@ While we are looking for interaction of 2 or more services, be
 specific in your interactions. A giant "this is my data center" smoke
 test is hard to debug when it goes wrong.
 
-A flow of interactions between glance and nova, like in the
+A flow of interactions between Glance and Nova, like in the
 introduction, is a good example. Especially if it involves a repeated
 interaction when a resource is setup, modified, detached, and then
 reused later again.

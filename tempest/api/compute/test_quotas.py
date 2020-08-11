@@ -15,7 +15,8 @@
 
 from tempest.api.compute import base
 from tempest.common import tempest_fixtures as fixtures
-from tempest import test
+from tempest.common import utils
+from tempest.lib import decorators
 
 
 class QuotasTestJSON(base.BaseV2ComputeTest):
@@ -23,7 +24,7 @@ class QuotasTestJSON(base.BaseV2ComputeTest):
     @classmethod
     def skip_checks(cls):
         super(QuotasTestJSON, cls).skip_checks()
-        if not test.is_extension_enabled('os-quota-sets', 'compute'):
+        if not utils.is_extension_enabled('os-quota-sets', 'compute'):
             msg = "quotas extension not enabled."
             raise cls.skipException(msg)
 
@@ -42,15 +43,21 @@ class QuotasTestJSON(base.BaseV2ComputeTest):
         super(QuotasTestJSON, cls).resource_setup()
         cls.tenant_id = cls.client.tenant_id
         cls.user_id = cls.client.user_id
-        cls.default_quota_set = set(('injected_file_content_bytes',
-                                     'metadata_items', 'injected_files',
-                                     'ram', 'floating_ips',
-                                     'fixed_ips', 'key_pairs',
-                                     'injected_file_path_bytes',
-                                     'instances', 'security_group_rules',
-                                     'cores', 'security_groups'))
+        cls.default_quota_set = set(('metadata_items', 'ram', 'key_pairs',
+                                     'instances', 'cores',
+                                     'server_group_members', 'server_groups'))
+        if cls.is_requested_microversion_compatible('2.35'):
+            cls.default_quota_set = \
+                cls.default_quota_set | set(['fixed_ips', 'floating_ips',
+                                             'security_group_rules',
+                                             'security_groups'])
+        if cls.is_requested_microversion_compatible('2.56'):
+            cls.default_quota_set = \
+                cls.default_quota_set | set(['injected_file_content_bytes',
+                                             'injected_file_path_bytes',
+                                             'injected_files'])
 
-    @test.idempotent_id('f1ef0a97-dbbb-4cca-adc5-c9fbc4f76107')
+    @decorators.idempotent_id('f1ef0a97-dbbb-4cca-adc5-c9fbc4f76107')
     def test_get_quotas(self):
         # User can get the quota set for it's tenant
         expected_quota_set = self.default_quota_set | set(['id'])
@@ -60,13 +67,13 @@ class QuotasTestJSON(base.BaseV2ComputeTest):
             self.assertIn(quota, quota_set.keys())
 
         # get the quota set using user id
-        quota_set = self.client.show_quota_set(self.tenant_id,
-                                               self.user_id)['quota_set']
+        quota_set = self.client.show_quota_set(
+            self.tenant_id, user_id=self.user_id)['quota_set']
         self.assertEqual(quota_set['id'], self.tenant_id)
         for quota in expected_quota_set:
             self.assertIn(quota, quota_set.keys())
 
-    @test.idempotent_id('9bfecac7-b966-4f47-913f-1a9e2c12134a')
+    @decorators.idempotent_id('9bfecac7-b966-4f47-913f-1a9e2c12134a')
     def test_get_default_quotas(self):
         # User can get the default quota set for it's tenant
         expected_quota_set = self.default_quota_set | set(['id'])
@@ -76,11 +83,11 @@ class QuotasTestJSON(base.BaseV2ComputeTest):
         for quota in expected_quota_set:
             self.assertIn(quota, quota_set.keys())
 
-    @test.idempotent_id('cd65d997-f7e4-4966-a7e9-d5001b674fdc')
+    @decorators.idempotent_id('cd65d997-f7e4-4966-a7e9-d5001b674fdc')
     def test_compare_tenant_quotas_with_default_quotas(self):
         # Tenants are created with the default quota values
-        defualt_quota_set = \
+        default_quota_set = \
             self.client.show_default_quota_set(self.tenant_id)['quota_set']
         tenant_quota_set = (self.client.show_quota_set(self.tenant_id)
                             ['quota_set'])
-        self.assertEqual(defualt_quota_set, tenant_quota_set)
+        self.assertEqual(default_quota_set, tenant_quota_set)

@@ -15,6 +15,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -34,35 +35,43 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
-	reporting.add_test_script(str(__name__))
+        reporting.add_test_script(str(__name__))
 
-    @test.pre_req({'type':'bootfromvol_workload'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @test.pre_req({'type': 'bootfromvol_workload'})
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_tvault1063_bootfromvol_restore(self):
-	try:
-	    
-            #Create full snapshot
-            self.snapshot_id=self.workload_snapshot(self.workload_id, True)
+        try:
+
+            # Create full snapshot
+            self.snapshot_id = self.workload_snapshot(self.workload_id, True)
             self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
-                reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Create full snapshot of boot from volume instance",
+                    tvaultconf.PASS)
             else:
-                reporting.add_test_step("Create full snapshot of boot from volume instance", tvaultconf.FAIL)
+                reporting.add_test_step(
+                    "Create full snapshot of boot from volume instance",
+                    tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
-	    self.delete_vms(self.workload_instances)
+            self.delete_vms(self.workload_instances)
 
-	    #Trigger oneclick restore
-	    self.restore_id = self.snapshot_restore(self.workload_id, self.snapshot_id)
-	    self.wait_for_workload_tobe_available(self.workload_id)
+            # Trigger oneclick restore
+            self.restore_id = self.snapshot_restore(
+                self.workload_id, self.snapshot_id)
+            self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
-                reporting.add_test_step("Oneclick restore of boot from volume instance", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Oneclick restore of boot from volume instance",
+                    tvaultconf.PASS)
             else:
-                reporting.add_test_step("Oneclick restore of boot from volume instance", tvaultconf.FAIL)
+                reporting.add_test_step(
+                    "Oneclick restore of boot from volume instance",
+                    tvaultconf.FAIL)
                 raise Exception("Oneclick restore failed")
-	    reporting.test_case_to_write()
+            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))

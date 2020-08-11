@@ -14,16 +14,16 @@
 #    under the License.
 
 from tempest.api.identity import base
-from tempest import test
+from tempest.lib import decorators
 
 
 class TestApiDiscovery(base.BaseIdentityV2Test):
     """Tests for API discovery features."""
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('ea889a68-a15f-4166-bfb1-c12456eae853')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('ea889a68-a15f-4166-bfb1-c12456eae853')
     def test_api_version_resources(self):
-        descr = self.non_admin_client.get_api_description()['version']
+        descr = self.non_admin_client.show_api_description()['version']
         expected_resources = ('id', 'links', 'media-types', 'status',
                               'updated')
 
@@ -31,10 +31,10 @@ class TestApiDiscovery(base.BaseIdentityV2Test):
         for res in expected_resources:
             self.assertIn(res, keys)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('007a0be0-78fe-4fdb-bbee-e9216cc17bb2')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('007a0be0-78fe-4fdb-bbee-e9216cc17bb2')
     def test_api_media_types(self):
-        descr = self.non_admin_client.get_api_description()['version']
+        descr = self.non_admin_client.show_api_description()['version']
         # Get MIME type bases and descriptions
         media_types = [(media_type['base'], media_type['type']) for
                        media_type in descr['media-types']]
@@ -46,10 +46,10 @@ class TestApiDiscovery(base.BaseIdentityV2Test):
         for s_type in supported_types:
             self.assertIn(s_type, media_types)
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('77fd6be0-8801-48e6-b9bf-38cdd2f253ec')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('77fd6be0-8801-48e6-b9bf-38cdd2f253ec')
     def test_api_version_statuses(self):
-        descr = self.non_admin_client.get_api_description()['version']
+        descr = self.non_admin_client.show_api_description()['version']
         status = descr['status'].lower()
         supported_statuses = ['current', 'stable', 'experimental',
                               'supported', 'deprecated']

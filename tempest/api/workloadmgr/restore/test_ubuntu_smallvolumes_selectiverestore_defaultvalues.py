@@ -15,13 +15,14 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
 from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
-from tempest import  reporting
+from tempest import reporting
 import time
 import collections
 LOG = logging.getLogger(__name__)
@@ -35,146 +36,184 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
-	reporting.add_test_script(str(__name__))
-    @test.pre_req({'type':'bootfrom_image_with_floating_ips'})
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+        reporting.add_test_script(str(__name__))
+
+    @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
-	try:
-	    if self.exception != "":
+        try:
+            if self.exception != "":
                 LOG.debug("pre req failed")
                 reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
-                raise Exception (str(self.exception))
+                raise Exception(str(self.exception))
             LOG.debug("pre req completed")
 
-	    volumes = tvaultconf.volumes_parts
+            volumes = tvaultconf.volumes_parts
             mount_points = ["mount_data_b", "mount_data_c"]
-            
 
-            int_net_1_name = self.get_net_name(CONF.network.internal_network_id)
+            int_net_1_name = self.get_net_name(
+                CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
-            int_net_1_subnets = self.get_subnet_id(CONF.network.internal_network_id)
+            int_net_1_subnets = self.get_subnet_id(
+                CONF.network.internal_network_id)
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
-            #Create instance details for restore.json
+            # Create instance details for restore.json
             for i in range(len(self.workload_instances)):
-                vm_name = "tempest_test_vm_"+str(i+1)+"_restored"
-                temp_instance_data = { 'id': self.workload_instances[i],
-                                       'include': True,
-                                       'restore_boot_disk': True,
-                                       'name': vm_name,
-                                       'vdisks':[]
-                                     }
+                vm_name = "tempest_test_vm_" + str(i + 1) + "_restored"
+                temp_instance_data = {'id': self.workload_instances[i],
+                                      'include': True,
+                                      'restore_boot_disk': True,
+                                      'name': vm_name,
+                                      'vdisks': []
+                                      }
                 self.instance_details.append(temp_instance_data)
-            LOG.debug("Instance details for restore: " + str(self.instance_details))
+            LOG.debug("Instance details for restore: " +
+                      str(self.instance_details))
 
-            #Create network details for restore.json
-            snapshot_network = { 'name': int_net_1_name,
-                                 'id': CONF.network.internal_network_id,
-                                 'subnet': { 'id': int_net_1_subnets }
-                               }
-            target_network = { 'name': int_net_1_name,
-                               'id': CONF.network.internal_network_id,
-                               'subnet': { 'id': int_net_1_subnets }
-                             }
-            self.network_details = [ { 'snapshot_network': snapshot_network,
-                                       'target_network': target_network } ]
-            LOG.debug("Network details for restore: " + str(self.network_details))
-	    
-	    #Fill some more data on each volume attached
-            tree = lambda: collections.defaultdict(tree)
+            # Create network details for restore.json
+            snapshot_network = {'name': int_net_1_name,
+                                'id': CONF.network.internal_network_id,
+                                'subnet': {'id': int_net_1_subnets}
+                                }
+            target_network = {'name': int_net_1_name,
+                              'id': CONF.network.internal_network_id,
+                              'subnet': {'id': int_net_1_subnets}
+                              }
+            self.network_details = [{'snapshot_network': snapshot_network,
+                                     'target_network': target_network}]
+            LOG.debug("Network details for restore: " +
+                      str(self.network_details))
+
+            # Fill some more data on each volume attached
+            def tree(): return collections.defaultdict(tree)
             self.md5sums_dir_before = tree()
             for floating_ip in self.floating_ips_list:
                 for mount_point in mount_points:
-	            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
+                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
+                        str(floating_ip))
                     self.addCustomSizedfilesOnLinux(ssh, mount_point, 5)
-	            ssh.close()
-	        for mount_point in mount_points:
-	            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-                    self.md5sums_dir_before[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-	            ssh.close()
-	        
-	    LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
+                    ssh.close()
+                for mount_point in mount_points:
+                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
+                        str(floating_ip))
+                    self.md5sums_dir_before[str(floating_ip)][str(
+                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+                    ssh.close()
 
-            #Trigger selective restore
-            self.restore_id=self.snapshot_selective_restore(self.workload_id, self.snapshot_id,restore_name=tvaultconf.restore_name,
-                                                            instance_details=self.instance_details, network_details=self.network_details)
-            self.wait_for_snapshot_tobe_available(self.workload_id, self.snapshot_id)
+            LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
+
+            # Trigger selective restore
+            self.restore_id = self.snapshot_selective_restore(
+                self.workload_id,
+                self.snapshot_id,
+                restore_name=tvaultconf.restore_name,
+                instance_details=self.instance_details,
+                network_details=self.network_details)
+            self.wait_for_snapshot_tobe_available(
+                self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Selective restore", tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
-            #Fetch instance details after restore
+            # Fetch instance details after restore
             self.restored_vm_details_list = []
-            self.vm_list  =  self.get_restored_vm_list(self.restore_id)
-            LOG.debug("Restored vms : " + str (self.vm_list))
+            self.vm_list = self.get_restored_vm_list(self.restore_id)
+            LOG.debug("Restored vms : " + str(self.vm_list))
 
             for id in range(len(self.vm_list)):
-                self.restored_vm_details_list.append(self.get_vm_details(self.vm_list[id]))
-            LOG.debug("Restored vm details list: " + str(self.restored_vm_details_list))
+                self.restored_vm_details_list.append(
+                    self.get_vm_details(self.vm_list[id]))
+            LOG.debug("Restored vm details list: " +
+                      str(self.restored_vm_details_list))
 
-            self.vms_details_after_restore = self.get_vms_details_list(self.restored_vm_details_list)
-            LOG.debug("VM details after restore: " + str(self.vms_details_after_restore))
+            self.vms_details_after_restore = self.get_vms_details_list(
+                self.restored_vm_details_list)
+            LOG.debug("VM details after restore: " +
+                      str(self.vms_details_after_restore))
 
-            #Compare the data before and after restore
+            # Compare the data before and after restore
             for i in range(len(self.vms_details_after_restore)):
                 if(self.vms_details_after_restore[i]['network_name'] == int_net_1_name):
-                    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.PASS)
+                    reporting.add_test_step(
+                        "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
                     LOG.error("Expected network: " + str(int_net_1_name))
-                    LOG.error("Restored network: " + str(self.vms_details_after_restore[i]['network_name']))
-                    reporting.add_test_step("Network verification for instance-" + str(i+1), tvaultconf.FAIL)
-	    	    reporting.set_test_script_status(tvaultconf.FAIL)
+                    LOG.error("Restored network: " +
+                              str(self.vms_details_after_restore[i]['network_name']))
+                    reporting.add_test_step(
+                        "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
                 if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
-                    reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.PASS)
+                    reporting.add_test_step(
+                        "Keypair verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
-                    LOG.error("Original keypair details: " + str(self.original_fingerprint))
-                    LOG.error("Restored keypair details: " + str(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair'])))
-                    reporting.add_test_step("Keypair verification for instance-" + str(i+1), tvaultconf.FAIL)
-	    	    reporting.set_test_script_status(tvaultconf.FAIL)
+                    LOG.error("Original keypair details: " +
+                              str(self.original_fingerprint))
+                    LOG.error(
+                        "Restored keypair details: " + str(
+                            self.get_key_pair_details(
+                                self.vms_details_after_restore[i]['keypair'])))
+                    reporting.add_test_step(
+                        "Keypair verification for instance-" + str(i + 1), tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
                 if(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id']) == self.original_flavor_conf):
-                    reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.PASS)
+                    reporting.add_test_step(
+                        "Flavor verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
-                    LOG.error("Original flavor details: " + str(self.original_flavor_conf))
-                    LOG.error("Restored flavor details: " + str(self.get_flavor_details(self.vms_details_after_restore[i]['flavor_id'])))
-                    reporting.add_test_step("Flavor verification for instance-" + str(i+1), tvaultconf.FAIL)
-	    	    reporting.set_test_script_status(tvaultconf.FAIL)
+                    LOG.error("Original flavor details: " +
+                              str(self.original_flavor_conf))
+                    LOG.error(
+                        "Restored flavor details: " + str(
+                            self.get_flavor_details(
+                                self.vms_details_after_restore[i]['flavor_id'])))
+                    reporting.add_test_step(
+                        "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
-            #Verify floating ips
+            # Verify floating ips
             self.floating_ips_after_restore = []
             for i in range(len(self.vms_details_after_restore)):
-                self.floating_ips_after_restore.append(self.vms_details_after_restore[i]['floating_ip'])
+                self.floating_ips_after_restore.append(
+                    self.vms_details_after_restore[i]['floating_ip'])
             if(self.floating_ips_after_restore.sort() == self.floating_ips_list.sort()):
-                reporting.add_test_step("Floating ip verification", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Floating ip verification", tvaultconf.PASS)
             else:
-                LOG.error("Floating ips before restore: " + str(self.floating_ips_list.sort()))
-                LOG.error("Floating ips after restore: " + str(self.floating_ips_after_restore.sort()))
-                reporting.add_test_step("Floating ip verification", tvaultconf.FAIL)
-	        reporting.set_test_script_status(tvaultconf.FAIL)
+                LOG.error("Floating ips before restore: " +
+                          str(self.floating_ips_list.sort()))
+                LOG.error("Floating ips after restore: " +
+                          str(self.floating_ips_after_restore.sort()))
+                reporting.add_test_step(
+                    "Floating ip verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
-	    #calculate md5sum after restore
-	    tree = lambda: collections.defaultdict(tree)
+            # calculate md5sum after restore
+            def tree(): return collections.defaultdict(tree)
             md5_sum_after_selective_restore = tree()
             for floating_ip in self.floating_ips_list:
                 for mount_point in mount_points:
-	            ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
-                    md5_sum_after_selective_restore[str(floating_ip)][str(mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-	            ssh.close()
-	    LOG.debug("md5_sum_after_selective_restore" + str(md5_sum_after_selective_restore))
-	    
-	    #md5sum verification
-	    if(self.md5sums_dir_before == md5_sum_after_selective_restore):
+                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
+                        str(floating_ip))
+                    md5_sum_after_selective_restore[str(floating_ip)][str(
+                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+                    ssh.close()
+            LOG.debug("md5_sum_after_selective_restore" +
+                      str(md5_sum_after_selective_restore))
+
+            # md5sum verification
+            if(self.md5sums_dir_before == md5_sum_after_selective_restore):
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
             else:
-		reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
                 reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
-	    
-	    reporting.test_case_to_write()
 
-	except Exception as e:
-	    LOG.error("Exception: " + str(e))
-	    reporting.set_test_script_status(tvaultconf.FAIL)
-	    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()

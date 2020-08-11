@@ -16,7 +16,7 @@ import sys
 import os
 from tempest.api.workloadmgr import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
 import json
 import datetime
 import time
@@ -30,7 +30,6 @@ CONF = config.CONF
 sys.path.append(os.getcwd())
 
 
-
 class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
@@ -38,10 +37,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
-        cls.client = cls.os.wlm_client
 
-    @test.attr(type='smoke')
-    @test.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_workload(self):
         self.snap_list = []
         file = open("Tvault-1268.txt", "r")
@@ -49,28 +47,29 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         self.workload_id = self.workload[0]
         self.volume_id = self.workload[1]
         self.server_id = self.workload[2]
-        self.assertEqual(self.getRetentionPolicyTypeStatus(self.workload_id), 'Number of Snapshots to Keep')
-        self.assertEqual(self.getRetentionPolicyValueStatus(self.workload_id), 2)
+        self.assertEqual(self.getRetentionPolicyTypeStatus(
+            self.workload_id), 'Number of Snapshots to Keep')
+        self.assertEqual(
+            self.getRetentionPolicyValueStatus(self.workload_id), 2)
         self.snap_list = self.getSnapshotList(self.workload_id)
-        if (len(self.snap_list)==2):
+        if (len(self.snap_list) == 2):
             LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
-            LOG.debug('At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
-        else :
-            LOG.debug('Retention Policy No. of snapshot to keep is not working properly')
+            LOG.debug(
+                'At any point of time there are only N snapshots stored on the disk where N is "Number of Snapshots to Keep"  ')
+        else:
+            LOG.debug(
+                'Retention Policy No. of snapshot to keep is not working properly')
             LOG.debug('No. of snapshot %s' % (len(self.snap_list)))
             raise Exception("Retention Policy No. of snapshot to keep Failed")
-        
-        for i in range (0,len(self.snap_list)):
-           self.snapshot_delete(self.workload_id , self.snap_list[i])
+
+        for i in range(0, len(self.snap_list)):
+            self.snapshot_delete(self.workload_id, self.snap_list[i])
         self.workload_delete(self.workload_id)
         self.detach_volume(self.server_id, self.volume_id)
         self.vol_snapshot_list = self.get_volume_snapshots(self.volume_id)
-        for i in range (0,len(self.vol_snapshot_list)):
+        for i in range(0, len(self.vol_snapshot_list)):
             LOG.debug('Volume Snapshot ID is : %s' % self.vol_snapshot_list[i])
             self.delete_volume_snapshot(self.vol_snapshot_list[i])
         self.delete_vm(self.server_id)
         self.delete_volume(self.volume_id)
         os.remove('Tvault-1267.txt')
-       
-    
-   
