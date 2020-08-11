@@ -176,6 +176,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details_bf[vm]['links'][1]['href'] = ''
                 vm_details_af[vm]['links'][1]['href'] = ''
                 del vm_details_af[vm]['metadata']['config_drive']
+                del vm_details_af[vm]['metadata']['ordered_interfaces']
                 del vm_details_bf[vm]['links']
                 del vm_details_af[vm]['links']
                 vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
