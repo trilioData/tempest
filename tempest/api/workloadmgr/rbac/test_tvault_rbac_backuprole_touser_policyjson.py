@@ -129,6 +129,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.restore_id1)
                 LOG.debug("Restore Volume ID: " + str(self.restore_volume_id1))
 
+
             # Use admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.username
             os.environ['OS_PASSWORD'] = CONF.identity.password
