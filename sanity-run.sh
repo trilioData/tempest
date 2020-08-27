@@ -18,6 +18,7 @@ sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' te
 testname=$(echo $SUITE_LIST| cut -d'.' -f 4)
 touch $TEST_LIST_FILE
 python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
+rm -rf ./lock
 rm -rf /opt/lock
 LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
 LOGS_DIR=logs/$LOGS_DIR

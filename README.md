@@ -8,12 +8,49 @@ Repo for automation build, test etc.
     - Detailed logging
     - Execute prerequisites at test suite level in order to reuse resources and reduce execution time
 
+* Supported Operating systems:
+    - CentOS 7
+    - Ubuntu 16.04
+    - Ubuntu 18.04
+
+* Supported Python versions:
+    - Python 2.7
+
+* Prerequisites:
+    - CentOS
+         - Install required packages
+           yum install gcc python-virtualenv -y
+           easy_install pip
+           pip install apscheduler
+
+         - Install WLM client
+           cat > /etc/yum.repos.d/trilio.repo <<-EOF
+           [trilio]
+           name=Trilio Repository
+           baseurl=http://{TVAULT_IP}:8085/yum-repo/queens/
+           enabled=1
+           gpgcheck=0
+           EOF
+           yum install python-workloadmgrclient -y
+
+    - Ubuntu
+         - Install required packages
+           apt-get install gcc python-virtualenv -y
+           easy_install pip
+           pip install apscheduler
+
+         - Install WLM client
+           cat > /etc/apt/sources.list.d/trilio.list <<-EOF
+           deb [trusted=yes] https://apt.fury.io/triliodata-3-4/ /
+           EOF
+           apt-get update
+           apt-get install python-workloadmgrclient -y
+
 * Download tempest:
+    - Download TrilioData tempest framework from GitHub using command:
+      git clone -b v3.4maintenance https://github.com/trilioData/tempest.git
 
-* Download TrilioData tempest framework from GitHub using command:
-
-* git clone https://github.com/trilioData/tempest.git
-* How to configure tempest:
+* Configure tempest:
 
     - Update the openstack setup details in openstack-setup.conf file 
     - Run the wrapper script fetch_resources.sh
@@ -24,35 +61,16 @@ Repo for automation build, test etc.
 * How to run tests:
 
     - All tempest tests are run on virtual environment.
-    - Install below packages required for virtual environment.
-        - yum install gcc
-        - yum install python-virtualenv 
-    - To create virtual environment:
-        - Run below:
-            - python tools/install_venv.py
+    - Run below script to create virtual environment:
+        - python tools/install_venv.py
     - To run a single test:
-        - Edit run_tempest.sh and add below at the starting of the file.
-            source /root/wlmadminrc 
-        - This rc file is required for executing Workloadmanager CLI commands. Make sure to provide absolute path of the rc file.
         - Execute run_tempest.sh file with required script as argument
             - ./run_tempest.sh tempest.api.workloadmgr.workload.test_tvault1033_create_workload
         - Log file "tempest.log" would be available
-    - To run a sanity tests:
-        - Update below field in tempest/tvaultconf.py file as per the volume types available on the openstack setup.
-             - If openstack setup has only LVM cinder type configured:
-               enabled_tests = ["Attached_Volume_LVM","Boot_from_Volume_LVM"] 
-             - If openstack setup has only Ceph cinder type configured:
-               enabled_tests = ["Attached_Volume_Ceph","Boot_from_Volume_Ceph"] 
-             - If openstack setup has both LVM and Ceph cinder types configured:
-               enabled_tests = ["Attached_Volume_LVM","Attached_Volume_Ceph","Boot_from_Volume_LVM","Boot_from_Volume_Ceph"] 
-        - Run below:
-            - chmod +x sanity-run.sh 
-            - ./sanity-run.sh 
+    - To run sanity tests, run below:
+        - ./sanity-run.sh 
         - Log file will be available in "logs/" directory
     - To run a suite:
-        - Edit master-run.sh and add below at the starting of the file.
-            source /root/wlmadminrc 
-        - This rc file is required for executing Workloadmanager CLI commands. Make sure to provide absolute path of the rc file.
         - Update master-run.sh file with required suite details:
             - SUITE_LIST=("tempest.api.workloadmgr.workload") 
         - Now run below:
@@ -82,26 +100,5 @@ Repo for automation build, test etc.
 
 * NOTES
 
-* There is need for workloadmgr client installation when the test case is testing CLI. For sanity tests example, all the tests are API based, so it'll not be necessary to install workloadmgr client in virtual env. Install it by adding workloadmgr client to requirement.txt.
 
-* Also, for CLI based test cases, having openstack's rc file sourced (environment variables populated) is mandatory before trigerring any test cases. 
-
-Following env variables are needed for workloadmgr test cases to work:
-
-    OS_TENANT_ID
-    OS_TENANT_NAME
-    OS_PROJECT_DOMAIN_NAME
-    OS_DOMAIN_ID
-    OS_DOMAIN_NAME
-    OS_USER_DOMAIN_ID
-
-
-* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. Please use license file provided at tempest/test_licenses/tvault_license_10VM.txt for Sanity test.
-
-* For running Sanity Test scenario - 
-
-      ./run_tempest.sh tempest.api.workloadmgr.sanity.test_create_full_snapshot
-      
-      Test Results - test_results
-      
-      Test Log - tempest.log 
+* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 
