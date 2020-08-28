@@ -34,14 +34,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 	    self.instances_id = []
 	    
             # Create volume, Launch an Instance
-            floating_ips_list = self.get_floating_ips()
             self.volumes_id = self.create_volume(volume_cleanup=False)
             LOG.debug("Volume-1 ID: " + str(self.volumes_id))
             self.instances_id.append(self.create_vm(vm_cleanup=False))
             LOG.debug("VM-1 ID: " + str(self.instances_id[0]))
             self.attach_volume(self.volumes_id, self.instances_id[0])
             LOG.debug("Volume attached")
-            self.set_floating_ip(floating_ips_list[0], self.instances_id[0])
 
             # Use backupuser credentials
 	    os.environ['OS_USERNAME']= CONF.identity.backupuser

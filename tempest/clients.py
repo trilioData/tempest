@@ -489,7 +489,7 @@ class Manager(manager.Manager):
         elif CONF.identity.auth_version == 'v3':
 	        authurl = CONF.identity.uri_v3
 	        endpoint = CONF.identity.v3_endpoint_type
-	        self.wlm_client = client.Client(1,
+	self.wlm_client = client.Client(1,
                                         CONF.identity.username,
                                         CONF.identity.password,
                                         CONF.identity.tenant_name,

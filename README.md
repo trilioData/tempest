@@ -88,17 +88,12 @@ Repo for automation build, test etc.
         - Selective restore
         - In-place restore
     - File search tests
-    - Configuration backup suite
-    - Upgrade scenarios tests
     - Workload Policy tests
     - Workload Modify
-    - Scale Testing tests
     - Chargeback tests
     - Sanity tests
     - RBAC tests
-    - Scheduler tests
 
 * NOTES
-
 
 * Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 

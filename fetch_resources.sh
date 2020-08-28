@@ -8,6 +8,12 @@ TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+NONADMIN_USERNAME=trilio-nonadmin-user
+NONADMIN_PWD=password
+NEWADMIN_USERNAME=trilio-newadmin-user
+NEWADMIN_PWD=password
+BACKUP_USERNAME=trilio-backup-user
+BACKUP_PWD=password
 git checkout run_tempest.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
@@ -113,12 +119,29 @@ function configure_tempest
     export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE
     export OS_INTERFACE=$ENDPOINT_TYPE
 
+    #Create roles and users
+    $OPENSTACK_CMD role create newadmin
+    $OPENSTACK_CMD role create backup
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NONADMIN_PWD --description $NONADMIN_USERNAME --enable $NONADMIN_USERNAME
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
+    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
+     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_ALT_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME newadmin
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME backup
+
+    #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
     service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
+    test_user_id=$($OPENSTACK_CMD user list | awk "/ $TEST_USERNAME / { print \$2 }")
+    test_alt_user_id=$($OPENSTACK_CMD user list | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
+
     if [[ "$wlm_endpoint" =~ "https" ]]
     then
         git checkout tempest/command_argument_string.py
@@ -286,11 +309,20 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
+    iniset $TEMPEST_CONFIG identity user_id $test_user_id
+    iniset $TEMPEST_CONFIG identity user_id_1 $test_alt_user_id
     iniset $TEMPEST_CONFIG identity domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity default_domain_id $test_domain_id
     iniset $TEMPEST_CONFIG identity uri_v3 $OS_AUTH_URL
     iniset $TEMPEST_CONFIG identity v3_endpoint_type $ENDPOINT_TYPE
     iniset $TEMPEST_CONFIG identity region $OS_REGION_NAME
+
+    iniset $TEMPEST_CONFIG identity nonadmin_user $NONADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity nonadmin_password $NONADMIN_PWD
+    iniset $TEMPEST_CONFIG identity newadmin_user $NEWADMIN_USERNAME
+    iniset $TEMPEST_CONFIG identity newadmin_password $NEWADMIN_PWD
+    iniset $TEMPEST_CONFIG identity backupuser $BACKUP_USERNAME
+    iniset $TEMPEST_CONFIG identity backupuser_password $BACKUP_PWD
 
     # Auth
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
@@ -299,12 +331,15 @@ function configure_tempest
 
     #Set test user credentials
     echo "Set test user credentials\n"
+    unset OS_PROJECT_ID
+    unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
     export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
     export OS_TENANT_ID=$test_project_id
+    env | grep OS_
 
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
@@ -361,14 +396,15 @@ function configure_tempest
             router_id="$ROUTER_UUID"
         routers+=($ROUTER_UUID)
     done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
-    
+ 
     case "${#routers[*]}" in
         0)
             echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
             router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
+            subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
             $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
-            $OPENSTACK_CMD router add subnet test_router test_internal_subnet
+            $OPENSTACK_CMD router add subnet test_router $subnet_id
             ;;
         1)
             if [ -z "$router_id" ]; then
@@ -381,6 +417,22 @@ function configure_tempest
             fi
             ;;
     esac
+   
+    #Allocate floating ips to $TEST_PROJECT_NAME
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
+    $OPENSTACK_CMD floating ip list    
+
+    #Update default security group rules
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    echo $def_secgrp_id
+    $OPENSTACK_CMD security group show $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol icmp $def_secgrp_id
     
     iniset $TEMPEST_CONFIG network internal_network_id $network_id
     iniset $TEMPEST_CONFIG network alt_internal_network_id $network_id_alt
