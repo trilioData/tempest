@@ -19,13 +19,15 @@ Repo for automation build, test etc.
 * Prerequisites:
     - CentOS
          - Install required packages
-           ```yum install gcc python-virtualenv -y
+           ```
+           yum install gcc python-virtualenv -y
            easy_install pip
            pip install apscheduler
            ```
 
          - Install WLM client
-           ```cat > /etc/yum.repos.d/trilio.repo <<-EOF
+           ```
+           cat > /etc/yum.repos.d/trilio.repo <<-EOF
            [trilio]
            name=Trilio Repository
            baseurl=http://{TVAULT_IP}:8085/yum-repo/queens/
@@ -37,12 +39,14 @@ Repo for automation build, test etc.
 
     - Ubuntu
          - Install required packages
-           ```apt-get install gcc python-virtualenv python-pip -y
+           ```
+           apt-get install gcc python-virtualenv python-pip -y
            pip install apscheduler
            ```
 
          - Install WLM client
-           ```cat > /etc/apt/sources.list.d/trilio.list <<-EOF
+           ```
+           cat > /etc/apt/sources.list.d/trilio.list <<-EOF
            deb [trusted=yes] https://apt.fury.io/triliodata-3-4/ /
            EOF
            apt-get update
@@ -51,8 +55,9 @@ Repo for automation build, test etc.
 
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
-      ```git clone -b v3.4maintenance https://github.com/trilioData/tempest.git
-         cd tempest/
+      ```
+      git clone -b v3.4maintenance https://github.com/trilioData/tempest.git
+      cd tempest/
       ```
 
 * Configure tempest:
