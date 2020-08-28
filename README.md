@@ -64,7 +64,9 @@ Repo for automation build, test etc.
 
     - Update the openstack setup details in openstack-setup.conf file 
     - Run the wrapper script fetch_resources.sh
-      `./fetch_resources.sh`
+      ```
+      ./fetch_resources.sh
+      ```
     - Update tempest/tvaultconf.py and provide below:
         - tvault_password = "sample password" → TrilioVault appliance root password
                 
@@ -72,19 +74,27 @@ Repo for automation build, test etc.
 
     - All tempest tests are run on virtual environment.
     - Run below script to create virtual environment:
-        `python tools/install_venv.py`
+        ```
+        python tools/install_venv.py
+        ```
     - To run a single test:
         - Execute run_tempest.sh file with required script as argument
-            `./run_tempest.sh tempest.api.workloadmgr.workload.test_tvault1033_create_workload`
+          ```
+          ./run_tempest.sh tempest.api.workloadmgr.workload.test_tvault1033_create_workload
+          ```
         - Log file "tempest.log" would be available
     - To run sanity tests, run below:
-        `./sanity-run.sh `
+        ```
+        ./sanity-run.sh
+        ```
         - Log file will be available in "logs/" directory
     - To run a suite:
         - Update master-run.sh file with required suite details:
             - SUITE_LIST=("tempest.api.workloadmgr.workload") 
         - Now run below:
-            `./master-run.sh `
+            ```
+            ./master-run.sh 
+            ```
         - Log files would be available in "logs/" directory.
      - If a virtual env already exists, tempest uses the existing one for test execution. Else it would prompt the user to create a new virtual env.
 
