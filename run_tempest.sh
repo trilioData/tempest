@@ -1,4 +1,15 @@
 #!/bin/bash -x
+export OS_PROJECT_NAME=trilio-test-project-1
+export OS_INTERFACE=publicURL
+export OS_ENDPOINT_TYPE=publicURL
+export OS_REGION_NAME=USWEST
+export OS_IDENTITY_API_VERSION=3
+export OS_AUTH_URL=https://kollaautotrainbionic.triliodata.demo:5000/v3
+export OS_PROJECT_DOMAIN_ID=5a0274f027684f2a9869b7a443bb193a
+export OS_USER_DOMAIN_ID=5a0274f027684f2a9869b7a443bb193a
+export OS_PROJECT_ID=23afd9019dda467da018dfc78ca78cb8
+export OS_PASSWORD=password
+export OS_USERNAME=trilio-test-user
 BASE_DIR="$(pwd)"
 
 if [ -f $BASE_DIR/vms_file ]; then
@@ -14,6 +25,7 @@ if [ -f $BASE_DIR/workloads_file ]; then
 fi
 
 rm -f tempest.log
+mkdir -p Report
 
 function usage {
   echo "Usage: $0 [OPTION]..."

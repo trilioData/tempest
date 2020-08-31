@@ -16,6 +16,10 @@ BACKUP_USERNAME=trilio-backup-user
 BACKUP_PWD=password
 git checkout run_tempest.sh
 
+sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
     OPENSTACK_CMD="openstack --insecure"
@@ -306,6 +310,8 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
+    iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity domain_name $TEST_USER_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
     iniset $TEMPEST_CONFIG identity user_id $test_user_id
