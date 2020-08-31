@@ -25,6 +25,7 @@ do
     while read -r line
     do  
         rm -rf $BASE_DIR/lock
+        rm -rf /opt/lock
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR

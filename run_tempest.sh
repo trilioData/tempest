@@ -15,6 +15,7 @@ if [ -f $BASE_DIR/workloads_file ]; then
 fi
 
 rm -f tempest.log
+mkdir -p $BASE_DIR/Report
 
 function usage {
   echo "Usage: $0 [OPTION]..."
