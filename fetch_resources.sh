@@ -501,13 +501,21 @@ then
 fi
 
 echo "creating virtual env for openstack client"
-virtualenv $OPENSTACK_CLI_VENV
+if [ $PYTHON_VERSION == 2 ]
+then
+   virtualenv $OPENSTACK_CLI_VENV
+else
+   python3 -m venv $OPENSTACK_CLI_VENV
+fi
+
 . $OPENSTACK_CLI_VENV/bin/activate
-pip install openstacksdk==0.35.0
-pip install os-client-config==1.18.0
-pip install python-openstackclient==3.19.0
-pip install python-cinderclient==4.2.0
-pip install python-novaclient==15.1.0
+source openstack-setup.conf
+pip$PYTHON_VERSION install wheel
+pip$PYTHON_VERSION install openstacksdk==0.35.0
+pip$PYTHON_VERSION install os-client-config==1.18.0
+pip$PYTHON_VERSION install python-openstackclient==3.19.0
+pip$PYTHON_VERSION install python-cinderclient==4.2.0
+pip$PYTHON_VERSION install python-novaclient==15.1.0
 
 configure_tempest
 deactivate

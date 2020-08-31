@@ -21,6 +21,7 @@ from tempest.lib.services import clients
 import sys
 sys.path.append("/usr/lib/python2.7/site-packages")
 sys.path.append("/usr/lib/python3.6/site-packages")
+sys.path.append("/usr/lib/python3/dist-packages")
 from workloadmgrclient import client
 
 CONF = config.CONF
