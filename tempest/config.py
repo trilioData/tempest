@@ -29,6 +29,7 @@ from tempest.test_discover import plugins
 import sys
 sys.path.append("/usr/lib/python2.7/site-packages")
 sys.path.append("/usr/lib/python3.6/site-packages")
+sys.path.append("/usr/lib/python3/dist-packages")
 
 from workloadmgrclient import utils
 DEFAULT_OS_WORKLOAD_API_VERSION = "1"
