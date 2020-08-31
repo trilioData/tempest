@@ -6,22 +6,22 @@ import paramiko
 
 def get_db_credentials(hostip=tvaultconf.tvault_ip[0], user=tvaultconf.tvault_dbusername,
                        pwd=tvaultconf.tvault_password):
+
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     # ssh.load_system_host_keys()
     ssh.connect(hostname=hostip, username=user, password=pwd)
     command = "cat /etc/workloadmgr/workloadmgr.conf | grep 'sql_connection' | cut -d '/' -f 3 | cut -d '@' -f 1"
     stdin, stdout, stderr = ssh.exec_command(command)
-    print(stdin, stdout, stderr)
     credentials = stdout.read()
     return credentials
 
 
 def dbHandler():
     try:
-        cred = (str(get_db_credentials(hostip=tvaultconf.tvault_ip[0])).split("\n"))[
-            0].split(":")
-        conn = mysql.connector.connect(user=cred[0], password=cred[1],
+        creds = get_db_credentials(hostip=tvaultconf.tvault_ip[0])
+        pwd = str(creds).split(':')[1].replace('\\n\'','')
+        conn = mysql.connector.connect(user=tvaultconf.tvault_dbusername, password=pwd,
                                        host=tvaultconf.tvault_ip[0], database=tvaultconf.tvault_dbname)
         print(conn)
         return conn
