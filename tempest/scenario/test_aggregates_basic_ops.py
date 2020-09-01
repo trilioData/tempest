@@ -13,20 +13,16 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from oslo_log import log as logging
-
 from tempest.common import tempest_fixtures as fixtures
-from tempest.common.utils import data_utils
+from tempest.common import utils
+from tempest.lib.common.utils import data_utils
+from tempest.lib import decorators
 from tempest.scenario import manager
-from tempest import test
-
-
-LOG = logging.getLogger(__name__)
 
 
 class TestAggregatesBasicOps(manager.ScenarioTest):
-    """
-    Creates an aggregate within an availability zone
+    """Creates an aggregate within an availability zone
+
     Adds a host to the aggregate
     Checks aggregate details
     Updates aggregate's name
@@ -40,29 +36,25 @@ class TestAggregatesBasicOps(manager.ScenarioTest):
     def setup_clients(cls):
         super(TestAggregatesBasicOps, cls).setup_clients()
         # Use admin client by default
-        cls.manager = cls.admin_manager
-        super(TestAggregatesBasicOps, cls).resource_setup()
-        cls.aggregates_client = cls.manager.aggregates_client
-        cls.hosts_client = cls.manager.hosts_client
+        cls.aggregates_client = cls.os_admin.aggregates_client
+        cls.services_client = cls.os_admin.services_client
 
     def _create_aggregate(self, **kwargs):
         aggregate = (self.aggregates_client.create_aggregate(**kwargs)
                      ['aggregate'])
-        self.addCleanup(self._delete_aggregate, aggregate)
+        self.addCleanup(self.aggregates_client.delete_aggregate,
+                        aggregate['id'])
         aggregate_name = kwargs['name']
         availability_zone = kwargs['availability_zone']
         self.assertEqual(aggregate['name'], aggregate_name)
         self.assertEqual(aggregate['availability_zone'], availability_zone)
         return aggregate
 
-    def _delete_aggregate(self, aggregate):
-        self.aggregates_client.delete_aggregate(aggregate['id'])
-
     def _get_host_name(self):
-        hosts = self.hosts_client.list_hosts()['hosts']
-        self.assertTrue(len(hosts) >= 1)
-        computes = [x for x in hosts if x['service'] == 'compute']
-        return computes[0]['host_name']
+        svc_list = self.services_client.list_services(
+            binary='nova-compute')['services']
+        self.assertNotEmpty(svc_list)
+        return svc_list[0]['host']
 
     def _add_host(self, aggregate_id, host):
         aggregate = (self.aggregates_client.add_host(aggregate_id, host=host)
@@ -81,7 +73,7 @@ class TestAggregatesBasicOps(manager.ScenarioTest):
         self.assertEqual(aggregate_name, aggregate['name'])
         self.assertEqual(azone, aggregate['availability_zone'])
         self.assertEqual(hosts, aggregate['hosts'])
-        for meta_key in metadata.keys():
+        for meta_key in metadata:
             self.assertIn(meta_key, aggregate['metadata'])
             self.assertEqual(metadata[meta_key],
                              aggregate['metadata'][meta_key])
@@ -90,7 +82,7 @@ class TestAggregatesBasicOps(manager.ScenarioTest):
         aggregate = self.aggregates_client.set_metadata(aggregate['id'],
                                                         metadata=meta)
 
-        for key, value in meta.items():
+        for key in meta.keys():
             self.assertEqual(meta[key],
                              aggregate['aggregate']['metadata'][key])
 
@@ -103,8 +95,9 @@ class TestAggregatesBasicOps(manager.ScenarioTest):
         self.assertEqual(aggregate['availability_zone'], availability_zone)
         return aggregate
 
-    @test.idempotent_id('cb2b4c4f-0c7c-4164-bdde-6285b302a081')
-    @test.services('compute')
+    @decorators.idempotent_id('cb2b4c4f-0c7c-4164-bdde-6285b302a081')
+    @decorators.attr(type='slow')
+    @utils.services('compute')
     def test_aggregate_basic_ops(self):
         self.useFixture(fixtures.LockFixture('availability_zone'))
         az = 'foo_zone'

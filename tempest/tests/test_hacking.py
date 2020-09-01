@@ -17,7 +17,8 @@ from tempest.tests import base
 
 
 class HackingTestCase(base.TestCase):
-    """
+    """Test class for hacking rule
+
     This class tests the hacking checks in tempest.hacking.checks by passing
     strings to the check methods like the pep8/flake8 parser would. The parser
     loops over each line in the file and then passes the parameters to the
@@ -47,6 +48,7 @@ class HackingTestCase(base.TestCase):
     just assertTrue if the check is expected to fail and assertFalse if it
     should pass.
     """
+
     def test_no_setup_teardown_class_for_tests(self):
         self.assertTrue(checks.no_setup_teardown_class_for_tests(
             "  def setUpClass(cls):", './tempest/tests/fake_test.py'))
@@ -85,13 +87,13 @@ class HackingTestCase(base.TestCase):
     def test_scenario_tests_need_service_tags(self):
         self.assertFalse(checks.scenario_tests_need_service_tags(
             'def test_fake:', './tempest/scenario/test_fake.py',
-            "@test.services('compute')"))
+            "@utils.services('compute')"))
         self.assertFalse(checks.scenario_tests_need_service_tags(
             'def test_fake_test:', './tempest/api/compute/test_fake.py',
-            "@test.services('image')"))
+            "@utils.services('image')"))
         self.assertFalse(checks.scenario_tests_need_service_tags(
             'def test_fake:', './tempest/scenario/orchestration/test_fake.py',
-            "@test.services('compute')"))
+            "@utils.services('compute')"))
         self.assertTrue(checks.scenario_tests_need_service_tags(
             'def test_fake_test:', './tempest/scenario/test_fake.py',
             '\n'))
@@ -112,12 +114,13 @@ class HackingTestCase(base.TestCase):
 
     def test_service_tags_not_in_module_path(self):
         self.assertTrue(checks.service_tags_not_in_module_path(
-            "@test.services('compute')", './tempest/api/compute/fake_test.py'))
+            "@utils.services('compute')",
+            './tempest/api/compute/fake_test.py'))
         self.assertFalse(checks.service_tags_not_in_module_path(
-            "@test.services('compute')",
+            "@utils.services('compute')",
             './tempest/scenario/compute/fake_test.py'))
         self.assertFalse(checks.service_tags_not_in_module_path(
-            "@test.services('compute')", './tempest/api/image/fake_test.py'))
+            "@utils.services('compute')", './tempest/api/image/fake_test.py'))
 
     def test_no_hyphen_at_end_of_rand_name(self):
         self.assertIsNone(checks.no_hyphen_at_end_of_rand_name(
@@ -146,3 +149,105 @@ class HackingTestCase(base.TestCase):
             " @testtools.skipUnless(CONF.something, 'msg')"))))
         self.assertEqual(0, len(list(checks.no_testtools_skip_decorator(
             " @testtools.skipIf(CONF.something, 'msg')"))))
+
+    def test_dont_import_local_tempest_code_into_lib(self):
+        self.assertEqual(0, len(list(checks.dont_import_local_tempest_into_lib(
+            "from tempest.common import waiters",
+            './tempest/common/compute.py'))))
+        self.assertEqual(0, len(list(checks.dont_import_local_tempest_into_lib(
+            "from tempest import config",
+            './tempest/common/compute.py'))))
+        self.assertEqual(0, len(list(checks.dont_import_local_tempest_into_lib(
+            "import tempest.exception",
+            './tempest/common/compute.py'))))
+        self.assertEqual(1, len(list(checks.dont_import_local_tempest_into_lib(
+            "from tempest.common import waiters",
+            './tempest/lib/common/compute.py'))))
+        self.assertEqual(1, len(list(checks.dont_import_local_tempest_into_lib(
+            "from tempest import config",
+            './tempest/lib/common/compute.py'))))
+        self.assertEqual(1, len(list(checks.dont_import_local_tempest_into_lib(
+            "import tempest.exception",
+            './tempest/lib/common/compute.py'))))
+
+    def test_dont_use_config_in_tempest_lib(self):
+        self.assertFalse(list(checks.dont_use_config_in_tempest_lib(
+            'from tempest import config', './tempest/common/compute.py')))
+        self.assertFalse(list(checks.dont_use_config_in_tempest_lib(
+            'from oslo_concurrency import lockutils',
+            './tempest/lib/auth.py')))
+        self.assertTrue(list(checks.dont_use_config_in_tempest_lib(
+            'from tempest import config', './tempest/lib/auth.py')))
+        self.assertTrue(list(checks.dont_use_config_in_tempest_lib(
+            'from oslo_config import cfg', './tempest/lib/decorators.py')))
+        self.assertTrue(list(checks.dont_use_config_in_tempest_lib(
+            'import tempest.config', './tempest/lib/common/rest_client.py')))
+
+    def test_unsupported_exception_attribute_PY3(self):
+        self.assertEqual(len(list(checks.unsupported_exception_attribute_PY3(
+            "raise TestCase.failureException(e.message)"))), 1)
+        self.assertEqual(len(list(checks.unsupported_exception_attribute_PY3(
+            "raise TestCase.failureException(ex.message)"))), 1)
+        self.assertEqual(len(list(checks.unsupported_exception_attribute_PY3(
+            "raise TestCase.failureException(exc.message)"))), 1)
+        self.assertEqual(len(list(checks.unsupported_exception_attribute_PY3(
+            "raise TestCase.failureException(exception.message)"))), 1)
+        self.assertEqual(len(list(checks.unsupported_exception_attribute_PY3(
+            "raise TestCase.failureException(ee.message)"))), 0)
+
+    def _test_no_negatve_test_attribute_applied_to_negative_test(
+            self, filename, with_other_decorators=False,
+            with_negative_decorator=True, expected_success=True):
+        check = checks.negative_test_attribute_always_applied_to_negative_tests
+        other_decorators = [
+            "@decorators.idempotent_id(123)",
+            "@utils.requires_ext(extension='ext', service='svc')"
+        ]
+
+        if with_other_decorators:
+            # Include multiple decorators to verify that this check works with
+            # arbitrarily many decorators. These insert decorators above the
+            # @decorators.attr(type=['negative']) decorator.
+            for decorator in other_decorators:
+                self.assertIsNone(check(" %s" % decorator, filename))
+        if with_negative_decorator:
+            self.assertIsNone(
+                check("@decorators.attr(type=['negative'])", filename))
+        if with_other_decorators:
+            # Include multiple decorators to verify that this check works with
+            # arbitrarily many decorators. These insert decorators between
+            # the test and the @decorators.attr(type=['negative']) decorator.
+            for decorator in other_decorators:
+                self.assertIsNone(check(" %s" % decorator, filename))
+        final_result = check(" def test_some_negative_case", filename)
+        if expected_success:
+            self.assertIsNone(final_result)
+        else:
+            self.assertIsInstance(final_result, tuple)
+            self.assertFalse(final_result[0])
+
+    def test_no_negatve_test_attribute_applied_to_negative_test(self):
+        # Check negative filename, negative decorator passes
+        self._test_no_negatve_test_attribute_applied_to_negative_test(
+            "./tempest/api/test_something_negative.py")
+        # Check negative filename, negative decorator, other decorators passes
+        self._test_no_negatve_test_attribute_applied_to_negative_test(
+            "./tempest/api/test_something_negative.py",
+            with_other_decorators=True)
+
+        # Check non-negative filename skips check, causing pass
+        self._test_no_negatve_test_attribute_applied_to_negative_test(
+            "./tempest/api/test_something.py")
+
+        # Check negative filename, no negative decorator fails
+        self._test_no_negatve_test_attribute_applied_to_negative_test(
+            "./tempest/api/test_something_negative.py",
+            with_negative_decorator=False,
+            expected_success=False)
+        # Check negative filename, no negative decorator, other decorators
+        # fails
+        self._test_no_negatve_test_attribute_applied_to_negative_test(
+            "./tempest/api/test_something_negative.py",
+            with_other_decorators=True,
+            with_negative_decorator=False,
+            expected_success=False)

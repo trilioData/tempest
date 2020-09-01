@@ -12,11 +12,10 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest_lib import exceptions as lib_exc
-
 from tempest.api.object_storage import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
+from tempest.lib import exceptions as lib_exc
 
 CONF = config.CONF
 
@@ -29,11 +28,10 @@ class AccountNegativeTest(base.BaseObjectTest):
     @classmethod
     def setup_credentials(cls):
         super(AccountNegativeTest, cls).setup_credentials()
-        cls.os = cls.os_roles_operator
         cls.os_operator = cls.os_roles_operator_alt
 
-    @test.attr(type=['negative'])
-    @test.idempotent_id('070e6aca-6152-4867-868d-1118d68fb38c')
+    @decorators.attr(type=['negative'])
+    @decorators.idempotent_id('070e6aca-6152-4867-868d-1118d68fb38c')
     def test_list_containers_with_non_authorized_user(self):
         # list containers using non-authorized user
 

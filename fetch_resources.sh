@@ -16,6 +16,10 @@ BACKUP_USERNAME=trilio-backup-user
 BACKUP_PWD=password
 git checkout run_tempest.sh
 
+sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
     OPENSTACK_CMD="openstack --insecure"
@@ -97,9 +101,6 @@ function configure_tempest
     then
         iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation True
         iniset $TEMPEST_CONFIG wlm insecure True
-    else
-        iniset $TEMPEST_CONFIG identity disable_ssl_certificate_validation False
-        iniset $TEMPEST_CONFIG wlm insecure False
     fi
 
     # Oslo
@@ -271,6 +272,8 @@ function configure_tempest
             type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
             volume_type=$type
             volume_type_id=$type_id
+            volume_type_alt=$type
+            volume_type_id_alt=$type_id
             enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
             ;;
         *)
@@ -302,15 +305,13 @@ function configure_tempest
 
     # Identity
     iniset $TEMPEST_CONFIG identity auth_version v3
-    iniset $TEMPEST_CONFIG identity admin_domain_name $CLOUDADMIN_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
     iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
-    iniset $TEMPEST_CONFIG identity admin_tenant_name $CLOUDADMIN_PROJECT_NAME
-    iniset $TEMPEST_CONFIG identity admin_password $CLOUDADMIN_PASSWORD
-    iniset $TEMPEST_CONFIG identity admin_username $CLOUDADMIN_USERNAME
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
+    iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity domain_name $TEST_USER_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
     iniset $TEMPEST_CONFIG identity user_id $test_user_id
@@ -332,6 +333,10 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth use_dynamic_credentials False
     iniset $TEMPEST_CONFIG auth test_accounts_file $TEMPEST_ACCOUNTS
     iniset $TEMPEST_CONFIG auth allow_tenant_isolation True
+    iniset $TEMPEST_CONFIG auth admin_username $CLOUDADMIN_USERNAME
+    iniset $TEMPEST_CONFIG auth admin_password $CLOUDADMIN_PASSWORD
+    iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
+    iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -435,6 +440,7 @@ function configure_tempest
     def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
+    $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
@@ -465,8 +471,23 @@ function configure_tempest
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
 
+    IP=""
+    cnt=0
+    IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
+    for i in "${IP[@]}"; do
+       if [ $cnt -eq 0 ]
+       then
+          TVAULT_IP="[""\""$i"\""
+       else
+          TVAULT_IP+=", \""$i"\""
+       fi
+       cnt=`expr $cnt + 1`
+    done
+    TVAULT_IP+="]"
+
     # tvaultconf.py
-    sed -i '/tvault_ip = /c tvault_ip = "'$TVAULT_IP'"' $TEMPEST_TVAULTCONF
+    sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
+    echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
@@ -480,14 +501,22 @@ then
 fi
 
 echo "creating virtual env for openstack client"
-virtualenv $OPENSTACK_CLI_VENV
+if [ $PYTHON_VERSION == 2 ]
+then
+   virtualenv $OPENSTACK_CLI_VENV
+else
+   python3 -m venv $OPENSTACK_CLI_VENV
+fi
+
 . $OPENSTACK_CLI_VENV/bin/activate
-pip install openstacksdk==0.35.0
-pip install os-client-config==1.18.0
-pip install python-openstackclient==3.19.0
-pip install python-cinderclient==4.2.0
+source openstack-setup.conf
+pip$PYTHON_VERSION install wheel
+pip$PYTHON_VERSION install openstacksdk==0.35.0
+pip$PYTHON_VERSION install os-client-config==1.18.0
+pip$PYTHON_VERSION install python-openstackclient==3.19.0
+pip$PYTHON_VERSION install python-cinderclient==4.2.0
+pip$PYTHON_VERSION install python-novaclient==15.1.0
 
 configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
-#rm -rf $OPENSTACK_CLI_VENV

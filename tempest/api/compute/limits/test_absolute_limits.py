@@ -14,33 +14,27 @@
 #    under the License.
 
 from tempest.api.compute import base
-from tempest import test
+from tempest.lib import decorators
 
 
 class AbsoluteLimitsTestJSON(base.BaseV2ComputeTest):
+    max_microversion = '2.56'
 
     @classmethod
     def setup_clients(cls):
         super(AbsoluteLimitsTestJSON, cls).setup_clients()
         cls.client = cls.limits_client
 
-    @test.idempotent_id('b54c66af-6ab6-4cf0-a9e5-a0cb58d75e0b')
+    @decorators.idempotent_id('b54c66af-6ab6-4cf0-a9e5-a0cb58d75e0b')
     def test_absLimits_get(self):
-        # To check if all limits are present in the response
-        limits = self.client.show_limits()['limits']
-        absolute_limits = limits['absolute']
-        expected_elements = ['maxImageMeta', 'maxPersonality',
-                             'maxPersonalitySize',
-                             'maxServerMeta', 'maxTotalCores',
-                             'maxTotalFloatingIps', 'maxSecurityGroups',
-                             'maxSecurityGroupRules', 'maxTotalInstances',
-                             'maxTotalKeypairs', 'maxTotalRAMSize',
-                             'totalCoresUsed', 'totalFloatingIpsUsed',
-                             'totalSecurityGroupsUsed', 'totalInstancesUsed',
-                             'totalRAMUsed']
-        # check whether all expected elements exist
-        missing_elements =\
-            [ele for ele in expected_elements if ele not in absolute_limits]
-        self.assertEqual(0, len(missing_elements),
-                         "Failed to find element %s in absolute limits list"
-                         % ', '.join(ele for ele in missing_elements))
+        # To check if all limits are present in the response (will be checked
+        # by schema)
+        self.client.show_limits()
+
+
+class AbsoluteLimitsV257TestJSON(base.BaseV2ComputeTest):
+    min_microversion = '2.57'
+    max_microversion = 'latest'
+
+    # NOTE(felipemonteiro): This class tests the Absolute Limits APIs
+    # response schema for the 2.57 microversion.

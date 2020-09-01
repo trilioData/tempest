@@ -14,20 +14,19 @@
 
 import os
 import re
-import six
 import subprocess
+
+import six
 
 from tempest.tests import base
 
 
 class TestTestList(base.TestCase):
 
-    def test_testr_list_tests_no_errors(self):
-        # Remove unit test discover path from env to test tempest tests
+    def test_stestr_list_no_errors(self):
         test_env = os.environ.copy()
-        test_env.pop('OS_TEST_PATH')
         import_failures = []
-        p = subprocess.Popen(['testr', 'list-tests'], stdout=subprocess.PIPE,
+        p = subprocess.Popen(['stestr', 'list'], stdout=subprocess.PIPE,
                              env=test_env)
         ids, err = p.communicate()
         self.assertEqual(0, p.returncode,
@@ -35,7 +34,7 @@ class TestTestList(base.TestCase):
                          "error on import %s" % ids)
         ids = six.text_type(ids).split('\n')
         for test_id in ids:
-            if re.match('(\w+\.){3}\w+', test_id):
+            if re.match(r'(\w+\.){3}\w+', test_id):
                 if not test_id.startswith('tempest.'):
                     parts = test_id.partition('tempest')
                     fail_id = parts[1] + parts[2]

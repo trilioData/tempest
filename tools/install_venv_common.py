@@ -92,16 +92,17 @@ class InstallVenv(object):
         virtual environment.
         """
         if not os.path.isdir(self.venv):
+            print(self.py_version)
             print('Creating venv...', end=' ')
-            if no_site_packages:
-                self.run_command(['virtualenv', '-p', '/usr/bin/python', '-q', '--no-site-packages',
-                                 self.venv])
+            if self.py_version == "python2.7":
+                self.run_command(['virtualenv', '-q','-p', self.py_version, '--system-site-packages',  self.venv])
             else:
-                self.run_command(['virtualenv', '-p', '/usr/bin/python', '-q', self.venv])
+                self.run_command(['python3', '-q', '-m', 'venv', '--system-site-packages', self.venv])
             print('done.')
         else:
             print("venv already exists...")
             pass
+
 
     def pip_install(self, *args):
         self.run_command(['tools/with_venv.sh',
@@ -129,16 +130,16 @@ class InstallVenv(object):
         return parser.parse_args(argv[1:])[0]
 
     def add_tests_segregate_code(self):
-        cmd = "grep -q self.tests_filter_option .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+        cmd = "grep -q self.tests_filter_option .venv/lib/"+str(self.py_version)+"/site-packages/testrepository/testcommand.py"
         p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
         p.wait()
         rc = p.returncode
         if rc == 1:
-            cmd1="sed -i '/self._instance_source = instance_source/a \\\\tself.tests_filter_option = \\\"\\\"' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
-            cmd2="sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+            cmd1="sed -i '/self._instance_source = instance_source/a \\\\tself.tests_filter_option = \\\"\\\"' .venv/lib/"+str(self.py_version)+"/site-packages/testrepository/testcommand.py"
+            cmd2="sed -i -e '/if self.test_filters is None:/{n;d}' .venv/lib/"+str(self.py_version)+"/site-packages/testrepository/testcommand.py"
             cmd3="sed -i '/filters = list(map(re.compile, self.test_filters))/i \\\\t \ \ \ filtered_test_ids = []\\n\\t \ \ \ \if self.tests_filter_option is \\\"\\\":\\n\\t\\treturn " \
                  "test_ids\\n\\t \ \ \ \else:\\n\\t\\tfor test_id in test_ids:\\n\\t\\t \ \ \ \if self.tests_filter_option in test_id:\\n\\t\\t\\tfiltered_test_ids.append(test_id)\\n\\t\\t" \
-                 "return filtered_test_ids' .venv/lib/python2.7/site-packages/testrepository/testcommand.py"
+                 "return filtered_test_ids' .venv/lib/"+str(self.py_version)+"/site-packages/testrepository/testcommand.py"
             cmd=cmd1+"; " +cmd2+"; " +cmd3
             p = subprocess.Popen(cmd,shell=True,stdout=subprocess.PIPE)
             p.wait()
@@ -152,8 +153,12 @@ class Distro(InstallVenv):
                     check_exit_code=False).strip())
 
     def install_virtualenv(self):
-        if self.check_cmd('virtualenv'):
-            return
+        if self.py_version == "python2.7":
+            if self.check_cmd('virtualenv'):
+                return
+        else:
+            if self.check_cmd('python3'):
+                return
 
         if self.check_cmd('easy_install'):
             print('Installing virtualenv via easy_install...', end=' ')

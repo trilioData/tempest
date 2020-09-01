@@ -14,7 +14,7 @@
 
 from tempest.api.workloadmgr import base
 from tempest import config
-from tempest import test
+from tempest.lib import decorators
 import json
 import sys
 from tempest import api
@@ -34,12 +34,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(self):
         super(WorkloadsTest, self).setup_clients()
-  
-    @test.attr(type='smoke')
-    @test.idempotent_id('3d64b5d3-b283-418c-82de-2b3394e57925')
+
+    @decorators.attr(type='smoke')
+    @decorators.idempotent_id('3d64b5d3-b283-418c-82de-2b3394e57925')
     def test_1(self):
-        snapshot_list = self.snapshots_extensions_client.list_snapshots()['snapshots']
-        LOG.debug("Snapshot list"+ str(snapshot_list))
+        snapshot_list = self.snapshots_extensions_client.list_snapshots()[
+            'snapshots']
+        LOG.debug("Snapshot list" + str(snapshot_list))
         for snapshot in snapshot_list:
-             LOG.debug("Deleting snapshot:"+ snapshot['id'])
-             self.snapshots_extensions_client.delete_snapshot(snapshot['id'])
+            LOG.debug("Deleting snapshot:" + snapshot['id'])
+            self.snapshots_extensions_client.delete_snapshot(snapshot['id'])
