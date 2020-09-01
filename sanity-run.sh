@@ -12,7 +12,7 @@ rm -f $TEST_LIST_FILE
 rm -f $TEST_RESULTS_FILE
 rm -rf logs
 
-touch $TEST_LIST_FILE
+touch $TEST_RESULTS_FILE
 mkdir -p $REPORT_DIR
 rm -f results.html
 sed -i '/test_results_file = /c test_results_file = "'$REPORT_DIR'/results.html"' tempest/reporting.py
