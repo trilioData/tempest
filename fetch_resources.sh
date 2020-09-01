@@ -16,6 +16,10 @@ BACKUP_USERNAME=trilio-backup-user
 BACKUP_PWD=password
 git checkout run_tempest.sh
 
+sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
     OPENSTACK_CMD="openstack --insecure"
@@ -306,6 +310,8 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
+    iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity domain_name $TEST_USER_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
     iniset $TEMPEST_CONFIG identity user_id $test_user_id
@@ -495,13 +501,21 @@ then
 fi
 
 echo "creating virtual env for openstack client"
-virtualenv $OPENSTACK_CLI_VENV
+if [ $PYTHON_VERSION == 2 ]
+then
+   virtualenv $OPENSTACK_CLI_VENV
+else
+   python3 -m venv $OPENSTACK_CLI_VENV
+fi
+
 . $OPENSTACK_CLI_VENV/bin/activate
-pip install openstacksdk==0.35.0
-pip install os-client-config==1.18.0
-pip install python-openstackclient==3.19.0
-pip install python-cinderclient==4.2.0
-pip install python-novaclient==15.1.0
+source openstack-setup.conf
+pip$PYTHON_VERSION install wheel
+pip$PYTHON_VERSION install openstacksdk==0.35.0
+pip$PYTHON_VERSION install os-client-config==1.18.0
+pip$PYTHON_VERSION install python-openstackclient==3.19.0
+pip$PYTHON_VERSION install python-cinderclient==4.2.0
+pip$PYTHON_VERSION install python-novaclient==15.1.0
 
 configure_tempest
 deactivate

@@ -331,6 +331,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Finally Result json: " + str(result_json))
             for k, v in result_json.items():
                 if(('result' in v.keys()) and (len(v['result'].keys()) > 0)):
-                    for k1 in reversed(v['result'].keys()):
+                    for k1 in reversed(list(v['result'].keys())):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])

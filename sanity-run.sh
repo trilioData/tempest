@@ -1,5 +1,6 @@
 #!/bin/bash -x
 BASE_DIR="$(pwd)"
+PYTHON_CMD="python3"
 
 TEST_LIST_FILE="$BASE_DIR/test-list"
 TEST_RESULTS_FILE="$BASE_DIR/test_results"
@@ -11,13 +12,13 @@ rm -f $TEST_LIST_FILE
 rm -f $TEST_RESULTS_FILE
 rm -rf logs
 
+touch $TEST_RESULTS_FILE
 mkdir -p $REPORT_DIR
 rm -f results.html
-sed -i '/test_results_file=/c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
+sed -i '/test_results_file = /c test_results_file = "'$REPORT_DIR'/results.html"' tempest/reporting.py
 
-testname=$(echo $SUITE_LIST| cut -d'.' -f 4)
 touch $TEST_LIST_FILE
-python -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
+rm -rf ./lock
 rm -rf /opt/lock
 LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
 LOGS_DIR=logs/$LOGS_DIR
@@ -29,5 +30,5 @@ if [ $? -ne 0 ]; then
 fi
 mv -f tempest.log $LOGS_DIR/
 
-python -c 'from tempest import reporting; reporting.add_sanity_results_to_tempest_report()'
+$PYTHON_CMD -c 'from tempest import reporting; reporting.add_sanity_results_to_tempest_report()'
 
