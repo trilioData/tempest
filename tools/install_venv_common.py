@@ -94,15 +94,15 @@ class InstallVenv(object):
         if not os.path.isdir(self.venv):
             print(self.py_version)
             print('Creating venv...', end=' ')
-            if no_site_packages:
-                self.run_command(['virtualenv', '-q', '-p', self.py_version, '--no-site-packages',
-                                 self.venv])
+            if self.py_version == "python2.7":
+                self.run_command(['virtualenv', '-q','-p', self.py_version, '--system-site-packages',  self.venv])
             else:
-                self.run_command(['virtualenv', '-q','-p', self.py_version, self.venv])
+                self.run_command(['python3', '-q', '-m', 'venv', '--system-site-packages', self.venv])
             print('done.')
         else:
             print("venv already exists...")
             pass
+
 
     def pip_install(self, *args):
         self.run_command(['tools/with_venv.sh',
@@ -153,8 +153,12 @@ class Distro(InstallVenv):
                     check_exit_code=False).strip())
 
     def install_virtualenv(self):
-        if self.check_cmd('virtualenv'):
-            return
+        if self.py_version == "python2.7":
+            if self.check_cmd('virtualenv'):
+                return
+        else:
+            if self.check_cmd('python3'):
+                return
 
         if self.check_cmd('easy_install'):
             print('Installing virtualenv via easy_install...', end=' ')
