@@ -95,9 +95,9 @@ class InstallVenv(object):
             print(self.py_version)
             print('Creating venv...', end=' ')
             if self.py_version == "python2.7":
-                self.run_command(['virtualenv', '-q','-p', self.py_version, '--system-site-packages',  self.venv])
+                self.run_command(['virtualenv', '-q','-p', self.py_version, self.venv])
             else:
-                self.run_command(['python3', '-q', '-m', 'venv', '--system-site-packages', self.venv])
+                self.run_command(['python3', '-q', '-m', 'venv', self.venv])
             print('done.')
         else:
             print("venv already exists...")
