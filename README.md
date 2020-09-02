@@ -48,7 +48,7 @@ Repo for automation build, test etc.
     - CentOS 8
          - Install required packages
            ```
-           yum install gcc python3-venv -y
+           yum install gcc python3-virtualenv -y
            pip3 install apscheduler
            ```
 
