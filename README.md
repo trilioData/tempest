@@ -39,7 +39,7 @@ Repo for automation build, test etc.
            enabled=1
            gpgcheck=0
            EOF
-           yum install python-workloadmgrclient -y
+           yum install workloadmgrclient -y
            ```
 
          - Run below script to create virtual environment:
