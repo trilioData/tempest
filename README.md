@@ -11,6 +11,7 @@ Repo for automation build, test etc.
 * Supported Operating systems & Python versions:
     - CentOS 7 with Python 2.7
     - CentOS 8 with Python 3.6
+    - Ubuntu 16.04 with Python 2.7
     - Ubuntu 18.04 with Python 3.6
 
 * Download tempest:
@@ -38,7 +39,7 @@ Repo for automation build, test etc.
            enabled=1
            gpgcheck=0
            EOF
-           yum install python-workloadmgrclient -y
+           yum install workloadmgrclient -y
            ```
 
          - Run below script to create virtual environment:
@@ -48,7 +49,7 @@ Repo for automation build, test etc.
     - CentOS 8
          - Install required packages
            ```
-           yum install gcc python3-venv -y
+           yum install gcc python3-virtualenv -y
            pip3 install apscheduler
            ```
 
@@ -61,12 +62,32 @@ Repo for automation build, test etc.
            enabled=1
            gpgcheck=0
            EOF
-           yum install python3-workloadmgrclient -y
+           yum install python3-workloadmgrclient-el8 -y
            ```
            
          - Run below script to create virtual environment:
            ```
            python3 tools/install_venv.py
+            ```
+    - Ubuntu 16.04
+         - Install required packages
+           ```
+           apt-get install gcc virtualenv python-pip -y
+           pip install apscheduler
+           ```
+
+         - Install WLM client
+           ```
+           cat > /etc/apt/sources.list.d/trilio.list <<-EOF
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-0/ /
+           EOF
+           apt-get update
+           apt-get install python-workloadmgrclient -y
+           ```
+
+         - Run below script to create virtual environment:
+           ```
+           python tools/install_venv.py
             ```
     - Ubuntu 18.04
          - Install required packages
@@ -88,6 +109,7 @@ Repo for automation build, test etc.
            ```
            python3 tools/install_venv.py
             ```
+
 * Configure tempest:
 
     - Update the openstack setup details in openstack-setup.conf file 
