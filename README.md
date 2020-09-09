@@ -1,27 +1,27 @@
 # automation
 Repo for automation build, test etc.
 
-* Features:
+1. Features:
     - Run test suites
     - Run individual tests
     - Test reporting
     - Detailed logging
     - Execute prerequisites at test suite level in order to reuse resources and reduce execution time
 
-* Supported Operating systems & Python versions:
+2. Supported Operating systems & Python versions:
     - CentOS 7 with Python 2.7
     - CentOS 8 with Python 3.6
     - Ubuntu 16.04 with Python 2.7
     - Ubuntu 18.04 with Python 3.6
 
-* Download tempest:
+3. Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
       git clone -b v4.0maintenance https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       
-* Prerequisites:
+4. Prerequisites:
     - CentOS 7
          - Install required packages
            ```
@@ -31,7 +31,9 @@ Repo for automation build, test etc.
            ```
 
          - Install WLM client
+           To ensure installation of dependent packages, please add the below repo.
            ```
+           yum install centos-release-openstack-train -y
            cat > /etc/yum.repos.d/trilio.repo <<-EOF
            [trilio]
            name=Trilio Repository
@@ -42,7 +44,7 @@ Repo for automation build, test etc.
            yum install workloadmgrclient -y
            ```
 
-         - Run below script to create virtual environment:
+         - All the tempest tests would run inside a virtual environment. Run below script to create virtual environment:
            ```
            python tools/install_venv.py
             ```
@@ -54,7 +56,9 @@ Repo for automation build, test etc.
            ```
 
          - Install WLM client
+           To ensure installation of dependent packages, please add the below repo.
            ```
+           yum install centos-release-openstack-train -y
            cat > /etc/yum.repos.d/trilio.repo <<-EOF
            [trilio]
            name=Trilio Repository
@@ -65,7 +69,7 @@ Repo for automation build, test etc.
            yum install python3-workloadmgrclient-el8 -y
            ```
            
-         - Run below script to create virtual environment:
+         - All the tempest tests would run inside a virtual environment. Run below script to create virtual environment:
            ```
            python3 tools/install_venv.py
             ```
@@ -85,7 +89,7 @@ Repo for automation build, test etc.
            apt-get install python-workloadmgrclient -y
            ```
 
-         - Run below script to create virtual environment:
+         - All the tempest tests would run inside a virtual environment. Run below script to create virtual environment:
            ```
            python tools/install_venv.py
             ```
@@ -105,22 +109,24 @@ Repo for automation build, test etc.
            apt-get install python3-workloadmgrclient -y
            ```
 
-         - Run below script to create virtual environment:
+         - All the tempest tests would run inside a virtual environment. Run below script to create virtual environment:
            ```
            python3 tools/install_venv.py
             ```
 
-* Configure tempest:
+5. Configure tempest:
 
     - Update the openstack setup details in openstack-setup.conf file 
-    - Run the wrapper script fetch_resources.sh
+    
+    
+    - Run the wrapper script fetch_resources.sh to pull the openstack details required for tempest configuration. This also takes care of required resources for WLM tests such as network, router and user.
       ```
       ./fetch_resources.sh
       ```
-    - Update tempest/tvaultconf.py and provide below:
+    - Update tempest/tvaultconf.py and provide below. This is required for database validation tests.
         - tvault_password = "sample password" → TrilioVault appliance root password
                 
-* How to run tests:
+6. How to run tests:
 
     - All tempest tests are run on virtual environment.
     - To run a single test:
@@ -144,12 +150,12 @@ Repo for automation build, test etc.
         - Log files would be available in "logs/" directory.
      - If a virtual env already exists, tempest uses the existing one for test execution. Else it would prompt the user to create a new virtual env.
 
-* Test Coverage:
+7. Test Coverage:
 
     - Licensing tests
     - Workload tests
     - Snapshot tests
-    - Restore tests (Note - This needs min. 2 Floating IPs configureed on Openstack)
+    - Restore tests (Note - This needs min. 2 Floating IPs configured on Openstack)
         - One click restore
         - Selective restore
         - In-place restore
@@ -160,6 +166,6 @@ Repo for automation build, test etc.
     - Sanity tests
     - RBAC tests
 
-* NOTES
+8. NOTES
 
-* Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 
+    - Adding the license to triliovault is a mandatory for any succeeding test case. You can add it to triliovault by CLI/UI. 
