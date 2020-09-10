@@ -250,7 +250,7 @@ function configure_tempest
     fi
     flavor_ref_alt=${fvm_flavor[0]}
 
-    compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }")
+    compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }" | head -1)
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
@@ -264,8 +264,12 @@ function configure_tempest
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
-            echo "No volume type available to use!\n"
-            exit 1
+            echo "No volume type available to use, using Default \n"
+            type="ceph"
+            type_id=$($OPENSTACK_CMD volume type list | grep DEFAULT | awk '$2 && $2 != "ID" {print $2}')
+            volume_type=$type
+            volume_type_id=$type_id
+            enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
             ;;
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
