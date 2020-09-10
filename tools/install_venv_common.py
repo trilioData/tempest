@@ -28,6 +28,7 @@ import optparse
 import os
 import subprocess
 import sys
+import re
 
 
 class InstallVenv(object):
@@ -103,6 +104,13 @@ class InstallVenv(object):
             print("venv already exists...")
             pass
 
+    def update_py_version(self, filename, oldtext, newtext):
+        with open(filename, 'r+') as f:
+            text = f.read()
+            text = re.sub(oldtext, newtext, text)
+            f.seek(0)
+            f.write(text)
+            f.truncate()
 
     def pip_install(self, *args):
         self.run_command(['tools/with_venv.sh',

@@ -44,6 +44,20 @@ def print_help(venv, root):
     """
     print(help % (venv, root))
 
+def update_site_packages_path(filename):
+    import site
+    sitepackages = site.getsitepackages()
+
+    with open(filename, "r") as in_file:
+        buf = in_file.readlines()
+
+    with open(filename, "w") as out_file:
+        for line in buf:
+            if line == "import sys\n":
+                for site in sitepackages:
+                    line = line + "sys.path.append(\"" + site + "\")\n"
+            out_file.write(line)
+
 
 def main(argv):
     root = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -64,6 +78,9 @@ def main(argv):
     install.check_python_version()
     print(py_version)
     install.check_dependencies()
+    install.update_py_version("tools/colorizer.py", "python2.7", py_version)
+    update_site_packages_path("tempest/config.py")
+    update_site_packages_path("tempest/clients.py")
     install.create_virtualenv(no_site_packages=options.no_site_packages)
     install.install_dependencies()
     print_help(venv, root)
