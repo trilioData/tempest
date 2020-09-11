@@ -1,5 +1,4 @@
-# automation
-Repo for automation build, test etc.
+# TrilioVault tempest
 
 1. Features:
     - Run test suites
@@ -117,7 +116,63 @@ Repo for automation build, test etc.
 5. Configure tempest:
 
     - Update the openstack setup details in openstack-setup.conf file 
-    
+      ```
+      ######## Openstack setup details ########
+
+      ## OS_AUTH_URL from openstack rc file
+      AUTH_URL=https://192.168.6.196:5000/v3 
+      
+      ## OS_REGION_NAME from openstack rc file
+      REGION_NAME=USEAST   
+      
+      ## OS_IDENTITY_API_VERSION from openstack rc file
+      IDENTITY_API_VERSION=3
+
+      ## Name of the image that is to be used for instance launch
+      TEST_IMAGE_NAME=cirros
+      
+      ## Size of the volume to be created for WLM tests
+      VOLUME_SIZE=1
+      
+      ## Name of the TrilioVault File recovery manager image on Openstack
+      FVM_IMAGE_NAME=fvm
+      
+      ## List of cinder backends enabled on the Openstack.
+      ## If only default cinder type is available on your setup, give the value as CINDER_BACKENDS_ENABLED=()
+      CINDER_BACKENDS_ENABLED=(ceph iscsi)
+      
+      ## OS_ENDPOINT_TYPE from openstack rc file
+      ENDPOINT_TYPE=publicURL
+
+      ### Cloud Admin details ###
+      ## In case of multidomain setup, provide cloud admin details here
+      ## In case of non-multidomain setup, provide the admin details here
+      CLOUDADMIN_USERNAME=cloudadmin
+      CLOUDADMIN_PASSWORD=Password1!
+      CLOUDADMIN_DOMAIN_NAME=clouddomain
+      CLOUDADMIN_USER_DOMAIN_NAME=clouddomain
+      CLOUDADMIN_PROJECT_NAME=cloudproject
+      CLOUDADMIN_PROJECT_ID=cd75812d91b54329b4448209593b12cc
+
+      ### Test user details ###
+      ## Provide the details of the user and project that is to be used for running WLM tests 
+      
+      TEST_USERNAME=trilio-member
+      TEST_PASSWORD=password
+      TEST_DOMAIN_NAME=trilio-domain
+      TEST_USER_DOMAIN_NAME=trilio-domain
+      TEST_PROJECT_NAME=trilio-project-1
+      TEST_ALT_PROJECT_NAME=trilio-project-2
+
+      ######## TrilioVault details ########
+      ## List of TrilioVault IPs configured with the Openstack setup
+      TVAULT_IP=(192.168.6.17 192.168.6.18 192.168.6.19)
+
+      ###### Python version details #######
+      ## Provide the python version to be used for running WLM tests. 
+      ## This should match with the python version of workloadmgrclient package installed on your machine
+      PYTHON_VERSION=3
+      ```
     
     - Run the wrapper script fetch_resources.sh to pull the openstack details required for tempest configuration. This also takes care of required resources for WLM tests such as network, router and user.
       ```
