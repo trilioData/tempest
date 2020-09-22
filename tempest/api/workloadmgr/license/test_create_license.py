@@ -28,7 +28,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_create_license(self):
         # Create license using CLI command
-        self.cmd = command_argument_string.license_create + tvaultconf.vm_license_filename
+        self.cmd = command_argument_string.license_create + tvaultconf.compute_license_filename
         LOG.debug("License create command: " + str(self.cmd))
         rc = cli_parser.cli_returncode(self.cmd)
         if rc != 0:

@@ -1,0 +1,10 @@
+LicenseID               	 TVAULT-b3d9f4d6-f817-11ea-92ca-0cc47a9fd48e 
+Description             	 TrilioVault License from TrilioData, Inc 
+CreationDate            	 2020-09-16 
+LicenseEdition          	 ENTERPRISE 
+LicenseTypeName         	 EULA 
+Organisation            	 Trilio_Eng_Automation_20_VM_12312021 
+LicenseExpiryDate       	 2021-12-31 
+Licensed For            	 20 Virtual Machines 
+Evaluation              	 True 
+License Key             	 AAABXw0ODAoPeNp9UsGOgjAQvfcrmux1m9DKiph4MCubmCgaRfZIxjJoEyikgFn/flFxRbJxjn3z3rx507dvjOkWC8qH1BqNxcdYOFRYwiLr2sgjlDiDCumjJheQWS7jQ5IqibrEEE2pct1pIUtQukINWqL3UyhzvqlcyJxxwQacLG5kL1bVE9nzA2+z3sy3HgFZqVN3eNtSmRrJ1vPpPzVp3tl+ELuJtZcsGXGHcY7AXCGBWVLaDrhJbI/wz0DH333Bu8ctmhOa+aw/o9EXjmvDS32/zvZoVsmubPLpkBkn3gnSGp72vkLBZbHWV3Au0IcMH8HsFtM7GNOv3DxfhYbKVDWkdAnyqDSWZIalNKroj2mmqFTlIdRpRVs9mpg8ozegiQLe6VxL8mnwavLFF2j5/YgmQTjdLYLbIex4+DKolTmAVmU/j9Zn5OlDNK2rPLs2RMKKwmXExYBfDvUL82a9qzAsAhRlpk5bL4sMOFZM9ZuncOQWPUzOLQIUCRG6L33SspBHz5jUcWmhnMlBRYM=X02h9
