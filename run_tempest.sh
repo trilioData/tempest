@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 BASE_DIR="$(pwd)"
 
 if [ -f $BASE_DIR/vms_file ]; then

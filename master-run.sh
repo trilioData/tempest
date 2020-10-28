@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 BASE_DIR="$(pwd)"
 PYTHON_CMD="python3"
 
