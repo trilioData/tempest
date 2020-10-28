@@ -5,6 +5,7 @@ from tempest.util import query_data
 from tempest.util import cli_parser
 from tempest import command_argument_string
 import time
+import operator
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
@@ -57,7 +58,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                           str(setting_data_from_resp) +
                           " ; original setting data: " +
                           str(tvaultconf.setting_data))
-                if(cmp(setting_data_from_resp, tvaultconf.setting_data) == 0):
+                if(operator.eq(setting_data_from_resp, tvaultconf.setting_data)):
                     reporting.add_test_step(
                         "Update email settings", tvaultconf.PASS)
 
@@ -74,7 +75,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             tvaultconf.tvault_password + ' --silent "https://mail.google.com/mail/feed/atom"'
                         op = subprocess.check_output(cmd, shell=True)
                         if len(re.findall('Testing email configuration',
-                                          op.split('<entry>')[1])) == 1:
+                                          op.decode().split('<entry>')[1])) == 1:
                             LOG.debug(
                                 "Email testing done correctly and email is : {}".format(op))
                             reporting.add_test_step(

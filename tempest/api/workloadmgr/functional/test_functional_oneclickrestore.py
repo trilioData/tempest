@@ -14,6 +14,7 @@ import json
 import random
 import tempest
 import unicodedata
+import operator
 import collections
 sys.path.append(os.getcwd())
 
@@ -60,7 +61,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         vms = {}
         boot_vols = []
         for each in range(1, vm_count + 1):
-            if each <= (vm_count / 2):
+            if each <= int(vm_count / 2):
                 kptouple = random.choice(key_pairs)
                 vm_id = self.create_vm(
                     security_group_id=random.choice(sec_groups),
@@ -160,12 +161,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def multiple_workloads(self, vms):
         wls = {}
-        wln = len(vms) / 3
+        wln = int(len(vms) / 3)
         vmscopy = []
-        vmscopy = vms.keys()
+        vmscopy = [*vms]
         LOG.debug("\nvms : {}\n".format(vms))
 
-        l1 = [vmscopy[i:i + 3] for i in xrange(0, len(vmscopy), 3)]
+        l1 = [vmscopy[i:i + 3] for i in range(0, len(vmscopy), 3)]
         LOG.debug(l1)
         i = 0
         for each in l1:
@@ -205,9 +206,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = 0
             deleted = 0
             vm_count = tvaultconf.vm_count
-            key_pairs = self.create_kps(vm_count / 3)
+            key_pairs = self.create_kps(int(vm_count / 3))
             LOG.debug("\nKey pairs : {}\n".format(key_pairs))
-            sec_groups = self.create_sec_groups(vm_count / 3)
+            sec_groups = self.create_sec_groups(int(vm_count / 3))
             LOG.debug("\nSecurity Groups: {}\n".format(sec_groups))
             vms, boot_vols = self.multiple_vms(vm_count, key_pairs, sec_groups)
             LOG.debug("\nVMs : {}\n".format(vms))
@@ -245,7 +246,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### One-click Restore ###
 
-            self.delete_vms(vms.keys())
+            self.delete_vms([*vms])
             time.sleep(60)
             deleted = 1
 
@@ -332,7 +333,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("MD5SUMS after restore")
             LOG.debug(mdsums_oc)
 
-            if cmp(mdsums_original, mdsums_oc) == 0:
+            if operator.eq(mdsums_original, mdsums_oc):
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
                 status = 1
@@ -348,7 +349,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             if deleted == 0:
                 try:
-                    self.delete_vms(vms.keys())
+                    self.delete_vms([*vms])
                 except BaseException:
                     pass
             if status != 1:
