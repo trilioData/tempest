@@ -15,6 +15,7 @@ import random
 import tempest
 import unicodedata
 import collections
+import operator
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
