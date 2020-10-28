@@ -60,7 +60,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         vms = {}
         boot_vols = []
         for each in range(1, vm_count + 1):
-            if each <= (vm_count / 2):
+            if each <= int(vm_count / 2):
                 kptouple = random.choice(key_pairs)
                 vm_id = self.create_vm(
                     security_group_id=random.choice(sec_groups),
@@ -160,12 +160,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def multiple_workloads(self, vms):
         wls = {}
-        wln = len(vms) / 3
+        wln = int(len(vms) / 3)
         vmscopy = []
-        vmscopy = vms.keys()
+        vmscopy = [*vms]
         LOG.debug("\nvms : {}\n".format(vms))
 
-        l1 = [vmscopy[i:i + 3] for i in xrange(0, len(vmscopy), 3)]
+        l1 = [vmscopy[i:i + 3] for i in range(0, len(vmscopy), 3)]
         LOG.debug(l1)
         i = 0
         for each in l1:
@@ -204,9 +204,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       0], ['tempest.api.workloadmgr.test_functional_Inplace-restore', 0]]
             reporting.add_test_script(tests[0][0])
             vm_count = tvaultconf.vm_count
-            key_pairs = self.create_kps(vm_count / 3)
+            key_pairs = self.create_kps(int(vm_count / 3))
             LOG.debug("\nKey pairs : {}\n".format(key_pairs))
-            sec_groups = self.create_sec_groups(vm_count / 3)
+            sec_groups = self.create_sec_groups(int(vm_count / 3))
             LOG.debug("\nSecurity Groups: {}\n".format(sec_groups))
             vms, boot_vols = self.multiple_vms(vm_count, key_pairs, sec_groups)
             LOG.debug("\nVMs : {}\n".format(vms))
@@ -259,7 +259,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Calculate md5sum after filling the data
             mdsums_original2 = {}
-            for vm in vms.keys():
+            for vm in [*vms]:
                 mdsum = ""
                 fip = ""
                 j = 0
@@ -443,7 +443,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("MD5SUMS after restore")
             LOG.debug(mdsums_sr)
 
-            if cmp(mdsums_original, mdsums_sr) == 0:
+            if operator.eq(mdsums_original, mdsums_sr):
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
                 tests[0][1] = 1
@@ -519,7 +519,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 mdsums_ipr = {}
                 restored_vms = self.get_restored_vm_list(restore_id_2)
                 LOG.debug("\nRestored vms : {}\n".format(restored_vms))
-                for rvm in vms.keys():
+                for rvm in [*vms]:
                     mdsum = ""
                     fip = ""
                     j = 0
@@ -559,7 +559,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("MD5SUMS after restore")
             LOG.debug(mdsums_ipr)
 
-            if cmp(mdsums_original2, mdsums_ipr) == 0:
+            if operator.eq(mdsums_original2, mdsums_ipr):
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
                 tests[1][1] = 1

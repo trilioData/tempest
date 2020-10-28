@@ -2323,6 +2323,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return True
 
     '''
+    Method returns the restore list information
+    '''
+
+    def getRestoreList(self, snapshot_id=None):
+        if(snapshot_id is not None):
+            resp, body = self.wlm_client.client.get(
+                "/restores?snapshot_id=" + snapshot_id)
+        else:
+            resp, body = self.wlm_client.client.get("/restores")
+        restore_list = []
+        for i in range(0, len(body['restores'])):
+            restore_list.append(body['restores'][i]['id'])
+        LOG.debug("Response:" + str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        return restore_list
+
+    '''
     Method returns restore details
     '''
 
