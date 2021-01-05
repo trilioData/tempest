@@ -119,7 +119,9 @@ function configure_tempest
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$CLOUDADMIN_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$CLOUDADMIN_PROJECT_NAME
-    export OS_TENANT_ID=$CLOUDADMIN_PROJECT_ID
+    export OS_PROJECT_ID=$CLOUDADMIN_PROJECT_ID
+    unset OS_TENANT_ID
+    unset OS_TENANT_NAME
     export OS_AUTH_URL=$AUTH_URL
     export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
@@ -133,7 +135,7 @@ function configure_tempest
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
-     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_ALT_PROJECT_NAME _member_
+    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_ALT_PROJECT_NAME _member_
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME newadmin
     $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME _member_
@@ -148,6 +150,9 @@ function configure_tempest
     test_user_id=$($OPENSTACK_CMD user list | awk "/ $TEST_USERNAME / { print \$2 }")
     test_alt_user_id=$($OPENSTACK_CMD user list | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
+
+    unset OS_PROJECT_DOMAIN_NAME
+    export OS_PROJECT_DOMAIN_ID=$admin_domain_id
 
     if [[ "$wlm_endpoint" =~ "https" ]]
     then
@@ -348,17 +353,17 @@ function configure_tempest
     unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
-    export OS_PROJECT_DOMAIN_NAME=$TEST_DOMAIN_NAME
+    export OS_PROJECT_DOMAIN_ID=$test_domain_id
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
-    export OS_TENANT_ID=$test_project_id
+    export OS_PROJECT_ID=$test_project_id
     env | grep OS_
 
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
     sed -i "2i export OS_PROJECT_ID=$test_project_id" run_tempest.sh
-    sed -i "2i export OS_USER_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_PROJECT_DOMAIN_ID=$test_domain_id" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
     sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh

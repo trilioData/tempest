@@ -48,8 +48,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(" Instance ID : " + vm_id)
 
             # Verify workload ID
-            openstack_workload_ids = chargeback_info[CONF.identity.tenant_id]['workloads'].keys(
-            )
+            openstack_workload_ids = [*chargeback_info[CONF.identity.tenant_id]['workloads']]
             LOG.debug(" Workload ID : " + str(openstack_workload_ids))
             for worklad_id in openstack_workload_ids:
                 if (worklad_id == wid):
@@ -64,8 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(" Verification for workload id failed ")
 
             # Verify Instance ID
-            openstack_instance_ids = chargeback_info[CONF.identity.tenant_id]['workloads'][wid]['protected_vms'].keys(
-            )
+            openstack_instance_ids = [*chargeback_info[CONF.identity.tenant_id]['workloads'][wid]['protected_vms']]
             LOG.debug(" VM Name : " + openstack_instance_ids[0])
             for instance_id in openstack_instance_ids:
                 if (instance_id == vm_id):
