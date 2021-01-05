@@ -167,18 +167,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details_af[vm_details['name'].replace(
                     'restored_instance', '')] = vm_details
 
-            klist = sorted(vm_details_bf.keys())
+            klist = sorted([*vm_details_bf])
 
             for vm in klist:
-                netname = vm_details_bf[vm]['addresses'].keys()[0]
+                netname = [*vm_details_bf[vm]['addresses']][0]
                 vm_details_bf[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
                 vm_details_af[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
                 vm_details_bf[vm]['links'][1]['href'] = ''
                 vm_details_af[vm]['links'][1]['href'] = ''
-                del vm_details_af[vm]['metadata']['config_drive']
-                del vm_details_af[vm]['metadata']['ordered_interfaces']
-                del vm_details_bf[vm]['links']
-                del vm_details_af[vm]['links']
+                vm_details_af[vm]['metadata']['config_drive'] = ''
+                vm_details_af[vm]['metadata']['ordered_interfaces'] = ''
+                vm_details_bf[vm]['links'] = ''
+                vm_details_af[vm]['links'] = ''
                 vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
                 vm_details_af[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
                 vm_details_bf[vm]['updated'] = ''

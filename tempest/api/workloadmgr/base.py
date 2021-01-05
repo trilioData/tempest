@@ -2592,7 +2592,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_mountpoint_path(self, ipaddress, username, password):
         ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
-        show_mountpoint_cmd = "mount | grep /var/triliovault-mounts | awk '{print $3}'"
+        show_mountpoint_cmd = "mount | grep triliovault-mounts | awk '{print $3}'"
         stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
         mountpoint_path = stdout.read()
         LOG.debug("mountpoint path is : " + str(mountpoint_path))
