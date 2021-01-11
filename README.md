@@ -90,7 +90,7 @@ Repo for automation build, test etc.
     - Cloud admin user should be set on the openstack. Using this user, one should be able to list all projects, domains, users on the openstack. 
     - Test user, project and domain should be already available on the openstack. One can choose to use any user, project and domain for running tempest tests.
     - The test user should have admin role on the project and domain.
-    - By default, we assume "_member_" role is used for trustee role during TrilioVault configuration. Hence this role should be assigned to the test user.
+    - By default, we assume `_member_` role is used for trustee role during TrilioVault configuration. Hence this role should be assigned to the test user.
     - Internal and external networks should be already configured and available on the test project.
     - Atleast 2 Floating IPs should be available and allocated to the test project.
     - Atleast one volume type should be defined and available on the openstack.
