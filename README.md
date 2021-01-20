@@ -9,10 +9,9 @@ Repo for automation build, test etc.
     - Execute prerequisites at test suite level in order to reuse resources and reduce execution time
 
 * Supported Operating systems & Python versions:
-    - CentOS 7 with Python 2.7
     - CentOS 8 with Python 3.6
-    - Ubuntu 16.04 with Python 2.7
     - Ubuntu 18.04 with Python 3.6
+    - Ubuntu 20.04 with Python 3.8
 
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
@@ -22,30 +21,6 @@ Repo for automation build, test etc.
       ```
       
 * Prerequisites:
-    - CentOS 7
-         - Install required packages
-           ```
-           yum install gcc python-virtualenv -y
-           easy_install pip
-           pip install apscheduler
-           ```
-
-         - Install WLM client
-           ```
-           cat > /etc/yum.repos.d/trilio.repo <<-EOF
-           [trilio]
-           name=Trilio Repository
-           baseurl=http://{TVAULT_IP}:8085/yum-repo/queens/
-           enabled=1
-           gpgcheck=0
-           EOF
-           yum install workloadmgrclient -y
-           ```
-
-         - Run below script to create virtual environment:
-           ```
-           python tools/install_venv.py
-            ```
     - CentOS 8
          - Install required packages
            ```
@@ -69,26 +44,6 @@ Repo for automation build, test etc.
            ```
            python3 tools/install_venv.py
             ```
-    - Ubuntu 16.04
-         - Install required packages
-           ```
-           apt-get install gcc virtualenv python-pip -y
-           pip install apscheduler
-           ```
-
-         - Install WLM client
-           ```
-           cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-0/ /
-           EOF
-           apt-get update
-           apt-get install python-workloadmgrclient -y
-           ```
-
-         - Run below script to create virtual environment:
-           ```
-           python tools/install_venv.py
-            ```
     - Ubuntu 18.04
          - Install required packages
            ```
@@ -109,6 +64,37 @@ Repo for automation build, test etc.
            ```
            python3 tools/install_venv.py
             ```
+    - Ubuntu 20.04
+         - Install required packages
+           ```
+           apt-get install gcc python3-venv python3-pip -y
+           pip3 install apscheduler
+           ```
+
+         - Install WLM client
+           ```
+           cat > /etc/apt/sources.list.d/trilio.list <<-EOF
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-0/ /
+           EOF
+           apt-get update
+           apt-get install python3-workloadmgrclient -y
+           ```
+
+         - Run below script to create virtual environment:
+           ```
+           python3 tools/install_venv.py
+            ```
+
+* Openstack prerequisites:
+
+    - Cloud admin user should be set on the openstack. Using this user, one should be able to list all projects, domains, users on the openstack. 
+    - Test user, project and domain should be already available on the openstack. One can choose to use any user, project and domain for running tempest tests.
+    - The test user should have admin role on the project and domain.
+    - By default, we assume `_member_` role is used for trustee role during TrilioVault configuration. Hence this role should be assigned to the test user.
+    - Internal and external networks should be already configured and available on the test project.
+    - Atleast 2 Floating IPs should be available and allocated to the test project.
+    - Atleast one volume type should be defined and available on the openstack.
+    - Test image (eg: cirros) should already be available on the openstack.
 
 * Configure tempest:
 
@@ -159,6 +145,7 @@ Repo for automation build, test etc.
     - Chargeback tests
     - Sanity tests
     - RBAC tests
+    - Network restore tests
 
 * NOTES
 
