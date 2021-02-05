@@ -540,7 +540,7 @@ EOF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
-    sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TAVUTLCONF
+    sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
 
 }
 
