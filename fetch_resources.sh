@@ -517,8 +517,8 @@ function configure_tempest
         cur_ip=`hostname -I | awk '{print $1}'`
 
         cat > /tmp/trilio-test.sh <<-EOF
-        mysql -u root -p${mysql_root_pwd} -e "GRANT ALL PRIVILEGES ON ${dbname}.* TO '${dbusername}'@'${cur_ip}' IDENTIFIED BY '${mysql_wlm_pwd}'"
-        EOF
+mysql -u root -p${mysql_root_pwd} -e "GRANT ALL PRIVILEGES ON ${dbname}.* TO '${dbusername}'@'${cur_ip}' IDENTIFIED BY '${mysql_wlm_pwd}'"
+EOF
 
         juju scp /tmp/trilio-test.sh mysql/0:/tmp/
         rm -f /tmp/trilio-test.sh
