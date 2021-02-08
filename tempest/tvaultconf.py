@@ -47,6 +47,9 @@ tvault_ip = ["192.168.6.17", "192.168.6.18", "192.168.6.19"]
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
+wlm_dbusername = "workloadmgr"
+wlm_dbpasswd = "sample-password"
+wlm_dbhost = "192.168.6.17"
 
 no_of_compute_nodes = 1
 
