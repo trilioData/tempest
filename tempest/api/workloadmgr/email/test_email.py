@@ -58,6 +58,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                           str(setting_data_from_resp) +
                           " ; original setting data: " +
                           str(tvaultconf.setting_data))
+                del setting_data_from_resp['smtp_server_password']
+                del tvaultconf.setting_data['smtp_server_password']
                 if(operator.eq(setting_data_from_resp, tvaultconf.setting_data)):
                     reporting.add_test_step(
                         "Update email settings", tvaultconf.PASS)

@@ -134,12 +134,12 @@ function configure_tempest
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NONADMIN_PWD --description $NONADMIN_USERNAME --enable $NONADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
-    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
-    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --project $TEST_ALT_PROJECT_NAME _member_
-    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME _member_
-    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --project $TEST_PROJECT_NAME newadmin
-    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME _member_
-    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --project $TEST_PROJECT_NAME backup
+    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME newadmin
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME backup
 
     #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
@@ -147,8 +147,8 @@ function configure_tempest
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
     service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
-    test_user_id=$($OPENSTACK_CMD user list | awk "/ $TEST_USERNAME / { print \$2 }")
-    test_alt_user_id=$($OPENSTACK_CMD user list | awk "/ $NONADMIN_USERNAME / { print \$2 }")
+    test_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $TEST_USERNAME / { print \$2 }")
+    test_alt_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
 
     unset OS_PROJECT_DOMAIN_NAME
@@ -278,7 +278,7 @@ function configure_tempest
             ;;
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
-            type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
+            type_id=$($OPENSTACK_CMD volume type list | awk '$2 && $2 != "ID" {print $2}' | head -1)
             volume_type=$type
             volume_type_id=$type_id
             volume_type_alt=$type
@@ -405,12 +405,10 @@ function configure_tempest
     esac
 
     # router
-    while read -r NETWORK_TYPE NETWORK_UUID; do
-        if [ "$NETWORK_TYPE" = "External" ]; then
-            ext_network_id="$NETWORK_UUID"
-        fi
-        networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }' | head -1)`
+    if [ -z "$ext_network_id" ]; then
+        echo "External network not available"
+    fi
 
     while read -r ROUTER_UUID; do
             router_id="$ROUTER_UUID"
@@ -480,6 +478,7 @@ function configure_tempest
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
 
+    TEMP_IP=${TVAULT_IP}
     IP=""
     cnt=0
     IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
@@ -494,12 +493,57 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
+    if ! hash juju; then
+        echo "juju is not installed"
+	juju=0
+    else
+        echo "juju is installed"
+	juju=1
+    fi
+
+    dbname="workloadmgr"
+    if [ $juju == 1 ]; then
+        modelname="controller"
+        dbusername="workloadmgr"
+
+        echo "fetch mysql root password"
+        mysql_root_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get root-password'`
+
+        echo "fetch workloadmgr mysql connection details"
+        mysql_wlm_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get mysql-workloadmgr.passwd'`
+	mysql_ip=`juju run -m ${modelname} --unit trilio-wlm/0 "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf | cut -d '/' -f 3 | cut -d '@' -f 2"`
+
+        echo "Provide required access to connect to wlm database from maas node"
+        cur_ip=`hostname -I | awk '{print $1}'`
+
+        cat > /tmp/trilio-test.sh <<-EOF
+mysql -u root -p${mysql_root_pwd} -e "GRANT ALL PRIVILEGES ON ${dbname}.* TO '${dbusername}'@'${cur_ip}' IDENTIFIED BY '${mysql_wlm_pwd}'"
+EOF
+
+        juju scp /tmp/trilio-test.sh mysql/0:/tmp/
+        rm -f /tmp/trilio-test.sh
+        juju run -m ${modelname} --unit mysql/0 "cat /tmp/trilio-test.sh"
+        juju run -m ${modelname} --unit mysql/0 "bash /tmp/trilio-test.sh"
+    else
+        conn_str=`ssh root@${TEMP_IP} "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf"`
+        if [ $? -ne 0 ]; then
+            echo "provide passwordless authentication to TrilioVault appliance node, in order to fetch database details"
+        fi
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`           
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    fi
+
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
+    sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
+    sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
+    sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
 
 }
 
