@@ -221,7 +221,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method returns the Instance ID of a new VM instance created
     '''
-
     def create_vm(self,
                   vm_cleanup=True,
                   vm_name="",
@@ -232,6 +231,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   networkid=[{'uuid': CONF.network.internal_network_id}],
                   image_id=CONF.compute.image_ref,
                   block_mapping_data=[],
+                  user_data="NULL",
                   a_zone=CONF.compute.vm_availability_zone):
         if(vm_name == ""):
             ts = str(datetime.now())
@@ -250,6 +250,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     networks=networkid,
                     key_name=key_name,
                     block_device_mapping_v2=block_mapping_data,
+                    user_data=user_data,
                     availability_zone=a_zone)
             elif (len(block_mapping_data) > 0 and key_pair == ""):
                 server = self.servers_client.create_server(
@@ -261,6 +262,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     flavorRef=flavor_id,
                     networks=networkid,
                     block_device_mapping_v2=block_mapping_data,
+                    user_data=user_data,
                     availability_zone=a_zone)
             elif (key_pair != ""):
                 server = self.servers_client.create_server(
@@ -271,6 +273,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     imageRef=image_id,
                     flavorRef=flavor_id,
                     networks=networkid,
+                    user_data=user_data,
                     key_name=key_name,
                     availability_zone=a_zone)
             else:
@@ -282,6 +285,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     imageRef=image_id,
                     flavorRef=flavor_id,
                     networks=networkid,
+                    user_data=user_data,
                     availability_zone=a_zone)
             server_id = server['server']['id']
             waiters.wait_for_server_status(
@@ -2697,22 +2701,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def validate_snapshot_mount(
         self,
         ssh,
-        file_path_to_search="/home/ubuntu/tvault-mounts/mounts",
+        file_path_to_search="/mnt/tvault-mounts/mounts/",
         file_name="File_1"):
         try:
             time.sleep(20)
-            cmd = "ls -la " + file_path_to_search + "/Test_*/vda*"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            cmd = "ls -la " + file_path_to_search + "/Test_*/vdb*"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDB List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            buildCommand = "find " + file_path_to_search + " -name " + file_name
+            buildCommand = "sudo su - root -c 'find "  + file_path_to_search + " -name " + file_name + "'"
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
             output = stdout.read()
             LOG.debug(output)
-            return(output)
+            return(bytes(output))
         except Exception as e:
             LOG.debug("Exception: " + str(e))
 
