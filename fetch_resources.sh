@@ -525,13 +525,11 @@ EOF
         juju run -m ${modelname} --unit mysql/0 "cat /tmp/trilio-test.sh"
         juju run -m ${modelname} --unit mysql/0 "bash /tmp/trilio-test.sh"
     else
-        conn_str=`ssh root@${TEMP_IP} "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf"`
-        if [ $? -ne 0 ]; then
-            echo "provide passwordless authentication to TrilioVault appliance node, in order to fetch database details"
-        fi
+        conn_str=`workloadmgr setting-list --insecure --get_hidden True -f value | grep sql_connection`
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`           
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
     fi
 
     # tvaultconf.py
