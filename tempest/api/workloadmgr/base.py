@@ -21,6 +21,7 @@ import stat
 import requests
 import re
 import collections
+import base64
 
 from oslo_log import log as logging
 from tempest import config
@@ -233,6 +234,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   block_mapping_data=[],
                   user_data="NULL",
                   a_zone=CONF.compute.vm_availability_zone):
+        if(user_data != "NULL"):
+            with open(user_data,'rb') as tmp_userdata:
+                user_data=base64.b64encode(tmp_userdata.read())
+        else:
+            user_data=base64.b64encode(b' ')
         if(vm_name == ""):
             ts = str(datetime.now())
             vm_name = "Tempest_Test_Vm" + ts.replace('.', '-')
