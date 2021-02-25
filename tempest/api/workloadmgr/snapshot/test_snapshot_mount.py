@@ -75,11 +75,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("validate that snapshot is mounted on FVM")
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
-            output_list = self.validate_snapshot_mount(ssh).split('\n')
+            output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
             ssh.close()
             flag = 0
             for i in output_list:
-                if 'vdb1.mnt' in i:
+                if 'vdbb' in i:
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
@@ -161,7 +161,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             output_list = self.validate_snapshot_mount(ssh)
             ssh.close()
 
-            if output_list == '':
+            if output_list == b'':
                 LOG.debug("Unmounting successful")
                 reporting.add_test_step(
                     "Unmounting of a full snapshot", tvaultconf.PASS)
@@ -220,12 +220,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("validate that snapshot is mounted on FVM")
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
-            output_list = self.validate_snapshot_mount(ssh).split('\n')
+            output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
             ssh.close()
 
             flag = 0
             for i in output_list:
-                if 'vdb1.mnt' in i:
+                if 'vdbb' in i:
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
