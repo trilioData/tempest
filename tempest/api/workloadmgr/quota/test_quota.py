@@ -23,9 +23,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @decorators.attr(type='workloadmgr_api')
+    @decorators.attr(type='workloadmgr_cli')
     def test_01_list_quota_type(self):
-        reporting.add_test_script(str(__name__) + "_list_quota_type")
+        reporting.add_test_script(str(__name__) + "_list_quota_type_cli")
         try:
             # List available workload types using CLI command
             rc = cli_parser.cli_returncode(
@@ -57,4 +57,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_02_list_quota_type(self):
+        reporting.add_test_script(str(__name__) + "_list_quota_type_api")
+        try:
+            quota_list = self.get_quota_type()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
             reporting.test_case_to_write()
