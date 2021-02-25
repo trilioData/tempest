@@ -6,6 +6,7 @@ TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
+TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 NONADMIN_USERNAME=trilio-nonadmin-user
@@ -525,13 +526,11 @@ EOF
         juju run -m ${modelname} --unit mysql/0 "cat /tmp/trilio-test.sh"
         juju run -m ${modelname} --unit mysql/0 "bash /tmp/trilio-test.sh"
     else
-        conn_str=`ssh root@${TEMP_IP} "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf"`
-        if [ $? -ne 0 ]; then
-            echo "provide passwordless authentication to TrilioVault appliance node, in order to fetch database details"
-        fi
+        conn_str=`workloadmgr setting-list --insecure --get_hidden True -f value | grep sql_connection`
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`           
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
     fi
 
     # tvaultconf.py
@@ -544,6 +543,7 @@ EOF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
+    sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
 
 }
 
