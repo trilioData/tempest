@@ -1,7 +1,3 @@
-from tempest.util import query_data
-from tempest.util import cli_parser
-from tempest import command_argument_string
-import time
 from tempest import reporting
 from tempest import tvaultconf
 from oslo_log import log as logging
@@ -10,7 +6,6 @@ from tempest import config
 from tempest.api.workloadmgr import base
 import sys
 import os
-import json
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
