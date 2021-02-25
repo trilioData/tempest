@@ -175,10 +175,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details_af[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
                 vm_details_bf[vm]['links'][1]['href'] = ''
                 vm_details_af[vm]['links'][1]['href'] = ''
-                del vm_details_af[vm]['metadata']['config_drive']
-                del vm_details_af[vm]['metadata']['ordered_interfaces']
+                if 'config_drive' in vm_details_af[vm]['metadata']:
+                    del vm_details_af[vm]['metadata']['config_drive']
+                if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
+                    del vm_details_af[vm]['metadata']['ordered_interfaces']
                 vm_details_bf[vm]['links'] = ''
                 vm_details_af[vm]['links'] = ''
+                vm_details_bf[vm]['OS-EXT-SRV-ATTR:host'] = ''
+                vm_details_af[vm]['OS-EXT-SRV-ATTR:host'] = ''
+                vm_details_bf[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
+                vm_details_af[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
+                vm_details_bf[vm]['hostId'] = ''
+                vm_details_af[vm]['hostId'] = ''
                 vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
                 vm_details_af[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
                 vm_details_bf[vm]['updated'] = ''

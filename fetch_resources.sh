@@ -564,11 +564,10 @@ fi
 . $OPENSTACK_CLI_VENV/bin/activate
 source openstack-setup.conf
 pip$PYTHON_VERSION install wheel
-pip$PYTHON_VERSION install openstacksdk==0.35.0
-pip$PYTHON_VERSION install os-client-config==1.18.0
-pip$PYTHON_VERSION install python-openstackclient==3.19.0
-pip$PYTHON_VERSION install python-cinderclient==4.2.0
-pip$PYTHON_VERSION install python-novaclient==15.1.0
+pip$PYTHON_VERSION install --upgrade pip
+pip$PYTHON_VERSION install openstacksdk
+pip$PYTHON_VERSION install os-client-config
+pip$PYTHON_VERSION install python-openstackclient
 
 configure_tempest
 deactivate
