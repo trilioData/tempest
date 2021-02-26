@@ -3084,12 +3084,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return
 
     '''
-    This method lists the different types of WLM Quotas
+    This method lists the available types of WLM Quotas
     '''
-
     def get_quota_type(self):
         resp, body = self.wlm_client.client.get(
             "/project_quota_types")
+        LOG.debug("get_quota_type response: %s", resp.content)
         if(resp.status_code != 200):
             resp.raise_for_status()
-        return resp.content
+        quota_types = json.loads(resp.content)
+        return quota_types['quota_types']

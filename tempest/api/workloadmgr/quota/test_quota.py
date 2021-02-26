@@ -27,17 +27,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_01_list_quota_type(self):
         reporting.add_test_script(str(__name__) + "_list_quota_type_cli")
         try:
-            # List available workload types using CLI command
+
             rc = cli_parser.cli_returncode(
                 command_argument_string.quota_type_list)
             if rc != 0:
-                reporting.add_test_step(
-                    "Execute project-quota-type-list command", tvaultconf.FAIL)
-                raise Exception("Command did not execute correctly")
+                raise Exception("Execute project-quota-type-list command")
             else:
                 reporting.add_test_step(
                     "Execute project-quota-type-list command", tvaultconf.PASS)
-                LOG.debug("Command executed correctly")
 
             wc = query_data.get_available_project_quota_types()
             out = cli_parser.cli_output(
@@ -45,18 +42,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (int(wc) == int(out)):
                 reporting.add_test_step(
                     "Verification with DB", tvaultconf.PASS)
-                LOG.debug(
-                    "Project quota type list command listed available quota types correctly")
             else:
-                reporting.add_test_step(
-                    "Verification with DB", tvaultconf.FAIL)
-                raise Exception(
-                    "Project quota type list command did not list available quota types correctly")
-            reporting.test_case_to_write()
-
+                raise Exception("Verification with DB")
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
@@ -64,10 +56,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_list_quota_type_api")
         try:
             quota_list = self.get_quota_type()
-
+            if len(quota_list) > 0:
+                reporting.add_test_step("List Quota types", tvaultconf.PASS)
+            else:
+                raise exception("List Quota types")
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
-
         finally:
             reporting.test_case_to_write()
