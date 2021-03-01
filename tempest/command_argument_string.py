@@ -58,3 +58,6 @@ policy_create = "workloadmgr policy-create --policy-fields "
 policy_update = "workloadmgr policy-update --policy-fields "
 policy_assign = "workloadmgr policy-assign --add_project "
 policy_delete = "workloadmgr policy-delete "
+
+#Quota commands
+quota_type_list = "workloadmgr project-quota-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"

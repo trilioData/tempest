@@ -43,6 +43,9 @@ class V3TokenClient(rest_client.RestClient):
         if auth_url is None:
             raise exceptions.IdentityError("Couldn't determine auth_url")
 
+        if auth_url[-3:] != '/v3':
+            auth_url = auth_url + '/v3'
+
         if 'auth/tokens' not in auth_url:
             auth_url = auth_url.rstrip('/') + '/auth/tokens'
 
