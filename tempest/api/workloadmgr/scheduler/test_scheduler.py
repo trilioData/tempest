@@ -12,22 +12,19 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import sys
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest.lib import decorators
-import json
+import os
 import sys
 import time
-import os
 from datetime import datetime, timedelta
-from tempest import api
+
 from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
+
+from tempest import config
 from tempest import reporting
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 LOG = logging.getLogger(__name__)
 CONF = config.CONF

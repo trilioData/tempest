@@ -13,16 +13,13 @@
 #    under the License.
 
 
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest.lib import decorators
-import json
-import sys
-from tempest import api
 from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
+
+from tempest import config
 from tempest import reporting
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF

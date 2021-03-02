@@ -1,15 +1,18 @@
-from tempest.util import query_data
-from tempest.util import cli_parser
-from tempest import command_argument_string
+import os
+import sys
 import time
+
+from oslo_log import log as logging
+
+from tempest import command_argument_string
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
+from tempest.lib import decorators
+from tempest.util import cli_parser
+from tempest.util import query_data
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)

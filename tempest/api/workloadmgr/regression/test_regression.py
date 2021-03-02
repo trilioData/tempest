@@ -12,24 +12,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest import test
-from tempest.lib import decorators
-from tempest import tvaultconf
+import collections
 import json
-import yaml
-import sys
-from tempest import api
-from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
-from tempest import reporting
 import time
+
+import yaml
+from oslo_log import log as logging
+
 from tempest import command_argument_string
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
 from tempest.util import cli_parser
 from tempest.util import query_data
-import collections
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
