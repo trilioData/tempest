@@ -37,6 +37,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('3d64b5d3-b283-418c-82de-2b3394e57925')
+    @decorators.attr(type='workloadmgr_api')
     def test_1(self):
         snapshot_list = self.snapshots_extensions_client.list_snapshots()[
             'snapshots']

@@ -25,6 +25,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_nonadmin_notableto(self):
         try:
             storage_usage_error_str = "Policy doesn't allow workload:get_storage_usage to be performed."

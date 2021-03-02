@@ -41,6 +41,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
         try:
             if self.exception != "":

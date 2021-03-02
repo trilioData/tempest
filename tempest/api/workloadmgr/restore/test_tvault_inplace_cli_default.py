@@ -47,6 +47,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'inplace'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault_inplace_cli_default(self):
         try:
 

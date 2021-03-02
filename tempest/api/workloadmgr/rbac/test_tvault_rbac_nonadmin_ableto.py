@@ -25,6 +25,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_nonadmin_ableto(self):
         try:
             # Use non-admin credentials

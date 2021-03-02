@@ -106,6 +106,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         return(snapshot_id)
 
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_image_volume(self):
         try:
             global volumes

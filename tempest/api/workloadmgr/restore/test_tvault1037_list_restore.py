@@ -27,6 +27,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault1037_list_restore(self):
         try:
             # Prerequisites

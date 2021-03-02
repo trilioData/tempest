@@ -32,6 +32,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'basic_workload'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_1_get_audit_log(self):
         try:
             reporting.add_test_script(str(__name__) + "_get_audit_log")
@@ -82,6 +83,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_2_get_storage_details(self):
         try:
             reporting.add_test_script(str(__name__) + "_get_storage_details")
@@ -106,6 +108,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_3_get_tenant_details(self):
         try:
             reporting.add_test_script(str(__name__) + "_get_tenant_details")

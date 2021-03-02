@@ -31,6 +31,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_workload_policy_create(self):
         reporting.add_test_script(str(__name__) + "_create")
         try:
@@ -91,6 +92,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_2_workload_policy_update(self):
         reporting.add_test_script(str(__name__) + "_update")
         try:
@@ -161,6 +163,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_3_workload_policy_assign(self):
         reporting.add_test_script(str(__name__) + "_assign")
         try:
@@ -287,6 +290,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_4_workload_modify(self):
         reporting.add_test_script(str(__name__) + "_workload_modify")
         try:
@@ -429,6 +433,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_5_workload_policy_in_use(self):
         reporting.add_test_script(str(__name__) + "_in_use")
         try:
@@ -511,6 +516,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_6_workload_policy_delete(self):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
@@ -578,6 +584,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Workload policy with scheduler and retension parameter
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_7_policywith_scheduler_retension(self):
         reporting.add_test_script(str(__name__) + "with_scheduler_retention")
         try:

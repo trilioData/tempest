@@ -27,6 +27,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('dbb758aa-b3af-40ac-9105-705b1f18cbd8')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_backuprole_touser_policyjson(self):
         try:
             workload_create_error_str = "Policy doesn't allow workload:workload_create to be performed."

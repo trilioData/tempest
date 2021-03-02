@@ -46,6 +46,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfromvol")
@@ -175,6 +176,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'nested_security'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_2_regression(self):
         reporting.add_test_script(str(__name__) + "_nested_security")
         try:
@@ -191,6 +193,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'inplace'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_3_regression(self):
         reporting.add_test_script(str(__name__) + "_inplace_restore_cli")
         try:
@@ -381,6 +384,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_4_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_default_values")
@@ -563,6 +567,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_5_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_bootfromvol")
@@ -746,6 +751,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_6_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfrom_image")
