@@ -1,11 +1,14 @@
+import os
+import sys
+
+from oslo_log import log as logging
+
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -22,6 +25,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__))
 
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_workload_reassign(self):
         try:
             ### Create vm and workload ###

@@ -12,16 +12,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest.lib import decorators
-import json
-import sys
-from tempest import api
-from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
 import time
+
+from oslo_log import log as logging
+
+from tempest import config
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
@@ -37,6 +36,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('3d64b5d3-b283-418c-82de-2b3394e57925')
+    @decorators.attr(type='workloadmgr_api')
     def test_1(self):
         self.total_workloads = 20
         self.vms_per_workload = 2
