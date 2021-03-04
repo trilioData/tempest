@@ -1,16 +1,19 @@
-import time
 import datetime
-from tempest.util import query_data
-from tempest.util import cli_parser
+import os
+import sys
+import time
+
+from oslo_log import log as logging
+
 from tempest import command_argument_string
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
+from tempest.lib import decorators
+from tempest.util import cli_parser
+from tempest.util import query_data
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -27,6 +30,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_modify_workload_tvault1045_add_instance(self):
         reporting.add_test_script(str(__name__) + "_tvault1045_add_instance")
         try:
@@ -103,6 +107,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_2_modify_workload_scheduler_disable(self):
         reporting.add_test_script(str(__name__) + "_scheduler_disable")
         try:
@@ -245,6 +250,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_3_modify_workload_scheduler_enable(self):
         reporting.add_test_script(str(__name__) + "_scheduler_enable")
         try:

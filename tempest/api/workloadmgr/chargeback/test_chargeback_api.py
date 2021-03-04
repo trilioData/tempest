@@ -1,11 +1,11 @@
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest import test
-from tempest.lib import decorators
 from oslo_log import log as logging
-from tempest import tvaultconf
-from tempest import reporting
 
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -23,6 +23,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'basic_workload'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_chargeback_api(self):
         try:
             if self.exception != "":
