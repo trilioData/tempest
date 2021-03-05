@@ -97,7 +97,10 @@ Repo for automation build, test etc.
     - Internal and external networks should be already configured and available on the test project.
     - Atleast 2 Floating IPs should be available and allocated to the test project.
     - Atleast one volume type should be defined and available on the openstack.
-    - Test image (eg: cirros) should already be available on the openstack.
+    - Test image (eg: cirros) should already be available on the openstack.    
+    - FRM (CentOS8 or Ubuntu18) image should already be available on the openstack with below properties. By default, we assume CentOS8 is used as FRM.
+    	- hw_qemu_guest_agent=yes
+    	- tvault_recovery_manager=yes
 
 * Configure tempest:
 
