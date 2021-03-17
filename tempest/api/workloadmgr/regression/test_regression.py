@@ -12,24 +12,22 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest import test
-from tempest.lib import decorators
-from tempest import tvaultconf
+import collections
 import json
-import yaml
-import sys
-from tempest import api
-from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
-from tempest import reporting
 import time
+
+import yaml
+from oslo_log import log as logging
+
 from tempest import command_argument_string
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
 from tempest.util import cli_parser
 from tempest.util import query_data
-import collections
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -46,6 +44,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfromvol")
@@ -175,6 +174,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'nested_security'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_2_regression(self):
         reporting.add_test_script(str(__name__) + "_nested_security")
         try:
@@ -191,6 +191,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'inplace'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_3_regression(self):
         reporting.add_test_script(str(__name__) + "_inplace_restore_cli")
         try:
@@ -381,6 +382,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_4_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_default_values")
@@ -563,6 +565,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfromvol_workload_medium'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_5_regression(self):
         reporting.add_test_script(
             str(__name__) + "_selective_restore_bootfromvol")
@@ -746,6 +749,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f522eada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_6_regression(self):
         reporting.add_test_script(
             str(__name__) + "_one_click_restore_bootfrom_image")

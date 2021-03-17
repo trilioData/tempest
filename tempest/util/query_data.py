@@ -465,3 +465,21 @@ def get_config_workload_id():
     finally:
         cursor.close()
         conn.close()
+
+
+def get_available_project_quota_types():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_quota_types = (
+            "select count(*) from project_quota_types where deleted <> 1")
+        cursor.execute(get_quota_types)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+

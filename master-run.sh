@@ -23,21 +23,36 @@ do
     touch $TEST_LIST_FILE
     $PYTHON_CMD -c "from tempest import reporting; reporting.get_tests(\"$TEST_LIST_FILE\",\""$BASE_DIR"/tempest/api/workloadmgr/"$testname"\")"
     ./run_tempest.sh -V tempest.api.workloadmgr.test_cleaner
-    while read -r line
-    do  
+    [ -s $TEST_LIST_FILE ]
+    if [ $? -ne 0 ]
+    then
         rm -rf $BASE_DIR/lock
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
-	echo "running $line"
-        ./run_tempest.sh -V $line
+        echo "running $suite"
+        ./run_tempest.sh $suite
         if [ $? -ne 0 ]; then
- 	     echo "$line FAILED" 
+            echo "$suite FAILED"
         fi
         mv -f tempest.log $LOGS_DIR/
+    else
+        while read -r line
+        do  
+            rm -rf $BASE_DIR/lock
+            LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
+            LOGS_DIR=logs/$LOGS_DIR
+            mkdir -p $LOGS_DIR
+	    echo "running $line"
+            ./run_tempest.sh $line
+            if [ $? -ne 0 ]; then
+ 	         echo "$line FAILED" 
+            fi
+            mv -f tempest.log $LOGS_DIR/
     
-    done < "$TEST_LIST_FILE"
-    $PYTHON_CMD -c 'from tempest import reporting; reporting.end_report_table()'
+        done < "$TEST_LIST_FILE"
+        $PYTHON_CMD -c 'from tempest import reporting; reporting.end_report_table()'
+    fi
 done
 $PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report()'
 
