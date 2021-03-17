@@ -1,21 +1,17 @@
-from tempest.util import query_data
-from tempest.util import cli_parser
-from tempest import command_argument_string
+import operator
+import os
+import random
+import sys
 import time
+
+from oslo_log import log as logging
+
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
-import json
-import random
-import tempest
-import unicodedata
-import operator
-import collections
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -198,6 +194,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
 
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_functional(self):
         try:
             ### VM and Workload ###

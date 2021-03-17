@@ -1,16 +1,19 @@
-from tempest.util import query_data
-from tempest.util import cli_parser
-from tempest import command_argument_string
-import time
-from tempest import reporting
-from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest import test
-from tempest.lib import decorators
-from tempest import config
-from tempest.api.workloadmgr import base
-import sys
 import os
+import sys
+import time
+
+from oslo_log import log as logging
+
+from tempest import command_argument_string
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+from tempest.util import cli_parser
+from tempest.util import query_data
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -32,6 +35,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'basic_workload'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_1_create_full_snapshot(self):
         try:
             reporting.add_test_script(str(__name__) + "_create_full_snapshot")
@@ -91,6 +95,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_2_create_incremental_snapshot(self):
         try:
             reporting.add_test_script(
@@ -145,6 +150,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_3_list_snapshot(self):
         try:
             reporting.add_test_script(str(__name__) + "_list_snapshot")
@@ -183,6 +189,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_4_delete_snapshot(self):
         try:
             global workload_id
