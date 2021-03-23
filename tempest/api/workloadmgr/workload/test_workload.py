@@ -264,7 +264,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-list command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            wc = query_data.get_available_workloads()
+            wc = query_data.get_available_workloads(CONF.identity.tenant_id)
             out = cli_parser.cli_output(command_argument_string.workload_list)
             if (int(wc) == int(out)):
                 reporting.add_test_step(
