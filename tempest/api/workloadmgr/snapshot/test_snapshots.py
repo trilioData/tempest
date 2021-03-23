@@ -167,7 +167,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute snapshot-list command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            wc = query_data.get_available_snapshots()
+            wc = query_data.get_available_snapshots(CONF.identity.tenant_id)
             out = cli_parser.cli_output(command_argument_string.snapshot_list)
             if(int(wc) == int(out)):
                 reporting.add_test_step(

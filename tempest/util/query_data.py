@@ -73,12 +73,17 @@ def get_available_snapshots_for_workload(snapshot_name, workload_id):
         conn.close()
 
 
-def get_available_snapshots():
+def get_available_snapshots(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_snapshots = (
-            "select count(*) from snapshots where deleted=0 and status = 'available' order by created_at desc limit 1")
+        if project_id:
+            get_available_snapshots = ("select count(*) from snapshots where "
+                                       "deleted=0 and status = 'available' and "
+                                       "project_id = '%s'" % project_id )
+        else:
+            get_available_snapshots = ("select count(*) from snapshots where "
+                                       "deleted=0 and status = 'available' ")
         cursor.execute(get_available_snapshots)
         rows = cursor.fetchall()
         for row in rows:
@@ -90,11 +95,16 @@ def get_available_snapshots():
         conn.close()
 
 
-def get_available_workloads():
+def get_available_workloads(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_workloads = (
+        if project_id:
+            get_available_workloads = (
+                "select count(*) from workloads where status=\"available\" "
+                "and project_id=\"%s\"" % project_id)
+        else:
+            get_available_workloads = (
             "select count(*) from workloads where status=\"available\"")
         cursor.execute(get_available_workloads)
         rows = cursor.fetchall()
@@ -107,12 +117,17 @@ def get_available_workloads():
         conn.close()
 
 
-def get_available_restores():
+def get_available_restores(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_restores = (
-            "select count(*) from restores where status=\"available\"")
+        if project_id:
+            get_available_restores = ('select count(*) from restores where '
+                                      'status="available" and project_id="%s"'
+                                      % project_id)
+        else:
+            get_available_restores = (
+            'select count(*) from restores where status="available"')
         cursor.execute(get_available_restores)
         rows = cursor.fetchall()
         for row in rows:
