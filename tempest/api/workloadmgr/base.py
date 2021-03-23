@@ -86,10 +86,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getWorkloadStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_status = body['workload']['status']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
+                  resp.content)
+        if resp.status_code != 200:
             resp.raise_for_status()
         return workload_status
 
@@ -101,11 +100,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id)
         snapshot_status = body['snapshot']['status']
-        LOG.debug(
-            "#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" %
-            (workload_id, snapshot_id))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , snapshot id: %s , show_snapshot Response: "
+                  "%s" % workload_id, snapshot_id, resp.content)
+        if resp.status_code != 200:
             resp.raise_for_status()
         return snapshot_status
 
@@ -117,11 +114,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + str(workload_id) + "/snapshots/" + str(snapshot_id) + "/restores/" + str(restore_id))
         restore_status = body['restore']['status']
-        LOG.debug(
-            "#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" %
-            (workload_id, snapshot_id, restore_id))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , snapshot id: %s , restore id: %s , "
+                  "show_restore Response: %s" % workload_id, snapshot_id,
+                  restore_id, resp.content)
+        if resp.status_code != 200:
             resp.raise_for_status()
         return restore_status
 
@@ -132,10 +128,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getSchedulerStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         schedule_status = body['workload']['jobschedule']['enabled']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
+                  resp.content)
+        if resp.status_code != 200:
             resp.raise_for_status()
         return schedule_status
 
@@ -146,17 +141,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
+                  resp.content)
+        if resp.status_code != 200:
             resp.raise_for_status()
         return retention_policy_type
 
     '''
     Method returns the Retention Policy Value of a given workload
     '''
-
+    ####### import pdb; pdb.set_trace()
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
@@ -2038,7 +2032,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                             else:
                                 i = 0
                                 for k4, v2 in list(k3.items()):
-                                    if path1 in k4:
+                                    if path1 in v2:
                                         disk = list(k3.keys())[1]
                                         i += 1
                                     else:
