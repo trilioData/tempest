@@ -86,8 +86,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getWorkloadStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_status = body['workload']['status']
-        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
-                  resp.content)
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return workload_status
@@ -101,7 +101,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id)
         snapshot_status = body['snapshot']['status']
         LOG.debug("workload id: %s , snapshot id: %s , show_snapshot Response: "
-                  "%s" % workload_id, snapshot_id, resp.content)
+                  "%s" % (workload_id, snapshot_id, resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return snapshot_status
@@ -115,8 +115,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             "/workloads/" + str(workload_id) + "/snapshots/" + str(snapshot_id) + "/restores/" + str(restore_id))
         restore_status = body['restore']['status']
         LOG.debug("workload id: %s , snapshot id: %s , restore id: %s , "
-                  "show_restore Response: %s" % workload_id, snapshot_id,
-                  restore_id, resp.content)
+                  "show_restore Response: %s" % (workload_id, snapshot_id,
+                  restore_id, resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return restore_status
@@ -128,8 +128,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getSchedulerStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         schedule_status = body['workload']['jobschedule']['enabled']
-        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
-                  resp.content)
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return schedule_status
@@ -141,8 +141,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
-        LOG.debug("workload id: %s , show_workload Response: %s" % workload_id,
-                  resp.content)
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return retention_policy_type
