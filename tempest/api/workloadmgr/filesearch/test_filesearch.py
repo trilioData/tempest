@@ -1,13 +1,15 @@
-import time
-from tempest import reporting
-from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest import test
-from tempest import config
-from tempest.lib import decorators
-from tempest.api.workloadmgr import base
-import sys
 import os
+import sys
+
+from oslo_log import log as logging
+
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -33,6 +35,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'filesearch'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
+    @decorators.attr(type='workloadmgr_api')
     def test_1_filesearch_default_parameters(self):
         reporting.add_test_script(str(__name__) + "_default_parameters")
         try:
@@ -104,6 +107,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
+    @decorators.attr(type='workloadmgr_api')
     def test_2_filesearch_snapshotids(self):
         reporting.add_test_script(str(__name__) + "_snapshotids")
         try:
@@ -163,6 +167,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
+    @decorators.attr(type='workloadmgr_api')
     def test_3_filesearch_firsttwosnapshots(self):
         reporting.add_test_script(str(__name__) + "_firsttwosnapshots")
         try:
@@ -215,6 +220,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('7edf99de-54a5-4de0-bc80-be4081f7602c')
+    @decorators.attr(type='workloadmgr_api')
     def test_4_filesearch_latesttwosnapshots(self):
         reporting.add_test_script(str(__name__) + "_latesttwosnapshots")
         try:
@@ -267,6 +273,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('8113fdaa-170c-401f-888b-535ce9408a70')
+    @decorators.attr(type='workloadmgr_api')
     def test_5_filesearch_daterange(self):
         reporting.add_test_script(str(__name__) + "_daterange")
         try:
@@ -321,6 +328,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('dea39e41-4694-492a-843f-58e025ca08d6')
+    @decorators.attr(type='workloadmgr_api')
     def test_6_filesearch_wildcard_star(self):
         reporting.add_test_script(str(__name__) + "_wildcard_star")
         try:
@@ -364,6 +372,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('71870b31-ac48-42d4-83a8-fc1fa772df3b')
+    @decorators.attr(type='workloadmgr_api')
     def test_7_filesearch_wildcards_questionmark(self):
         reporting.add_test_script(str(__name__) + "_wildcards_questionmark")
         try:
