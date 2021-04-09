@@ -98,4 +98,4 @@ disable_email_notification = {"smtp_email_enable" : 0}
 
 
 #Parameter for multiple vm workloads etc
-vm_count = 8
+vm_count = 4
