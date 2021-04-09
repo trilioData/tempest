@@ -560,3 +560,82 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_11_create_workload(self):
+        reporting.add_test_script(str(__name__) + "_create_workload_api")
+        try:
+            self.created = False
+            self.vm_id = self.create_vm()
+            self.volume_id = self.create_volume()
+            self.attach_volume(self.volume_id, self.vm_id)
+
+            # Create workload
+            self.wid = self.workload_create([self.vm_id], tvaultconf.parallel)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_12_create_scheduled_workload(self):
+        reporting.add_test_script(str(__name__) + "_create_scheduled_workload_api")
+        try:
+            # Prerequisites
+            self.created = False
+            self.vm_id = self.create_vm()
+            self.volume_id = self.create_volume()
+            self.attach_volume(self.volume_id, self.vm_id)
+
+            # Create scheduled workload
+            self.start_date = time.strftime("%x")
+            self.start_time = time.strftime("%I:%M %p")
+            self.interval = tvaultconf.interval
+            self.retention_policy_type = tvaultconf.retention_policy_type
+            self.retention_policy_value = tvaultconf.retention_policy_value
+            self.wid = self.workload_create([self.vm_id], tvaultconf.parallel,
+                                    jobschedule={"start_date": self.start_date,
+                                                 "start_time": self.start_time,
+                                                 "interval": self.interval,
+                                                 "retention_policy_type":
+                                                     self.retention_policy_type,
+                                                 "retention_policy_value":
+                                                     self.retention_policy_value,
+                                                 "enabled": "True"})
+            LOG.debug("Workload ID: " + str(self.wid))
+            self.wait_for_workload_tobe_available(self.wid)
+            if(self.getWorkloadStatus(self.wid) == "available"):
+                reporting.add_test_step(
+                    "Create scheduled workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Create scheduled workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.schedule = self.getSchedulerStatus(self.wid)
+            LOG.debug("Workload schedule: " + str(self.schedule))
+            if(self.schedule):
+                reporting.add_test_step("Verification", tvaultconf.PASS)
+                LOG.debug("Workload schedule enabled")
+            else:
+                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                LOG.error("Workload schedule not enabled")
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
