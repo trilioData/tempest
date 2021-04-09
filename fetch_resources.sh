@@ -211,7 +211,7 @@ function configure_tempest
     fi
     if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
         # Determine the flavor disk size based on the image size.
-        $OPENSTACK_CMD flavor create --ram 4096 --disk 40 --vcpus 2 $FVM_IMAGE_NAME
+        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAME
     fi
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'

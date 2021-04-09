@@ -130,8 +130,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def assign_floating_ips(self, vm_id, fipcleanup):
         fip = self.get_floating_ips()
-        self.set_floating_ip(str(fip[0]), vm_id, floatingip_cleanup=fipcleanup)
-        return(fip[0])
+        if len(fip) > 0:
+            self.set_floating_ip(str(fip[0]), vm_id, floatingip_cleanup=fipcleanup)
+            return(fip[0])
+        else:
+            raise Exception("Floating ip unavailable")
 
     def data_ops(
         self,

@@ -201,19 +201,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.assertEqual(scheduler_status, "true")
 
     '''
-    Method to update image metadata
-    Commenting this method, as images_client not available. When required, can revisit and fix it
-    '''
-#    def update_image(self, image_id, meta):
-#        try:
-#            response = self.images_client.update_image_metadata(image_id, meta)
-#            LOG.debug("image_update" + str(response))
-#            return True
-#        except Exception as e:
-#            LOG.error("Excetpion in base.py : " + str(e))
-#            return False
-
-    '''
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self,
@@ -2600,9 +2587,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
         mountpoint_path = stdout.read()
         LOG.debug("mountpoint path is : " + str(mountpoint_path))
-        print(mountpoint_path)
         ssh.close()
-        return mountpoint_path
+        return str(mountpoint_path)
 
     '''
     Method returns True if snapshot dir is exists on backup target media
