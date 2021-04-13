@@ -30,7 +30,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_01_list_quota_type(self):
         reporting.add_test_script(str(__name__) + "_list_quota_type_cli")
         try:
-
             rc = cli_parser.cli_returncode(
                 command_argument_string.quota_type_list)
             if rc != 0:
@@ -63,6 +62,26 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("List Quota types", tvaultconf.PASS)
             else:
                 raise exception("List Quota types")
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_03_workload_quota(self):
+        reporting.add_test_script(str(__name__) + "_workload_quota")
+        try:
+            self.project_id = CONF.identity.tenant_id
+            self.quota_type_id = self.get_quota_type_id(type='Workloads')
+            self.quota_id = self.create_project_quota(self.project_id, 
+                    self.quota_type_id, tvaultconf.workload_allowed_value,
+                    tvaultconf.workload_watermark_value)
+            if self.quota_id:
+                reporting.add_test_step("Create workload quota for project", tvaultconf.PASS)
+            else:
+                raise exception("Create workload quota for project")
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
