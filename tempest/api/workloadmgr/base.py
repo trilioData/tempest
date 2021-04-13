@@ -3074,3 +3074,42 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_types = json.loads(resp.content)
         return quota_types['quota_types']
+
+    '''
+    This method returns the quota type id of the specified type
+    '''
+    def get_quota_type_id(self, quota_type):
+        resp, body = self.wlm_client.client.get(
+            "/project_quota_types")
+        LOG.debug("get_quota_type response: %s", resp.content)
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        quota_types = json.loads(resp.content)['quota_types']
+        for i in range(len(quota_types)):
+            if quota_types[i]['display_name'] == quota_type:
+                quota_type_id = quota_types[i]['id']
+                return quota_type_id
+
+    '''
+    This method creates allowed WLM quota for a specific project
+    '''
+    def create_project_quota(self, project_id, quota_type_id, allowed_value, 
+                    watermark_value):
+        payload = {"allowed_quotas": 
+                    [{
+                    "quota_type_id": quota_type_id,
+                    "project_id": project_id, 
+                    "allowed_value": allowed_value, 
+                    "high_watermark": watermark_value
+                    }]}
+        resp, body = self.wlm_client.client.post(
+            "/project_allowed_quotas/"+ project_id, json=payload)
+        LOG.debug("project-allowed-quota-create response: %s", str(resp.content))
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        quota_resp = json.loads(resp.content)
+        for i in range(len(q['allowed_quotas'])):
+            if q['allowed_quotas'][i]['quota_type_id']==quota_type_id and 
+                    q['allowed_quotas'][i]['project_id']==project_id:
+                quota_id=q['allowed_quotas'][i]['id']
+                return quota_id
