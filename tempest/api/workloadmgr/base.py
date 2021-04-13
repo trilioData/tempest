@@ -3109,7 +3109,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_resp = json.loads(resp.content)
         for i in range(len(q['allowed_quotas'])):
-            if q['allowed_quotas'][i]['quota_type_id']==quota_type_id and 
-                    q['allowed_quotas'][i]['project_id']==project_id:
+            if(q['allowed_quotas'][i]['quota_type_id']==quota_type_id and 
+                    q['allowed_quotas'][i]['project_id']==project_id):
                 quota_id=q['allowed_quotas'][i]['id']
                 return quota_id
