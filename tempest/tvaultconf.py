@@ -99,3 +99,8 @@ disable_email_notification = {"smtp_email_enable" : 0}
 
 #Parameter for multiple vm workloads etc
 vm_count = 4
+
+
+#WLM Quota parameters
+workload_allowed_value = 2
+workload_watermark_value = 2
