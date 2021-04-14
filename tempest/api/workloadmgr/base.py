@@ -3084,7 +3084,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("get_quota_type response: %s", resp.content)
         if(resp.status_code != 200):
             resp.raise_for_status()
-        quota_types = json.loads(resp.content)['quota_types']
+        quota_types = (json.loads(resp.content))['quota_types']
         for i in range(len(quota_types)):
             if quota_types[i]['display_name'] == quota_type:
                 quota_type_id = quota_types[i]['id']
@@ -3107,9 +3107,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("project-allowed-quota-create response: %s", str(resp.content))
         if(resp.status_code != 200):
             resp.raise_for_status()
-        quota_resp = json.loads(resp.content)
-        for i in range(len(q['allowed_quotas'])):
-            if(q['allowed_quotas'][i]['quota_type_id']==quota_type_id and 
-                    q['allowed_quotas'][i]['project_id']==project_id):
-                quota_id=q['allowed_quotas'][i]['id']
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        for i in range(len(quota_resp)):
+            if(quota_resp[i]['quota_type_id']==quota_type_id and 
+                    quota_resp[i]['project_id']==project_id):
+                quota_id=quota_resp[i]['id']
                 return quota_id

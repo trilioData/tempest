@@ -74,7 +74,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_workload_quota")
         try:
             self.project_id = CONF.identity.tenant_id
-            self.quota_type_id = self.get_quota_type_id(type='Workloads')
+            self.quota_type_id = self.get_quota_type_id(quota_type='Workloads')
             self.quota_id = self.create_project_quota(self.project_id, 
                     self.quota_type_id, tvaultconf.workload_allowed_value,
                     tvaultconf.workload_watermark_value)
