@@ -349,6 +349,7 @@ function configure_tempest
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
     mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
     dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
+    tvault_version=`workloadmgr --version`
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -508,6 +509,7 @@ function configure_tempest
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
+    sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
 
 }
 
