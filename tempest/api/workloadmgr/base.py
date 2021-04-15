@@ -3180,3 +3180,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_resp = (json.loads(resp.content))['allowed_quotas']
         return quota_resp
+
+    '''
+    This method returns the quota type id of the specified type using WLM CLI
+    '''
+    def get_quota_type_id_cli(self, quota_type):
+        out = cli_parser.cli_output(
+            command_argument_string.workload_type_list)
+        quota_types = (json.loads(out))
+        quota_type_id = None
+        for i in range(len(quota_types)):
+            if quota_types[i]['Name'] == quota_type:
+                quota_type_id = quota_types[i]['ID']
+                break
+        return quota_type_id
+
