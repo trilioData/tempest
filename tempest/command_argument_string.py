@@ -60,4 +60,9 @@ policy_assign = "workloadmgr policy-assign --add_project "
 policy_delete = "workloadmgr policy-delete "
 
 #Quota commands
-quota_type_list = "workloadmgr project-quota-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
+quota_type_list_count = "workloadmgr project-quota-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
+quota_type_list = "workloadmgr project-quota-type-list -f json "
+quota_create = "workloadmgr project-allowed-quota-create "
+quota_update = "workloadmgr project-allowed-quota-update "
+quota_list = "workloadmgr project-allowed-quota-list -f json "
+quota_show = "workloadmgr project-allowed-quota-show -f json "
