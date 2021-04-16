@@ -3189,9 +3189,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             command_argument_string.workload_type_list)
         quota_types = (json.loads(out))
         quota_type_id = None
-        for i in range(len(quota_types)):
-            if quota_types[i]['Name'] == quota_type:
-                quota_type_id = quota_types[i]['ID']
+        for q in quota_types:
+            if q['Name'] == quota_type:
+                quota_type_id = q['ID']
                 break
         return quota_type_id
 
