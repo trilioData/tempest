@@ -318,3 +318,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     for k1 in reversed(list(v['result'].keys())):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])
+
+            for k, v in result_json.items():
+                for k1, v1 in v.items():
+                    if('size' in k1 or 'time' in k1):
+                        reporting.add_sanity_stats(k, k1, v1)
