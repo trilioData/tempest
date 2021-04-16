@@ -219,7 +219,7 @@ def add_sanity_results_to_tempest_report():
 
 def add_sanity_stats(workload_type, name, data):
     with open(sanity_stats_file, "a") as f:
-        f.write(str(workload_type) + " " str(name) + " " + str(data) + "\n")
+        f.write(str(workload_type) + " " + str(name) + " " + str(data) + "\n")
 
 
 def add_sanity_stats_to_tempest_report():
