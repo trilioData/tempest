@@ -3086,9 +3086,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_types = (json.loads(resp.content))['quota_types']
         quota_type_id = None
-        for i in range(len(quota_types)):
-            if quota_types[i]['display_name'] == quota_type:
-                quota_type_id = quota_types[i]['id']
+        for q in quota_types:
+            if q['display_name'] == quota_type:
+                quota_type_id = q['id']
         return quota_type_id
 
     '''
@@ -3111,10 +3111,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_resp = (json.loads(resp.content))['allowed_quotas']
         quota_id = None
-        for i in range(len(quota_resp)):
-            if(quota_resp[i]['quota_type_id'] == quota_type_id and
-                    quota_resp[i]['project_id'] == project_id):
-                quota_id = quota_resp[i]['id']
+        for q in quota_resp:
+            if(q['quota_type_id'] == quota_type_id and
+                    q['project_id'] == project_id):
+                quota_id = q['id']
         if (tvaultconf.cleanup and quota_cleanup):
             self.addCleanup(self.delete_project_quota, quota_id)
         return quota_id
@@ -3149,10 +3149,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if resp.status_code != 202:
             resp.raise_for_status()
         quota_resp = (json.loads(resp.content))['allowed_quotas']
-        for i in range(len(quota_resp)):
-            if(quota_resp[i]['id'] == quota_id and
-                quota_resp[i]['allowed_value'] == allowed_value and
-                quota_resp[i]['high_watermark'] == watermark_value):
+        for q in quota_resp:
+            if(q['id'] == quota_id and
+                q['allowed_value'] == allowed_value and
+                q['high_watermark'] == watermark_value):
                 return True
             else:
                 return False
@@ -3186,7 +3186,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     def get_quota_type_id_cli(self, quota_type):
         out = cli_parser.cli_output(
-            command_argument_string.workload_type_list)
+            command_argument_string.quota_type_list)
         quota_types = (json.loads(out))
         quota_type_id = None
         for q in quota_types:
