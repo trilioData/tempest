@@ -498,3 +498,56 @@ def get_available_project_quota_types():
         cursor.close()
         conn.close()
 
+
+def get_quota_id(quota_type_id, project_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select id from allowed_quota where quota_type_id = '" + \
+                    quota_type_id + "' and project_id = '" + \
+                    project_id + "' and deleted <> 1"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_quota_details(quota_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select allowed_value, high_watermark, a.id, a.project_id, "\
+              "a.quota_type_id, b.display_name, a.version from " \
+              "allowed_quota as a, project_quota_types b where a.deleted <> 1"\
+              " and a.quota_type_id=b.id and a.id='" + quota_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_available_quotas_count(project_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select count(*) from allowed_quota where deleted <> 1 " \
+              "and project_id='" + project_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
