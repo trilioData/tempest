@@ -3195,3 +3195,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 break
         return quota_type_id
 
+    '''
+    This method updates the specified workload
+    '''
+    def workload_modify(self, workload_id, instances, jobschedule={}):
+        in_list = []
+        for id in instances:
+            in_list.append({'instance-id': id})
+        if jobschedule != {}:
+            payload = {'workload': { 'instances': in_list }}
+        else:
+            payload = {'workload': {'instances': in_list ,
+                                    'jobschedule': jobschedule }}
+        resp, body = self.wlm_client.client.put(
+            "/workloads/" + workload_id + "?is_admin_dashboard=False",
+            json=payload)
+        time.sleep(10)
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return True
