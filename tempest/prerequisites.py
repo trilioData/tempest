@@ -919,7 +919,6 @@ def snapshot_mount(self):
         self.total_volumes_per_vm = 1
         self.fvm_id = ""
         self.floating_ips_list = []
-
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
         ts = str(datetime.datetime.now()).replace('.', '-')
@@ -983,6 +982,7 @@ def snapshot_mount(self):
             key_pair=tvaultconf.key_pair_name,
             security_group_id=self.security_group_id,
             image_id=CONF.compute.fvm_image_ref,
+            user_data=tvaultconf.user_frm_data,
             flavor_id=CONF.compute.flavor_ref_alt)
         time.sleep(10)
         self.set_floating_ip(floating_ips_list[1], self.fvm_id)

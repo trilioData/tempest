@@ -1,24 +1,7 @@
-# Copyright 2014 IBM Corp.
-#
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
-#
-#         http://www.apache.org/licenses/LICENSE-2.0
-#
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
-
-
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest.lib import decorators
-import json
-import sys
-from tempest import api
+import time
 from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
@@ -26,7 +9,6 @@ from tempest import reporting
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
-
 
 class WorkloadsTest(base.BaseWorkloadmgrTest):
 
@@ -79,16 +61,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             return False
 
     def _create_workload(self, workload_instances):
+        time.sleep(5)
         self.workload_id = self.workload_create(
             workload_instances, tvaultconf.parallel, workload_cleanup=False)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.workload_status = self.getWorkloadStatus(self.workload_id)
 
-    def _create_full_snapshot(self):
+    def _create_full_snapshot(self, workload_id):
+        time.sleep(5)
         self.snapshot_id = self.workload_snapshot(
-            self.workload_id, True, snapshot_cleanup=False)
+            workload_id, True, snapshot_cleanup=False)
         self.snapshot_status = self.getSnapshotStatus(
-            self.workload_id, self.snapshot_id)
+            workload_id, self.snapshot_id)
 
     def _wait_for_workload(self, workload_id, snapshot_id):
         self.wait_for_workload_tobe_available(workload_id)
@@ -133,6 +117,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         LOG.debug("Network details for restore: " + str(self.network_details))
 
         # Trigger selective restore
+        time.sleep(15)
         self.restore_id = self.snapshot_selective_restore(
             workload_id,
             snapshot_id,
@@ -156,8 +141,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _delete_workload(self, workload_id):
         return self.workload_delete(workload_id)
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_create_full_snapshot(self):
         try:
             result_json = {}
@@ -193,19 +177,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
                     result_json[k]['volumes'] = self.volume_id
-                    self._create_workload([self.vm_id])
-                    result_json[k]['workload'] = self.workload_id
-                    result_json[k]['workload_status'] = self.workload_status
-                    if(self.workload_status == "available"):
-                        result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
-                    else:
-                        result_json[k]['workload_error_msg'] = (
-                            self.getWorkloadDetails(result_json[k]['workload']))['error_msg']
+                    try:
+                        self._create_workload([self.vm_id])
+                        result_json[k]['workload'] = self.workload_id
+                        result_json[k]['workload_status'] = self.workload_status
+                        if(self.workload_status == "available"):
+                            result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
+                    except Exception as e:
+                        result_json[k]['workload_error_msg'] = str(e)
                         result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + \
                             "\nERROR " + result_json[k]['workload_error_msg']
                         continue
 
-                    self._create_full_snapshot()
+                    if self.workload_id:
+                        self._create_full_snapshot(self.workload_id)
                     result_json[k]['snapshot'] = self.snapshot_id
                     result_json[k]['snapshot_status'] = self.snapshot_status
                 else:
@@ -334,3 +319,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     for k1 in reversed(list(v['result'].keys())):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])
+
+            for k, v in result_json.items():
+                for k1, v1 in v.items():
+                    if('size' in k1 or 'time' in k1):
+                        reporting.add_sanity_stats(k, k1, v1)

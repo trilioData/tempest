@@ -13,19 +13,16 @@
 #    under the License.
 
 import os
-from tempest import tvaultconf
-from tempest.common import waiters
-from oslo_log import log as logging
-from tempest import api
-import time
-import datetime
-import json
-from tempest.lib import decorators
-from tempest import config
-from tempest.api.workloadmgr import base
-from apscheduler.schedulers.blocking import BlockingScheduler
-import apscheduler
 import sys
+import time
+
+from oslo_log import log as logging
+
+from tempest import config
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -44,6 +41,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_create_workload(self):
         self.total_workloads = 1
         self.vms_per_workload = 1
