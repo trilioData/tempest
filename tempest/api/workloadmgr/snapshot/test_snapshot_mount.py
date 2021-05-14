@@ -1,13 +1,15 @@
-import time
-from tempest import reporting
-from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest import test
-from tempest.lib import decorators
-from tempest import config
-from tempest.api.workloadmgr import base
-import sys
 import os
+import sys
+
+from oslo_log import log as logging
+
+from tempest import config
+from tempest import reporting
+from tempest import test
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @test.pre_req({'type': 'snapshot_mount'})
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
+    @decorators.attr(type='workloadmgr_api')
     def test_1_snapshot_mount_full(self):
         reporting.add_test_script(str(__name__) + "_full_snasphot")
         try:
@@ -75,7 +78,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("validate that snapshot is mounted on FVM")
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
-            output_list = self.validate_snapshot_mount(ssh).split('\n')
+            output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
             ssh.close()
             flag = 0
             for i in output_list:
@@ -120,6 +123,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
+    @decorators.attr(type='workloadmgr_api')
     def test_2_umount_snapshot(self):
         reporting.add_test_script(str(__name__) + "_umount_snapshot")
         try:
@@ -161,7 +165,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             output_list = self.validate_snapshot_mount(ssh)
             ssh.close()
 
-            if output_list == '':
+            if output_list == b'':
                 LOG.debug("Unmounting successful")
                 reporting.add_test_step(
                     "Unmounting of a full snapshot", tvaultconf.PASS)
@@ -179,6 +183,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
+    @decorators.attr(type='workloadmgr_api')
     def test_3_snapshot_mount_incremental(self):
         reporting.add_test_script(str(__name__) + "_incremental_snasphot")
         try:
@@ -220,7 +225,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("validate that snapshot is mounted on FVM")
             ssh = self.SshRemoteMachineConnectionWithRSAKey(
                 str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
-            output_list = self.validate_snapshot_mount(ssh).split('\n')
+            output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
             ssh.close()
 
             flag = 0

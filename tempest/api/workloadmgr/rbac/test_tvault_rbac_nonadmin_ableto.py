@@ -1,13 +1,16 @@
+import os
+import sys
 import time
-from tempest.util import query_data
+
+from oslo_log import log as logging
+
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
+from tempest.lib import decorators
+from tempest.util import query_data
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -25,6 +28,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_nonadmin_ableto(self):
         try:
             # Use non-admin credentials

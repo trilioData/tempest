@@ -1,10 +1,11 @@
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest.lib import decorators
-from tempest import prerequisites
 from oslo_log import log as logging
-from tempest import tvaultconf
+
+from tempest import config
+from tempest import prerequisites
 from tempest import reporting
+from tempest import tvaultconf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -21,6 +22,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_api')
     def test_tenants_usage(self):
         try:
             # Run getTenantUsage API

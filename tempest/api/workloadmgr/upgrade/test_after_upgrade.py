@@ -12,20 +12,18 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-from tempest.api.workloadmgr import base
-from tempest import config
-from tempest.lib import decorators
-import json
-import sys
 import datetime
-from tempest import api
+
 from oslo_log import log as logging
-from tempest.common import waiters
-from tempest import tvaultconf
+
 from tempest import command_argument_string
-from tempest.util import cli_parser
-from tempest import upgrade_data_conf
+from tempest import config
 from tempest import reporting
+from tempest import tvaultconf
+from tempest import upgrade_data_conf
+from tempest.api.workloadmgr import base
+from tempest.lib import decorators
+from tempest.util import cli_parser
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -163,6 +161,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_after_upgrade(self):
         try:
             # Import workloads using CLI command

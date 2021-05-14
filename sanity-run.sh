@@ -31,4 +31,5 @@ fi
 mv -f tempest.log $LOGS_DIR/
 
 $PYTHON_CMD -c 'from tempest import reporting; reporting.add_sanity_results_to_tempest_report()'
+$PYTHON_CMD -c 'from tempest import reporting; reporting.add_sanity_stats_to_tempest_report()'
 
