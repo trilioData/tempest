@@ -549,7 +549,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
         self,
         instances,
-        workload_type,
+        workload_type=tvaultconf.parallel,
         jobschedule={},
         workload_name="",
         workload_cleanup=True,
@@ -3074,3 +3074,143 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         quota_types = json.loads(resp.content)
         return quota_types['quota_types']
+
+    '''
+    This method returns the quota type id of the specified type
+    '''
+    def get_quota_type_id(self, quota_type):
+        resp, body = self.wlm_client.client.get(
+            "/project_quota_types")
+        LOG.debug("get_quota_type response: %s", resp.content)
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        quota_types = (json.loads(resp.content))['quota_types']
+        quota_type_id = None
+        for q in quota_types:
+            if q['display_name'] == quota_type:
+                quota_type_id = q['id']
+        return quota_type_id
+
+    '''
+    This method creates allowed WLM quota for a specific project
+    '''
+    def create_project_quota(self, project_id, quota_type_id, allowed_value, 
+                    watermark_value, quota_cleanup=True):
+        payload = {"allowed_quotas": 
+                    [{
+                    "quota_type_id": quota_type_id,
+                    "project_id": project_id, 
+                    "allowed_value": allowed_value, 
+                    "high_watermark": watermark_value
+                    }]}
+        resp, body = self.wlm_client.client.post(
+            "/project_allowed_quotas/"+ project_id, json=payload)
+        LOG.debug("project-allowed-quota-create response: %s",
+                        str(resp.content))
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        quota_id = None
+        for q in quota_resp:
+            if(q['quota_type_id'] == quota_type_id and
+                    q['project_id'] == project_id):
+                quota_id = q['id']
+        if (tvaultconf.cleanup and quota_cleanup):
+            self.addCleanup(self.delete_project_quota, quota_id)
+        return quota_id
+
+    '''
+    This method deletes a specified quota
+    '''
+    def delete_project_quota(self, quota_id):
+        resp, body = self.wlm_client.client.delete(
+            "/project_allowed_quotas/"+ quota_id)
+        LOG.debug("project-allowed-quota-delete response: %s",
+                        str(resp.content))
+        if resp.status_code != 202:
+            resp.raise_for_status()
+        return True
+
+    '''
+    This method updates allowed WLM quota for a specific project
+    '''
+    def update_project_quota(self, project_id, quota_id, allowed_value,
+                    watermark_value):
+        payload = {"allowed_quotas":
+                    {
+                    "project_id": project_id,
+                    "allowed_value": allowed_value,
+                    "high_watermark": watermark_value
+                    }}
+        resp, body = self.wlm_client.client.put(
+            "/update_allowed_quota/"+ quota_id, json=payload)
+        LOG.debug("project-allowed-quota-update response: %s",
+                        str(resp.content))
+        if resp.status_code != 202:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        for q in quota_resp:
+            if(q['id'] == quota_id and
+                q['allowed_value'] == allowed_value and
+                q['high_watermark'] == watermark_value):
+                return True
+            else:
+                return False
+
+    '''
+    This method lists the available quotas set for a specified project
+    '''
+    def get_quota_list(self, project_id):
+        resp, body = self.wlm_client.client.get(
+            "/project_allowed_quotas/" + project_id)
+        LOG.debug("get_quota_list response: %s", resp.content)
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_list = (json.loads(resp.content))['allowed_quotas']
+        return quota_list
+
+    '''
+    This method lists the available quotas set for a specified project
+    '''
+    def get_quota_details(self, quota_id):
+        resp, body = self.wlm_client.client.get(
+            "/project_allowed_quota/" + quota_id)
+        LOG.debug("get_quota_details response: %s", resp.content)
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        return quota_resp
+
+    '''
+    This method returns the quota type id of the specified type using WLM CLI
+    '''
+    def get_quota_type_id_cli(self, quota_type):
+        out = cli_parser.cli_output(
+            command_argument_string.quota_type_list)
+        quota_types = (json.loads(out))
+        quota_type_id = None
+        for q in quota_types:
+            if q['Name'] == quota_type:
+                quota_type_id = q['ID']
+                break
+        return quota_type_id
+
+    '''
+    This method updates the specified workload
+    '''
+    def workload_modify(self, workload_id, instances, jobschedule={}):
+        in_list = []
+        for id in instances:
+            in_list.append({'instance-id': id})
+        if jobschedule != {}:
+            payload = {'workload': { 'instances': in_list }}
+        else:
+            payload = {'workload': {'instances': in_list ,
+                                    'jobschedule': jobschedule }}
+        resp, body = self.wlm_client.client.put(
+            "/workloads/" + workload_id + "?is_admin_dashboard=False",
+            json=payload)
+        time.sleep(10)
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return True
