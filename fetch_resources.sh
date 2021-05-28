@@ -534,4 +534,3 @@ configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
 rm -rf $OPENSTACK_CLI_VENV
-
