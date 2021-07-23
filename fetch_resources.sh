@@ -441,7 +441,7 @@ function configure_tempest
     esac
    
     #Allocate floating ips to $TEST_PROJECT_NAME
-    floating_ip_cnt=`$OPENSTACK_CMD floating ip list | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
+    floating_ip_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
     while [ $floating_ip_cnt -le 5 ]
     do
         $OPENSTACK_CMD floating ip create $ext_network_id
@@ -450,7 +450,7 @@ function configure_tempest
     $OPENSTACK_CMD floating ip list
 
     #Update default security group rules
-    def_secgrp_id=`($OPENSTACK_CMD security group list | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
