@@ -18,7 +18,7 @@ Repo for automation build, test etc.
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
-      git clone -b master https://github.com/trilioData/tempest.git
+      git clone -b v4.1maintenance https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       

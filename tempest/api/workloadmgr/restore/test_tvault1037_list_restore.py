@@ -110,7 +110,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     "Execute restore-list command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            wc = query_data.get_available_restores()
+            wc = query_data.get_available_restores(CONF.identity.tenant_id)
             out = cli_parser.cli_output(command_argument_string.restore_list)
             if (int(wc) == int(out)):
                 reporting.add_test_step(

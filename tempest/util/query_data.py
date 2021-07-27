@@ -73,12 +73,17 @@ def get_available_snapshots_for_workload(snapshot_name, workload_id):
         conn.close()
 
 
-def get_available_snapshots():
+def get_available_snapshots(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_snapshots = (
-            "select count(*) from snapshots where deleted=0 and status = 'available' order by created_at desc limit 1")
+        if project_id:
+            get_available_snapshots = ("select count(*) from snapshots where "
+                                       "deleted=0 and status = 'available' and "
+                                       "project_id = '%s'" % project_id )
+        else:
+            get_available_snapshots = ("select count(*) from snapshots where "
+                                       "deleted=0 and status = 'available' ")
         cursor.execute(get_available_snapshots)
         rows = cursor.fetchall()
         for row in rows:
@@ -90,11 +95,16 @@ def get_available_snapshots():
         conn.close()
 
 
-def get_available_workloads():
+def get_available_workloads(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_workloads = (
+        if project_id:
+            get_available_workloads = (
+                "select count(*) from workloads where status=\"available\" "
+                "and project_id=\"%s\"" % project_id)
+        else:
+            get_available_workloads = (
             "select count(*) from workloads where status=\"available\"")
         cursor.execute(get_available_workloads)
         rows = cursor.fetchall()
@@ -107,12 +117,17 @@ def get_available_workloads():
         conn.close()
 
 
-def get_available_restores():
+def get_available_restores(project_id=""):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        get_available_restores = (
-            "select count(*) from restores where status=\"available\"")
+        if project_id:
+            get_available_restores = ('select count(*) from restores where '
+                                      'status="available" and project_id="%s"'
+                                      % project_id)
+        else:
+            get_available_restores = (
+            'select count(*) from restores where status="available"')
         cursor.execute(get_available_restores)
         rows = cursor.fetchall()
         for row in rows:
@@ -483,3 +498,56 @@ def get_available_project_quota_types():
         cursor.close()
         conn.close()
 
+
+def get_quota_id(quota_type_id, project_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select id from allowed_quota where quota_type_id = '" + \
+                    quota_type_id + "' and project_id = '" + \
+                    project_id + "' and deleted <> 1"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_quota_details(quota_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select allowed_value, high_watermark, a.id, a.project_id, "\
+              "a.quota_type_id, b.display_name, a.version from " \
+              "allowed_quota as a, project_quota_types b where a.deleted <> 1"\
+              " and a.quota_type_id=b.id and a.id='" + quota_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_available_quotas_count(project_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select count(*) from allowed_quota where deleted <> 1 " \
+              "and project_id='" + project_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
