@@ -44,6 +44,7 @@ restore_type = "restore"
 global_job_scheduler=False
 
 tvault_ip = ["192.168.6.17", "192.168.6.18", "192.168.6.19"]
+tvault_version = "4.1.124"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
@@ -96,6 +97,11 @@ setting_data = {"smtp_default_recipient": "test@trilio.io",
 enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 
-
 #Parameter for multiple vm workloads etc
-vm_count = 8
+vm_count = 4
+
+#WLM Quota parameters
+workload_allowed_value = 1
+workload_watermark_value = 1
+vm_allowed_value = 1
+vm_watermark_value = 1

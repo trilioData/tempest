@@ -177,19 +177,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
                     result_json[k]['volumes'] = self.volume_id
-                    self._create_workload([self.vm_id])
-                    result_json[k]['workload'] = self.workload_id
-                    result_json[k]['workload_status'] = self.workload_status
-                    if(self.workload_status == "available"):
-                        result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
-                    else:
-                        result_json[k]['workload_error_msg'] = (
-                            self.getWorkloadDetails(result_json[k]['workload']))['error_msg']
+                    try:
+                        self._create_workload([self.vm_id])
+                        result_json[k]['workload'] = self.workload_id
+                        result_json[k]['workload_status'] = self.workload_status
+                        if(self.workload_status == "available"):
+                            result_json[k]['result']['Create_Workload'] = tvaultconf.PASS
+                    except Exception as e:
+                        result_json[k]['workload_error_msg'] = str(e)
                         result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + \
                             "\nERROR " + result_json[k]['workload_error_msg']
                         continue
 
-                    self._create_full_snapshot(self.workload_id)
+                    if self.workload_id:
+                        self._create_full_snapshot(self.workload_id)
                     result_json[k]['snapshot'] = self.snapshot_id
                     result_json[k]['snapshot_status'] = self.snapshot_status
                 else:
@@ -318,3 +319,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     for k1 in reversed(list(v['result'].keys())):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])
+
+            for k, v in result_json.items():
+                for k1, v1 in v.items():
+                    if('size' in k1 or 'time' in k1):
+                        reporting.add_sanity_stats(k, k1, v1)
