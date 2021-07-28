@@ -43,6 +43,7 @@ LOG = logging.getLogger(__name__)
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     _api_version = 2
+	uri_prefix = "v2.0"
     force_tenant_isolation = False
     credentials = ['primary']
 
@@ -3214,3 +3215,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         return True
+
+	'''
+    This method provides list of rules belonging to a security group
+    '''
+    def list_secgroup_rules_for_secgroupid(self, security_group_id):
+        uri = '/security-group-rules?security_group_id=%s' % security_group_id
+        resp, body = self.security_group_rules_client.get(self.uri_prefix + uri)
+        rules_list = json.loads(body)
+        LOG.debug("Body: {}".format(body))
+        LOG.debug("rules_list: {}".format(rules_list))
+        return rules_list["security_group_rules"]
+		
