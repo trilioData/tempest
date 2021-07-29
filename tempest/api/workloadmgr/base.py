@@ -3214,3 +3214,151 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         return True
+
+
+    """
+    This method provides list of rules belonging to a security group
+    """
+    def list_secgroup_rules_for_secgroupid(self, security_group_id):
+        uri = "/security-group-rules?security_group_id=%s" % security_group_id
+        resp, body = self.security_group_rules_client.get(self.uri_prefix + uri)
+        rules_list = json.loads(body)
+        LOG.debug("Body: {}".format(body))
+        LOG.debug("rules_list: {}".format(rules_list))
+        return rules_list["security_group_rules"]
+
+    # Delete default security group rules
+    def delete_default_rules(self, secgrp_id):
+        LOG.debug("Delete default rules from given security group")
+        rule_list = self.list_secgroup_rules_for_secgroupid(secgrp_id)
+        for each in rule_list:
+            self.security_group_rules_client.delete_security_group_rule(each["id"])
+
+    """ Method to create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R -> P """
+    def create_sec_groups_rule(self, count, secgrp_name, diff_rule=False):
+        LOG.debug("Create security group and rule for {}".format(secgrp_name))
+        sec_groups = []
+        ip_protocol = "TCP"
+        from_port = 2000
+        to_port = 2100
+        for each in range(1, count + 1):
+            sgid = self.create_security_group(
+                name=secgrp_name + format(each),
+                description="security group containing remote security group",
+                secgrp_cleanup=True,
+            )
+            sec_groups.append(sgid)
+            # Delete default security group rules
+            self.delete_default_rules(sgid)
+        for each in range(0, count):
+            LOG.debug(
+                "Creating rule with other details and remote group id in fashion P -> Q -> R -> P"
+            )
+            if diff_rule == True:
+                ip_protocol = "UDP"
+                from_port = random.randrange(4000, 5000)
+                to_port = random.randrange(5000, 6000)
+            self.add_security_group_rule(
+                parent_grp_id=sec_groups[each],
+                remote_grp_id=sec_groups[each - 1],
+                ip_proto=ip_protocol,
+                from_prt=from_port,
+                to_prt=to_port,
+            )
+        LOG.debug(
+            "Security groups collection: {} and last entry {}".format(
+                sec_groups, sec_groups[-1]
+            )
+        )
+        return sec_groups
+
+    # Compare the security groups by name and assert if verification fails
+    def verifySecurityGroups(self, no_of_secgrp, secgrp_name):
+        LOG.debug("Compare security groups")
+        try:
+            body = self.security_groups_client.list_security_groups()
+            security_groups = body["security_groups"]
+            count = 0
+            # print(secgrp_name, no_of_secgrp)
+            for n in security_groups:
+                if secgrp_name in n["name"]:
+                    count += 1
+                    LOG.debug("Printing info: {} {}".format(secgrp_name, n["name"]))
+            msg = "Security-group list doesn't contain security-group with name {}".format(
+                secgrp_name
+            )
+            self.assertNotEmpty(security_groups, msg)
+            self.assertEqual(no_of_secgrp, count, msg)
+            return True
+        except AssertionError as e:
+            LOG.debug("Print error message {}".format(e))
+            return False
+
+    # Compare the security group & rules assigned to the restored instance and assert if verification fails
+    def verifySecurityGroupRules(self, count, secgrp_name, diff_rule=False):
+        LOG.debug("Compare security group rules")
+        expected = {
+            "protocol": "tcp",
+            "port_range_min": 2000,
+            "port_range_max": 2100,
+        }
+        try:
+            for i in range(1, count + 1):
+                str_secgrp = secgrp_name + format(i)
+                secgrp_id = self.get_security_group_id_by_name(str_secgrp)
+                rule_list = self.list_secgroup_rules_for_secgroupid(secgrp_id)
+                for each in rule_list:
+                    self.assertEqual(
+                        2,
+                        len(rule_list),
+                        "Count of rules does not match: Expected %d and Actual %d"
+                        % (2, len(rule_list)),
+                    )
+                    if diff_rule == False:
+                        for key, value in expected.items():
+                            self.assertEqual(
+                                value,
+                                each[key],
+                                "Field %s of the created security group "
+                                "rule does not match with %s." % (key, value),
+                            )
+                    else:
+                        for key, value in expected.items():
+                            self.assertNotEqual(
+                                value,
+                                each[key],
+                                "Field %s of the created security group "
+                                "rules are not different %s." % (key, value),
+                            )
+                    self.assertNotEmpty(
+                        each["remote_group_id"],
+                        "remote group id is not restored for rule: {}".format(
+                            each["id"]
+                        ),
+                    )
+                    self.assertNotEqual(
+                        each["remote_group_id"],
+                        secgrp_id,
+                        "remote group id from different security group is not present",
+                    )
+            return True
+        except AssertionError as e:
+            LOG.debug("Print error message {}".format(e))
+            return False
+
+    # Get the list of restored secutity policies from restored vms
+    def getRestoredSecGroupPolicies(self, restored_vms):
+        restore_secgrp_name = []
+        for vm in restored_vms:
+            vmdetails = self.get_vm_details(vm)
+            LOG.debug("\nRestored VM details: {}".format(vmdetails))
+            server_vm = vmdetails["server"]
+            LOG.debug("\nRestored VM details - server : {}".format(vmdetails["server"]))
+            # for each in server_vm:
+            restore_secgrp_name = server_vm["security_groups"]
+            LOG.debug(
+                "List of restored security group policies: {}".format(
+                    restore_secgrp_name
+                )
+            )
+        return restore_secgrp_name
