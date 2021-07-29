@@ -8,6 +8,7 @@ from tempest import reporting
 from tempest import tvaultconf
 from tempest.api.workloadmgr import base
 from tempest.lib import decorators
+from tempest.lib import exceptions
 from tempest.util import cli_parser
 from tempest.util import query_data
 
@@ -371,11 +372,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.PASS)
             else:
                 raise Exception("Create workload-1 with 1 VM")
+
             try:
                 self.workload_modify(self.workload_id1,
                                      [self.instances[0], self.instances[1]])
-                raise Exception("Able to update workload-1 and "
-                            "add 2nd VM to workload")
+                raise exceptions.TestStepException("Able to update workload-1"
+                            " and add 2nd VM to workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s", tse)
+                reporting.add_test_step(
+                    "Able to update workload-1 and add 2nd VM to workload",
+                    tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -384,7 +391,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.workload_id2 = self.workload_create([self.instances[1]])
                 if self.workload_id2:
-                    raise Exception("Able to create workload-2 with 1 VM")
+                    raise exceptions.TestStepException(
+                        "Able to create workload-2 with 1 VM")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s", tse)
+                reporting.add_test_step(
+                    "Able to create workload-2 with 1 VM", tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -411,8 +423,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.workload_modify(self.workload_id1,
                                      [self.instances[0], self.instances[2]])
-                raise Exception("Able to update workload-1 and "
-                                "add 2nd VM to workload")
+                raise exceptions.TestStepException("Able to update workload-1"
+                                " and add 2nd VM to workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s", tse)
+                reporting.add_test_step(tse, tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -431,8 +446,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.workload_modify(self.workload_id1,
                                      [self.instances[0], self.instances[2],
                                       self.instances[3]])
-                raise Exception("Able to update workload-1 and "
-                                "add 2nd VM to workload")
+                raise exceptions.TestStepException("Able to update workload-1"
+                                " and add 2nd VM to workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s", tse)
+                reporting.add_test_step(tse, tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -440,7 +458,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
             try:
                 self.workload_id3 = self.workload_create([self.instances[2]])
-                raise Exception("Able to create new workload")
+                raise exceptions.testStepException(
+                    "Able to create new workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s", tse)
+                reporting.add_test_step(tse, tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -448,8 +470,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.workload_modify(self.workload_id2,
                                      [self.instances[0], self.instances[2]])
-                raise Exception("Able to update workload-2 and " +
-                            "add new VM to workload")
+                raise exceptions.TestStepException("Able to update workload-2"
+                            " and add new VM to workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: %s ", tse)
+                reporting.add_test_step(tse, tvaultconf.FAIL)
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(
@@ -507,3 +532,170 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_06_vm_quota(self):
+        reporting.add_test_script(str(__name__) + "_vm_cli")
+        try:
+            # Create workload quota
+            self.project_id = CONF.identity.tenant_id
+            self.quota_type_name = "VMs"
+
+            rc = cli_parser.cli_returncode(
+                    command_argument_string.quota_type_list)
+            if rc:
+                raise Exception("Execute project-quota-type-list command")
+            else:
+                reporting.add_test_step(
+                    "Execute project-quota-type-list command", tvaultconf.PASS)
+            self.quota_type_id = self.get_quota_type_id_cli(
+                                        self.quota_type_name)
+
+            #Create project allowed quota
+            cmd_quota_create = command_argument_string.quota_create + \
+                "--quota-type-id " + str(self.quota_type_id) + \
+                " --allowed-value " + str(tvaultconf.vm_allowed_value) +\
+                " --high-watermark " + str(tvaultconf.vm_watermark_value)\
+                + " --project-id " + str(self.project_id)
+            rc = cli_parser.cli_returncode(cmd_quota_create)
+            if rc:
+                raise Exception(
+                    "Execute project-allowed-quota-create for vms")
+            else:
+                reporting.add_test_step(
+                    "Execute project-allowed-quota-create for vms",
+                    tvaultconf.PASS)
+
+            self.quota_id = query_data.get_quota_id(self.quota_type_id,
+                                                    self.project_id)
+            if self.quota_id:
+                reporting.add_test_step("Create VM quota for project",
+                                        tvaultconf.PASS)
+            else:
+                raise Exception("Create VM quota for project")
+
+            self.instances = []
+            for i in range(tvaultconf.vm_allowed_value + 3):
+                self.vm_id = self.create_vm()
+                self.instances.append(self.vm_id)
+            self.workload_id1 = self.workload_create([self.instances[0]])
+            if self.workload_id1:
+                reporting.add_test_step("Create workload-1 with 1 VM",
+                                    tvaultconf.PASS)
+            else:
+                raise Exception("Create workload-1 with 1 VM")
+
+            try:
+                self.workload_modify(self.workload_id1,
+                                     [self.instances[0], self.instances[1]])
+                raise exceptions.TestStepException("Able to update workload-1"
+                            "and add 2nd VM to workload")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: " + str(tse))
+                reporting.add_test_step("Able to update workload-1 and "
+                            "add 2nd VM to workload", tvaultconf.FAIL)
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                reporting.add_test_step(
+                    "Unable to update workload-1 and add 2nd VM to workload",
+                    tvaultconf.PASS)
+            try:
+                self.workload_id2 = self.workload_create([self.instances[1]])
+                if self.workload_id2:
+                    raise exceptions.TestStepException(
+                            "Able to create workload-2 with 1 VM")
+            except exceptions.TestStepException as tse:
+                LOG.error("Exception: " + str(tse))
+                reporting.add_test_step(
+                    "Able to create workload-2 with 1 VM", tvaultconf.FAIL)
+            except Exception as e:
+                reporting.add_test_step(
+                    "Unable to create workload-2 with 1 VM", tvaultconf.PASS)
+
+            #Update VM quota
+            cmd_quota_update = command_argument_string.quota_update + \
+                " --allowed-value " + \
+                str(int(tvaultconf.vm_allowed_value+1)) + \
+                " --high-watermark " + \
+                str(int(tvaultconf.vm_watermark_value+1)) + \
+                " --project-id " + str(self.project_id) + " " + \
+                               str(self.quota_id)
+            rc = cli_parser.cli_returncode(cmd_quota_update)
+            if rc:
+                raise Exception("Execute project-allowed-quota-update")
+            else:
+                reporting.add_test_step("Execute project-allowed-quota-update",
+                                        tvaultconf.PASS)
+
+            #Show project allowed quota
+            cmd_quota_show = command_argument_string.quota_show + \
+                             str(self.quota_id)
+            out = cli_parser.cli_output(cmd_quota_show)
+            if out:
+                reporting.add_test_step("Execute project-allowed-quota-show",
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Execute project-allowed-quota-show",
+                                        tvaultconf.FAIL)
+
+            quota_act = out.split('\n')
+            for i in range(len(quota_act)):
+                if i < 2:
+                    quota_act[i] = int(quota_act[i])
+            quota_act = list(filter(None, quota_act))
+            quota_db = list(query_data.get_quota_details(self.quota_id))
+            if quota_act == quota_db:
+                reporting.add_test_step("Verify project allowed quota show",
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify project allowed quota show",
+                                        tvaultconf.FAIL)
+                LOG.error("Expected quota show %s, Actual quota show %s" %
+                          (quota_db, quota_act))
+
+            try:
+                self.workload_id2 = self.workload_create([self.instances[1]])
+                if self.workload_id2:
+                    reporting.add_test_step("Create workload-2 in project",
+                                            tvaultconf.PASS)
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                raise Exception("Unable to create workload-2 in project")
+
+
+            #Delete project quota
+            cmd_quota_delete = command_argument_string.quota_delete + \
+                               str(self.quota_id)
+            rc = cli_parser.cli_returncode(cmd_quota_delete)
+            if rc:
+                reporting.add_test_step("Execute project-allowed-quota-delete",
+                                        tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Execute project-allowed-quota-delete",
+                                        tvaultconf.PASS)
+
+            #Verify quota delete
+            wc = query_data.get_available_quotas_count(self.project_id)
+            if wc == 0:
+                reporting.add_test_step("Verify project quota delete",
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify project quota delete",
+                                        tvaultconf.FAIL)
+
+            #Create workload after quota delete
+            try:
+                self.workload_id3 = self.workload_create([self.instances[2]])
+                if self.workload_id3:
+                    reporting.add_test_step("Create workload-3 in project",
+                                            tvaultconf.PASS)
+            except Exception as e:
+                raise Exception(e)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
