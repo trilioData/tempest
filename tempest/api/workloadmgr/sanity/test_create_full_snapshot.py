@@ -18,7 +18,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
 
-    def _attached_volume_prerequisite(self, volume_typei_id):
+    def _attached_volume_prerequisite(self, volume_type_id):
         try:
             self.volume_id = self.create_volume(
                     volume_type_id=volume_type_id)
