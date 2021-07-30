@@ -82,7 +82,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh.close()
             flag = 0
             for i in output_list:
-                if 'vdb1.mnt' in i:
+                if 'vdbb' in i:
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
@@ -230,7 +230,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             flag = 0
             for i in output_list:
-                if 'vdb1.mnt' in i:
+                if 'vdbb' in i:
                     LOG.debug(
                         "connect to fvm and check mountpoint is mounted on FVM instance")
                     reporting.add_test_step(
