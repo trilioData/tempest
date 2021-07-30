@@ -18,13 +18,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
 
-    def _attached_volume_prerequisite(self, volume_type):
+    def _attached_volume_prerequisite(self, volume_type_id):
         try:
-            if(volume_type == "LVM"):
-                self.volume_id = self.create_volume(
-                    volume_type_id=CONF.volume.volume_type_id_1)
-            else:
-                self.volume_id = self.create_volume()
+            self.volume_id = self.create_volume(
+                    volume_type_id=volume_type_id)
             self.vm_id = self.create_vm()
             self.attach_volume(self.volume_id, self.vm_id,
                                device=tvaultconf.volumes_parts[0])
@@ -33,18 +30,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception in _attached_volume_prerequisite : " + str(e))
             return False
 
-    def _boot_from_volume_prerequisite(self, volume_type):
+    def _boot_from_volume_prerequisite(self, volume_type_id):
         try:
-            if(volume_type == "LVM"):
-                self.volume_id = self.create_volume(
+            self.volume_id = self.create_volume(
                     size=tvaultconf.bootfromvol_vol_size,
                     image_id=CONF.compute.image_ref,
-                    volume_type_id=CONF.volume.volume_type_id_1)
-            else:
-                self.volume_id = self.create_volume(
-                    size=tvaultconf.bootfromvol_vol_size,
-                    image_id=CONF.compute.image_ref,
-                    volume_type_id=CONF.volume.volume_type_id)
+                    volume_type_id=volume_type_id)
             self.set_volume_as_bootable(self.volume_id)
             self.block_mapping_details = [{"source_type": "volume",
                                            "delete_on_termination": "false",
@@ -151,28 +142,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             for k in result_json.keys():
                 result_json[k]['result'] = {}
-                if(k.find("Attach") != -1):
-                    if(k.find("Ceph") != -1):
-                        if self._attached_volume_prerequisite("Ceph"):
-                            result_json[k]['Prerequisite'] = tvaultconf.PASS
-                        else:
-                            result_json[k]['Prerequisite'] = tvaultconf.FAIL
+                vol = k.split('_')[-1]
+                if(vol == CONF.volume.volume_type):
+                    vol_type_id = CONF.volume.volume_type_id
+                elif(vol == CONF.volume.volume_type_1):
+                    vol_type_id = CONF.volume.volume_type_id_1
+                if(k.lower().find("attach") != -1):
+                    if self._attached_volume_prerequisite(vol_type_id):
+                        result_json[k]['Prerequisite'] = tvaultconf.PASS
                     else:
-                        if self._attached_volume_prerequisite("LVM"):
-                            result_json[k]['Prerequisite'] = tvaultconf.PASS
-                        else:
-                            result_json[k]['Prerequisite'] = tvaultconf.FAIL
-                elif(k.find("Boot") != -1):
-                    if(k.find("Ceph") != -1):
-                        if self._boot_from_volume_prerequisite("Ceph"):
-                            result_json[k]['Prerequisite'] = tvaultconf.PASS
-                        else:
-                            result_json[k]['Prerequisite'] = tvaultconf.FAIL
+                        result_json[k]['Prerequisite'] = tvaultconf.FAIL
+                elif(k.lower().find("boot") != -1):
+                    if self._boot_from_volume_prerequisite(vol_type_id):
+                        result_json[k]['Prerequisite'] = tvaultconf.PASS
                     else:
-                        if self._boot_from_volume_prerequisite("LVM"):
-                            result_json[k]['Prerequisite'] = tvaultconf.PASS
-                        else:
-                            result_json[k]['Prerequisite'] = tvaultconf.FAIL
+                        result_json[k]['Prerequisite'] = tvaultconf.FAIL
 
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
@@ -186,11 +170,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     except Exception as e:
                         result_json[k]['workload_error_msg'] = str(e)
                         result_json[k]['result']['Create_Workload'] = tvaultconf.FAIL + \
-                            "\nERROR " + result_json[k]['workload_error_msg']
+                                "\nERROR " + result_json[k]['workload_error_msg']
                         continue
 
-                    if self.workload_id:
-                        self._create_full_snapshot(self.workload_id)
+                if self.workload_id:
+                    self._create_full_snapshot(self.workload_id)
                     result_json[k]['snapshot'] = self.snapshot_id
                     result_json[k]['snapshot_status'] = self.snapshot_status
                 else:
