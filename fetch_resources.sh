@@ -10,6 +10,7 @@ TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+TEMPEST_VENV_DIR=$TEMPEST_DIR/.venv
 NONADMIN_USERNAME=trilio-nonadmin-user
 NONADMIN_PWD=password
 NEWADMIN_USERNAME=trilio-newadmin-user
@@ -19,8 +20,8 @@ BACKUP_PWD=password
 git checkout run_tempest.sh
 
 sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
 then
