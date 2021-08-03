@@ -107,6 +107,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             except BaseException:
                 pass
 
+    def delete_quotas(self):
+        quotas = self.get_quota_list(CONF.identity.tenant_id)
+        LOG.debug(quotas)
+        qs = [qt['id'] for qt in quotas]
+        for qt in qs:
+            try:
+                self.delete_project_quota(qt)
+            except Exception:
+                pass
+
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
@@ -132,6 +142,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nAbandoned ports deleted\n")
             self.delete_securitygroups()
             LOG.debug("\nsecurity groups deleted\n")
+            self.delete_quotas()
+            LOG.debug("\nWorkloadmgr quotas deleted\n")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
