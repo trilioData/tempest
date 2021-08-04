@@ -1,5 +1,5 @@
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
+#import apscheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
@@ -64,7 +64,7 @@ retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
 retention_policy_value_update = "7"
 schedule_report_file="scheduleReport.txt"
-sched=BlockingScheduler()
+#sched=BlockingScheduler()
 count=0
 No_of_Backup=1
 

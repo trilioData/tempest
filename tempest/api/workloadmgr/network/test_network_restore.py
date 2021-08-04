@@ -212,9 +212,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.delete_vm(rvm)
             self.delete_network_topology()
 
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write
+        finally:
+            reporting.test_case_to_write()
