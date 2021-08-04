@@ -3215,8 +3215,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             resp.raise_for_status()
         return True
 
-
-     """
+    """
     This method provides list of rules belonging to a security group
     """
 
@@ -3382,4 +3381,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 )
             )
         return restore_secgrp_name
-		

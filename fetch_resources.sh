@@ -10,6 +10,7 @@ TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+TEMPEST_VENV_DIR=$TEMPEST_DIR/.venv
 NONADMIN_USERNAME=trilio-nonadmin-user
 NONADMIN_PWD=password
 NEWADMIN_USERNAME=trilio-newadmin-user
@@ -19,8 +20,8 @@ BACKUP_PWD=password
 git checkout run_tempest.sh
 
 sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
 then
@@ -349,7 +350,7 @@ function configure_tempest
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
     mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
     dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
-    tvault_version=`workloadmgr --version`
+    tvault_version=`workloadmgr --insecure workload-type-show Serial -f yaml | grep version | cut -d ':' -f2 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -497,45 +498,6 @@ function configure_tempest
        cnt=`expr $cnt + 1`
     done
     TVAULT_IP+="]"
-
-    if ! hash juju; then
-        echo "juju is not installed"
-	juju=0
-    else
-        echo "juju is installed"
-	juju=1
-    fi
-
-    dbname="workloadmgr"
-    if [ $juju == 1 ]; then
-        modelname="controller"
-        dbusername="workloadmgr"
-
-        echo "fetch mysql root password"
-        mysql_root_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get root-password'`
-
-        echo "fetch workloadmgr mysql connection details"
-        mysql_wlm_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get mysql-workloadmgr.passwd'`
-	mysql_ip=`juju run -m ${modelname} --unit trilio-wlm/0 "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf | cut -d '/' -f 3 | cut -d '@' -f 2"`
-
-        echo "Provide required access to connect to wlm database from maas node"
-        cur_ip=`hostname -I | awk '{print $1}'`
-
-        cat > /tmp/trilio-test.sh <<-EOF
-mysql -u root -p${mysql_root_pwd} -e "GRANT ALL PRIVILEGES ON ${dbname}.* TO '${dbusername}'@'${cur_ip}' IDENTIFIED BY '${mysql_wlm_pwd}'"
-EOF
-
-        juju scp /tmp/trilio-test.sh mysql/0:/tmp/
-        rm -f /tmp/trilio-test.sh
-        juju run -m ${modelname} --unit mysql/0 "cat /tmp/trilio-test.sh"
-        juju run -m ${modelname} --unit mysql/0 "bash /tmp/trilio-test.sh"
-    else
-        conn_str=`workloadmgr setting-list --insecure --get_hidden True -f value | grep sql_connection`
-        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`           
-        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
-        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
-    fi
 
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
