@@ -3216,9 +3216,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return True
 
 
-    """
+     """
     This method provides list of rules belonging to a security group
     """
+
     def list_secgroup_rules_for_secgroupid(self, security_group_id):
         uri = "/security-group-rules?security_group_id=%s" % security_group_id
         resp, body = self.security_group_rules_client.get(self.uri_prefix + uri)
@@ -3235,6 +3236,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.security_group_rules_client.delete_security_group_rule(each["id"])
 
     """ Method to create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R -> P """
+
     def create_sec_groups_rule(self, count, secgrp_name, diff_rule=False):
         LOG.debug("Create security group and rule for {}".format(secgrp_name))
         sec_groups = []
@@ -3249,7 +3251,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             )
             sec_groups.append(sgid)
             # Delete default security group rules
-            self.delete_default_rules(sgid)
+            # self.delete_default_rules(sgid)
         for each in range(0, count):
             LOG.debug(
                 "Creating rule with other details and remote group id in fashion P -> Q -> R -> P"
@@ -3262,8 +3264,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 parent_grp_id=sec_groups[each],
                 remote_grp_id=sec_groups[each - 1],
                 ip_proto=ip_protocol,
-                from_prt=from_port,
-                to_prt=to_port,
+                from_prt=from_port + (each * 100),
+                to_prt=to_port + (each * 100),
+            )
+            self.add_security_group_rule(
+                parent_grp_id=sec_groups[each],
+                ip_proto=ip_protocol,
+                from_prt=from_port + each + count,
+                to_prt=to_port + each + count,
             )
         LOG.debug(
             "Security groups collection: {} and last entry {}".format(
@@ -3279,8 +3287,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             body = self.security_groups_client.list_security_groups()
             security_groups = body["security_groups"]
             count = 0
-            # print(secgrp_name, no_of_secgrp)
+            print(secgrp_name, no_of_secgrp)
             for n in security_groups:
+                print("Value from sec group list: {}".format(n["name"]))
                 if secgrp_name in n["name"]:
                     count += 1
                     LOG.debug("Printing info: {} {}".format(secgrp_name, n["name"]))
@@ -3295,52 +3304,64 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     # Compare the security group & rules assigned to the restored instance and assert if verification fails
-    def verifySecurityGroupRules(self, count, secgrp_name, diff_rule=False):
+    def verifySecurityGroupRules(
+        self, secgrp_count, rules_count, secgrp_name, restored=False, diff_rule=False
+    ):
         LOG.debug("Compare security group rules")
-        expected = {
-            "protocol": "tcp",
-            "port_range_min": 2000,
-            "port_range_max": 2100,
-        }
+        delta = 1000
+        expected = {"protocol": "tcp", "port_range_min": 2000, "port_range_max": 2100}
         try:
-            for i in range(1, count + 1):
-                str_secgrp = secgrp_name + format(i)
+            for i in range(1, secgrp_count + 1):
+                remote_secgrp_list = []
+                str_secgrp = secgrp_name
+                if restored == False:
+                    str_secgrp = secgrp_name + format(i)
                 secgrp_id = self.get_security_group_id_by_name(str_secgrp)
                 rule_list = self.list_secgroup_rules_for_secgroupid(secgrp_id)
+                LOG.debug(
+                    "Retrieved rules list from security group: {}\n".format(str_secgrp)
+                )
                 for each in rule_list:
                     self.assertEqual(
-                        2,
+                        rules_count,
                         len(rule_list),
                         "Count of rules does not match: Expected %d and Actual %d"
-                        % (2, len(rule_list)),
+                        % (rules_count, len(rule_list)),
                     )
-                    if diff_rule == False:
-                        for key, value in expected.items():
-                            self.assertEqual(
-                                value,
-                                each[key],
-                                "Field %s of the created security group "
-                                "rule does not match with %s." % (key, value),
-                            )
-                    else:
-                        for key, value in expected.items():
+                    LOG.debug("Default rules will be ignored for verification ")
+                    if each["protocol"] != None:
+                        if diff_rule == False:
+                            for key, value in expected.items():
+                                self.assertAlmostEqual(
+                                    value,
+                                    each[key],
+                                    None,
+                                    "Field %s of the created security group "
+                                    "rule does not match with %s." % (key, value),
+                                    delta,
+                                )
+                        else:
+                            for key, value in expected.items():
+                                self.assertNotEqual(
+                                    value,
+                                    each[key],
+                                    "Field %s of the created security group "
+                                    "rules are not different %s." % (key, value),
+                                )
+                        if each["remote_group_id"] != None:
+                            remote_secgrp_list.append(each["id"])
                             self.assertNotEqual(
-                                value,
-                                each[key],
-                                "Field %s of the created security group "
-                                "rules are not different %s." % (key, value),
+                                each["remote_group_id"],
+                                secgrp_id,
+                                "remote group id from different security group is not present",
                             )
-                    self.assertNotEmpty(
-                        each["remote_group_id"],
-                        "remote group id is not restored for rule: {}".format(
-                            each["id"]
-                        ),
-                    )
-                    self.assertNotEqual(
-                        each["remote_group_id"],
-                        secgrp_id,
-                        "remote group id from different security group is not present",
-                    )
+                self.assertEqual(
+                    2,
+                    len(remote_secgrp_list),
+                    "remote group id is not restored for all rules {}".format(
+                        secgrp_name
+                    ),
+                )
             return True
         except AssertionError as e:
             LOG.debug("Print error message {}".format(e))
@@ -3354,7 +3375,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("\nRestored VM details: {}".format(vmdetails))
             server_vm = vmdetails["server"]
             LOG.debug("\nRestored VM details - server : {}".format(vmdetails["server"]))
-            # for each in server_vm:
             restore_secgrp_name = server_vm["security_groups"]
             LOG.debug(
                 "List of restored security group policies: {}".format(
@@ -3362,3 +3382,4 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 )
             )
         return restore_secgrp_name
+		

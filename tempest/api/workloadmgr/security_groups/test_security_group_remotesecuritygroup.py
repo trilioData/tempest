@@ -100,16 +100,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(
                 "tempest.api.workloadmgr.security_groups.test_security_group_remotesecuritygroup"
             )
-            status = 0
+            status = 1
             deleted = 0
             secgrp_names_list = [
                 "test_secgroup-PQR",
                 "test_secgroup-ABC",
-                "test_secgroup-XYZ",
+                "test_secgroup-XYZ-new",
+            ]
+            secgrp_names_list_post_restore = [
+                "test_secgroup-ABC",
+                "test_secgroup-XYZ-new",
             ]
             secgrp_count = len(secgrp_names_list)
-            # Create security group with rules, creates 2 rules with same parameters (Ingress and Egress)
-            rules_count = 2
+            # Create security group with cyclic SG rules, 2 additional rules (Ingress and Egress) and 2 default rules
+            rules_count = 6
 
             # 1. Create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R -> P
             LOG.debug(
@@ -152,7 +156,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # 5. Delete vms, volumes, security groups
             LOG.debug("Delete VM + volume + security groups (P, Q, R)")
+            vol = []
+            for vm in vms:
+                LOG.debug("Get list of all volumes to be deleted")
+                vol.append(self.get_attached_volumes(vm))
             self.delete_vms([*vms])
+            LOG.debug("Delete volumes: {}".format(vol))
+            self.delete_volumes(vol)
+            for secgrp in sec_groups:
+                self.delete_security_group(secgrp)
+                LOG.debug("Delete security groups: {}".format(secgrp))
             time.sleep(60)
             deleted = 1
 
@@ -160,13 +173,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(
                 "Create security groups A, B, C with different rules other than P, Q, R and assign relationship A -> B -> C -> A"
             )
-            self.create_sec_groups_rule(secgrp_count, secgrp_names_list[2], True)
+            self.create_sec_groups_rule(secgrp_count, secgrp_names_list[1], True)
 
             # 7. Create security groups X, Y, Z with same rules as that of P, Q, R and assign relationship X -> Y -> Z -> X
             LOG.debug(
                 "Create security groups X, Y, Z with same rules as that of P, Q, R and assign relationship X -> Y -> Z -> X"
             )
-            self.create_sec_groups_rule(secgrp_count, secgrp_names_list[1])
+            self.create_sec_groups_rule(secgrp_count, secgrp_names_list[2])
 
             ### 8. Perform one click restore ###
             LOG.debug("Perform one click restore")
@@ -195,19 +208,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # 9. Compare the security groups and rules before and after restore
             LOG.debug("Compare the security groups before and after restore")
-            for each in secgrp_names_list:
+            for each in secgrp_names_list_post_restore:
                 # Changes for verification for different rule
-                if each == secgrp_names_list[2]:
+                if each == secgrp_names_list_post_restore[0]:
                     LOG.debug("Verify for different rule")
                     diff_rule = True
                 else:
                     diff_rule = False
-
-                # Changes for verification of all restored secgroups named with 'snap_of_'
-                if each == secgrp_names_list[0]:
-                    # each = secgrp_names_list[0]
-                    each = "snap_of_{}".format(secgrp_names_list[0])
-                    LOG.debug("Verify for restored secgroup {}".format(each))
 
                 LOG.debug("Verify for security group list: {}".format(each))
                 # Verification for security groups and rules
@@ -235,8 +242,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         ),
                         tvaultconf.FAIL,
                     )
-
-                if self.verifySecurityGroupRules(rules_count, each, diff_rule) == True:
+                    status = 0
+                if (
+                    self.verifySecurityGroupRules(
+                        secgrp_count, rules_count, each, False, diff_rule
+                    )
+                    == True
+                ):
                     LOG.debug(
                         "Security group rules verification successful for newly created rules post restore {}".format(
                             each
@@ -260,6 +272,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         ),
                         tvaultconf.FAIL,
                     )
+                    status = 0
 
             # 10. Compare the security group & rules assigned to the restored instance
             restore_secgrp_name = self.getRestoredSecGroupPolicies(restored_vms)
@@ -273,12 +286,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         vm_restore_secgrp_name["name"]
                     )
                 )
-                if (
-                    self.verifySecurityGroups(
-                        secgrp_count, vm_restore_secgrp_name["name"]
-                    )
-                    == True
-                ):
+                if self.verifySecurityGroups(1, vm_restore_secgrp_name["name"]) == True:
                     LOG.debug(
                         "Security group verification successful for restored vm {}".format(
                             vm_restore_secgrp_name
@@ -302,38 +310,42 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         ),
                         tvaultconf.FAIL,
                     )
-
+                    status = 0
                 if (
                     self.verifySecurityGroupRules(
-                        rules_count, vm_restore_secgrp_name["name"], False
+                        1, rules_count, vm_restore_secgrp_name["name"], True
                     )
                     == True
                 ):
                     LOG.debug(
-                        "Security group rules verification successful for newly created rules post restore having different rules {}".format(
+                        "Security group rules verification successful for restored vm {}".format(
                             vm_restore_secgrp_name
                         )
                     )
                     reporting.add_test_step(
-                        "Security group rules verification successful for newly created rules post restore having different rules {}".format(
+                        "Security group rules verification successful for restored vm {}".format(
                             vm_restore_secgrp_name
                         ),
                         tvaultconf.PASS,
                     )
-                    status = 1
                 else:
                     LOG.debug(
-                        "Security group rules verification failed for newly created rules post restore having different rules {}".format(
+                        "Security group rules verification failed for restored vm {}".format(
                             vm_restore_secgrp_name
                         )
                     )
                     reporting.add_test_step(
-                        "Security group rules verification failed for newly created rules post restore having different rules {}".format(
+                        "Security group rules verification failed for restored vm {}".format(
                             vm_restore_secgrp_name
                         ),
                         tvaultconf.FAIL,
                     )
+                    status = 0
 
+            if status != 1:
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.set_test_script_status(tvaultconf.PASS)
             reporting.test_case_to_write()
 
         except Exception as e:
