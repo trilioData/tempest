@@ -36,6 +36,7 @@ selective_restore = "workloadmgr snapshot-selective-restore --display-name " +tv
 restore_show = "workloadmgr restore-show "
 inplace_restore = "workloadmgr snapshot-inplace-restore --display-name test_name_inplace --display-description test_description_inplace  --filename "
 restore_cancel = "workloadmgr restore-cancel "
+restore_security_groups = "workloadmgr restore-security-groups"
 
 #Nova commands
 delete_vm = "nova delete "
