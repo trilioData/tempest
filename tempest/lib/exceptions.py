@@ -282,4 +282,4 @@ class InvalidParam(TempestException):
     message = ("Invalid Parameter passed: %(invalid_param)s")
 
 class TestStepException(TempestException):
-    pass
+    message = "%(msg)"
