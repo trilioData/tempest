@@ -350,7 +350,7 @@ function configure_tempest
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
     mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
     dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
-    tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | xargs`
+    tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
