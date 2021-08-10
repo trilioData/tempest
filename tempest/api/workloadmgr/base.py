@@ -1670,7 +1670,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ports_list = []
         ports_list = self.get_port_list()
         for port in ports_list['ports']:
-            if str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
+            if len(port['fixed_ips']) and \
+                    str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
                 return str(port['id'])
 
     '''delete port'''
