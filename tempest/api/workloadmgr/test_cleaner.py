@@ -87,13 +87,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def delete_abandoned_ports(self):
         subnets = self.networks_client.show_network(
             CONF.network.internal_network_id)['network']['subnets']
-        ports = self.network_client.list_ports()['ports']
+        ports = self.ports_client.list_ports()['ports']
         ports = [{'id': x['id'], 'device_id':x['device_id']}
-                 for x in ports if x['fixed_ips'][0]['subnet_id'] in subnets]
+                 for x in ports if len(x['fixed_ips']) and \
+                         x['fixed_ips'][0]['subnet_id'] in subnets]
         for port in ports:
             if port['device_id'] == '':
                 try:
-                    self.network_client.delete_port(port['id'])
+                    self.ports_client.delete_port(port['id'])
                 except BaseException:
                     pass
 

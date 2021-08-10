@@ -161,6 +161,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
                     result_json[k]['volumes'] = self.volume_id
+                    self.workload_id = None
                     try:
                         self._create_workload([self.vm_id])
                         result_json[k]['workload'] = self.workload_id
@@ -175,10 +176,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                 result_json[k]['workload_error_msg']
                         continue
 
-                if self.workload_id:
-                    self._create_full_snapshot(self.workload_id)
-                    result_json[k]['snapshot'] = self.snapshot_id
-                    result_json[k]['snapshot_status'] = self.snapshot_status
+                    if self.workload_id:
+                        self._create_full_snapshot(self.workload_id)
+                        result_json[k]['snapshot'] = self.snapshot_id
+                        result_json[k]['snapshot_status'] = self.snapshot_status
                 else:
                     result_json[k]['result']['Prerequisite'] = tvaultconf.FAIL
                     continue
