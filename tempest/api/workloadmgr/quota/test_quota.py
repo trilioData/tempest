@@ -591,7 +591,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise lib_exc.TestStepException(
                         msg="Able to update workload-1"\
                             "and add 2nd VM to workload")
-            except lib.exc.TestStepException as tse:
+            except lib_exc.TestStepException as tse:
                 LOG.error("Exception: " + str(tse))
                 reporting.add_test_step("Able to update workload-1 and "
                             "add 2nd VM to workload", tvaultconf.FAIL)
