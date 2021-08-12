@@ -588,23 +588,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             try:
                 self.workload_modify(self.workload_id1,
                                      [self.instances[0], self.instances[1]])
-                raise exceptions.TestStepException("Able to update workload-1"
+                raise lib_exc.TestStepException(
+                        msg="Able to update workload-1"\
                             "and add 2nd VM to workload")
-            except exceptions.TestStepException as tse:
+            except lib_exc.TestStepException as tse:
                 LOG.error("Exception: " + str(tse))
                 reporting.add_test_step("Able to update workload-1 and "
                             "add 2nd VM to workload", tvaultconf.FAIL)
             except Exception as e:
-                LOG.error("Exception: " + str(e))
+                LOG.info("Exception: " + str(e))
                 reporting.add_test_step(
                     "Unable to update workload-1 and add 2nd VM to workload",
                     tvaultconf.PASS)
             try:
                 self.workload_id2 = self.workload_create([self.instances[1]])
                 if self.workload_id2:
-                    raise exceptions.TestStepException(
-                            "Able to create workload-2 with 1 VM")
-            except exceptions.TestStepException as tse:
+                    raise lib_exc.TestStepException(
+                            msg="Able to create workload-2 with 1 VM")
+            except lib_exc.TestStepException as tse:
                 LOG.error("Exception: " + str(tse))
                 reporting.add_test_step(
                     "Able to create workload-2 with 1 VM", tvaultconf.FAIL)
