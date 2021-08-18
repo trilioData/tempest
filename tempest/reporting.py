@@ -6,6 +6,7 @@ import pickle
 
 test_results_file = "Report/results.html"
 sanity_results_file = "test_results"
+sanity_stats_file = "test_stats"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
 test_step_to_write = ""
@@ -85,7 +86,7 @@ def add_test_step(teststep, status):
                     <td> <font color={1}><pre style="font-family: 'Times New Roman', Times, serif; font-size: 13px; height: 17px"><i>    {3}. {0}</pre></font> </td>
                     <td> <font color={1} style="font-size:15px">{2}</font> </td>
 		 </tr>
-                """.format(teststep.capitalize(), color, status, steps_count)
+                """.format(str(teststep).capitalize(), color, status, steps_count)
 
 
 def end_report_table():
@@ -213,4 +214,35 @@ def add_sanity_results_to_tempest_report():
     html_file.write("<b>Sanity Test Results</b>")
     html_file.write("<br/><br/>")
     html_file.write(result_table)
+    html_file.close()
+
+
+def add_sanity_stats(workload_type, name, data):
+    with open(sanity_stats_file, "a") as f:
+        f.write(str(workload_type) + " " + str(name) + " " + str(data) + "\n")
+
+
+def add_sanity_stats_to_tempest_report():
+    stat_table = """ <table border="1"><tr><th>WorkloadType</th>
+            <th>Name</th><th>Data</th></tr>"""
+    with open(sanity_stats_file, "r") as f:
+        for line in f:
+            if(line == "\n" or line.find('---') != -1):
+                pass
+            else:
+                row = line.split()
+                workload_type = str(row[0])
+                name = str(row[1])
+                data = str(row[2])
+                stat_table += """<tr>
+                    <td><style="font-size:15px">%s</td>
+                    <td><style="font-size:15px">%s</td>
+                    <td><style="font-size:15px">%s</td>
+                    </tr> """ % (workload_type, name, data)
+    html_file = open(test_results_file, "a")
+    stat_table += """</table>"""
+    html_file.write("<br/><br/>")
+    html_file.write("<b>Sanity Test Run Statistics</b>")
+    html_file.write("<br/><br/>")
+    html_file.write(stat_table)
     html_file.close()

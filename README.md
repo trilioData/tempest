@@ -12,11 +12,13 @@ Repo for automation build, test etc.
     - CentOS 8 with Python 3.6
     - Ubuntu 18.04 with Python 3.6
     - Ubuntu 20.04 with Python 3.8
+    
+* Please note that Python2.7 support has been deprecated.
 
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
-      git clone -b master https://github.com/trilioData/tempest.git
+      git clone -b v4.1maintenance https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       
@@ -24,7 +26,7 @@ Repo for automation build, test etc.
     - CentOS 8
          - Install required packages
            ```
-           yum install gcc python3-virtualenv -y
+           yum install gcc python3-virtualenv epel-release centos-release-openstack-train -y
            pip3 install apscheduler
            ```
 
@@ -54,7 +56,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-0/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-1/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -74,7 +76,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-0/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-1/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -90,11 +92,15 @@ Repo for automation build, test etc.
     - Cloud admin user should be set on the openstack. Using this user, one should be able to list all projects, domains, users on the openstack. 
     - Test user, project and domain should be already available on the openstack. One can choose to use any user, project and domain for running tempest tests.
     - The test user should have admin role on the project and domain.
-    - By default, we assume `_member_` role is used for trustee role during TrilioVault configuration. Hence this role should be assigned to the test user.
+    - CentOS cloud image should be already uploaded on the openstack. This is needed for File recovery manager related tests (like snapshot mount).
+    - Ensure trustee role specified in openstack-setup.conf file is assigned to the test user.
     - Internal and external networks should be already configured and available on the test project.
     - Atleast 2 Floating IPs should be available and allocated to the test project.
     - Atleast one volume type should be defined and available on the openstack.
-    - Test image (eg: cirros) should already be available on the openstack.
+    - Test image (eg: cirros) should already be available on the openstack.    
+    - FRM (CentOS8 or Ubuntu18) image should already be available on the openstack with below properties. By default, we assume CentOS8 is used as FRM.
+    	- hw_qemu_guest_agent=yes
+    	- tvault_recovery_manager=yes
 
 * Configure tempest:
 

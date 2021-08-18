@@ -1,13 +1,16 @@
-#!/bin/bash -x
+#!/bin/bash
 source openstack-setup.conf
 
+PYTHON_VERSION=3
 TEMPEST_DIR=$PWD
 TEMPEST_CONFIG_DIR=${TEMPEST_CONFIG_DIR:-$TEMPEST_DIR/etc}
 TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
+TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
+TEMPEST_VENV_DIR=$TEMPEST_DIR/.venv
 NONADMIN_USERNAME=trilio-nonadmin-user
 NONADMIN_PWD=password
 NEWADMIN_USERNAME=trilio-newadmin-user
@@ -17,8 +20,8 @@ BACKUP_PWD=password
 git checkout run_tempest.sh
 
 sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" sanity-run.sh
-sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"python$PYTHON_VERSION\"" master-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
+sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
 if [[ "$AUTH_URL" =~ "https" ]]
 then
@@ -161,14 +164,6 @@ function configure_tempest
         iniset $TEMPEST_CONFIG wlm insecure True
     fi
     
-    # Glance should already contain images to be used in tempest
-    # testing. Here we simply look for images stored in Glance
-    # and set the appropriate variables for use in the tempest config
-    # We ignore ramdisk and kernel images, look for the default image
-    # ``TEST_IMAGE_NAME``. If not found, we set the ``image_uuid`` to the
-    # first image returned and set ``image_uuid_alt`` to the second,
-    # if there is more than one returned...
-    # ... Also ensure we only take active images, so we don't get snapshots in process
     declare -a images
 
     echo "Fetching image details\n"
@@ -217,7 +212,7 @@ function configure_tempest
     fi
     if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
         # Determine the flavor disk size based on the image size.
-        $OPENSTACK_CMD flavor create --ram 4096 --disk 40 --vcpus 2 $FVM_IMAGE_NAME
+        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAME
     fi
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'
@@ -267,6 +262,7 @@ function configure_tempest
     # Volume
     echo "Fetching volume type details\n"
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
+    shopt -s nocasematch
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
             echo "No volume type available to use, using Default \n"
@@ -278,7 +274,7 @@ function configure_tempest
             ;;
         1)
             type=${CINDER_BACKENDS_ENABLED[0]}
-            type_id=$($OPENSTACK_CMD volume type list | awk '$2 && $2 != "ID" {print $2}' | head -1)
+            type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}' | head -1)
             volume_type=$type
             volume_type_id=$type_id
             volume_type_alt=$type
@@ -288,12 +284,12 @@ function configure_tempest
         *)
             cnt=0
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
-                type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}')
+                type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}')
                 case $type in
                     lvm*|iscsi*) volume_type_alt=$type
-                                 volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                                 volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}');;
                     *) volume_type=$type
-                       volume_type_id=$($OPENSTACK_CMD volume type list | grep $type | awk '$2 && $2 != "ID" {print $2}');;
+                       volume_type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}');;
                 esac
                 if [ $cnt -eq 0 ]
                 then
@@ -346,6 +342,15 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_password $CLOUDADMIN_PASSWORD
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
+
+    env | grep OS_
+    conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+    echo $conn_str
+    dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+    mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+    mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
+    tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -405,7 +410,7 @@ function configure_tempest
     esac
 
     # router
-    ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }' | head -1)`
+    ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | head -1)`
     if [ -z "$ext_network_id" ]; then
         echo "External network not available"
     fi
@@ -437,16 +442,17 @@ function configure_tempest
     esac
    
     #Allocate floating ips to $TEST_PROJECT_NAME
-    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
-    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
-    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
-    $OPENSTACK_CMD floating ip create --project $TEST_PROJECT_NAME $ext_network_id
-    $OPENSTACK_CMD floating ip list    
+    floating_ip_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
+    while [ $floating_ip_cnt -le 5 ]
+    do
+        $OPENSTACK_CMD floating ip create $ext_network_id
+        floating_ip_cnt=$(( $floating_ip_cnt + 1 ))
+    done
+    $OPENSTACK_CMD floating ip list
 
     #Update default security group rules
-    def_secgrp_id=`($OPENSTACK_CMD security group list --project $TEST_PROJECT_NAME | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
-    $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
@@ -493,47 +499,6 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
-    if ! hash juju; then
-        echo "juju is not installed"
-	juju=0
-    else
-        echo "juju is installed"
-	juju=1
-    fi
-
-    dbname="workloadmgr"
-    if [ $juju == 1 ]; then
-        modelname="controller"
-        dbusername="workloadmgr"
-
-        echo "fetch mysql root password"
-        mysql_root_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get root-password'`
-
-        echo "fetch workloadmgr mysql connection details"
-        mysql_wlm_pwd=`juju run -m ${modelname} --unit mysql/leader 'leader-get mysql-workloadmgr.passwd'`
-	mysql_ip=`juju run -m ${modelname} --unit trilio-wlm/0 "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf | cut -d '/' -f 3 | cut -d '@' -f 2"`
-
-        echo "Provide required access to connect to wlm database from maas node"
-        cur_ip=`hostname -I | awk '{print $1}'`
-
-        cat > /tmp/trilio-test.sh <<-EOF
-mysql -u root -p${mysql_root_pwd} -e "GRANT ALL PRIVILEGES ON ${dbname}.* TO '${dbusername}'@'${cur_ip}' IDENTIFIED BY '${mysql_wlm_pwd}'"
-EOF
-
-        juju scp /tmp/trilio-test.sh mysql/0:/tmp/
-        rm -f /tmp/trilio-test.sh
-        juju run -m ${modelname} --unit mysql/0 "cat /tmp/trilio-test.sh"
-        juju run -m ${modelname} --unit mysql/0 "bash /tmp/trilio-test.sh"
-    else
-        conn_str=`ssh root@${TEMP_IP} "grep 'sql_connection' /etc/workloadmgr/workloadmgr.conf"`
-        if [ $? -ne 0 ]; then
-            echo "provide passwordless authentication to TrilioVault appliance node, in order to fetch database details"
-        fi
-        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`           
-        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
-    fi
-
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
@@ -544,6 +509,8 @@ EOF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
+    sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
+    sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
 
 }
 
@@ -554,22 +521,17 @@ then
 fi
 
 echo "creating virtual env for openstack client"
-if [ $PYTHON_VERSION == 2 ]
-then
-   virtualenv $OPENSTACK_CLI_VENV
-else
-   python3 -m venv $OPENSTACK_CLI_VENV
-fi
+python$PYTHON_VERSION -m venv $OPENSTACK_CLI_VENV
 
 . $OPENSTACK_CLI_VENV/bin/activate
 source openstack-setup.conf
 pip$PYTHON_VERSION install wheel
-pip$PYTHON_VERSION install openstacksdk==0.35.0
-pip$PYTHON_VERSION install os-client-config==1.18.0
-pip$PYTHON_VERSION install python-openstackclient==3.19.0
-pip$PYTHON_VERSION install python-cinderclient==4.2.0
-pip$PYTHON_VERSION install python-novaclient==15.1.0
+pip$PYTHON_VERSION install --upgrade pip
+pip$PYTHON_VERSION install openstacksdk
+pip$PYTHON_VERSION install os-client-config
+pip$PYTHON_VERSION install python-openstackclient
 
 configure_tempest
 deactivate
 echo "cleaning up openstack client virtual env"
+rm -rf $OPENSTACK_CLI_VENV

@@ -21,6 +21,7 @@ import stat
 import requests
 import re
 import collections
+import base64
 
 from oslo_log import log as logging
 from tempest import config
@@ -85,10 +86,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getWorkloadStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_status = body['workload']['status']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
+        if resp.status_code != 200:
             resp.raise_for_status()
         return workload_status
 
@@ -100,11 +100,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id)
         snapshot_status = body['snapshot']['status']
-        LOG.debug(
-            "#### workloadid: %s ,snapshot_id: %s , operation:show_snapshot" %
-            (workload_id, snapshot_id))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , snapshot id: %s , show_snapshot Response: "
+                  "%s" % (workload_id, snapshot_id, resp.content))
+        if resp.status_code != 200:
             resp.raise_for_status()
         return snapshot_status
 
@@ -116,11 +114,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get(
             "/workloads/" + str(workload_id) + "/snapshots/" + str(snapshot_id) + "/restores/" + str(restore_id))
         restore_status = body['restore']['status']
-        LOG.debug(
-            "#### workloadid: %s ,snapshot_id: %s, restore_id: %s, operation: show_restore" %
-            (workload_id, snapshot_id, restore_id))
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , snapshot id: %s , restore id: %s , "
+                  "show_restore Response: %s" % (workload_id, snapshot_id,
+                  restore_id, resp.content))
+        if resp.status_code != 200:
             resp.raise_for_status()
         return restore_status
 
@@ -131,10 +128,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getSchedulerStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         schedule_status = body['workload']['jobschedule']['enabled']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
+        if resp.status_code != 200:
             resp.raise_for_status()
         return schedule_status
 
@@ -145,17 +141,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
-        LOG.debug("#### workloadid: %s , operation:show_workload" %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        if(resp.status_code != 200):
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                  resp.content))
+        if resp.status_code != 200:
             resp.raise_for_status()
         return retention_policy_type
 
     '''
     Method returns the Retention Policy Value of a given workload
     '''
-
+    ####### import pdb; pdb.set_trace()
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
@@ -206,19 +201,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.assertEqual(scheduler_status, "true")
 
     '''
-    Method to update image metadata
-    Commenting this method, as images_client not available. When required, can revisit and fix it
-    '''
-#    def update_image(self, image_id, meta):
-#        try:
-#            response = self.images_client.update_image_metadata(image_id, meta)
-#            LOG.debug("image_update" + str(response))
-#            return True
-#        except Exception as e:
-#            LOG.error("Excetpion in base.py : " + str(e))
-#            return False
-
-    '''
     Method returns the Instance ID of a new VM instance created
     '''
     def create_vm(self,
@@ -233,6 +215,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   block_mapping_data=[],
                   user_data="NULL",
                   a_zone=CONF.compute.vm_availability_zone):
+        if(user_data != "NULL"):
+            with open(user_data,'rb') as tmp_userdata:
+                user_data=base64.b64encode(tmp_userdata.read())
+        else:
+            user_data=base64.b64encode(b' ')
         if(vm_name == ""):
             ts = str(datetime.now())
             vm_name = "Tempest_Test_Vm" + ts.replace('.', '-')
@@ -562,7 +549,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
         self,
         instances,
-        workload_type,
+        workload_type=tvaultconf.parallel,
         jobschedule={},
         workload_name="",
         workload_cleanup=True,
@@ -1683,7 +1670,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ports_list = []
         ports_list = self.get_port_list()
         for port in ports_list['ports']:
-            if str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
+            if len(port['fixed_ips']) and \
+                    str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
                 return str(port['id'])
 
     '''delete port'''
@@ -2032,7 +2020,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                             else:
                                 i = 0
                                 for k4, v2 in list(k3.items()):
-                                    if path1 in k4:
+                                    if path1 in v2:
                                         disk = list(k3.keys())[1]
                                         i += 1
                                     else:
@@ -2600,9 +2588,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
         mountpoint_path = stdout.read()
         LOG.debug("mountpoint path is : " + str(mountpoint_path))
-        print(mountpoint_path)
         ssh.close()
-        return mountpoint_path
+        return str(mountpoint_path)
 
     '''
     Method returns True if snapshot dir is exists on backup target media
@@ -3076,3 +3063,155 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return(payload)
         else:
             return
+
+    '''
+    This method lists the available types of WLM Quotas
+    '''
+    def get_quota_type(self):
+        resp, body = self.wlm_client.client.get(
+            "/project_quota_types")
+        LOG.debug("get_quota_type response: %s", resp.content)
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        quota_types = json.loads(resp.content)
+        return quota_types['quota_types']
+
+    '''
+    This method returns the quota type id of the specified type
+    '''
+    def get_quota_type_id(self, quota_type):
+        resp, body = self.wlm_client.client.get(
+            "/project_quota_types")
+        LOG.debug("get_quota_type response: %s", resp.content)
+        if(resp.status_code != 200):
+            resp.raise_for_status()
+        quota_types = (json.loads(resp.content))['quota_types']
+        quota_type_id = None
+        for q in quota_types:
+            if q['display_name'] == quota_type:
+                quota_type_id = q['id']
+        return quota_type_id
+
+    '''
+    This method creates allowed WLM quota for a specific project
+    '''
+    def create_project_quota(self, project_id, quota_type_id, allowed_value, 
+                    watermark_value, quota_cleanup=True):
+        payload = {"allowed_quotas": 
+                    [{
+                    "quota_type_id": quota_type_id,
+                    "project_id": project_id, 
+                    "allowed_value": allowed_value, 
+                    "high_watermark": watermark_value
+                    }]}
+        resp, body = self.wlm_client.client.post(
+            "/project_allowed_quotas/"+ project_id, json=payload)
+        LOG.debug("project-allowed-quota-create response: %s",
+                        str(resp.content))
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        quota_id = None
+        for q in quota_resp:
+            if(q['quota_type_id'] == quota_type_id and
+                    q['project_id'] == project_id):
+                quota_id = q['id']
+        if (tvaultconf.cleanup and quota_cleanup):
+            self.addCleanup(self.delete_project_quota, quota_id)
+        return quota_id
+
+    '''
+    This method deletes a specified quota
+    '''
+    def delete_project_quota(self, quota_id):
+        resp, body = self.wlm_client.client.delete(
+            "/project_allowed_quotas/"+ quota_id)
+        LOG.debug("project-allowed-quota-delete response: %s",
+                        str(resp.content))
+        if resp.status_code != 202:
+            resp.raise_for_status()
+        return True
+
+    '''
+    This method updates allowed WLM quota for a specific project
+    '''
+    def update_project_quota(self, project_id, quota_id, allowed_value,
+                    watermark_value):
+        payload = {"allowed_quotas":
+                    {
+                    "project_id": project_id,
+                    "allowed_value": allowed_value,
+                    "high_watermark": watermark_value
+                    }}
+        resp, body = self.wlm_client.client.put(
+            "/update_allowed_quota/"+ quota_id, json=payload)
+        LOG.debug("project-allowed-quota-update response: %s",
+                        str(resp.content))
+        if resp.status_code != 202:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        for q in quota_resp:
+            if(q['id'] == quota_id and
+                q['allowed_value'] == allowed_value and
+                q['high_watermark'] == watermark_value):
+                return True
+            else:
+                return False
+
+    '''
+    This method lists the available quotas set for a specified project
+    '''
+    def get_quota_list(self, project_id):
+        resp, body = self.wlm_client.client.get(
+            "/project_allowed_quotas/" + project_id)
+        LOG.debug("get_quota_list response: %s", resp.content)
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_list = (json.loads(resp.content))['allowed_quotas']
+        return quota_list
+
+    '''
+    This method lists the available quotas set for a specified project
+    '''
+    def get_quota_details(self, quota_id):
+        resp, body = self.wlm_client.client.get(
+            "/project_allowed_quota/" + quota_id)
+        LOG.debug("get_quota_details response: %s", resp.content)
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        quota_resp = (json.loads(resp.content))['allowed_quotas']
+        return quota_resp
+
+    '''
+    This method returns the quota type id of the specified type using WLM CLI
+    '''
+    def get_quota_type_id_cli(self, quota_type):
+        out = cli_parser.cli_output(
+            command_argument_string.quota_type_list)
+        quota_types = (json.loads(out))
+        quota_type_id = None
+        for q in quota_types:
+            if q['Name'] == quota_type:
+                quota_type_id = q['ID']
+                break
+        return quota_type_id
+
+    '''
+    This method updates the specified workload
+    '''
+    def workload_modify(self, workload_id, instances, jobschedule={}):
+        in_list = []
+        for id in instances:
+            in_list.append({'instance-id': id})
+        if jobschedule != {}:
+            payload = {'workload': { 'instances': in_list }}
+        else:
+            payload = {'workload': {'instances': in_list ,
+                                    'jobschedule': jobschedule }}
+        resp, body = self.wlm_client.client.put(
+            "/workloads/" + workload_id + "?is_admin_dashboard=False",
+            json=payload)
+        time.sleep(10)
+        if(resp.status_code != 202):
+            resp.raise_for_status()
+        return True

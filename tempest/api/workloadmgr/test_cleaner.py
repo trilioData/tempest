@@ -21,31 +21,31 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
 
-    def delete_restores(self):
-        restores = [restore for restore in self.wlm_client.restores.list()]
-        for restore in restores:
+    def delete_restores(self, snapshot_id, workload_id):
+        rests = self.getRestoreList(snapshot_id)
+        for res in rests:
             try:
-                self.wlm_client.restores.delete(restore.id)
-                self.wait_for_workload_tobe_available(restore.workload_id)
+                self.restore_delete(workload_id, snapshot_id, res)
             except BaseException:
                 pass
 
-    def delete_snapshots(self):
-        snapshots = [snapshot for snapshot in self.wlm_client.snapshots.list()]
-        for snapshot in snapshots:
+    def delete_snapshots(self, workload_id):
+        snaps = self.getSnapshotList(workload_id)
+        for snap in snaps:
             try:
-                self.wlm_client.snapshots.delete(snapshot.id)
-                self.wait_for_snapshot_tobe_available(
-                    snapshot.workload_id, snapshot.id)
+                self.delete_restores(snap, workload_id)
+                self.wait_for_workload_tobe_available(workload_id)
+                self.snapshot_delete(workload_id, snap)
             except BaseException:
                 pass
 
     def delete_workloads(self):
-        wls = [wl.id for wl in self.wlm_client.workloads.list()]
+        wls = self.getWorkloadList()
         for wl in wls:
             try:
-                self.wlm_client.workloads.delete(wl)
+                self.delete_snapshots(wl)
                 self.wait_for_workload_tobe_available(wl)
+                self.workload_delete(wl)
             except BaseException:
                 pass
 
@@ -87,13 +87,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def delete_abandoned_ports(self):
         subnets = self.networks_client.show_network(
             CONF.network.internal_network_id)['network']['subnets']
-        ports = self.network_client.list_ports()['ports']
+        ports = self.ports_client.list_ports()['ports']
         ports = [{'id': x['id'], 'device_id':x['device_id']}
-                 for x in ports if x['fixed_ips'][0]['subnet_id'] in subnets]
+                 for x in ports if len(x['fixed_ips']) and \
+                         x['fixed_ips'][0]['subnet_id'] in subnets]
         for port in ports:
             if port['device_id'] == '':
                 try:
-                    self.network_client.delete_port(port['id'])
+                    self.ports_client.delete_port(port['id'])
                 except BaseException:
                     pass
 
@@ -107,6 +108,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             except BaseException:
                 pass
 
+    def delete_quotas(self):
+        quotas = self.get_quota_list(CONF.identity.tenant_id)
+        LOG.debug(quotas)
+        qs = [qt['id'] for qt in quotas]
+        for qt in qs:
+            try:
+                self.delete_project_quota(qt)
+            except Exception:
+                pass
+
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
@@ -114,10 +125,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_cleaner(self):
         try:
-            self.delete_restores()
-            LOG.debug("\nrestores deleted\n")
-            self.delete_snapshots()
-            LOG.debug("\nsnapshots deleted\n")
             self.delete_workloads()
             LOG.debug("\nworkloads deleted\n")
             self.delete_servers()
@@ -132,6 +139,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nAbandoned ports deleted\n")
             self.delete_securitygroups()
             LOG.debug("\nsecurity groups deleted\n")
+            self.delete_quotas()
+            LOG.debug("\nWorkloadmgr quotas deleted\n")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))

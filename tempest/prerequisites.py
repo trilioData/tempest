@@ -948,6 +948,20 @@ def snapshot_mount(self):
             to_prt=22)
         self.floating_ips_list = self.get_floating_ips()
         floating_ips_list = self.floating_ips_list
+
+        # create file manager instance
+        fvm_name = "Test_tempest_fvm_1"
+        self.fvm_id = self.create_vm(
+            vm_cleanup=False,
+            vm_name=fvm_name,
+            key_pair=tvaultconf.key_pair_name,
+            security_group_id=self.security_group_id,
+            image_id=CONF.compute.fvm_image_ref,
+            user_data=tvaultconf.user_frm_data,
+            flavor_id=CONF.compute.flavor_ref_alt)
+        time.sleep(10)
+        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
+
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
         for i in range(0, self.total_vms):
@@ -973,19 +987,6 @@ def snapshot_mount(self):
             LOG.debug("one Volume attached")
             self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
             time.sleep(15)
-
-        # create file manager instance
-        fvm_name = "Test_tempest_fvm_1"
-        self.fvm_id = self.create_vm(
-            vm_cleanup=False,
-            vm_name=fvm_name,
-            key_pair=tvaultconf.key_pair_name,
-            security_group_id=self.security_group_id,
-            image_id=CONF.compute.fvm_image_ref,
-            user_data=tvaultconf.user_frm_data,
-            flavor_id=CONF.compute.flavor_ref_alt)
-        time.sleep(10)
-        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))

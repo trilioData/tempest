@@ -160,8 +160,6 @@ function run_tests {
       ${wrapper} $py_str -m testtools.run $testrargs
       return $?
   fi
-  echo $filepath_arg
-  echo $py_str
   if [ -z "$filepath_arg" ]; then
       sed -i -e 's/self.tests_filter_option = "[a-z]*"/self.tests_filter_option = \"\"/g' .venv/lib/python*/site-packages/testrepository/testcommand.py
       if [ $serial -eq 1 ]; then

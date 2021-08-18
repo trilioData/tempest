@@ -1,5 +1,5 @@
-import apscheduler
-from apscheduler.schedulers.blocking import BlockingScheduler
+#import apscheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
 
 #If you want to cleanup all test resources like vms, volumes, workloads then set
 # following cleanup parameter value to True otherwise False
@@ -44,6 +44,7 @@ restore_type = "restore"
 global_job_scheduler=False
 
 tvault_ip = ["192.168.6.17", "192.168.6.18", "192.168.6.19"]
+tvault_version = "4.1.124"
 tvault_dbusername = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
@@ -63,7 +64,7 @@ retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
 retention_policy_value_update = "7"
 schedule_report_file="scheduleReport.txt"
-sched=BlockingScheduler()
+#sched=BlockingScheduler()
 count=0
 No_of_Backup=1
 
@@ -83,20 +84,24 @@ security_group_name = "test_security"
 flavor_name = "test_flavor"
 bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
-user_frm_data = "IyEvYmluL2Jhc2ggCmVjaG8gIjUyVDhGVllaSnNlIiB8IHBhc3N3ZCAtLXN0ZGluIHJvb3QKZWNobyAiNTJUOEZWWVpKc2UiIHwgcGFzc3dkIC0tc3RkaW4gY2VudG9zCgpzZWQgLWkgJ3MvZ3Vlc3QtZmlsZS1vcGVuLC8vJyAvZXRjL3N5c2NvbmZpZy9xZW11LWdhCnNlZCAtaSAncy9ndWVzdC1maWxlLXdyaXRlLC8vJyAvZXRjL3N5c2NvbmZpZy9xZW11LWdhCnNlZCAtaSAncy9ndWVzdC1maWxlLXJlYWQsLy8nIC9ldGMvc3lzY29uZmlnL3FlbXUtZ2EKc2VkIC1pICdzL2d1ZXN0LWZpbGUtY2xvc2UsLy8nIC9ldGMvc3lzY29uZmlnL3FlbXUtZ2EKc2VkIC1pICcvU0VMSU5VWD1lbmZvcmNpbmcvYyBTRUxJTlVYPWRpc2FibGVkJyAvZXRjL3NlbGludXgvY29uZmlnCmVjaG8gIm5hbWVzZXJ2ZXIgOC44LjguOCIgPj4gL2V0Yy9yZXNvbHYuY29uZgpzbGVlcCA1MAp5dW0gaW5zdGFsbCBweXRob24zIC15IApyZWJvb3QK"
-
+user_frm_data = "/home/nchavan/tempest/tempest/frm_userdata.sh"
 
 #Email settings data
-setting_data = {"smtp_default_recipient": "trilio.build@trilio.io",
-                "smtp_default_sender": "trilio.build@trilio.io",
+setting_data = {"smtp_default_recipient": "test@trilio.io",
+                "smtp_default_sender": "test@trilio.io",
                 "smtp_port": "587",
                 "smtp_server_name": "smtp.gmail.com",
                 "smtp_server_password": tvault_password,
-                "smtp_server_username": "trilio.build@trilio.io",
+                "smtp_server_username": "test@trilio.io",
                 "smtp_timeout": "10" }
 enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 
-
 #Parameter for multiple vm workloads etc
-vm_count = 8
+vm_count = 4
+
+#WLM Quota parameters
+workload_allowed_value = 1
+workload_watermark_value = 1
+vm_allowed_value = 1
+vm_watermark_value = 1

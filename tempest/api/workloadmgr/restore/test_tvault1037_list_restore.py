@@ -1,15 +1,18 @@
-from tempest.util import query_data
-from tempest.util import cli_parser
-from tempest import command_argument_string
+import os
+import sys
 import time
+
+from oslo_log import log as logging
+
+from tempest import command_argument_string
+from tempest import config
 from tempest import reporting
 from tempest import tvaultconf
-from oslo_log import log as logging
-from tempest.lib import decorators
-from tempest import config
 from tempest.api.workloadmgr import base
-import sys
-import os
+from tempest.lib import decorators
+from tempest.util import cli_parser
+from tempest.util import query_data
+
 sys.path.append(os.getcwd())
 
 LOG = logging.getLogger(__name__)
@@ -27,6 +30,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
     def test_tvault1037_list_restore(self):
         try:
             # Prerequisites
@@ -106,7 +110,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     "Execute restore-list command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            wc = query_data.get_available_restores()
+            wc = query_data.get_available_restores(CONF.identity.tenant_id)
             out = cli_parser.cli_output(command_argument_string.restore_list)
             if (int(wc) == int(out)):
                 reporting.add_test_step(
