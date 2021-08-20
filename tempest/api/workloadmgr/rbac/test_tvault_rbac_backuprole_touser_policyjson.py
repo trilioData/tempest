@@ -156,7 +156,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Command workload_create executed correctly by admin role")
 
             # Run snapshot_create CLI by admin role
-            import pdb; pdb.set_trace()
             snapshot_create = command_argument_string.snapshot_create + \
                 str(self.wid1)
             LOG.debug("snapshot_create command: " + str(snapshot_create))
