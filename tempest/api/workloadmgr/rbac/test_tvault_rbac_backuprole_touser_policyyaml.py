@@ -28,10 +28,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('dbb758aa-b3af-40ac-9105-705b1f18cbd8')
     @decorators.attr(type='workloadmgr_cli')
-    def test_tvault_rbac_backuprole_touser_policyjson(self):
+    def test_tvault_rbac_backuprole_touser_policyyaml(self):
         try:
             workload_create_error_str = "Policy doesn't allow workload:workload_create to be performed."
             snapshot_create_error_str = "Policy doesn't allow workload:workload_snapshot to be performed."
@@ -41,7 +39,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             restore_delete_error_str = "Policy doesn't allow restore:restore_delete to be performed."
 
             # Change policy.json file on tvault to change role and rule
-            self.change_policyjson_file("backup", "backup_api")
+            self.change_policyyaml_file("backup", "backup_api")
             self.instances_id = []
 
             # Create volume, Launch an Instance
@@ -134,13 +132,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Restore Volume ID: " + str(self.restore_volume_id1))
 
 
+            self.volumes_id2 = self.create_volume()
+            LOG.debug("Volume-2 ID: " + str(self.volumes_id2))
+            self.instances_id.append(self.create_vm())
+            LOG.debug("VM-2 ID: " + str(self.instances_id[1]))
+            self.attach_volume(self.volumes_id2, self.instances_id[1])
+
             # Use admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.username
             os.environ['OS_PASSWORD'] = CONF.identity.password
 
             # Create workload with CLI by admin role
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(self.restore_vm_id1[0])
+                " --instance instance-id=" + str(self.instances_id[1])
             error = cli_parser.cli_error(workload_create)
             if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug(
