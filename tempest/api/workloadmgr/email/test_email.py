@@ -72,7 +72,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             "/workloads/email/test_email")
 
                         cmd = 'curl  -u ' + tvaultconf.setting_data["smtp_default_recipient"] + ':' + \
-                            tvaultconf.tvault_password + ' --silent "https://mail.google.com/mail/feed/atom"'
+                            tvaultconf.smtp_password + ' --silent "https://mail.google.com/mail/feed/atom"'
                         op = subprocess.check_output(cmd, shell=True)
                         if len(re.findall('Testing email configuration',
                                           op.decode().split('<entry>')[1])) == 1:
