@@ -910,13 +910,13 @@ def nested_security(self):
 def snapshot_mount(self):
     try:
         self.exception = ""
-        volumes = ["/dev/vdb"]
-        mount_points = ["mount_data_b"]
+        volumes = ["/dev/vdb", "/dev/vdc"]
+        mount_points = ["mount_data_b", "mount_data_c"]
         self.snapshot_ids = []
         self.instances_ids = []
         self.volumes_ids = []
         self.total_vms = 1
-        self.total_volumes_per_vm = 1
+        self.total_volumes_per_vm = 2
         self.fvm_id = ""
         self.floating_ips_list = []
         # Create key_pair and get available floating IP's
@@ -969,7 +969,7 @@ def snapshot_mount(self):
             j = i + i
             for n in range(0, self.total_volumes_per_vm):
                 self.volumes_ids.append(
-                    self.create_volume(volume_cleanup=False))
+                    self.create_volume(size=int(n + j + 1), volume_cleanup=False))
                 LOG.debug("Volume-" + str(n + j + 1) +
                           " ID: " + str(self.volumes_ids[n + j]))
             self.instances_ids.append(
@@ -982,9 +982,11 @@ def snapshot_mount(self):
                       str(self.instances_ids[i]))
             self.attach_volume(
                 self.volumes_ids[j], self.instances_ids[i], volumes[0])
+            self.attach_volume(
+                self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
             time.sleep(10)
 
-            LOG.debug("one Volume attached")
+            LOG.debug("Two Volumes attached")
             self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
             time.sleep(15)
 
@@ -992,23 +994,13 @@ def snapshot_mount(self):
             str(floating_ips_list[0]))
         self.execute_command_disk_create(
             self.ssh, floating_ips_list[i], volumes, mount_points)
-        self.ssh.close()
-
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         self.execute_command_disk_mount(
             self.ssh, floating_ips_list[i], volumes, mount_points)
-        self.ssh.close()
 
         # Add two files to vm1 to path /opt
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         self.addCustomfilesOnLinuxVM(self.ssh, "//opt", 2)
-        self.ssh.close()
 
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
         self.addCustomfilesOnLinuxVM(self.ssh, pth, 1)
         self.ssh.close()

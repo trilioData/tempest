@@ -409,16 +409,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             interval_after_enable = schedule_details['interval']
             next_run_time_after_enable = schedule_details['nextrun']
             next_run_time_after_enable = int(next_run_time_after_enable)
-            LOG.debug("interval_after_enable " + str(interval_after_enable))
-            LOG.debug("next_run_time_after_enable" +
-                      str(next_run_time_after_enable))
             start_date = schedule_details['start_date']
             start_time = schedule_details['start_time']
             date_time = start_date + " " + start_time
             start_date_time = datetime.datetime.strptime(
                 date_time, "%m/%d/%Y %H:%M %p")
-            LOG.debug("Scheduled start and date time is: " +
-                      str(start_date_time))
             utc_24hr = datetime.datetime.utcnow()
             utc_12hr = datetime.datetime.strftime(
                 utc_24hr, "%m/%d/%Y %I:%M %p")
@@ -426,10 +421,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 utc_12hr, "%m/%d/%Y %H:%M %p")
             time_diff = (start_date_time - utc_12hr).total_seconds()
             time_diff = int(time_diff)
-            LOG.debug(
-                "Time difference between UTC time and scheduled start time: " +
-                str(time_diff))
             delta = abs(time_diff - next_run_time_after_enable)
+            LOG.debug(f"VARS: interval_after_enable={interval_after_enable}, \
+                next_run_time_after_enable={next_run_time_after_enable}, \
+                schedule_details={schedule_details}, start_date={start_date}, \
+                date_time={date_time}, start_date_time={start_date_time}, \
+                utc_24hr={utc_24hr}, utc_12hr={utc_12hr}, \
+                time_diff={time_diff}, delta={delta}")
 
             # Condition for Interval value and time difference should not be
             # more than two minutes
