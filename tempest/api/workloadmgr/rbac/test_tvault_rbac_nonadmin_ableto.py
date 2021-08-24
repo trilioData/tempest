@@ -118,7 +118,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Launch recovery instance and Mount snapshot
             self.recoveryinstances_id = self.create_vm(
+                vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
+                user_data=tvaultconf.user_frm_data,
                 image_id=CONF.compute.fvm_image_ref)
             LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
             status = self.mount_snapshot(
@@ -131,7 +133,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("snapshot Mount unsuccessful")
                 reporting.add_test_step(
                     "Verification of snapshot mount", tvaultconf.FAIL)
-                raise Exception("snapshot does not Mount by non-admin user")
 
             # Run Filesearch
             vmid_to_search = self.instances_id[0]
@@ -149,18 +150,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Filepath Search unsuccessful")
                     reporting.add_test_step(
                         "Verification of Filepath serach", tvaultconf.FAIL)
-                    raise Exception(
-                        "Filesearch path does not execute correctly by non-admin user")
 
             if filesearch_status:
                 LOG.debug("Filepath_Search successful")
                 reporting.add_test_step(
                     "Verification of Filepath serach", tvaultconf.PASS)
 
-            reporting.set_test_script_status(tvaultconf.PASS)
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
-            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+
+        finally:
             reporting.test_case_to_write()

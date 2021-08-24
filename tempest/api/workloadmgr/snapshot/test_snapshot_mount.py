@@ -31,8 +31,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
 
     @test.pre_req({'type': 'snapshot_mount'})
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('90dfa684-171c-40c7-a195-df53671bec4b')
     @decorators.attr(type='workloadmgr_api')
     def test_1_snapshot_mount_full(self):
         reporting.add_test_script(str(__name__) + "_full_snasphot")
@@ -121,8 +119,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('28fd0710-ef00-42b0-93f0-9dbb3ffc5bee')
     @decorators.attr(type='workloadmgr_api')
     def test_2_umount_snapshot(self):
         reporting.add_test_script(str(__name__) + "_umount_snapshot")
@@ -181,8 +177,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('215e0c36-8911-4167-aaea-8c07d21212f3')
     @decorators.attr(type='workloadmgr_api')
     def test_3_snapshot_mount_incremental(self):
         reporting.add_test_script(str(__name__) + "_incremental_snasphot")
@@ -205,7 +199,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             LOG.debug("mount incremental snapshot")
             is_mounted = self.mount_snapshot(
-                wid, incremental_snapshot_id, fvm_id)
+                wid, incremental_snapshot_id, fvm_id, mount_cleanup=False)
             LOG.debug("VALUE OF is_mounted: " + str(is_mounted))
             if is_mounted:
                 LOG.debug(

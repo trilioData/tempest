@@ -45,7 +45,7 @@ global_job_scheduler=False
 
 tvault_ip = ["192.168.6.17", "192.168.6.18", "192.168.6.19"]
 tvault_version = "4.1.124"
-tvault_dbusername = "root"
+tvault_username = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
 wlm_dbusername = "workloadmgr"
