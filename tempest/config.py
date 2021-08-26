@@ -465,8 +465,9 @@ ComputeGroup = [
     cfg.IntOpt('flavor_vcpus',
                default=4,
                help="VCPUS for the flavor"),
-    cfg.StrOpt('fvm_image_ref',
-               help="Valid file manager image reference to be used in snasphot mount tests. "
+    cfg.DictOpt('fvm_image_ref',
+               default={},
+               help="Valid file manager image to be used in snasphot mount tests. "
                     "This is a required option"),
 ]
 
@@ -1017,12 +1018,9 @@ VolumeGroup = [
     cfg.StrOpt('volume_type_id',
                default='',
                help='Volume type id'),
-    cfg.StrOpt('volume_type_1',
-               default='',
-               help='Alternate Volume type name'),
-    cfg.StrOpt('volume_type_id_1',
-               default='',
-               help='Alternate Volume type id'),
+    cfg.DictOpt('volume_types',
+               default={},
+               help='Volume types'),
 
 ]
 

@@ -121,7 +121,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
-                image_id=CONF.compute.fvm_image_ref)
+                image_id=list(CONF.compute.fvm_image_ref.values())[0])
             LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
             status = self.mount_snapshot(
                 self.wid, self.snapshot_id, self.recoveryinstances_id)

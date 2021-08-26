@@ -1209,9 +1209,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to list all floating ips
     '''
 
-    def get_floating_ips(self):
+    def get_floating_ips(self, project_id=CONF.identity.tenant_id):
         floating_ips_list = []
-        get_ips_response = self.floating_ips_client.list_floatingips()
+        get_ips_response = self.floating_ips_client.list_floatingips(project_id=project_id)
         LOG.debug("get floating ips response: " + str(get_ips_response))
         floating_ips = get_ips_response['floatingips']
         for ip in floating_ips:
@@ -1320,8 +1320,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              "n",
                              "p",
                              "1",
-                             "2048",
-                             "2097151",
+                             "\n",
+                             "\n",
                              "w",
                              "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
