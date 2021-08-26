@@ -440,10 +440,10 @@ function configure_tempest
     floating_ip_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
     while [ $floating_ip_cnt -le 5 ]
     do
-        $OPENSTACK_CMD floating ip create $ext_network_id
+        $OPENSTACK_CMD floating ip create --project $test_project_id $ext_network_id
         floating_ip_cnt=$(( $floating_ip_cnt + 1 ))
     done
-    $OPENSTACK_CMD floating ip list
+    $OPENSTACK_CMD floating ip list --project $test_project_id
 
     #Update default security group rules
     def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
