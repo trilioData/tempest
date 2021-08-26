@@ -948,6 +948,8 @@ def snapshot_mount(self):
             to_prt=22)
         self.floating_ips_list = self.get_floating_ips()
         floating_ips_list = self.floating_ips_list
+        if len(floating_ips_list) == 0:
+            raise Exception("Floating ips not available")
 
         # create file manager instance
         fvm_name = "Test_tempest_fvm_1"
@@ -956,7 +958,7 @@ def snapshot_mount(self):
             vm_name=fvm_name,
             key_pair=tvaultconf.key_pair_name,
             security_group_id=self.security_group_id,
-            image_id=CONF.compute.fvm_image_ref,
+            image_id=list(CONF.compute.fvm_image_ref.values())[0],
             user_data=tvaultconf.user_frm_data,
             flavor_id=CONF.compute.flavor_ref_alt)
         time.sleep(10)
