@@ -143,10 +143,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for k in result_json.keys():
                 result_json[k]['result'] = {}
                 vol = k.split('_')[-1]
-                if(vol == CONF.volume.volume_type):
-                    vol_type_id = CONF.volume.volume_type_id
-                elif(vol == CONF.volume.volume_type_1):
-                    vol_type_id = CONF.volume.volume_type_id_1
+                vol_type_id = CONF.volume.volume_types[vol]
                 if(k.lower().find("attach") != -1):
                     if self._attached_volume_prerequisite(vol_type_id):
                         result_json[k]['Prerequisite'] = tvaultconf.PASS
