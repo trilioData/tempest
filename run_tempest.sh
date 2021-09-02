@@ -14,6 +14,7 @@ if [ -f $BASE_DIR/workloads_file ]; then
 fi
 
 rm -f tempest.log
+rm -rf lock/
 mkdir -p Report
 
 function usage {

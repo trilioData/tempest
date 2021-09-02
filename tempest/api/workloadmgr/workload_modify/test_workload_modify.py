@@ -430,8 +430,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 time_diff={time_diff}, delta={delta}")
 
             # Condition for Interval value and time difference should not be
-            # more than two minutes
-            if delta < 120 and interval == interval_after_enable:
+            # more than 15 minutes
+            if delta < 900 and interval == interval_after_enable:
                 reporting.add_test_step(
                     "Verify Interval and Next snapshot run time values are correct",
                     tvaultconf.PASS)
