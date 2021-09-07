@@ -113,7 +113,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
-                reporting.add_test_step("Selective restore", tvaultconf.FAIL)
+                restore_error = self.getRestoreDetails(self.restore_id)['restore']['error_msg']
+                error_msg = f"Selective restore failed with error {restore_error}"
+                reporting.add_test_step(error_msg, tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
             # Fetch instance details after restore
