@@ -167,13 +167,13 @@ def inplace(self):
         # Fill some data on each of the volumes attached
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[0]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
         ssh.close()
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[1]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[1], 3)
         ssh.close()
 
         # Create workload and trigger full snapshot
@@ -325,7 +325,7 @@ def bootfrom_image_with_floating_ips(self):
         for floating_ip in self.floating_ips_list:
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
-                self.addCustomSizedfilesOnLinux(ssh, mount_point, 3)
+                self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
                 ssh.close()
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
