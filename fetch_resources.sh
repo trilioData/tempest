@@ -403,6 +403,7 @@ function configure_tempest
             fi
             ;;
     esac
+    subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
 
     # router
     ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | head -1)`
@@ -420,18 +421,28 @@ function configure_tempest
             echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
             router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
-            subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
-            $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
-            $OPENSTACK_CMD router add subnet test_router $subnet_id
-            ;;
-        1)
-            if [ -z "$router_id" ]; then
-                router_id=${routers[0]}
-            fi
+            $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+            $OPENSTACK_CMD router add subnet $router_id $subnet_id
             ;;
         *)
             if [ -z "$router_id" ]; then
                 router_id=${routers[0]}
+            fi
+            gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+            interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+            if [[ $gateway_info == *"None"* ]]
+            then
+                echo "External gateway not set"
+                $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+            else
+                echo "External gateway already set"
+            fi
+            if [[ "$subnet_id" == *"$interface_info"* ]]
+            then
+                echo "Internal interface already added to router"
+            else
+                echo "Internal interface not added to router"
+                $OPENSTACK_CMD router add subnet $router_id $subnet_id
             fi
             ;;
     esac
