@@ -621,6 +621,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_delete(self, workload_id):
         try:
+            # Reset workload
+            self.workload_reset(workload_id)
+            self.wait_for_workload_tobe_available(workload_id)
+
             # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(workload_id)
 

@@ -26,8 +26,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('592b235d-ce25-4ed7-a21b-20d44b0196b8')
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_nonadmin_ableto(self):
         try:
@@ -43,6 +41,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("VM-1 ID: " + str(self.instances_id[0]))
             self.attach_volume(self.volumes_id, self.instances_id[0])
             LOG.debug("Volume attached")
+
+
+            # Launch recovery instance
+            self.recoveryinstances_id = self.create_vm(
+                vm_name="file_recovery_manager",
+                flavor_id=CONF.compute.flavor_ref_alt,
+                user_data=tvaultconf.user_frm_data,
+                image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            LOG.debug("FRM Instance ID: " + str(self.recoveryinstances_id))
 
             # Create workload
             self.wid = self.workload_create(
@@ -116,13 +123,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Snapshot one-click restore verification with DB",
                     tvaultconf.FAIL)
 
-            # Launch recovery instance and Mount snapshot
-            self.recoveryinstances_id = self.create_vm(
-                vm_name="file_recovery_manager",
-                flavor_id=CONF.compute.flavor_ref_alt,
-                user_data=tvaultconf.user_frm_data,
-                image_id=list(CONF.compute.fvm_image_ref.values())[0])
-            LOG.debug("VM-2 ID: " + str(self.recoveryinstances_id))
+            # Mount snapshot
             status = self.mount_snapshot(
                 self.wid, self.snapshot_id, self.recoveryinstances_id)
             if status:
@@ -136,8 +137,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Run Filesearch
             vmid_to_search = self.instances_id[0]
-            filepath_to_search = "/File_1.txt"
-            filecount_in_snapshots = {self.snapshot_id: 0}
+            filepath_to_search = "/etc/passwd"
+            filecount_in_snapshots = {self.snapshot_id: 1}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search)
             snapshot_wise_filecount = self.verifyFilepath_Search(
@@ -149,12 +150,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     filesearch_status = False
                     LOG.debug("Filepath Search unsuccessful")
                     reporting.add_test_step(
-                        "Verification of Filepath serach", tvaultconf.FAIL)
+                        "Verification of Filepath search", tvaultconf.FAIL)
 
             if filesearch_status:
                 LOG.debug("Filepath_Search successful")
                 reporting.add_test_step(
-                    "Verification of Filepath serach", tvaultconf.PASS)
+                    "Verification of Filepath search", tvaultconf.PASS)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
