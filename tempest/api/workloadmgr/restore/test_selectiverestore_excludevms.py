@@ -12,8 +12,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import collections
-
 from oslo_log import log as logging
 
 from tempest import config
@@ -36,20 +34,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @test.pre_req({'type': 'bootfrom_image_with_floating_ips'})
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @test.pre_req({'type': 'selective_basic'})
     @decorators.attr(type='workloadmgr_api')
-    def test_ubuntu_smallvolumes_selectiverestore_defaultvalues(self):
+    def test_selectiverestore_excludevms(self):
         try:
             if self.exception != "":
                 LOG.debug("pre req failed")
                 reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
                 raise Exception(str(self.exception))
             LOG.debug("pre req completed")
-
-            volumes = tvaultconf.volumes_parts
-            mount_points = ["mount_data_b", "mount_data_c"]
 
             int_net_1_name = self.get_net_name(
                 CONF.network.internal_network_id)
@@ -59,14 +52,34 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
             # Create instance details for restore.json
+            temp_vdisks_data = []
+            for i in range(len(self.workload_instances)):
+                flag = i + i
+
+                temp_vdisks_data.append([{'id': self.workload_volumes[flag],
+                                          'availability_zone':CONF.volume.volume_availability_zone,
+                                          'new_volume_type':CONF.volume.volume_type},
+                                         {'id': self.workload_volumes[flag + 1],
+                                          'availability_zone':CONF.volume.volume_availability_zone,
+                                          'new_volume_type':CONF.volume.volume_type}])
+            LOG.debug("Vdisks details for restore" + str(temp_vdisks_data))
+
             for i in range(len(self.workload_instances)):
                 vm_name = "tempest_test_vm_" + str(i + 1) + "_restored"
-                temp_instance_data = {'id': self.workload_instances[i],
-                                      'include': True,
-                                      'restore_boot_disk': True,
-                                      'name': vm_name,
-                                      'vdisks': []
-                                      }
+                if (i == 1):
+                    include_vm = False
+                    temp_instance_data = {
+                        'id': self.workload_instances[i],
+                        'availability_zone': CONF.compute.vm_availability_zone,
+                        'include': include_vm}
+                else:
+                    include_vm = True
+                    temp_instance_data = {
+                        'id': self.workload_instances[i],
+                        'availability_zone': CONF.compute.vm_availability_zone,
+                        'include': include_vm,
+                        'name': vm_name,
+                        'vdisks': temp_vdisks_data[i]}
                 self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
                       str(self.instance_details))
@@ -84,24 +97,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                      'target_network': target_network}]
             LOG.debug("Network details for restore: " +
                       str(self.network_details))
-
-            # Fill some more data on each volume attached
-            def tree(): return collections.defaultdict(tree)
-            self.md5sums_dir_before = tree()
-            for floating_ip in self.floating_ips_list:
-                for mount_point in mount_points:
-                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        str(floating_ip))
-                    self.addCustomSizedfilesOnLinux(ssh, mount_point, 5)
-                    ssh.close()
-                for mount_point in mount_points:
-                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        str(floating_ip))
-                    self.md5sums_dir_before[str(floating_ip)][str(
-                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-                    ssh.close()
-
-            LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
 
             # Trigger selective restore
             self.restore_id = self.snapshot_selective_restore(
@@ -122,6 +117,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.restored_vm_details_list = []
             self.vm_list = self.get_restored_vm_list(self.restore_id)
             LOG.debug("Restored vms : " + str(self.vm_list))
+            if(len(self.vm_list) == (len(self.workload_instances) - 1)):
+                reporting.add_test_step(
+                    "Exclude instance during restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Exclude instance during restore", tvaultconf.FAIL)
+                LOG.error("Actual workload instance list: " +
+                          str(self.workload_instances))
+                LOG.error("Restored instance list: " + str(self.vm_list))
+                raise Exception("Instance not excluded during restore")
 
             for id in range(len(self.vm_list)):
                 self.restored_vm_details_list.append(
@@ -145,7 +150,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                               str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
                 if(self.get_key_pair_details(self.vms_details_after_restore[i]['keypair']) == self.original_fingerprint):
                     reporting.add_test_step(
                         "Keypair verification for instance-" + str(i + 1), tvaultconf.PASS)
@@ -172,43 +176,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Flavor verification for instance-" + str(i + 1), tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
-
-            # Verify floating ips
-            self.floating_ips_after_restore = []
-            for i in range(len(self.vms_details_after_restore)):
-                self.floating_ips_after_restore.append(
-                    self.vms_details_after_restore[i]['floating_ip'])
-            if(self.floating_ips_after_restore.sort() == self.floating_ips_list.sort()):
-                reporting.add_test_step(
-                    "Floating ip verification", tvaultconf.PASS)
-            else:
-                LOG.error("Floating ips before restore: " +
-                          str(self.floating_ips_list.sort()))
-                LOG.error("Floating ips after restore: " +
-                          str(self.floating_ips_after_restore.sort()))
-                reporting.add_test_step(
-                    "Floating ip verification", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            # calculate md5sum after restore
-            def tree(): return collections.defaultdict(tree)
-            md5_sum_after_selective_restore = tree()
-            for floating_ip in self.floating_ips_list:
-                for mount_point in mount_points:
-                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        str(floating_ip))
-                    md5_sum_after_selective_restore[str(floating_ip)][str(
-                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
-                    ssh.close()
-            LOG.debug("md5_sum_after_selective_restore" +
-                      str(md5_sum_after_selective_restore))
-
-            # md5sum verification
-            if(self.md5sums_dir_before == md5_sum_after_selective_restore):
-                reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
-            else:
-                reporting.set_test_script_status(tvaultconf.FAIL)
-                reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
 
             reporting.test_case_to_write()
 

@@ -35,10 +35,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__))
 
     @test.pre_req({'type': 'selective_basic'})
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c2')
     @decorators.attr(type='workloadmgr_api')
-    def test_ubuntu_smallvolumes_selectiverestore_defaultsdeleted(self):
+    def test_selectiverestore_nodefaultvalues(self):
         try:
             if self.exception != "":
                 LOG.debug("pre req failed")
@@ -46,33 +44,31 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception(str(self.exception))
             LOG.debug("pre req completed")
 
-            self.delete_vms(self.workload_instances)
-            self.delete_volumes(self.workload_volumes)
-            self.delete_key_pair(tvaultconf.key_pair_name)
-            self.delete_security_group(self.security_group_id)
             int_net_1_name = self.get_net_name(
                 CONF.network.internal_network_id)
             LOG.debug("int_net_1_name" + str(int_net_1_name))
             int_net_1_subnets = self.get_subnet_id(
                 CONF.network.internal_network_id)
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
+            int_net_2_name = self.get_net_name(
+                CONF.network.alt_internal_network_id)
+            LOG.debug("int_net_2_name" + str(int_net_2_name))
+            int_net_2_subnets = self.get_subnet_id(
+                CONF.network.alt_internal_network_id)
+            LOG.debug("int_net_2_subnet" + str(int_net_2_subnets))
 
             # Create instance details for restore.json
             temp_vdisks_data = []
             for i in range(len(self.workload_instances)):
                 flag = i + i
-
+                self.new_vol_type = CONF.volume.volume_type
                 temp_vdisks_data.append([{'id': self.workload_volumes[flag],
                                           'availability_zone':CONF.volume.volume_availability_zone,
                                           'new_volume_type':CONF.volume.volume_type},
                                          {'id': self.workload_volumes[flag + 1],
                                           'availability_zone':CONF.volume.volume_availability_zone,
-                                          'new_volume_type':CONF.volume.volume_type}])
-
+                                          'new_volume_type': self.new_vol_type}])
             LOG.debug("Vdisks details for restore" + str(temp_vdisks_data))
-
-            flavor_details = {'id': self.flavor_id
-                              }
 
             for i in range(len(self.workload_instances)):
                 vm_name = "tempest_test_vm_" + str(i + 1) + "_restored"
@@ -82,20 +78,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     'include': True,
                     'restore_boot_disk': True,
                     'name': vm_name,
-                    'vdisks': temp_vdisks_data[i],
-                    'flavor': flavor_details}
+                    'vdisks': temp_vdisks_data[i]}
                 self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
                       str(self.instance_details))
 
             # Create network details for restore.json
-            snapshot_network = {'name': int_net_1_name,
-                                'id': CONF.network.internal_network_id,
-                                'subnet': {'id': int_net_1_subnets}
-                                }
-            target_network = {'name': int_net_1_name,
-                              'id': CONF.network.internal_network_id,
-                              'subnet': {'id': int_net_1_subnets}
+            snapshot_network = {
+                'id': CONF.network.internal_network_id,
+                'subnet': {'id': int_net_1_subnets}
+                }
+            target_network = {'name': int_net_2_name,
+                              'id': CONF.network.alt_internal_network_id,
+                              'subnet': {'id': int_net_2_subnets}
                               }
             self.network_details = [{'snapshot_network': snapshot_network,
                                      'target_network': target_network}]
@@ -108,8 +103,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.snapshot_id,
                 restore_name=tvaultconf.restore_name,
                 instance_details=self.instance_details,
-                network_details=self.network_details,
-                sec_group_cleanup=True)
+                network_details=self.network_details)
             self.wait_for_snapshot_tobe_available(
                 self.workload_id, self.snapshot_id)
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
@@ -136,12 +130,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Compare the data before and after restore
             for i in range(len(self.vms_details_after_restore)):
-
-                if(self.vms_details_after_restore[i]['network_name'] == int_net_1_name):
+                if(self.vms_details_after_restore[i]['network_name'] == int_net_2_name):
                     reporting.add_test_step(
                         "Network verification for instance-" + str(i + 1), tvaultconf.PASS)
                 else:
-                    LOG.error("Expected network: " + str(int_net_1_name))
+                    LOG.error("Expected network: " + str(int_net_2_name))
                     LOG.error("Restored network: " +
                               str(self.vms_details_after_restore[i]['network_name']))
                     reporting.add_test_step(

@@ -167,13 +167,13 @@ def inplace(self):
         # Fill some data on each of the volumes attached
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[0]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
         ssh.close()
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[1]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[1], 3)
         ssh.close()
 
         # Create workload and trigger full snapshot
@@ -325,7 +325,7 @@ def bootfrom_image_with_floating_ips(self):
         for floating_ip in self.floating_ips_list:
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
-                self.addCustomSizedfilesOnLinux(ssh, mount_point, 3)
+                self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
                 ssh.close()
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
@@ -910,13 +910,13 @@ def nested_security(self):
 def snapshot_mount(self):
     try:
         self.exception = ""
-        volumes = ["/dev/vdb", "/dev/vdc"]
-        mount_points = ["mount_data_b", "mount_data_c"]
+        volumes = ["/dev/vdb"]
+        mount_points = ["mount_data_b"]
         self.snapshot_ids = []
         self.instances_ids = []
         self.volumes_ids = []
         self.total_vms = 1
-        self.total_volumes_per_vm = 2
+        self.total_volumes_per_vm = 1
         self.fvm_id = ""
         self.floating_ips_list = []
         # Create key_pair and get available floating IP's
@@ -984,11 +984,9 @@ def snapshot_mount(self):
                       str(self.instances_ids[i]))
             self.attach_volume(
                 self.volumes_ids[j], self.instances_ids[i], volumes[0])
-            self.attach_volume(
-                self.volumes_ids[j+1], self.instances_ids[i], volumes[1])
             time.sleep(10)
 
-            LOG.debug("Two Volumes attached")
+            LOG.debug("One Volume attached")
             self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
             time.sleep(15)
 
