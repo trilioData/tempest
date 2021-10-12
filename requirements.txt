@@ -27,6 +27,6 @@ testrepository>=0.0.18
 testscenarios>=0.4
 tempest-lib>=0.10.0
 apscheduler>=3.3.0
-mysql-connector-python
+mysql-connector-python==8.0.23
 bs4
 pycodestyle<2.1,>=2.0
