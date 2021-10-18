@@ -1222,6 +1222,10 @@ ServiceAvailableGroup = [
     cfg.BoolOpt('nova',
                 default=True,
                 help="Whether or not nova is expected to be available"),
+    cfg.BoolOpt("key_manager",
+                 default=True,
+                 help="Whether or not barbican is expected to be available"),
+
 ]
 
 debug_group = cfg.OptGroup(name="debug",
@@ -1274,12 +1278,18 @@ or
  $ python -m testtools.run TEST_ID"""),
 ]
 
-key_manager_group = cfg.OptGroup(name="key-manager",
+key_manager_group = cfg.OptGroup(name="key_manager",
                               title="OpenStack Barbican Key Manager")
 
 KeyManagerGroup = [
-    cfg.StrOpt('key',
-               help=""),
+    cfg.StrOpt('endpoint_type',
+               default='publicURL',
+               choices=['public', 'admin', 'internal',
+                        'publicURL', 'adminURL', 'internalURL']),
+    cfg.StrOpt('catalog_type',
+               default='key_manager',
+               help="Catalog type of the Barbican service."),
+
 ]
 
 

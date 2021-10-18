@@ -56,7 +56,7 @@ def tempest_modules():
         'volume.v1': volume.v1,
         'volume.v2': volume.v2,
         'volume.v3': volume.v3,
-        'key-manager': key_manager
+        'key_manager': key_manager
     }
 
 
