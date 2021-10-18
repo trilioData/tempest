@@ -1274,6 +1274,15 @@ or
  $ python -m testtools.run TEST_ID"""),
 ]
 
+key_manager_group = cfg.OptGroup(name="key-manager",
+                              title="OpenStack Barbican Key Manager")
+
+KeyManagerGroup = [
+    cfg.StrOpt('key',
+               help=""),
+]
+
+
 workloadmgr_group = cfg.OptGroup(name='wlm',
                                  title="Workloadmgr client API")
 WorkloadmgrGroup = [
@@ -1359,6 +1368,7 @@ _opts = [
     (service_available_group, ServiceAvailableGroup),
     (debug_group, DebugGroup),
     (workloadmgr_group, WorkloadmgrGroup),
+    (key_manager_group, KeyManagerGroup),
     (placement_group, PlacementGroup),
     (profiler_group, ProfilerGroup),
     (None, DefaultGroup)
@@ -1428,6 +1438,7 @@ class TempestConfigPrivate(object):
         self.service_available = _CONF.service_available
         self.debug = _CONF.debug
         self.wlm = _CONF.wlm
+        self.key_manager = _CONF.key_manager
         logging.tempest_set_log_file('tempest.log')
         # Setting attributes for plugins
         # NOTE(andreaf) Plugins have no access to the TempestConfigPrivate
