@@ -554,6 +554,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         jobschedule={},
         workload_name="",
         workload_cleanup=True,
+        encryption=False,
+        secret_uuid="",
         description='test'):
         if(tvaultconf.workloads_from_file):
             flag = 0
@@ -572,7 +574,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                         'instances': in_list,
                                         'jobschedule': jobschedule,
                                         'metadata': {},
-                                        'description': description}}
+                                        'description': description,
+                                        'encryption': encryption,
+                                        'secret_uuid': secret_uuid}}
+
                 resp, body = self.wlm_client.client.post(
                     "/workloads", json=payload)
                 workload_id = body['workload']['id']
@@ -595,7 +600,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     'instances': in_list,
                                     'jobschedule': jobschedule,
                                     'metadata': {},
-                                    'description': description}}
+                                    'description': description,
+                                    'encryption': encryption,
+                                    'secret_uuid': secret_uuid}}
+            
             resp, body = self.wlm_client.client.post(
                 "/workloads", json=payload)
             workload_id = body['workload']['id']
@@ -3236,3 +3244,38 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         return True
+
+    '''
+    This method creates a secret for workloads
+    '''
+    def create_secret(self, secret_cleanup=True):
+        resp = self.secret_client.create_secret(
+                     payload=base64.b64encode(b'trilio_test'),
+                     payload_content_type="text/plain",
+                     algorithm="aes", mode="cbc",
+                     bit_length=256,
+                     secret_type="opaque")
+        secret_uuid = resp['secret_ref'].split('/')[-1]
+        if(tvaultconf.cleanup and secret_cleanup):
+            self.addCleanup(self.delete_secret, secret_uuid)
+        return secret_uuid
+
+    '''
+    This method deletes a secret
+    '''
+    def delete_secret(self, secret_uuid):
+        resp = self.secret_client.delete_secret(secret_uuid)
+        LOG.debug(f"resp {resp}")
+        return resp
+
+    '''
+    Method to get encryption status of given volume
+    '''
+    def get_volume_encryption_status(self, volume_id):
+        try:
+            body = self.volumes_client.show_volume(volume_id)['volume']
+            return body['encrypted']
+        except lib_exc.NotFound:
+            return None
+
+

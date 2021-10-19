@@ -42,7 +42,7 @@ class SecretClient(base.BarbicanTempestClient):
         post_body = kwargs
         body = json.dumps(post_body)
         resp, body = self.post("v1/secrets", body)
-        self.expected_success(expected_status, resp.status)
+        self.expected_success(201, resp.status)
         resp = self._parse_resp(body)
         self._secret_ids.add(self.ref_to_uuid(resp['secret_ref']))
         return resp
