@@ -48,6 +48,7 @@ class Manager(clients.ServiceClients):
         self._set_image_clients()
         self._set_network_clients()
         self._set_workloadmgr_clients()
+        self._set_barbican_clients()
         self.placement_client = self.placement.PlacementClient()
         # TODO(andreaf) This is maintained for backward compatibility
         # with plugins, but it should removed eventually, since it was
@@ -347,6 +348,8 @@ class Manager(clients.ServiceClients):
         except Exception:
             pass
 
+    def _set_barbican_clients(self):
+        self.secret_client = self.key_manager.SecretClient()
 
 
 def get_auth_provider_class(credentials):

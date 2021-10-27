@@ -51,12 +51,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 str(e))
             return False
 
-    def _create_workload(self, workload_instances):
+    def _create_workload(self, workload_instances, encrypt=False, secret=""):
         time.sleep(5)
         self.workload_id = self.workload_create(
-            workload_instances, tvaultconf.parallel, workload_cleanup=False)
+            workload_instances, tvaultconf.parallel, encryption=encrypt,
+            secret_uuid=secret, workload_cleanup=False)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.workload_status = self.getWorkloadStatus(self.workload_id)
+        self.workload_details = self.getWorkloadDetails(self.workload_id)
 
     def _create_full_snapshot(self, workload_id):
         time.sleep(5)
@@ -158,14 +160,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
                     result_json[k]['volumes'] = self.volume_id
+                    self.vol_encrypt = self.get_volume_encryption_status(self.volume_id)
+                    result_json[k]['encryption'] = self.vol_encrypt
+                    if self.vol_encrypt:
+                        self.secret_uuid = self.create_secret()
+                        result_json[k]['secret_uuid'] = self.secret_uuid
+                    else:
+                        self.secret_uuid = ""
                     self.workload_id = None
                     try:
-                        self._create_workload([self.vm_id])
+                        self._create_workload([self.vm_id], self.vol_encrypt, self.secret_uuid)
                         result_json[k]['workload'] = self.workload_id
                         result_json[k]['workload_status'] = self.workload_status
                         if(self.workload_status == "available"):
                             result_json[k]['result']['Create_Workload'] = \
                                 tvaultconf.PASS
+                        elif(self.workload_status == "error"):
+                            result_json[k]['workload_error_msg'] = self.workload_details
+                            result_json[k]['result']['Create_Workload'] = \
+                                tvaultconf.FAIL + "\nERROR " + \
+                                result_json[k]['workload_error_msg']
+
                     except Exception as e:
                         result_json[k]['workload_error_msg'] = str(e)
                         result_json[k]['result']['Create_Workload'] = \
