@@ -1222,6 +1222,10 @@ ServiceAvailableGroup = [
     cfg.BoolOpt('nova',
                 default=True,
                 help="Whether or not nova is expected to be available"),
+    cfg.BoolOpt("key_manager",
+                 default=True,
+                 help="Whether or not barbican is expected to be available"),
+
 ]
 
 debug_group = cfg.OptGroup(name="debug",
@@ -1273,6 +1277,21 @@ A test can be run as follows:
 or
  $ python -m testtools.run TEST_ID"""),
 ]
+
+key_manager_group = cfg.OptGroup(name="key_manager",
+                              title="OpenStack Barbican Key Manager")
+
+KeyManagerGroup = [
+    cfg.StrOpt('endpoint_type',
+               default='publicURL',
+               choices=['public', 'admin', 'internal',
+                        'publicURL', 'adminURL', 'internalURL']),
+    cfg.StrOpt('catalog_type',
+               default='key_manager',
+               help="Catalog type of the Barbican service."),
+
+]
+
 
 workloadmgr_group = cfg.OptGroup(name='wlm',
                                  title="Workloadmgr client API")
@@ -1359,6 +1378,7 @@ _opts = [
     (service_available_group, ServiceAvailableGroup),
     (debug_group, DebugGroup),
     (workloadmgr_group, WorkloadmgrGroup),
+    (key_manager_group, KeyManagerGroup),
     (placement_group, PlacementGroup),
     (profiler_group, ProfilerGroup),
     (None, DefaultGroup)
@@ -1428,6 +1448,7 @@ class TempestConfigPrivate(object):
         self.service_available = _CONF.service_available
         self.debug = _CONF.debug
         self.wlm = _CONF.wlm
+        self.key_manager = _CONF.key_manager
         logging.tempest_set_log_file('tempest.log')
         # Setting attributes for plugins
         # NOTE(andreaf) Plugins have no access to the TempestConfigPrivate

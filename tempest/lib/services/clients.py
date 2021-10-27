@@ -33,6 +33,7 @@ from tempest.lib.services import network
 from tempest.lib.services import object_storage
 from tempest.lib.services import placement
 from tempest.lib.services import volume
+from tempest.lib.services import key_manager
 
 LOG = logging.getLogger(__name__)
 
@@ -54,7 +55,8 @@ def tempest_modules():
         'object-storage': object_storage,
         'volume.v1': volume.v1,
         'volume.v2': volume.v2,
-        'volume.v3': volume.v3
+        'volume.v3': volume.v3,
+        'key_manager': key_manager
     }
 
 

@@ -30,6 +30,7 @@ do
         LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
         LOGS_DIR=logs/$LOGS_DIR
         mkdir -p $LOGS_DIR
+	mv tempest.log $LOGS_DIR/test_cleaner_tempest.log
         echo "running $suite"
         ./run_tempest.sh $suite
         if [ $? -ne 0 ]; then
@@ -43,6 +44,7 @@ do
             LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
             LOGS_DIR=logs/$LOGS_DIR
             mkdir -p $LOGS_DIR
+	    mv tempest.log $LOGS_DIR/test_cleaner_tempest.log
 	    echo "running $line"
             ./run_tempest.sh $line
             if [ $? -ne 0 ]; then
