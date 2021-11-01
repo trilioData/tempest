@@ -167,13 +167,13 @@ def inplace(self):
         # Fill some data on each of the volumes attached
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[0]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
         ssh.close()
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[1]))
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[0], 3)
-        self.addCustomSizedfilesOnLinux(ssh, mount_points[1], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[0], 3)
+        self.addCustomfilesOnLinuxVM(ssh, mount_points[1], 3)
         ssh.close()
 
         # Create workload and trigger full snapshot
@@ -325,7 +325,7 @@ def bootfrom_image_with_floating_ips(self):
         for floating_ip in self.floating_ips_list:
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
-                self.addCustomSizedfilesOnLinux(ssh, mount_point, 3)
+                self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
                 ssh.close()
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
@@ -948,6 +948,22 @@ def snapshot_mount(self):
             to_prt=22)
         self.floating_ips_list = self.get_floating_ips()
         floating_ips_list = self.floating_ips_list
+        if len(floating_ips_list) == 0:
+            raise Exception("Floating ips not available")
+
+        # create file manager instance
+        fvm_name = "Test_tempest_fvm_1"
+        self.fvm_id = self.create_vm(
+            vm_cleanup=False,
+            vm_name=fvm_name,
+            key_pair=tvaultconf.key_pair_name,
+            security_group_id=self.security_group_id,
+            image_id=list(CONF.compute.fvm_image_ref.values())[0],
+            user_data=tvaultconf.user_frm_data,
+            flavor_id=CONF.compute.flavor_ref_alt)
+        time.sleep(10)
+        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
+
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
         for i in range(0, self.total_vms):
@@ -955,7 +971,7 @@ def snapshot_mount(self):
             j = i + i
             for n in range(0, self.total_volumes_per_vm):
                 self.volumes_ids.append(
-                    self.create_volume(volume_cleanup=False))
+                    self.create_volume(size=int(n + j + 1), volume_cleanup=False))
                 LOG.debug("Volume-" + str(n + j + 1) +
                           " ID: " + str(self.volumes_ids[n + j]))
             self.instances_ids.append(
@@ -970,44 +986,21 @@ def snapshot_mount(self):
                 self.volumes_ids[j], self.instances_ids[i], volumes[0])
             time.sleep(10)
 
-            LOG.debug("one Volume attached")
+            LOG.debug("One Volume attached")
             self.set_floating_ip(floating_ips_list[i], self.instances_ids[i])
             time.sleep(15)
-
-        # create file manager instance
-        fvm_name = "Test_tempest_fvm_1"
-        self.fvm_id = self.create_vm(
-            vm_cleanup=False,
-            vm_name=fvm_name,
-            key_pair=tvaultconf.key_pair_name,
-            security_group_id=self.security_group_id,
-            image_id=CONF.compute.fvm_image_ref,
-            user_data=tvaultconf.user_frm_data,
-            flavor_id=CONF.compute.flavor_ref_alt)
-        time.sleep(10)
-        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
 
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))
         self.execute_command_disk_create(
             self.ssh, floating_ips_list[i], volumes, mount_points)
-        self.ssh.close()
-
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         self.execute_command_disk_mount(
             self.ssh, floating_ips_list[i], volumes, mount_points)
-        self.ssh.close()
 
         # Add two files to vm1 to path /opt
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         self.addCustomfilesOnLinuxVM(self.ssh, "//opt", 2)
-        self.ssh.close()
 
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-        self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            str(floating_ips_list[0]))
         pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
         self.addCustomfilesOnLinuxVM(self.ssh, pth, 1)
         self.ssh.close()

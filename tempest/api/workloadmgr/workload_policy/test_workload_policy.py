@@ -1053,12 +1053,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # value exceed
             mount_path = self.get_mountpoint_path(
                 ipaddress=tvaultconf.tvault_ip[0],
-                username=tvaultconf.tvault_dbusername,
+                username=tvaultconf.tvault_username,
                 password=tvaultconf.tvault_password)
             LOG.debug("Backup target mount_path is : " + mount_path)
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
                 tvaultconf.tvault_ip[0],
-                tvaultconf.tvault_dbusername,
+                tvaultconf.tvault_username,
                 tvaultconf.tvault_password,
                 mount_path,
                 self .workload_id,

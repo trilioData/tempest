@@ -26,16 +26,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
-    def test_tvault_rbac_newadminrole_in_policyjson(self):
+    def test_tvault_rbac_newadminrole_in_policyyaml(self):
         try:
             storage_usage_error_str = "Policy doesn't allow workload:get_storage_usage to be performed."
             get_nodes_error_str = "Policy doesn't allow workload:get_nodes to be performed."
 
             # Change policy.json file on tvault to change role and rule
-            self.change_policyjson_file("newadmin", "newadmin_api")
+            self.change_policyyaml_file("newadmin", "newadmin_api")
 
             # Use new-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.newadmin_user

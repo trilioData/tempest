@@ -66,6 +66,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         cls.volumes_client = cls.os_primary.volumes_v2_client
         cls.volumes_client.service = 'volumev2'
+        cls.secret_client = cls.os_primary.secret_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -554,6 +555,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         jobschedule={},
         workload_name="",
         workload_cleanup=True,
+        encryption=False,
+        secret_uuid="",
         description='test'):
         if(tvaultconf.workloads_from_file):
             flag = 0
@@ -572,7 +575,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                         'instances': in_list,
                                         'jobschedule': jobschedule,
                                         'metadata': {},
-                                        'description': description}}
+                                        'description': description,
+                                        'encryption': encryption,
+                                        'secret_uuid': secret_uuid}}
+
                 resp, body = self.wlm_client.client.post(
                     "/workloads", json=payload)
                 workload_id = body['workload']['id']
@@ -595,7 +601,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     'instances': in_list,
                                     'jobschedule': jobschedule,
                                     'metadata': {},
-                                    'description': description}}
+                                    'description': description,
+                                    'encryption': encryption,
+                                    'secret_uuid': secret_uuid}}
+            
             resp, body = self.wlm_client.client.post(
                 "/workloads", json=payload)
             workload_id = body['workload']['id']
@@ -622,6 +631,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_delete(self, workload_id):
         try:
+            # Reset workload
+            self.workload_reset(workload_id)
+            self.wait_for_workload_tobe_available(workload_id)
+
             # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(workload_id)
 
@@ -1210,9 +1223,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to list all floating ips
     '''
 
-    def get_floating_ips(self):
+    def get_floating_ips(self, project_id=CONF.identity.tenant_id):
         floating_ips_list = []
-        get_ips_response = self.floating_ips_client.list_floatingips()
+        get_ips_response = self.floating_ips_client.list_floatingips(project_id=project_id)
         LOG.debug("get floating ips response: " + str(get_ips_response))
         floating_ips = get_ips_response['floatingips']
         for ip in floating_ips:
@@ -1321,8 +1334,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              "n",
                              "p",
                              "1",
-                             "2048",
-                             "2097151",
+                             "\n",
+                             "\n",
                              "w",
                              "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
@@ -1671,7 +1684,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ports_list = []
         ports_list = self.get_port_list()
         for port in ports_list['ports']:
-            if str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
+            if len(port['fixed_ips']) and \
+                    str(port['fixed_ips'][0]['ip_address']) == str(fixed_ip):
                 return str(port['id'])
 
     '''delete port'''
@@ -2098,50 +2112,58 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method to add newadmin role and newadmin_api rule to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
-    Method to add backup role and backup_api rule to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
-    and "workload:get_nodes" operations in policy.json file on tvault
+    Method to add newadmin role and newadmin_api rule to 
+    "workload:get_storage_usage" operation and "workload:get_nodes" 
+    operations in policy.yaml file on tvault. 
+    Method to add backup role and backup_api rule to "snapshot_create", 
+    "snapshot_delete", "workload_create", "workload_delete", "restore_create", 
+    "restore_delete" operation and "workload:get_nodes" operations in 
+    policy.yaml file on tvault
     '''
 
-    def change_policyjson_file(self, role, rule, policy_changes_cleanup=True):
+    def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
         for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_dbusername,
+            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                         tvaultconf.tvault_password)
             if role == "newadmin":
                 old_rule = "admin_api"
-                LOG.debug("Add %s role in policy.json", role)
+                LOG.debug("Add %s role in policy.yaml", role)
                 operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
             elif role == "backup":
                 old_rule = "admin_or_owner"
-                LOG.debug("Add %s role in policy.json", role)
+                LOG.debug("Add %s role in policy.yaml", role)
                 operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
                               "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-            role_add_command = 'sed -i \'2s/^/\\t"{0}":[["role:{1}"]],\\n/\' /etc/workloadmgr/policy.json'.format(
+            role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
                     rule, role)
             rule_assign_command = ""
             for op in operations:
-                rule_assign_command += '; ' + 'sed -i \'s/"{2}": "rule:{1}"/"{2}": "rule:{0}"/g\'  \
-                                 /etc/workloadmgr/policy.json'.format(rule, old_rule, op)
+                rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+                /etc/workloadmgr/policy.yaml'.format(rule, op)
             LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
             commands = role_add_command + rule_assign_command
             LOG.debug("Commands to add role: %s", commands)
             stdin, stdout, stderr = ssh.exec_command(commands)
             if(tvaultconf.cleanup and policy_changes_cleanup):
-                self.addCleanup(self.revert_changes_policyjson, old_rule)
+                self.addCleanup(self.revert_changes_policyyaml, old_rule)
             ssh.close()
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
-    Method to delete newadmin role and newadmin_api rule was assigned to "workload:get_storage_usage" operation and "workload:get_nodes" operations in policy.json file on tvault
-    Method to delete backup role and backup_api rule was assigned to "snapshot_create", "snapshot_delete", "workload_create", "workload_delete", "restore_create" and  "restore_delete" operation
-    and "workload:get_nodes" operations in policy.json file on tvault
+    Method to delete newadmin role and newadmin_api rule was assigned to 
+    "workload:get_storage_usage" operation and "workload:get_nodes" operations 
+    in policy.yaml file on tvault.
+    Method to delete backup role and backup_api rule was assigned to 
+    "snapshot_create", "snapshot_delete", "workload_create", "workload_delete",
+    "restore_create", "restore_delete" and "workload:get_nodes" operations in 
+    policy.yaml file on tvault
     '''
 
-    def revert_changes_policyjson(self, rule):
+    def revert_changes_policyyaml(self, rule):
         for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_dbusername,
+            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                         tvaultconf.tvault_password)
             if rule == "admin_api":
                 role = "newadmin_api"
@@ -2152,11 +2174,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create", 
                               "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-            role_delete_command = "sed -i '/{0}\":/d' /etc/workloadmgr/policy.json".format(role)
+            role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
             rule_reassign_command = ""
             for op in operations:
-                rule_reassign_command += '; ' + 'sed -i \'s/"{2}": "rule:{1}"/"{2}": "rule:{0}"/g\' /etc/workloadmgr/policy.json'.format(rule, role, op)
-            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", role_delete_command, rule_reassign_command)
+                rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+                /etc/workloadmgr/policy.yaml'.format(rule, op)
+            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s",\
+                    role_delete_command, rule_reassign_command)
             commands = role_delete_command + rule_reassign_command
             LOG.debug("Commands to revert policy changes: %s", commands)
             stdin, stdout, stderr = ssh.exec_command(commands)
@@ -2670,7 +2694,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def restart_wlm_api_service(self):
         for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_dbusername,
+            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                         tvaultconf.tvault_password)
         command = "service wlm-api restart"
         stdin, stdout, stderr = ssh.exec_command(command)
@@ -2692,12 +2716,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         file_name="File_1"):
         try:
             time.sleep(20)
+            cmd = "sudo su - root -c 'df -h'"
+            stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
+            LOG.debug("df -h output: %s", stdout.read())
             cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDB List files output: %s ; list files error: %s", stdout.read(), stderr.read())
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdc*'"
+            stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
+            LOG.debug("In VDC List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             buildCommand = "sudo su - root -c 'find "  + file_path_to_search + " -name " + file_name + "'"
             LOG.debug("build command to search file is :" + str(buildCommand))
             stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
@@ -3354,4 +3384,38 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for secgrp in secgrp_ids:
             self.delete_security_group(secgrp)
             LOG.debug("Delete security groups: {}".format(secgrp))
+
+    '''
+    This method creates a secret for workloads
+    '''
+    def create_secret(self, secret_cleanup=True):
+        resp = self.secret_client.create_secret(
+                     payload=base64.b64encode(b'trilio_test'),
+                     payload_content_type="text/plain",
+                     algorithm="aes", mode="cbc",
+                     bit_length=256,
+                     secret_type="opaque")
+        secret_uuid = resp['secret_ref'].split('/')[-1]
+        if(tvaultconf.cleanup and secret_cleanup):
+            self.addCleanup(self.delete_secret, secret_uuid)
+        return secret_uuid
+
+    '''
+    This method deletes a secret
+    '''
+    def delete_secret(self, secret_uuid):
+        resp = self.secret_client.delete_secret(secret_uuid)
+        LOG.debug(f"resp {resp}")
+        return resp
+
+    '''
+    Method to get encryption status of given volume
+    '''
+    def get_volume_encryption_status(self, volume_id):
+        try:
+            body = self.volumes_client.show_volume(volume_id)['volume']
+            return body['encrypted']
+        except lib_exc.NotFound:
+            return None
+
 
