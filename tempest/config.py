@@ -465,8 +465,9 @@ ComputeGroup = [
     cfg.IntOpt('flavor_vcpus',
                default=4,
                help="VCPUS for the flavor"),
-    cfg.StrOpt('fvm_image_ref',
-               help="Valid file manager image reference to be used in snasphot mount tests. "
+    cfg.DictOpt('fvm_image_ref',
+               default={},
+               help="Valid file manager image to be used in snasphot mount tests. "
                     "This is a required option"),
 ]
 
@@ -1017,12 +1018,9 @@ VolumeGroup = [
     cfg.StrOpt('volume_type_id',
                default='',
                help='Volume type id'),
-    cfg.StrOpt('volume_type_1',
-               default='',
-               help='Alternate Volume type name'),
-    cfg.StrOpt('volume_type_id_1',
-               default='',
-               help='Alternate Volume type id'),
+    cfg.DictOpt('volume_types',
+               default={},
+               help='Volume types'),
 
 ]
 
@@ -1224,6 +1222,10 @@ ServiceAvailableGroup = [
     cfg.BoolOpt('nova',
                 default=True,
                 help="Whether or not nova is expected to be available"),
+    cfg.BoolOpt("key_manager",
+                 default=True,
+                 help="Whether or not barbican is expected to be available"),
+
 ]
 
 debug_group = cfg.OptGroup(name="debug",
@@ -1275,6 +1277,21 @@ A test can be run as follows:
 or
  $ python -m testtools.run TEST_ID"""),
 ]
+
+key_manager_group = cfg.OptGroup(name="key_manager",
+                              title="OpenStack Barbican Key Manager")
+
+KeyManagerGroup = [
+    cfg.StrOpt('endpoint_type',
+               default='publicURL',
+               choices=['public', 'admin', 'internal',
+                        'publicURL', 'adminURL', 'internalURL']),
+    cfg.StrOpt('catalog_type',
+               default='key_manager',
+               help="Catalog type of the Barbican service."),
+
+]
+
 
 workloadmgr_group = cfg.OptGroup(name='wlm',
                                  title="Workloadmgr client API")
@@ -1361,6 +1378,7 @@ _opts = [
     (service_available_group, ServiceAvailableGroup),
     (debug_group, DebugGroup),
     (workloadmgr_group, WorkloadmgrGroup),
+    (key_manager_group, KeyManagerGroup),
     (placement_group, PlacementGroup),
     (profiler_group, ProfilerGroup),
     (None, DefaultGroup)
@@ -1430,6 +1448,7 @@ class TempestConfigPrivate(object):
         self.service_available = _CONF.service_available
         self.debug = _CONF.debug
         self.wlm = _CONF.wlm
+        self.key_manager = _CONF.key_manager
         logging.tempest_set_log_file('tempest.log')
         # Setting attributes for plugins
         # NOTE(andreaf) Plugins have no access to the TempestConfigPrivate

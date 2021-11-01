@@ -194,12 +194,17 @@ function configure_tempest
             ;;
     esac
 
-    #Check if File recovery manager image is already available. If not, create the image
-    fvm_image_uuid=`$OPENSTACK_CMD image list | grep $FVM_IMAGE_NAME | cut -d '|' -f2`
-    if [[ -z $fvm_image_uuid ]]
-    then
-        echo "File recovery manager instance not available\n"
-    fi
+    cnt=0
+    for name in ${FVM_IMAGE_NAMES[@]}; do
+        id=$($OPENSTACK_CMD image list | grep -i $name | awk '$2 && $2 != "ID" {print $2}')
+        if [ $cnt -eq 0 ]
+        then
+            frm_data=$name':'$id
+        else
+            frm_data=','$name':'$id
+        fi
+        cnt+=1
+    done
 
     echo "Fetching flavor details\n"
     available_flavors=$($OPENSTACK_CMD flavor list)
@@ -210,9 +215,9 @@ function configure_tempest
             $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
     fi
-    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAME ) ]] && [[ "$fvm_image_uuid" ]]; then
+    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAMES ) ]] && [[ "$frm_data" ]]; then
         # Determine the flavor disk size based on the image size.
-        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAME
+        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAMES
     fi
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'
@@ -221,7 +226,7 @@ function configure_tempest
     for line in $available_flavors; do
         f=$(echo $line | awk "/ $TEST_IMAGE_NAME / { print \$2 }")
         flavors="$flavors $f"
-        f1=$(echo $line | awk "/ $FVM_IMAGE_NAME / { print \$2 }")
+        f1=$(echo $line | awk "/ $FVM_IMAGE_NAMES / { print \$2 }")
         fvm_flavor="$fvm_flavor $f1"
     done
 
@@ -254,7 +259,7 @@ function configure_tempest
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
-    iniset $TEMPEST_CONFIG compute fvm_image_ref $fvm_image_uuid
+    iniset $TEMPEST_CONFIG compute fvm_image_ref $frm_data
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
@@ -266,46 +271,36 @@ function configure_tempest
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
             echo "No volume type available to use, using Default \n"
-            type="ceph"
-            type_id=$($OPENSTACK_CMD volume type list | grep DEFAULT | awk '$2 && $2 != "ID" {print $2}')
-            volume_type=$type
+            type="DEFAULT"
+            type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}')
+	    volume_type=$type
             volume_type_id=$type_id
-            enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
-            ;;
-        1)
-            type=${CINDER_BACKENDS_ENABLED[0]}
-            type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}' | head -1)
-            volume_type=$type
-            volume_type_id=$type_id
-            volume_type_alt=$type
-            volume_type_id_alt=$type_id
-            enabled_tests=[\"Attached_Volume_"$volume_type\"",\"Boot_from_Volume_"$volume_type\""]
+            volume_types=$type":"$type_id
+            enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""]
             ;;
         *)
             cnt=0
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
-                type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}')
-                case $type in
-                    lvm*|iscsi*) volume_type_alt=$type
-                                 volume_type_id_alt=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}');;
-                    *) volume_type=$type
-                       volume_type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}');;
-                esac
+                type_id=$($OPENSTACK_CMD volume type list | grep -i " $type " | awk '$2 && $2 != "ID" {print $2}')
                 if [ $cnt -eq 0 ]
                 then
+		    volume_type=$type
+		    volume_type_id=$type_id
+	            volume_types=$type":"$type_id
                     enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
                 else
-                    enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""]
+		    volume_types+=,$type":"$type_id
+                    enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
                 fi
                 cnt+=1
             done
+	    enabled_tests+=]
     esac
 
     iniset $TEMPEST_CONFIG volume volume_availability_zone $volume_az
     iniset $TEMPEST_CONFIG volume volume_type $volume_type
     iniset $TEMPEST_CONFIG volume volume_type_id $volume_type_id
-    iniset $TEMPEST_CONFIG volume volume_type_1 $volume_type_alt
-    iniset $TEMPEST_CONFIG volume volume_type_id_1 $volume_type_id_alt
+    iniset $TEMPEST_CONFIG volume volume_types $volume_types
     iniset $TEMPEST_CONFIG volume volume_size $VOLUME_SIZE
 
     # Identity
@@ -345,12 +340,12 @@ function configure_tempest
 
     env | grep OS_
     conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
-    echo $conn_str
+    echo "sql_connection: "$conn_str
     dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
     mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
     dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
-    tvault_version=`workloadmgr --insecure workload-type-show Serial -f yaml | grep version | cut -d ':' -f2 | xargs`
+    tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -408,6 +403,7 @@ function configure_tempest
             fi
             ;;
     esac
+    subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
 
     # router
     ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | head -1)`
@@ -425,18 +421,28 @@ function configure_tempest
             echo "Found no routers to use! Creating new router\n"
             $OPENSTACK_CMD router create --enable --project $test_project_id test_router
             router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
-            subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
-            $OPENSTACK_CMD router set --external-gateway $ext_network_id test_router
-            $OPENSTACK_CMD router add subnet test_router $subnet_id
-            ;;
-        1)
-            if [ -z "$router_id" ]; then
-                router_id=${routers[0]}
-            fi
+            $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+            $OPENSTACK_CMD router add subnet $router_id $subnet_id
             ;;
         *)
             if [ -z "$router_id" ]; then
                 router_id=${routers[0]}
+            fi
+            gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+            interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+            if [[ $gateway_info == *"None"* ]]
+            then
+                echo "External gateway not set"
+                $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+            else
+                echo "External gateway already set"
+            fi
+            if [[ "$subnet_id" == *"$interface_info"* ]]
+            then
+                echo "Internal interface already added to router"
+            else
+                echo "Internal interface not added to router"
+                $OPENSTACK_CMD router add subnet $router_id $subnet_id
             fi
             ;;
     esac
@@ -445,10 +451,10 @@ function configure_tempest
     floating_ip_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
     while [ $floating_ip_cnt -le 5 ]
     do
-        $OPENSTACK_CMD floating ip create $ext_network_id
+        $OPENSTACK_CMD floating ip create --project $test_project_id $ext_network_id
         floating_ip_cnt=$(( $floating_ip_cnt + 1 ))
     done
-    $OPENSTACK_CMD floating ip list
+    $OPENSTACK_CMD floating ip list --project $test_project_id
 
     #Update default security group rules
     def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
