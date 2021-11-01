@@ -374,7 +374,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.PASS)
             else:
                 raise Exception("Create workload-1 with 1 VM")
-
+            
             try:
                 self.workload_modify(self.workload_id1,
                                      [self.instances[0], self.instances[1]])

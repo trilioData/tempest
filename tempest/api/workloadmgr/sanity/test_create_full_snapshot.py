@@ -347,4 +347,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 for k1, v1 in v.items():
                     if('size' in k1 or 'time' in k1):
                         reporting.add_sanity_stats(k, k1, v1)
-
