@@ -16,14 +16,9 @@
 
 import json
 
-from tempest import config
 from tempest.lib.common.utils import data_utils
 from tempest.lib import exceptions
-
 from tempest.lib.services.key_manager import base
-
-
-CONF = config.CONF
 
 
 class SecretClient(base.BarbicanTempestClient):
