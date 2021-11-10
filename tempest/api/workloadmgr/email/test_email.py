@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import sys
+from urllib.parse import urlencode
 
 from oslo_log import log as logging
 
@@ -65,11 +66,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     # Enable email notification for project
                     enable_email_resp = self.update_email_setings(
                         tvaultconf.enable_email_notification)[0]
+                    params = tvaultconf.setting_data
+                    params['smtp_server_password'] = tvaultconf.smtp_password
                     if((str(enable_email_resp['name']) == 'smtp_email_enable') and (str(enable_email_resp['value']) == '1')):
                         reporting.add_test_step(
                             "Enable email notification for project", tvaultconf.PASS)
                         self.wlm_client.client.get(
-                            "/workloads/email/test_email")
+                            "/workloads/email/test_email?" + urlencode(params))
 
                         cmd = 'curl  -u ' + tvaultconf.setting_data["smtp_default_recipient"] + ':' + \
                             tvaultconf.smtp_password + ' --silent "https://mail.google.com/mail/feed/atom"'
