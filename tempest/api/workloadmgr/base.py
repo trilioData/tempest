@@ -43,6 +43,7 @@ LOG = logging.getLogger(__name__)
 class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     _api_version = 2
+    uri_prefix = "v2.0"
     force_tenant_isolation = False
     credentials = ['primary']
 
@@ -3235,3 +3236,143 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(resp.status_code != 202):
             resp.raise_for_status()
         return True
+
+    """
+    This method provides list of rules belonging to a security group
+    """
+
+    def list_secgroup_rules_for_secgroupid(self, security_group_id):
+        uri = "/security-group-rules?security_group_id=%s" % security_group_id
+        resp, body = self.security_group_rules_client.get(self.uri_prefix + uri)
+        rules = json.loads(body)
+        LOG.debug("Body: {}".format(body))
+        LOG.debug("rules_list: {}".format(rules))
+        LOG.debug(
+            "Check for specifc rules list: {}".format(rules["security_group_rules"])
+        )
+        rules_list = rules["security_group_rules"]
+        return rules_list
+
+    # Delete default security group rules
+    def delete_default_rules(self, secgrp_id):
+        LOG.debug("Delete default rules from given security group")
+        rule_list = self.list_secgroup_rules_for_secgroupid(secgrp_id)
+        for each in rule_list:
+            self.security_group_rules_client.delete_security_group_rule(each["id"])
+
+    # Compare the security groups by id and assert if verification fails
+    def verifySecurityGroupsByID(self, secgrp_id):
+        LOG.debug("Compare security groups for: {}".format(secgrp_id))
+        flag = False
+        try:
+            body = self.security_groups_client.list_security_groups()
+            security_groups = body["security_groups"]
+            print("Secgrp id: {} ".format(secgrp_id))
+            for n in security_groups:
+                if secgrp_id in n["id"]:
+                    LOG.debug(
+                        "Security group is present post restore. info: {}".format(
+                            n["id"]
+                        )
+                    )
+                    flag = True
+            return flag
+        except AssertionError as e:
+            LOG.debug("Print error message {}".format(e))
+            return False
+
+    # Compare the security groups by name and assert if verification fails
+    def verifySecurityGroupsByname(self, secgrp_name):
+        LOG.debug("Compare security groups for: {}".format(secgrp_name))
+        flag = False
+        try:
+            body = self.security_groups_client.list_security_groups()
+            security_groups = body["security_groups"]
+            print("Secgrp name: {} ".format(secgrp_name))
+            for n in security_groups:
+                if secgrp_name in n["name"]:
+                    LOG.debug(
+                        "Security group is present post restore. info: {}".format(
+                            n["name"]
+                        )
+                    )
+                    flag = True
+            return flag
+        except AssertionError as e:
+            LOG.debug("Print error message {}".format(e))
+            return False
+
+    # Compare the security group & rules assigned to the restored instance and assert if verification fails
+    def verifySecurityGroupRules(self, rule_id, secgrp_id, expected_val):
+        LOG.debug("Compare security group rules")
+        try:
+            LOG.debug("Expected val: {}".format(expected_val))
+            body = self.security_group_rules_client.show_security_group_rule(rule_id)
+            rule = body["security_group_rule"]
+            LOG.debug("Each rules: {}".format(rule))
+            if rule["protocol"] != None:
+                for key, value in expected_val.items():
+                    self.assertEqual(
+                        value,
+                        rule[key],
+                        "Field %s of the created security group "
+                        "rule does not match with %s." % (key, value),
+                    )
+            if rule["remote_group_id"] != None:
+                LOG.debug("remote group id is present")
+                self.assertNotEqual(
+                    rule["remote_group_id"],
+                    secgrp_id,
+                    "remote group id from different security group is not present",
+                )
+            LOG.debug("Comparison is successful")
+            return True
+        except AssertionError as e:
+            LOG.debug("Print error message {}".format(e))
+            return False
+
+    # Get the list of restored security policies from restored vms
+    def getRestoredSecGroupPolicies(self, restored_vms):
+        try:
+            restored_secgrps = []
+            for vm in restored_vms:
+                vmdetails = self.get_vm_details(vm)
+                LOG.debug("\nRestored VM details: {}".format(vmdetails))
+                server_vm = vmdetails["server"]
+                LOG.debug(
+                    "\nRestored VM details - server : {}".format(vmdetails["server"])
+                )
+                restored_secgrps.extend(server_vm["security_groups"])
+                LOG.debug(
+                    "List of restored security group policies: {}".format(
+                        restored_secgrps
+                    )
+                )
+            return restored_secgrps
+        except:
+            LOG.error("Restored instance do not have attached security group \n")
+
+    def list_security_groups(self):
+        body = self.security_groups_client.list_security_groups()
+        security_groups = body["security_groups"]
+        return security_groups
+
+    def list_security_group_rules(self):
+        body = self.security_group_rules_client.list_security_group_rules()
+        rules_list = body["security_group_rules"]
+        return rules_list
+
+    # Delete vms, volumes, security groups
+    def delete_vm_secgroups(self, vms, secgrp_ids):
+        LOG.debug("Delete VM + volume + security groups")
+        vol = []
+        for vm in vms:
+            LOG.debug("Get list of all volumes to be deleted")
+            vol.append(self.get_attached_volumes(vm))
+        self.delete_vms([*vms])
+        LOG.debug("Delete volumes: {}".format(vol))
+        self.delete_volumes(vol)
+        for secgrp in secgrp_ids:
+            self.delete_security_group(secgrp)
+            LOG.debug("Delete security groups: {}".format(secgrp))
+
