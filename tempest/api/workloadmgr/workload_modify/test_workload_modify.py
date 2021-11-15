@@ -168,22 +168,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Modify workload scheduler to disable
             workload_modify_command = command_argument_string.workload_modify + \
                 str(self.wid) + " --jobschedule enabled=False"
-            error = cli_parser.cli_error(workload_modify_command)
-            if error and (str(error.strip('\n')).find(
-                "Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
+            rc = cli_parser.cli_returncode(workload_modify_command)
+            if rc == 0:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler disable",
-                    tvaultconf.PASS)
-                LOG.debug("Command executed correctly")
-                reporting.add_test_step(
-                    "Throws proper message", tvaultconf.PASS)
-                LOG.debug("Error message :" + str(error))
+                    "Able to disable workload scheduler", tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler disable",
-                    tvaultconf.FAIL)
-                reporting.add_test_step(
-                    "Throws proper message", tvaultconf.FAIL)
+                    "Unable to disable workload scheduler", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
 
             # Change global job scheduler to enable
@@ -340,22 +331,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Modify workload scheduler to enable
             workload_modify_command = command_argument_string.workload_modify + \
                 str(self.wid) + " --jobschedule enabled=True"
-            error = cli_parser.cli_error(workload_modify_command)
-            if error and (str(error.strip('\n')).find(
-                "Cannot update scheduler related fields when global jobscheduler is disabled.") != -1):
+            rc = cli_parser.cli_returncode(workload_modify_command)
+            if rc == 0:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler enable",
-                    tvaultconf.PASS)
-                LOG.debug("Command executed correctly")
-                reporting.add_test_step(
-                    "Throws proper message", tvaultconf.PASS)
-                LOG.debug("Error message :" + str(error))
+                    "Able to enable workload scheduler", tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Does not execute workload-modify scheduler enable",
-                    tvaultconf.FAIL)
-                reporting.add_test_step(
-                    "Throws proper message", tvaultconf.FAIL)
+                    "Unable to enable workload scheduler", tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
 
             # Change global job scheduler to enable
