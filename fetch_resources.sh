@@ -17,6 +17,9 @@ NEWADMIN_USERNAME=trilio-newadmin-user
 NEWADMIN_PWD=password
 BACKUP_USERNAME=trilio-backup-user
 BACKUP_PWD=password
+ADMIN2_USERNAME=trilio-admin2-user
+ADMIN2_PWD=password
+ADMIN2_MAILID=test1@trilio.io
 git checkout run_tempest.sh
 
 sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
@@ -137,12 +140,15 @@ function configure_tempest
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NONADMIN_PWD --description $NONADMIN_USERNAME --enable $NONADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
+    $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email $ADMIN2_MAILID --password $ADMIN2_PWD --description $ADMIN2_USERNAME --enable $ADMIN2_USERNAME
     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME newadmin
     $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME backup
+    $OPENSTACK_CMD role add --user $ADMIN2_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $ADMIN2_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME admin
 
     #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")

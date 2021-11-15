@@ -7,6 +7,7 @@ import pickle
 test_results_file = "Report/results.html"
 sanity_results_file = "test_results"
 sanity_stats_file = "test_stats"
+result_json_file = "test_results_json"
 test_script_status = tvaultconf.PASS
 test_script_name = ""
 test_step_to_write = ""
@@ -221,6 +222,9 @@ def add_sanity_stats(workload_type, name, data):
     with open(sanity_stats_file, "a") as f:
         f.write(str(workload_type) + " " + str(name) + " " + str(data) + "\n")
 
+def add_result_json(result):
+    with open(result_json_file) as f:
+        f.write("result_json: " + result)
 
 def add_sanity_stats_to_tempest_report():
     stat_table = """ <table border="1"><tr><th>WorkloadType</th>

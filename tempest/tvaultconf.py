@@ -53,6 +53,7 @@ wlm_dbusername = "workloadmgr"
 wlm_dbpasswd = "sample-password"
 wlm_dbhost = "192.168.6.17"
 smtp_password = "sample-password"
+smtp_password_pwdless = "sample-password"
 
 no_of_compute_nodes = 1
 
@@ -96,6 +97,14 @@ setting_data = {"smtp_default_recipient": "test@trilio.io",
                 "smtp_server_password": smtp_password,
                 "smtp_server_username": "test@trilio.io",
                 "smtp_timeout": "10" }
+setting_data_pwdless = {"smtp_default_recipient": "test1@trilio.io",
+                "smtp_default_sender": "test1@trilio.io",
+                "smtp_port": "25",
+                "smtp_server_name": "mail.triliodata.demo",
+                "smtp_server_password": "",
+                "smtp_server_username": "test1@trilio.io",
+                "smtp_timeout": "10" }
+
 enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 

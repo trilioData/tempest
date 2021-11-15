@@ -337,6 +337,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             # Add results to sanity report
             LOG.debug("Finally Result json: " + str(result_json))
+            reporting.add_result_json(result_json)
             for k, v in result_json.items():
                 if(('result' in v.keys()) and (len(v['result'].keys()) > 0)):
                     for k1 in reversed(list(v['result'].keys())):
@@ -347,3 +348,4 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 for k1, v1 in v.items():
                     if('size' in k1 or 'time' in k1):
                         reporting.add_sanity_stats(k, k1, v1)
+
