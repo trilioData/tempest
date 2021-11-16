@@ -38,6 +38,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             get_nodes_error_str = "Policy doesn't allow workload:get_nodes to be performed."
             license_check_error_str = "Policy doesn't allow workload:license_check to be performed."
             license_list_error_str = "Policy doesn't allow workload:license_list to be performed."
+            failed = False
 
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
@@ -56,6 +57,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage command",
                     tvaultconf.FAIL)
+                failed = True
 
             # Run get_import_workloads_list CLI
             get_import_workloads_list = command_argument_string.get_import_workloads_list
@@ -72,6 +74,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute get_import_workloads_list command",
                     tvaultconf.FAIL)
+                failed = True
 
             # Run workload_disable_global_job_scheduler CLI
             workload_disable_global_job_scheduler = command_argument_string.workload_disable_global_job_scheduler
@@ -88,6 +91,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute workload_disable_global_job_scheduler command",
                     tvaultconf.FAIL)
+                failed = True
 
             # Run workload_enable_global_job_scheduler CLI
             workload_enable_global_job_scheduler = command_argument_string.workload_enable_global_job_scheduler
@@ -104,6 +108,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute workload_enable_global_job_scheduler command",
                     tvaultconf.FAIL)
+                failed = True
 
             # Run get_nodes CLI
             get_nodes = command_argument_string.get_nodes
@@ -116,6 +121,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Can not execute get_nodes command", tvaultconf.FAIL)
+                failed = True
 
             # Run license_check CLI
             license_check = command_argument_string.license_check
@@ -128,6 +134,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Can not execute license_check command", tvaultconf.FAIL)
+                failed = True
 
             # Run license_list CLI
             license_list = command_argument_string.license_list
@@ -140,11 +147,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Can not execute license_list command", tvaultconf.FAIL)
+                failed = True
 
-            reporting.set_test_script_status(tvaultconf.PASS)
-            reporting.test_case_to_write()
-
+            if failed:
+                reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
