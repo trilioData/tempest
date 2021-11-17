@@ -80,6 +80,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                       'include': True,
                                       'restore_boot_disk': True,
                                       'name': vm[0] + "restored_instance",
+                                      'availability_zone': CONF.compute.vm_availability_zone,
                                       'vdisks': []
                                       }
                 instance_details.append(temp_instance_data)

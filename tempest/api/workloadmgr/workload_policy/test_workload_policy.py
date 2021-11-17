@@ -32,8 +32,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_1_workload_policy_create(self):
         reporting.add_test_script(str(__name__) + "_create")
@@ -86,15 +84,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Can not create workload policy by nonadmin user",
                     tvaultconf.FAIL)
                 raise Exception("Policy is created by nonadmin user")
-
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_2_workload_policy_update(self):
         reporting.add_test_script(str(__name__) + "_update")
@@ -157,15 +152,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Can not update workload policy by nonadmin user",
                     tvaultconf.FAIL)
                 raise Exception("Policy is updated by nonadmin user")
-
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_3_workload_policy_assign(self):
         reporting.add_test_script(str(__name__) + "_assign")
@@ -283,16 +275,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Cannot assign workload policy by nonadmin user",
                     tvaultconf.FAIL)
                 raise Exception("Policy is assigned by nonadmin user")
-
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
     @test.pre_req({'type': 'small_workload'})
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_4_workload_modify(self):
         reporting.add_test_script(str(__name__) + "_workload_modify")
@@ -428,14 +417,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # workload delete
             self.workload_delete(workload_id)
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_5_workload_policy_in_use(self):
         reporting.add_test_script(str(__name__) + "_in_use")
@@ -510,21 +497,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("workload deleted unsuccessfully")
             time.sleep(10)
-
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_6_workload_policy_delete(self):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
             global policy_id
             policy_delete_error_str = "Policy doesn't allow workload:policy_delete to be performed."
+            failed = False
 
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
@@ -543,7 +528,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not delete workload policy by nonadmin user",
                     tvaultconf.FAIL)
-                raise Exception("Policy is deleted by nonadmin user")
+                failed = True
 
             # Use admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.username
@@ -560,7 +545,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Delete policy which is assigned to tenant by admin user",
                     tvaultconf.FAIL)
-                raise Exception("Policy not deleted")
+                failed = True
 
             # Verify policy is deleted
             policy_list = self.get_policy_list()
@@ -572,21 +557,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 if policy_id in policy_list:
                     reporting.add_test_step(
                         "Verify policy deleted", tvaultconf.FAIL)
-                    raise Exception("Policy deleted failed")
+                    failed = True
                 else:
                     reporting.add_test_step(
                         "Verify policy deleted", tvaultconf.PASS)
                     LOG.debug("Policy deleted passed")
-
-            reporting.test_case_to_write()
+            if failed:
+                reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
     # Workload policy with scheduler and retension parameter
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_7_policywith_scheduler_retension(self):
         reporting.add_test_script(str(__name__) + "with_scheduler_retention")
@@ -1184,16 +1168,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Policy assigned workload scheduler enabled unsuccessfully")
-
-            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
-
         finally:
+            reporting.test_case_to_write()
             # Cleanup
-
             # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
             for i in range(0, len(snapshot_list_of_workload)):
