@@ -420,22 +420,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             else:
                                 pass
                     if len(rvmvols) > 0:
-                        fip = self.assign_floating_ips(rvm, True)
-                        key = vms[rvmname][0]
-                        for rvolume in rvmvols:
-                            LOG.debug(
-                                "\nrvolume : {} & j {}\n".format(rvolume, j))
-                            ssh = self.SshRemoteMachineConnectionWithRSAKeyName(
-                                str(fip), key)
-                            self.execute_command_disk_mount(
-                                ssh, str(fip), [
-                                    volumes_parts[j]], [
-                                    mount_points[j]])
-                            ssh.close()
-                            mdsum = mdsum + \
-                                self.calcmd5sum(fip, key, mount_points[j])
-                            j += 1
-                            mdsums_sr[rvmname] = mdsum
+                        try:
+                            fip = self.assign_floating_ips(rvm, True)
+                            key = vms[rvmname][0]
+                            for rvolume in rvmvols:
+                                LOG.debug(
+                                    "\nrvolume : {} & j {}\n".format(rvolume, j))
+                                ssh = self.SshRemoteMachineConnectionWithRSAKeyName(
+                                    str(fip), key)
+                                self.execute_command_disk_mount(
+                                    ssh, str(fip), [
+                                        volumes_parts[j]], [
+                                        mount_points[j]])
+                                ssh.close()
+                                mdsum = mdsum + \
+                                    self.calcmd5sum(fip, key, mount_points[j])
+                                j += 1
+                                mdsums_sr[rvmname] = mdsum
+                        except Exception as e:
+                            reporting.add_test_step(str(e), tvaultconf.FAIL)
                     else:
                         pass
 
