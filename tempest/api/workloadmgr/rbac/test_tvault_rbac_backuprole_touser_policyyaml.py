@@ -251,7 +251,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI by default role
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(self.restore_vm_id1)
+                " --instance instance-id=" + str(self.restore_vm_id1[0])
             error = cli_parser.cli_error(workload_create)
             if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug(
