@@ -198,6 +198,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
+                    self.execute_command_disk_mount(ssh, str(floating_ip),
+                            tvaultconf.volumes_parts, tvaultconf.mount_points)
                     md5_sum_after_selective_restore[str(floating_ip)][str(
                         mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
                     ssh.close()

@@ -87,6 +87,7 @@ security_group_name = "test_security"
 flavor_name = "test_flavor"
 bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
+mount_points = ["mount_data_b", "mount_data_c"]
 user_frm_data = "/home/nchavan/tempest/tempest/frm_userdata.sh"
 
 #Email settings data
