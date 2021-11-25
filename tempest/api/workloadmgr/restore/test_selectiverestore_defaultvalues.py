@@ -70,7 +70,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                       'include': True,
                                       'restore_boot_disk': True,
                                       'name': vm_name,
-                                      'vdisks': vdisk_data
+                                      'vdisks': vdisks_data
                                       }
                 self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
