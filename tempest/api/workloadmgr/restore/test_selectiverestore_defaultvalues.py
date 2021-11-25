@@ -56,6 +56,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 CONF.network.internal_network_id)
             LOG.debug("int_net_1_subnet" + str(int_net_1_subnets))
 
+            vdisks_data = []
+            for vol in self.workload_volumes:
+                vdisks_data.append(
+                        { 'id': vol,
+                          'availability_zone': CONF.volume.volume_availability_zone,
+                          'new_volume_type': CONF.volume.volume_type})
+
             # Create instance details for restore.json
             for i in range(len(self.workload_instances)):
                 vm_name = "tempest_test_vm_" + str(i + 1) + "_restored"
@@ -63,7 +70,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                       'include': True,
                                       'restore_boot_disk': True,
                                       'name': vm_name,
-                                      'vdisks': []
+                                      'vdisks': vdisk_data
                                       }
                 self.instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " +
