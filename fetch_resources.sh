@@ -159,6 +159,13 @@ function configure_tempest
     test_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $TEST_USERNAME / { print \$2 }")
     test_alt_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
+    $OPENSTACK_CMD endpoint list | grep barbican
+    if [ $? -ne 0 ]
+    then
+	iniset $TEMPEST_CONFIG service_available key_manager False
+    else
+	iniset $TEMPEST_CONFIG service_available key_manager True
+    fi
 
     unset OS_PROJECT_DOMAIN_NAME
     export OS_PROJECT_DOMAIN_ID=$admin_domain_id
