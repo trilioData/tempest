@@ -350,6 +350,8 @@ class Manager(clients.ServiceClients):
 
     def _set_barbican_clients(self):
         self.secret_client = self.key_manager.SecretClient()
+        self.order_client = self.key_manager.OrderClient()
+        self.barbican_container_client = self.key_manager.ContainerClient()
 
 
 def get_auth_provider_class(credentials):
