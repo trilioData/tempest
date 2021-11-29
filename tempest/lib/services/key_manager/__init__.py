@@ -14,8 +14,13 @@
 
 from tempest.lib.services.key_manager.secret_client \
     import SecretClient
+from tempest.lib.services.key_manager.order_client \
+    import OrderClient
+from tempest.lib.services.key_manager.container_client \
+    import ContainerClient
 
 __all__ = [
-    'SecretClient'
+    'SecretClient', 'OrderClient', 'ContainerClient'
 ]
+
 

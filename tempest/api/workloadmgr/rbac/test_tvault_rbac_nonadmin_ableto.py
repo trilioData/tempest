@@ -161,7 +161,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Filepath_Search successful")
                     reporting.add_test_step(
                         "Verification of Filepath search", tvaultconf.PASS)
-            except Exeption as e:
+            except Exception as e:
                 reporting.add_test_step(
                             "Verification of Filepath search", tvaultconf.FAIL)
                 failed = True

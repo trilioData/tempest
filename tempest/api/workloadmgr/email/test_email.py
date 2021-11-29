@@ -126,18 +126,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 try:
                     self.wlm_client.client.get(
                         "/workloads/email/test_email?" + urlencode(tvaultconf.setting_data_pwdless))
-                except Exception as e:
-                    reporting.add_test_step("Test email", tvaultconf.FAIL)
-                    raise Exception("Test email")
-
-                cmd = 'curl  -u ' + tvaultconf.setting_data_pwdless["smtp_default_recipient"] + ':' + \
-                        tvaultconf.smtp_password_pwdless + ' --silent -k "https://mail.triliodata.demo/mail/feed/atom"'
-                op = subprocess.check_output(cmd, shell=True)
-                if len(re.findall('Testing email configuration', 
-                        op.decode().split('<entry>')[1])) == 1:
-                    LOG.debug(f"Email testing done correctly and email is: {op}")
                     reporting.add_test_step("Test email", tvaultconf.PASS)
-                else:
+                except Exception as e:
                     reporting.add_test_step("Test email", tvaultconf.FAIL)
                     raise Exception("Test email")
 
@@ -152,9 +142,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Settings data from response: " +
                           str(setting_data_from_resp) +
                           " ; original setting data: " +
-                          str(tvaultconf.setting_data))
-                del setting_data_from_resp['smtp_server_password']
-                del tvaultconf.setting_data_pwdless['smtp_server_password']
+                          str(tvaultconf.setting_data_pwdless))
                 if(operator.eq(setting_data_from_resp, tvaultconf.setting_data_pwdless)):
                     reporting.add_test_step(
                         "Update email settings", tvaultconf.PASS)
