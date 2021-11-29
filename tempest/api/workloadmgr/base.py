@@ -64,8 +64,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.ports_client = cls.os_primary.ports_client
         cls.networks_client = cls.os_primary.networks_client
 
-        cls.volumes_client = cls.os_primary.volumes_v2_client
-        cls.volumes_client.service = 'volumev2'
+        cls.volumes_client = cls.os_primary.volumes_v3_client
+        cls.volume_types_client = cls.os_primary.volume_types_client_latest
+        cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
 
         if CONF.identity_feature_enabled.api_v2:
