@@ -336,15 +336,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         finally:
             # Add results to sanity report
-            LOG.debug("Finally Result json: " + str(result_json))
-            reporting.add_result_json(result_json)
-            for k, v in result_json.items():
+            result_json2={}
+            for k in result_json.keys():
+                if 'encryption' in result_json[k].keys():
+                    if result_json[k]['encryption']:
+                        result_json2[k+'_encrypted']=result_json[k]
+                    else:
+                        result_json2[k+'_unencrypted']=result_json[k]
+                else:
+                    result_json2[k]=result_json[k]
+
+            LOG.debug("Finally Result json: " + str(result_json2))
+            reporting.add_result_json(result_json2)
+            for k, v in result_json2.items():
                 if(('result' in v.keys()) and (len(v['result'].keys()) > 0)):
                     for k1 in reversed(list(v['result'].keys())):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])
 
-            for k, v in result_json.items():
+            for k, v in result_json2.items():
                 for k1, v1 in v.items():
                     if('size' in k1 or 'time' in k1):
                         reporting.add_sanity_stats(k, k1, v1)
