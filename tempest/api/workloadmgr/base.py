@@ -2611,7 +2611,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
         show_mountpoint_cmd = "mount | grep triliovault-mounts | awk '{print $3}'"
         stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
-        mountpoint_path = stdout.read()
+        mountpoint_path = stdout.read().decode('utf-8')
         LOG.debug("mountpoint path is : " + str(mountpoint_path))
         ssh.close()
         return str(mountpoint_path)
@@ -2636,11 +2636,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             " && echo 'exists' ||echo 'not exists'"
         LOG.debug("snapshot command is : " + str(is_snapshot_exist))
         stdin, stdout, stderr = ssh.exec_command(is_snapshot_exist)
-        snapshot_exists = stdout.read()
+        snapshot_exists = stdout.read().decode('utf-8').strip()
         LOG.debug("is snapshot exists command output" + str(snapshot_exists))
         if str(snapshot_exists) == 'exists':
             return True
-        elif str(snapshot_exists).strip() == 'not exists':
+        else:
             return False
 
     '''
@@ -3092,6 +3092,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 'type': 'openstack',
                 }
             return(payload)
+        elif rest_details['rest_type'] == 'oneclick':
+            payload = {
+                    "openstack": {},
+                    "type": "openstack",
+                    "oneclickrestore": True,
+                    "restore_type": "oneclick"
+                    }
+            return(payload)
         else:
             return
 
@@ -3419,4 +3427,36 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except lib_exc.NotFound:
             return None
 
+    '''
+    Method creates inplace restore for a given snapshot and returns the restore id
+    '''
+    def snapshot_inplace_restore(
+        self,
+        workload_id,
+        snapshot_id,
+        payload={},
+        restore_cleanup=True):
+        LOG.debug("At the start of snapshot_inplace_restore method")
+        LOG.debug(f"Payload: {payload}")
+        payload1={"restore": {"options": payload}}
+        try:
+            resp, body = self.wlm_client.client.post(
+                "/workloads/" + workload_id + "/snapshots/" + snapshot_id + "/restores", json=payload1)
+            restore_id = body['restore']['id']
+            LOG.debug(
+                "#### workloadid: %s ,snapshot_id: %s , restore_id: %s , operation: snapshot_restore" %
+                (workload_id, snapshot_id, restore_id))
+            LOG.debug("Response:" + str(resp.content))
+            if(resp.status_code != 202):
+                resp.raise_for_status()
+            LOG.debug('Restore of snapshot %s scheduled succesffuly' %
+                      snapshot_id)
+            if(tvaultconf.cleanup and restore_cleanup):
+                self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+                self.addCleanup(self.restore_delete,
+                                workload_id, snapshot_id, restore_id)
+        except Exception as e:
+            restore_id = 0
+            LOG.error(f"Exception in snapshot_inplace_restore: {e}")
+        return restore_id
 
