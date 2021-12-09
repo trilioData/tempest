@@ -33,6 +33,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
             self.instances_id = []
+            failed = False
 
             # Create volume, Launch an Instance
             self.volumes_id = self.create_volume(volume_cleanup=False)
@@ -122,6 +123,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot one-click restore verification with DB",
                     tvaultconf.FAIL)
+                failed = True
 
             # Mount snapshot
             status = self.mount_snapshot(
@@ -134,6 +136,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("snapshot Mount unsuccessful")
                 reporting.add_test_step(
                     "Verification of snapshot mount", tvaultconf.FAIL)
+                failed = True
 
             # Run Filesearch
             vmid_to_search = self.instances_id[0]
@@ -141,25 +144,33 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {self.snapshot_id: 1}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search)
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, filepath_to_search)
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-                    LOG.debug("Filepath Search unsuccessful")
+            try:
+                snapshot_wise_filecount = self.verifyFilepath_Search(
+                    filesearch_id, filepath_to_search)
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
+                        LOG.debug("Filepath Search unsuccessful")
+                        reporting.add_test_step(
+                            "Verification of Filepath search", tvaultconf.FAIL)
+                        failed = True
+
+                if filesearch_status:
+                    LOG.debug("Filepath_Search successful")
                     reporting.add_test_step(
-                        "Verification of Filepath search", tvaultconf.FAIL)
-
-            if filesearch_status:
-                LOG.debug("Filepath_Search successful")
+                        "Verification of Filepath search", tvaultconf.PASS)
+            except Exception as e:
                 reporting.add_test_step(
-                    "Verification of Filepath search", tvaultconf.PASS)
+                            "Verification of Filepath search", tvaultconf.FAIL)
+                failed = True
 
+            if failed:
+                reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
-
+            reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
