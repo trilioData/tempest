@@ -118,6 +118,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             except Exception:
                 pass
 
+    def delete_secrets(self):
+        secrets = self.secret_client.list_secrets()['secrets']
+        for secret in secrets:
+            secret_uuid = secret['secret_ref'].split('/')[-1]
+            try:
+                self.delete_secret(secret_uuid)
+            except BaseException:
+                pass
+
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
@@ -141,6 +150,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nsecurity groups deleted\n")
             self.delete_quotas()
             LOG.debug("\nWorkloadmgr quotas deleted\n")
+            self.delete_secrets()
+            LOG.debug("\nSecrets deleted\n")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
