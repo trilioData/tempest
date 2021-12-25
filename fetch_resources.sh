@@ -216,7 +216,7 @@ function configure_tempest
         else
             frm_data=','$name':'$id
         fi
-        cnt+=1
+	cnt=$((cnt+1))
     done
 
     echo "Fetching flavor details\n"
@@ -305,7 +305,7 @@ function configure_tempest
 		    volume_types+=,$type":"$type_id
                     enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
                 fi
-                cnt+=1
+		cnt=$((cnt+1))
             done
 	    enabled_tests+=]
     esac
