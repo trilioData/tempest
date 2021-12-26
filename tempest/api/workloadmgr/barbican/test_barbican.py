@@ -847,6 +847,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "Verification of Filesearch with default parameters",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
+            tests[4][1] = 1
 
             #selective restore
             reporting.add_test_script(tests[5][0])
@@ -959,6 +960,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                self.execute_command_disk_mount(ssh, fip[0],
+                        tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
                 md5sums_after_full_inplace = {}
                 md5sums_after_full_inplace['root'] = self.calculatemmd5checksum(ssh, "/root")
                 for mp in tvaultconf.mount_points:
@@ -989,6 +993,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                self.execute_command_disk_mount(ssh, fip[0],
+                        tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
                 md5sums_after_incr_inplace = {}
                 md5sums_after_incr_inplace['root'] = self.calculatemmd5checksum(ssh, "/root")
                 for mp in tvaultconf.mount_points:
@@ -1027,6 +1034,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                self.execute_command_disk_mount(ssh, fip[0],
+                        tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
                 md5sums_after_full_oneclick = {}
                 md5sums_after_full_oneclick['root'] = self.calculatemmd5checksum(ssh, "/root")
                 for mp in tvaultconf.mount_points:
@@ -1064,6 +1074,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                self.execute_command_disk_mount(ssh, fip[0],
+                        tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
                 md5sums_after_incr_oneclick = {}
                 md5sums_after_incr_oneclick['root'] = self.calculatemmd5checksum(ssh, "/root")
                 for mp in tvaultconf.mount_points:
@@ -1082,7 +1095,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
