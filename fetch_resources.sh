@@ -141,6 +141,8 @@ function configure_tempest
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email $ADMIN2_MAILID --password $ADMIN2_PWD --description $ADMIN2_USERNAME --enable $ADMIN2_USERNAME
+    $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
@@ -216,7 +218,7 @@ function configure_tempest
         else
             frm_data=','$name':'$id
         fi
-        cnt+=1
+	cnt=$((cnt+1))
     done
 
     echo "Fetching flavor details\n"
@@ -305,7 +307,7 @@ function configure_tempest
 		    volume_types+=,$type":"$type_id
                     enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
                 fi
-                cnt+=1
+		cnt=$((cnt+1))
             done
 	    enabled_tests+=]
     esac
