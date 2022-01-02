@@ -369,6 +369,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -431,6 +433,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -945,6 +949,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -1019,6 +1025,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -1475,6 +1483,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -1537,6 +1547,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -2066,6 +2078,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -2140,6 +2154,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
