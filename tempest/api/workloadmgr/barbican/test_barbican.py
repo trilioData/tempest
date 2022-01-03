@@ -285,6 +285,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/root", 6)
+            md5sums_after_incr = self.calculatemmd5checksum(ssh, "/root")
+            LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
+            ssh.close()
 
             #selective restore
             reporting.add_test_script(tests[5][0])
@@ -853,6 +858,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/root", 7)
+            md5sums_after_incr = {}
+            md5sums_after_incr['root'] = self.calculatemmd5checksum(ssh, "/root")
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 7)
+                md5sums_after_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
+            ssh.close()
 
             #selective restore
             reporting.add_test_script(tests[5][0])
@@ -1399,6 +1413,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/root", 6)
+            md5sums_after_incr = self.calculatemmd5checksum(ssh, "/root")
+            LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
+            ssh.close()
 
             #selective restore
             reporting.add_test_script(tests[5][0])
@@ -1490,6 +1509,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[6][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
+            self.volumes.append(self.boot_volume_id)
             rest_details['instances'] = {self.vm_id: self.volumes}
             payload = self.create_restore_json(rest_details)
             # Trigger inplace restore of full snapshot
@@ -1982,6 +2002,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/root", 7)
+            md5sums_after_incr = {}
+            md5sums_after_incr['root'] = self.calculatemmd5checksum(ssh, "/root")
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 7)
+                md5sums_after_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
+            ssh.close()
 
             #selective restore
             reporting.add_test_script(tests[5][0])
@@ -2085,6 +2114,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[6][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
+            self.volumes.append(self.boot_volume_id)
             rest_details['instances'] = {self.vm_id: self.volumes}
             payload = self.create_restore_json(rest_details)
             # Trigger inplace restore of full snapshot
