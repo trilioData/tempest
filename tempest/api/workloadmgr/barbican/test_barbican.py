@@ -365,7 +365,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[5][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -429,7 +428,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[6][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -500,7 +498,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[7][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -509,6 +506,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -954,7 +952,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
                     tests[5][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1030,7 +1027,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
                     tests[6][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1113,7 +1109,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
                     tests[7][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1121,6 +1116,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -1493,7 +1489,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[5][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1558,7 +1553,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[6][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1629,7 +1623,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
                     tests[7][1] = 1
-                    reporting.test_case_to_write()
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1638,6 +1631,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -2261,6 +2255,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
