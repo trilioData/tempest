@@ -3070,11 +3070,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     temp_vdisks_data.append(
                         {
                             'id': volume,
-                            'availability_zone': CONF.volume.volume_availability_zone,
+                            'restore_cinder_volume': True,
                             'new_volume_type': CONF.volume.volume_type})
                 temp_instance_data = {
                     'id': instance,
-                    'availability_zone': CONF.compute.vm_availability_zone,
                     'include': True,
                     'restore_boot_disk': True,
                     'vdisks': temp_vdisks_data}
