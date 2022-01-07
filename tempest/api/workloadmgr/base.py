@@ -3075,6 +3075,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 temp_instance_data = {
                     'id': instance,
                     'include': True,
+                    'restore_boot_disk': True,
                     'vdisks': temp_vdisks_data}
             instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
