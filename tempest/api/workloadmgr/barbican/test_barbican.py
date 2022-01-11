@@ -1681,6 +1681,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.volumes.append(self.boot_volume_id)
             for i in range(2):
                 self.volume_id = self.create_volume(
                         volume_type_id=CONF.volume.volume_type_id)
@@ -2106,7 +2107,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[6][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
-            self.volumes.append(self.boot_volume_id)
             rest_details['instances'] = {self.vm_id: self.volumes}
             payload = self.create_restore_json(rest_details)
             # Trigger inplace restore of full snapshot
