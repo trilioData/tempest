@@ -181,7 +181,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with CLI command
-            self.start_date = time.strftime("%x")
+            #self.start_date = time.strftime("%x")
+            self.start_date = time.strftime("%m/%d/%Y")
             self.start_time = time.strftime("%I:%M %p")
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
@@ -601,7 +602,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create scheduled workload
-            self.start_date = time.strftime("%x")
+            #self.start_date = time.strftime("%x")
+            self.start_date = time.strftime("%m/%d/%Y")
             self.start_time = time.strftime("%I:%M %p")
             self.interval = tvaultconf.interval
             self.retention_policy_type = tvaultconf.retention_policy_type
