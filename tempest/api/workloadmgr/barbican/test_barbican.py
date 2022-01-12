@@ -2322,7 +2322,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             snapshotlist = self.getSnapshotList(workload_id=workload_id)
             LOG.debug(f"Snapshots created in test: {self.snapshots}, "\
-                    "Snapshots returned in snapshot_list: {snapshotlist}")
+                    f"Snapshots returned in snapshot_list: {snapshotlist}")
             if len(snapshotlist) == rpv:
                 reporting.add_test_step("Retention", tvaultconf.PASS)
                 LOG.debug("Retention worked!!")
