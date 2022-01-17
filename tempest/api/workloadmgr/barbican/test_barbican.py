@@ -1681,6 +1681,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.volumes.append(self.boot_volume_id)
             for i in range(2):
                 self.volume_id = self.create_volume(
                         volume_type_id=CONF.volume.volume_type_id)
@@ -2106,7 +2107,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[6][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
-            self.volumes.append(self.boot_volume_id)
             rest_details['instances'] = {self.vm_id: self.volumes}
             payload = self.create_restore_json(rest_details)
             # Trigger inplace restore of full snapshot
@@ -2268,3 +2268,74 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_5_barbican(self):
+        try:
+            reporting.add_test_script(str(__name__) + "_retention")
+            vm_id = self.create_vm(vm_cleanup=True)
+            LOG.debug("VM ID : " + str(vm_id))
+            i = 1
+            self.snapshots = []
+
+            jobschedule = {
+                'retention_policy_type': 'Number of Snapshots to Keep',
+                'retention_policy_value': '3',
+                'full_backup_interval': '2'}
+            rpv = int(jobschedule['retention_policy_value'])
+            self.secret_uuid = self.create_secret()
+            workload_id = self.workload_create(
+                [vm_id],
+                tvaultconf.parallel,
+                jobschedule=jobschedule,
+                encryption=True,
+                secret_uuid=self.secret_uuid,
+                workload_cleanup=True)
+            LOG.debug("Workload ID: " + str(workload_id))
+            if(workload_id is not None):
+                self.wait_for_workload_tobe_available(workload_id)
+                if(self.getWorkloadStatus(workload_id) == "available"):
+                    reporting.add_test_step("Create encrypted workload", 
+                            tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Create encrypted workload", 
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Create encrypted workload", 
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Encrypted Workload creation failed")
+
+            for i in range(0, (rpv + 1)):
+                snapshot_id = self.workload_snapshot(
+                    workload_id, True, snapshot_cleanup=False)
+                self.snapshots.append(snapshot_id)
+                self.wait_for_workload_tobe_available(workload_id)
+                if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
+                    reporting.add_test_step(
+                        "Create full snapshot-{}".format(i + 1), tvaultconf.PASS)
+                    LOG.debug("Full snapshot available!!")
+                else:
+                    reporting.add_test_step(
+                        "Create full snapshot-{}".format(i + 1), tvaultconf.FAIL)
+                    raise Exception("Snapshot creation failed")
+
+            snapshotlist = self.getSnapshotList(workload_id=workload_id)
+            LOG.debug(f"Snapshots created in test: {self.snapshots}, "\
+                    f"Snapshots returned in snapshot_list: {snapshotlist}")
+            if len(snapshotlist) == rpv:
+                reporting.add_test_step("Retention", tvaultconf.PASS)
+                LOG.debug("Retention worked!!")
+            else:
+                reporting.add_test_step("Retention", tvaultconf.FAIL)
+                LOG.debug("Retention didn't work!!")
+                raise Exception("Retention failed")
+            if (tvaultconf.cleanup):
+                for snapshot in snapshotlist:
+                    self.addCleanup(self.snapshot_delete,
+                                    workload_id, snapshot)
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
