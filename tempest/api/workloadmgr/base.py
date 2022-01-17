@@ -3452,8 +3452,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                       snapshot_id)
             if(tvaultconf.cleanup and restore_cleanup):
                 self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+                self.restored_vms = self.get_restored_vm_list(restore_id)
+                self.restored_volumes = self.get_restored_volume_list(
+                    restore_id)
                 self.addCleanup(self.restore_delete,
                                 workload_id, snapshot_id, restore_id)
+                self.addCleanup(self.delete_restored_vms,
+                                self.restored_vms, self.restored_volumes)
         except Exception as e:
             restore_id = 0
             LOG.error(f"Exception in snapshot_inplace_restore: {e}")
