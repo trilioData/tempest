@@ -157,7 +157,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @decorators.idempotent_id("59fd74ab-0b0f-474a-8c53-324babf5eb1c")
     @decorators.attr(type="workloadmgr_api")
     def test_with_samerule(self):
         try:
@@ -419,6 +418,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
             if status == 0:
@@ -658,6 +658,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
             if status == 0:
