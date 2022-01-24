@@ -1434,7 +1434,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             raise Exception(
                 "addCustomfilesOnLinuxVM Failed")
-            #This exception stops execution of complete suite; need to figure out some other alternative
             LOG.debug("Exception : " + str(e))
     
     '''
