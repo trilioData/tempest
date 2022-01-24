@@ -97,11 +97,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
-                    self.addCustomfilesOnLinuxVM(ssh, mount_point, 5)
-                    ssh.close()
-                for mount_point in mount_points:
-                    ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        str(floating_ip))
                     self.md5sums_dir_before[str(floating_ip)][str(
                         mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
                     ssh.close()
