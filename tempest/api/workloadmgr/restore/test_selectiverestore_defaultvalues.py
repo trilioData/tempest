@@ -207,11 +207,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(md5_sum_after_selective_restore))
 
             # md5sum verification
-            if(self.md5sums_dir_before == md5_sum_after_selective_restore):
-                reporting.add_test_step("Md5 Verification", tvaultconf.PASS)
-            else:
-                reporting.set_test_script_status(tvaultconf.FAIL)
-                reporting.add_test_step("Md5 Verification", tvaultconf.FAIL)
+            for o_floating_ip, r_floating_ip in zip(self.floating_ips_list,self.restored_vm_floating_ips):
+                for mount_point in mount_points:
+                    if(self.md5sums_dir_before[str(o_floating_ip)][str(mount_point)] == md5_sum_after_selective_restore[str(r_floating_ip)][str(mount_point)]):
+                        reporting.add_test_step("Md5 Orig IP [%s] vs Rest IP [%s] for Mount [%s]" % (o_floating_ip, 
+                            r_floating_ip, mount_point), tvaultconf.PASS)
+                    else:
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                        reporting.add_test_step("Md5 Orig IP [%s] vs Rest IP [%s] for Mount [%s]" % (o_floating_ip, 
+                            r_floating_ip, mount_point), tvaultconf.FAIL)
 
             reporting.test_case_to_write()
 
