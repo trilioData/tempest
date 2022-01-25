@@ -1414,9 +1414,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     str(count + 1) + " bs=2M count=10"
                 LOG.debug("Executing command -> " + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
-                time.sleep(9 * fileCount)
+                start_time = time.time()
+                while not stdout.channel.exit_status_ready():
+                   LOG.debug("Waiting for creation of File_%s", str(count + 1)) 
+                   if time.time() - start_time > 180:
+                       LOG.debug("Timeout Waiting for file creation on VM")
+                       raise Exception(
+                           "Timeout Waiting for file creation on VM")
+                       break
+                   time.sleep(5) 
+                cmdFileSize = "sudo du -s " + str(dirPath) + "/File_" + str(count + 1)
+                LOG.debug("Executing command -> " + cmdFileSize)
+                stdin, stdout, stderr = ssh.exec_command(cmdFileSize)
+                output=stdout.readlines()
+                print(output)
+                for line in output:
+                    LOG.debug(str(dirPath) + "/File_" + str(count + 1 ) + " created of size " + str(line.split("['")[0].split("\t")[0]) + "KB")
+            time.sleep(10)
         except Exception as e:
+            raise Exception(
+                "addCustomfilesOnLinuxVM Failed")
             LOG.debug("Exception : " + str(e))
+    
     '''
     calculate md5 checksum
     '''
@@ -1424,7 +1443,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def calculatemmd5checksum(self, ssh, dirPath):
         local_md5sum = ""
         buildCommand = "sudo find " + \
-            str(dirPath) + "/ -type f -exec md5sum {} +"
+            str(dirPath) + "/ -type f -not -path '*/.*' -exec md5sum {} +"
         LOG.debug("build command for md5 checksum calculation" +
                   str(buildCommand))
         stdin, stdout, stderr = ssh.exec_command(buildCommand)
