@@ -169,6 +169,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
+        reporting.add_test_script(str(__name__))
 
     @decorators.idempotent_id("c7aea6be-6c29-4d3b-bde9-98d515256c9d")
     @decorators.attr(type="workloadmgr_api")
@@ -176,9 +177,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             ### Verification of remote security group having inherited security groups ###
             LOG.debug("\nStarted test execution: ")
-            reporting.add_test_script(
-                "tempest.api.workloadmgr.security_groups.test_security_group_remotesg_inherited.test_wlm_cli"
-            )
 
             status = 1
             restored_sgids = []
@@ -379,10 +377,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL,
                     )
                     status = 0
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
-
+            reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             if status == 0:
                 reporting.set_test_script_status(tvaultconf.FAIL)

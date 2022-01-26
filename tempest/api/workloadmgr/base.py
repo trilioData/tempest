@@ -53,6 +53,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.subnets_client = cls.os_primary.subnets_client
         cls.wlm_client = cls.os_primary.wlm_client
         cls.servers_client = cls.os_primary.servers_client
+        cls.interfaces_client = cls.os_primary.interfaces_client
         cls.flavors_client = cls.os_primary.flavors_client
         cls.floating_ips_client = cls.os_primary.floating_ips_client
         cls.keypairs_client = cls.os_primary.keypairs_client
@@ -2826,10 +2827,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def delete_router_interfaces(self, router_id):
-        interfaces = self.ports_client.list_ports(device_owner='network:router_interface')['ports']
+        interfaces = self.ports_client.list_ports()['ports']
+        LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            for i in interface['fixed_ips']:
-                self.routers_client.remove_router_interface(
+            if interface['device_owner'] in \
+                    ('network:router_interface', \
+                    'network:ha_router_replicated_interface'):
+                for i in interface['fixed_ips']:
+                    self.routers_client.remove_router_interface(
                                     interface['device_id'], subnet_id=i['subnet_id'])
 
     '''
@@ -2906,6 +2911,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     **{'name': "Private-{}".format(x), 'admin_state_up': 'False', 'shared': 'True'})
                 nets[net['network']['name']] = net['network']['id']
 
+        LOG.debug("Creating ipv6 network")
+        net = self.networks_client.create_network(
+                    **{'name': "Private-ipv6"})
+        nets[net['network']['name']] = net['network']['id']
+        subnetconfig = {
+              'ip_version': 6,
+              'network_id': net['network']['id'],
+              'name': "IPV6-PS",
+              'cidr': 'fdf8:f53b:82e4::53/125'}
+        subnet = self.subnets_client.create_subnet(**subnetconfig)
+        subnets[subnet['subnet']['name']] = subnet['subnet']['id']
+        LOG.debug("Created ipv6 network")
+
         for x in range(1, 6):
             if x != 3:
                 router = self.routers_client.create_router(
@@ -2921,17 +2939,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
         self.routers_client.add_router_interface(routers['Router-2'], subnet_id=subnets['PS-4'])
         portid1 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.4'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.14'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-2'], port_id=portid1)
         portid2 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.5'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.15'}]})['port']['id']
         portid3 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.6'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.16'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-4'], port_id=portid2)
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid3)
         self.routers_client.add_router_interface(routers['Router-4'], subnet_id=subnets['PS-5'])
         portid4 = self.ports_client.create_port(
-            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.3'}]})['port']['id']
+            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.13'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid4)
 
         for router_name, router_id in list(routers.items()):
@@ -3482,4 +3500,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             restore_id = 0
             LOG.error(f"Exception in snapshot_inplace_restore: {e}")
         return restore_id
+
+
+    def attach_interface_to_instance(self, instance_id, network_id):
+        try:
+            self.interfaces_client.create_interface(
+                    instance_id, net_id=network_id)
+        except Exception as e:
+            LOG.error(f"Exception in attach_interface_to_instance: {e}")
 
