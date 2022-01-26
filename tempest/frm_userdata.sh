@@ -15,4 +15,15 @@ if [[ "$DISTRO" == "rhel" || "$DISTRO" == "centos" ]]; then
     reboot
 else
     echo "ubuntu based FRM image"
+    sudo su
+    echo "nameserver 8.8.8.8" > /etc/resolv.conf
+    sleep 10
+    apt-get update
+    apt-get install qemu-guest-agent
+    systemctl enable qemu-guest-agent
+    sed -i '/DAEMON_ARGS=/c DAEMON_ARGS="-F/etc/qemu/fsfreeze-hook"' /etc/init.d/qemu-guest-agent
+    systemctl daemon-reload
+    systemctl restart qemu-guest-agent
+    apt-get install python3
+    reboot
 fi

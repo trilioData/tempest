@@ -2029,7 +2029,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                             if "*" in path or "?" in path:
                                 i = 0
                                 for k4, v4 in list(k3.items()):
-                                    if len(v4) != 0 and "/dev" in k4:
+                                    if len(v4) != 0:
                                         for k5 in v4:
                                             disk = list(k3.keys())[0]
                                             if path1 in k5:
