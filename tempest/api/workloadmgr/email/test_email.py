@@ -107,7 +107,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_2_email(self):
+    def t2_email(self):
         reporting.add_test_script(str(__name__) + "_smtp_without_password")
         try:
             # Fetch existing settings
