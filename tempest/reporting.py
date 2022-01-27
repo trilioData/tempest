@@ -4,6 +4,8 @@ import datetime
 import os
 import pickle
 import json
+from oslo_log import log as logging
+LOG = logging.getLogger(__name__)
 
 test_results_file = "Report/results.html"
 sanity_results_file = "test_results"
@@ -34,6 +36,7 @@ def add_test_script(script):
     global steps_count
     steps_count = 0
     test_script_name = script
+    LOG.debug("TEST_SCRIPT : " + str(script))
 
 
 def set_test_script_status(status):
@@ -81,6 +84,7 @@ def add_test_step(teststep, status):
         color = "red"
         global test_script_status
         test_script_status = "FAIL"
+    LOG.debug("TEST_STEP : " + str(teststep) + ": TEST_STATUS : " + str(test_script_status))
     global test_step_to_write
     global steps_count
     steps_count += 1
