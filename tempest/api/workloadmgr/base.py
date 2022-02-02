@@ -3507,3 +3507,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error(f"Exception in attach_interface_to_instance: {e}")
 
+    '''
+    install qemu-guest-agent package on the instance
+    '''
+
+    def install_qemu(self, ssh):
+        try:
+            buildCommand = "sudo apt install qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(20)
+        except Exception as e:
+            LOG.debug("Exception in install_qemu: " + str(e))
+
+
