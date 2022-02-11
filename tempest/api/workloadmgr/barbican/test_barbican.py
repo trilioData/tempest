@@ -52,7 +52,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(fip[1], self.frm_id)
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            stdin, stdout, stderr = ssh.exec_command("sudo apt install qemu-guest-agent")
+            self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
@@ -559,7 +559,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(fip[1], self.frm_id)
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            stdin, stdout, stderr = ssh.exec_command("sudo apt install qemu-guest-agent")
+            self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
             self.execute_command_disk_create(ssh, fip[0],
                     tvaultconf.volumes_parts, tvaultconf.mount_points)
@@ -1176,7 +1176,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(fip[1], self.frm_id)
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            stdin, stdout, stderr = ssh.exec_command("sudo apt install qemu-guest-agent")
+            self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
@@ -1700,7 +1700,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(fip[1], self.frm_id)
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            stdin, stdout, stderr = ssh.exec_command("sudo apt install qemu-guest-agent")
+            self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
             self.execute_command_disk_create(ssh, fip[0],
                     tvaultconf.volumes_parts, tvaultconf.mount_points)
