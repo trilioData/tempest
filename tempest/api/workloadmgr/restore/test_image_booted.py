@@ -37,8 +37,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def data_ops(self, flo_ip, data_dir_path, file_count):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
-        stdin, stdout, stderr = ssh.exec_command(
-            "sudo apt install qemu-guest-agent")
+        self.install_qemu(ssh)
         self.addCustomfilesOnLinuxVM(ssh, data_dir_path, file_count)
         ssh.close()
 
