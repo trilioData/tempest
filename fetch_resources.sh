@@ -455,8 +455,8 @@ function configure_tempest
             network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
             network_id_alt=$network_id
             $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
-;;
             ASSIGN_ROUTER $network_id
+            ;;
         1)
             echo "Found single internal network to use!\n"
             if [ -z "$network_id" ]; then
