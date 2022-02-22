@@ -216,7 +216,7 @@ function configure_tempest
         then
             frm_data=$name':'$id
         else
-            frm_data=','$name':'$id
+            frm_data=$frm_data','$name':'$id
         fi
 	cnt=$((cnt+1))
     done
@@ -230,10 +230,13 @@ function configure_tempest
             $OPENSTACK_CMD flavor create --ram 2048 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
     fi
-    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAMES ) ]] && [[ "$frm_data" ]]; then
+    for name in ${FVM_IMAGE_NAMES[@]}; do
+      if [[ ! ( $available_flavors =~ $name ) ]] && [[ "$frm_data" ]]; then
         # Determine the flavor disk size based on the image size.
-        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAMES
-    fi
+        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $name
+      fi
+    done
+
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'
     flavors=""
