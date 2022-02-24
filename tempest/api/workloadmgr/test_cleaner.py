@@ -33,6 +33,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         snaps = self.getSnapshotList(workload_id)
         for snap in snaps:
             try:
+                snapshot_status = self.getSnapshotStatus(workload_id, snap)
+                if snapshot_status == 'mounted':
+                    self.unmount_snapshot(workload_id, snap)
                 self.delete_restores(snap, workload_id)
                 self.wait_for_workload_tobe_available(workload_id)
                 self.snapshot_delete(workload_id, snap)
