@@ -13,6 +13,7 @@ rm -f $TEST_RESULTS_FILE
 rm -rf logs
 
 mkdir -p $REPORT_DIR
+mkdir -p logs
 sed -i '/test_results_file = /c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 #PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report_table()'
 

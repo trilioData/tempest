@@ -563,8 +563,7 @@ def filesearch(self):
         # Add two files to vm2 to path /home/ubuntu/mount_data_c
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[1]))
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_c"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[1], 2)
         self.ssh.close()
 
         # Create incremental-2 snapshot
@@ -581,8 +580,7 @@ def filesearch(self):
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[0], 2)
         self.ssh.close()
 
         # Create incremental-3 snapshot
@@ -1002,8 +1000,7 @@ def snapshot_mount(self):
         self.addCustomfilesOnLinuxVM(self.ssh, "//opt", 2)
 
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 1)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[0], 1)
         self.ssh.close()
 
         # Create workload
