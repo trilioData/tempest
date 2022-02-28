@@ -487,7 +487,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.delete_volume(volume)
                 LOG.debug('Volume delete operation completed %s' % volume)
             except Exception as e:
-                LOG.debug("Exception" + str(e))
+                LOG.error("Exception" + str(e))
                 pass
 
     '''
@@ -652,6 +652,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('WorkloadDeleted: %s' % workload_id)
             return True
         except Exception as e:
+            LOG.error(f"Exception in workload_delete: {e}")
             return False
 
     '''
@@ -724,7 +725,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if reassignstatus == "available":
                     return(0)
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in workload_reassign: " + str(e))
 
     '''
     Method to wait until the workload is available
@@ -1397,7 +1398,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 time.sleep(20)
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in addCustomSizedfilesOnLinux: " + str(e))
 
     '''
     add custom sied files on linux using dd command
@@ -1431,9 +1432,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug(str(dirPath) + "/File_" + str(count + 1 ) + " created of size " + str(line.split("['")[0].split("\t")[0]) + "KB")
             time.sleep(10)
         except Exception as e:
+            LOG.error("Exception in addCustomfilesOnLinuxVM: " + str(e))
             raise Exception(
                 "addCustomfilesOnLinuxVM Failed")
-            LOG.debug("Exception : " + str(e))
     
     '''
     calculate md5 checksum
@@ -2127,7 +2128,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                       self.getSnapshotStatus(workload_id, snapshot_id))
             return True
         except Exception as e:
-            LOG.debug('Snapshot unmount failed: %s' % snapshot_id)
+            LOG.error('Snapshot unmount failed: %s' % snapshot_id)
             return False
 
     '''
@@ -2402,7 +2403,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             return body
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in getTenantChargeback: " + str(e))
             return False
 
     '''
@@ -2419,7 +2420,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             return body
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in getVMProtected: " + str(e))
             return False
 
     '''
@@ -2436,7 +2437,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             return body
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in getTenantUsage: " + str(e))
             return False
 
     '''
@@ -2509,7 +2510,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('PolicyUpdated: %s' % policy_id)
             return True
         except Exception as e:
-            LOG.debug('Policyupdate failed: %s' % policy_id)
+            LOG.error('Policyupdate failed: %s' % policy_id)
             return False
 
     '''
@@ -2535,7 +2536,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
             return True
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in workload_policy_delete: " + str(e))
             return False
 
     '''
@@ -2565,7 +2566,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             return True
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in assign_unassign_workload_policy: " + str(e))
             return False
 
     '''
@@ -2599,7 +2600,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 description,
                 list_of_project_assigned]
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in get_policy_details: " + str(e))
             return False
 
     '''
@@ -2618,7 +2619,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 policy_list.append(policy_id)
             return policy_list
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in get_policy_list: " + str(e))
             return False
 
     '''
@@ -2678,7 +2679,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 project_list_assigned_policies.append(policy_id)
             return project_list_assigned_policies
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in assigned_policies: " + str(e))
             return False
 
     '''
@@ -2754,7 +2755,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(output)
             return(bytes(output))
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.debug("Exception in validate_snapshot_mount: " + str(e))
 
     '''
     Method to fetch the list of network ports by network_id
@@ -3330,7 +3331,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     flag = True
             return flag
         except AssertionError as e:
-            LOG.debug("Print error message {}".format(e))
+            LOG.error("Exception in verifySecurityGroupsByID: {}".format(e))
             return False
 
     # Compare the security groups by name and assert if verification fails
@@ -3351,7 +3352,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     flag = True
             return flag
         except AssertionError as e:
-            LOG.debug("Print error message {}".format(e))
+            LOG.error("Exception in verifySecurityGroupsByname: {}".format(e))
             return False
 
     # Compare the security group & rules assigned to the restored instance and assert if verification fails
@@ -3380,7 +3381,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Comparison is successful")
             return True
         except AssertionError as e:
-            LOG.debug("Print error message {}".format(e))
+            LOG.error("Exception in verifySecurityGroupRules: {}".format(e))
             return False
 
     # Get the list of restored security policies from restored vms
@@ -3401,8 +3402,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     )
                 )
             return restored_secgrps
-        except:
+        except Exception as e:
             LOG.error("Restored instance do not have attached security group \n")
+            LOG.error(f"Exception in getRestoredSecGroupPolicies: {e}")
 
     def list_security_groups(self):
         body = self.security_groups_client.list_security_groups()

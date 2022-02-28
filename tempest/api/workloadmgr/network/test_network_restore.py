@@ -172,11 +172,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     'restored_instance', '')] = vm_details
 
             klist = sorted([*vm_details_bf])
+            vm_details_bf_sorted = {}
+            vm_details_af_sorted = {}
 
             for vm in klist:
-                netname = [*vm_details_bf[vm]['addresses']][0]
-                vm_details_bf[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
-                vm_details_af[vm]['addresses'][netname][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                netname = [*vm_details_bf[vm]['addresses']]
+                for net in netname:
+                    vm_details_bf[vm]['addresses'][net][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                    vm_details_af[vm]['addresses'][net][0]['OS-EXT-IPS-MAC:mac_addr'] = ''
                 vm_details_bf[vm]['links'][1]['href'] = ''
                 vm_details_af[vm]['links'][1]['href'] = ''
                 if 'config_drive' in vm_details_af[vm]['metadata']:
@@ -203,8 +206,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details_af[vm]['OS-SRV-USG:launched_at'] = ''
                 vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
                     'restored_instance', '')
+                vm_details_bf_sorted[vm]=vm_details_bf[vm]
+                vm_details_af_sorted[vm]=vm_details_af[vm]
 
-            if vm_details_bf == vm_details_af:
+            if vm_details_bf_sorted == vm_details_af_sorted:
                 reporting.add_test_step(
                     "Verify instance details after restore", tvaultconf.PASS)
             else:
