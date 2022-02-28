@@ -36,6 +36,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         index = 0
         for fvm_image in list(CONF.compute.fvm_image_ref.keys()):
             reporting.add_test_script(str(__name__) + "_full_snasphot_" + fvm_image)
+            if "centos" in fvm_image:
+                fvm_ssh_user = "centos"
+            elif "ubuntu" in fvm_image:
+                fvm_ssh_user = "ubuntu"
             try:
                 if self.exception != "":
                     LOG.debug("pre req failed")
@@ -75,9 +79,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     # raise Exception(
                     #     "Snapshot mount with full_snapshot  does not execute correctly")
 
-                LOG.debug("validate that snapshot is mounted on FVM")
+                LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
+                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -138,7 +142,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 LOG.debug("validate that snapshot is unmounted from FVM")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
+                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -159,72 +163,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.test_case_to_write()
             index = index + 1
 
-    # @decorators.attr(type='workloadmgr_api')
-    # def test_2_umount_snapshot(self):
-    #     index = 0
-    #     for fvm_image in list(CONF.compute.fvm_image_ref.keys()):
-    #         reporting.add_test_script(str(__name__) + "_umount_snapshot_" + fvm_image)
-    #         try:
-    #             global instances_ids
-    #             global snapshot_ids
-    #             global wid
-    #             global security_group_id
-    #             global volumes_ids
-    #             global fvm_ids
-    #             global floating_ips_list
-    #             instances_ids = instances_ids
-    #             snapshot_ids = snapshot_ids
-    #             wid = wid
-    #             volumes_ids = volumes_ids
-    #             security_group_id = security_group_id
-    #             fvm_ids = fvm_ids
-    #             unmount_snapshot_id = snapshot_ids[0]
-    #             floating_ips_list = floating_ips_list
-    #
-    #             LOG.debug("unmount snapshot")
-    #             is_unmounted = self.unmount_snapshot(wid, unmount_snapshot_id)
-    #             LOG.debug("VALUE OF is_unmounted: " + str(is_unmounted))
-    #             if is_unmounted:
-    #                 LOG.debug("unmount snapshot with full snapshot is  successful")
-    #                 reporting.add_test_step(
-    #                     "Verification of unmount snapshot with full snapshot",
-    #                     tvaultconf.PASS)
-    #             else:
-    #                 LOG.debug("unmount snapshot with full snapshot is unsuccessful")
-    #                 reporting.add_test_step(
-    #                     "Verification of unmount snapshot with full snapshot",
-    #                     tvaultconf.FAIL)
-    #                 raise Exception(
-    #                     "Snapshot unmount with full_snapshot does not execute correctly")
-    #
-    #             LOG.debug("validate that snapshot is unmounted from FVM")
-    #             ssh = self.SshRemoteMachineConnectionWithRSAKey(
-    #                 str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
-    #             output_list = self.validate_snapshot_mount(ssh)
-    #             ssh.close()
-    #
-    #             if output_list == b'':
-    #                 LOG.debug("Unmounting successful")
-    #                 reporting.add_test_step(
-    #                     "Unmounting of a full snapshot", tvaultconf.PASS)
-    #             else:
-    #                 LOG.debug("Unmounting unsuccessful")
-    #                 reporting.add_test_step(
-    #                     "Unmounting of a full snapshot", tvaultconf.FAIL)
-    #                 raise Exception("Unmouting of a snapshot failed")
-    #             reporting.test_case_to_write()
-    #
-    #         except Exception as e:
-    #             LOG.error("Exception: " + str(e))
-    #             reporting.set_test_script_status(tvaultconf.FAIL)
-    #             reporting.test_case_to_write()
-    #         index = index + 1
-
     @decorators.attr(type='workloadmgr_api')
     def test_2_snapshot_mount_unmount_incremental(self):
         index = 0
         for fvm_image in list(CONF.compute.fvm_image_ref.keys()):
             reporting.add_test_script(str(__name__) + "_incremental_snasphot_" + fvm_image)
+            if "centos" in fvm_image:
+                fvm_ssh_user = "centos"
+            elif "ubuntu" in fvm_image:
+                fvm_ssh_user = "ubuntu"
             try:
                 global instances_ids
                 global snapshot_ids
@@ -263,7 +210,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 LOG.debug("validate that snapshot is mounted on FVM")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), CONF.validation.fvm_ssh_user)
+                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
 
