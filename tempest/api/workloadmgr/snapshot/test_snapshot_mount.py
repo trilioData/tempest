@@ -35,7 +35,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_1_snapshot_mount_unmount_full(self):
         index = 0
         for fvm_image in list(CONF.compute.fvm_image_ref.keys()):
-            reporting.add_test_script(str(__name__) + "_full_snasphot_" + fvm_image)
+            reporting.add_test_script(str(__name__) + "_full_snapshot_" + fvm_image)
             if "centos" in fvm_image:
                 fvm_ssh_user = "centos"
             elif "ubuntu" in fvm_image:
@@ -62,7 +62,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 full_snapshot_id = snapshot_ids[0]
                 floating_ips_list = self.floating_ips_list
 
-                LOG.debug("mount snasphot of a full snapshot")
+                LOG.debug("mount snapshot of a full snapshot")
                 is_mounted = self.mount_snapshot(
                     wid, full_snapshot_id, fvm_ids[index], mount_cleanup=False)
                 LOG.debug("VALUE OF is_mounted: " + str(is_mounted))
@@ -96,12 +96,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         if 'File_1' in i:
                             LOG.debug("check that file exists on mounted snapshot")
                             reporting.add_test_step(
-                                "Verification of file's existance on moutned snapshot", tvaultconf.PASS)
+                                "Verification of file's existence on mounted snapshot", tvaultconf.PASS)
                         else:
-                            LOG.debug("file does not found on FVM instacne")
+                            LOG.debug("file does not found on FVM instance")
                             reporting.add_test_step(
-                                "Verification of file's existance on moutned snapshot", tvaultconf.FAIL)
-                            # raise Exception("file does not found on FVM instacne")
+                                "Verification of file's existence on mounted snapshot", tvaultconf.FAIL)
+                            # raise Exception("file does not found on FVM instance")
                     else:
                         pass
 
@@ -111,9 +111,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verify that  mountpoint mounted is shown on FVM instance",
                         tvaultconf.FAIL)
-                    LOG.debug("file does not found on FVM instacne")
+                    LOG.debug("file does not found on FVM instance")
                     reporting.add_test_step(
-                        "Verification of file's existance on moutned snapshot",
+                        "Verification of file's existence on mounted snapshot",
                         tvaultconf.FAIL)
                     # raise Exception("mountpoint is not showing on FVM instance")
                 else:
@@ -154,7 +154,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Unmounting unsuccessful")
                     reporting.add_test_step(
                         "Unmounting of a full snapshot", tvaultconf.FAIL)
-                    # raise Exception("Unmouting of a snapshot failed")
+                    # raise Exception("Unmounting of a snapshot failed")
                 reporting.test_case_to_write()
 
             except Exception as e:
@@ -167,7 +167,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_2_snapshot_mount_unmount_incremental(self):
         index = 0
         for fvm_image in list(CONF.compute.fvm_image_ref.keys()):
-            reporting.add_test_script(str(__name__) + "_incremental_snasphot_" + fvm_image)
+            reporting.add_test_script(str(__name__) + "_incremental_snapshot_" + fvm_image)
             if "centos" in fvm_image:
                 fvm_ssh_user = "centos"
             elif "ubuntu" in fvm_image:
@@ -227,12 +227,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             LOG.debug(
                                 "check that file is exist on mounted snapshot")
                             reporting.add_test_step(
-                                "Verification of file's existance on mounted snapshot", tvaultconf.PASS)
+                                "Verification of file's existence on mounted snapshot", tvaultconf.PASS)
                         else:
-                            LOG.debug("file does not found on FVM instacne")
+                            LOG.debug("file does not found on FVM instance")
                             reporting.add_test_step(
-                                "Verification of file's existance on mounted snapshot", tvaultconf.FAIL)
-                            # raise Exception("file does not found on FVM instacne")
+                                "Verification of file's existence on mounted snapshot", tvaultconf.FAIL)
+                            # raise Exception("file does not found on FVM instance")
                     else:
                         pass
 
@@ -242,9 +242,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verify that  mountpoint mounted is shown on FVM instance",
                         tvaultconf.FAIL)
-                    LOG.debug("file does not found on FVM instacne")
+                    LOG.debug("file does not found on FVM instance")
                     reporting.add_test_step(
-                        "Verification of file's existance on mounted snapshot",
+                        "Verification of file's existence on mounted snapshot",
                         tvaultconf.FAIL)
                     # raise Exception("mountpoint is not showing on FVM instance")
                 else:
@@ -264,7 +264,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_api')
     def test_3_cleanup_snapshot_mount(self):
-        reporting.add_test_script(str(__name__) + "_cleanup_snasphot")
+        reporting.add_test_script(str(__name__) + "_cleanup_snapshot")
         try:
             global instances_ids
             global snapshot_ids
