@@ -81,7 +81,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
+                    str(floating_ips_list[index+1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -142,7 +142,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 LOG.debug("validate that snapshot is unmounted from FVM")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
+                    str(floating_ips_list[index+1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -210,7 +210,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 LOG.debug("validate that snapshot is mounted on FVM")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    str(floating_ips_list[1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
+                    str(floating_ips_list[index+1]), fvm_ssh_user)   #CONF.validation.fvm_ssh_user
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
 
