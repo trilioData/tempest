@@ -916,7 +916,7 @@ def snapshot_mount(self):
         self.volumes_ids = []
         self.total_vms = 1
         self.total_volumes_per_vm = 1
-        self.fvm_id = ""
+        self.fvm_ids = []
         self.floating_ips_list = []
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
@@ -951,17 +951,21 @@ def snapshot_mount(self):
             raise Exception("Floating ips not available")
 
         # create file manager instance
-        fvm_name = "Test_tempest_fvm_1"
-        self.fvm_id = self.create_vm(
-            vm_cleanup=False,
-            vm_name=fvm_name,
-            key_pair=tvaultconf.key_pair_name,
-            security_group_id=self.security_group_id,
-            image_id=list(CONF.compute.fvm_image_ref.values())[0],
-            user_data=tvaultconf.user_frm_data,
-            flavor_id=CONF.compute.flavor_ref_alt)
-        time.sleep(10)
-        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
+        num = 1
+        for fvm_image in list(CONF.compute.fvm_image_ref.values()) :
+            fvm_name = "Test_tempest_fvm_" + str(num)
+            fvm_id = self.create_vm(
+                vm_cleanup=False,
+                vm_name=fvm_name,
+                key_pair=tvaultconf.key_pair_name,
+                security_group_id=self.security_group_id,
+                image_id=fvm_image,
+                user_data=tvaultconf.user_frm_data,
+                flavor_id=CONF.compute.flavor_ref_alt)
+            self.fvm_ids.append(fvm_id)
+            time.sleep(10)
+            self.set_floating_ip(floating_ips_list[num], fvm_id)
+            num = num + 1
 
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
