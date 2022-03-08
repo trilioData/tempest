@@ -538,12 +538,30 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
+
+    #check for test user name in TEST_IMAGE_NAME
+    #keep field empty in-case image name is other than ubuntu, centos, cirros
+    case $TEST_IMAGE_NAME in
+        *"ubuntu"*)
+                TEST_USER_NAME="ubuntu"
+                ;;
+        *"centos"*)
+                TEST_USER_NAME="centos"
+                ;;
+        *"cirros"*)
+                TEST_USER_NAME="cirros"
+                ;;
+        *)
+                TEST_USER_NAME=
+                ;;
+    esac
+
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
-    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'$TEST_USER_NAME'"' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
