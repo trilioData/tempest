@@ -539,22 +539,34 @@ function configure_tempest
     TVAULT_IP+="]"
 
 
-    #check for test user name in TEST_IMAGE_NAME
-    #keep field empty in-case image name is other than ubuntu, centos, cirros
-    case $TEST_IMAGE_NAME in
+    #check for user name in TEST_IMAGE_NAME
+    #keep TEST_USER_NAME value as "ubuntu" for the default case.
+    #convert test image name to lower case for comparison...
+    IMAGE_NAME=${TEST_IMAGE_NAME,,}
+    case $IMAGE_NAME in
         *"ubuntu"*)
-                TEST_USER_NAME="ubuntu"
+                search_pattern="ubuntu"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
                 ;;
         *"centos"*)
-                TEST_USER_NAME="centos"
+                search_pattern="centos"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
                 ;;
         *"cirros"*)
-                TEST_USER_NAME="cirros"
+                search_pattern="cirros"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
                 ;;
         *)
-                TEST_USER_NAME=
+                TEST_USER_NAME="ubuntu"
                 ;;
     esac
+
 
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
