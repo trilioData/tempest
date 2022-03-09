@@ -538,12 +538,42 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
+
+    #check for user name in TEST_IMAGE_NAME
+    #keep TEST_USER_NAME value as "ubuntu" for the default case.
+    #convert test image name to lower case for comparison...
+    IMAGE_NAME=${TEST_IMAGE_NAME,,}
+    case $IMAGE_NAME in
+        *"ubuntu"*)
+                search_pattern="ubuntu"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *"centos"*)
+                search_pattern="centos"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *"cirros"*)
+                search_pattern="cirros"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *)
+                TEST_USER_NAME="ubuntu"
+                ;;
+    esac
+
+
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
-    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'$TEST_USER_NAME'"' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
