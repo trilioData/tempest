@@ -210,9 +210,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("md5 sum matched before and after restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("md5 sum do not before and after restore", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
