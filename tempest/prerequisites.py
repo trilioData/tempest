@@ -968,7 +968,8 @@ def snapshot_mount(self):
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
         for i in range(0, self.total_vms):
-            vm_name = "Test_Tempest_Vm" + str(i + 1)
+            #vm_name = "Test_Tempest_Vm" + str(i + 1)
+            vm_name = "Tempest_Test_Vm" + str(i + 1)
             j = i + i
             for n in range(0, self.total_volumes_per_vm):
                 self.volumes_ids.append(

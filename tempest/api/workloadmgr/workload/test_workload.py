@@ -203,7 +203,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             time.sleep(10)
-            self.wid = query_data.get_workload_id(tvaultconf.workload_name)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             self.wait_for_workload_tobe_available(self.wid)
             if(self.getWorkloadStatus(self.wid) == "available"):
