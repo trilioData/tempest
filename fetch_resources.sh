@@ -216,7 +216,7 @@ function configure_tempest
         then
             frm_data=$name':'$id
         else
-            frm_data=','$name':'$id
+            frm_data=$frm_data','$name':'$id
         fi
 	cnt=$((cnt+1))
     done
@@ -230,10 +230,13 @@ function configure_tempest
             $OPENSTACK_CMD flavor create --ram 2048 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
     fi
-    if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAMES ) ]] && [[ "$frm_data" ]]; then
+    for name in ${FVM_IMAGE_NAMES[@]}; do
+      if [[ ! ( $available_flavors =~ $name ) ]] && [[ "$frm_data" ]]; then
         # Determine the flavor disk size based on the image size.
-        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $FVM_IMAGE_NAMES
-    fi
+        $OPENSTACK_CMD flavor create --ram 2048 --disk 14 --vcpus 2 $name
+      fi
+    done
+
     available_flavors=$($OPENSTACK_CMD flavor list)
     IFS=$'\r\n'
     flavors=""
@@ -241,8 +244,10 @@ function configure_tempest
     for line in $available_flavors; do
         f=$(echo $line | awk "/ $TEST_IMAGE_NAME / { print \$2 }")
         flavors="$flavors $f"
-        f1=$(echo $line | awk "/ $FVM_IMAGE_NAMES / { print \$2 }")
-        fvm_flavor="$fvm_flavor $f1"
+        for name in ${FVM_IMAGE_NAMES[@]}; do
+          f1=$(echo $line | awk "/ $name / { print \$2 }")
+          fvm_flavor="$fvm_flavor $f1"
+        done
     done
 
     echo $flavors
@@ -533,12 +538,42 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
+
+    #check for user name in TEST_IMAGE_NAME
+    #keep TEST_USER_NAME value as "ubuntu" for the default case.
+    #convert test image name to lower case for comparison...
+    IMAGE_NAME=${TEST_IMAGE_NAME,,}
+    case $IMAGE_NAME in
+        *"ubuntu"*)
+                search_pattern="ubuntu"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *"centos"*)
+                search_pattern="centos"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *"cirros"*)
+                search_pattern="cirros"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                ;;
+        *)
+                TEST_USER_NAME="ubuntu"
+                ;;
+    esac
+
+
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
-    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'$TEST_USER_NAME'"' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF

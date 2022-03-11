@@ -563,8 +563,7 @@ def filesearch(self):
         # Add two files to vm2 to path /home/ubuntu/mount_data_c
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[1]))
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_c"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[1], 2)
         self.ssh.close()
 
         # Create incremental-2 snapshot
@@ -581,8 +580,7 @@ def filesearch(self):
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
         self.ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(floating_ips_list[0]))
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 2)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[0], 2)
         self.ssh.close()
 
         # Create incremental-3 snapshot
@@ -918,7 +916,7 @@ def snapshot_mount(self):
         self.volumes_ids = []
         self.total_vms = 1
         self.total_volumes_per_vm = 1
-        self.fvm_id = ""
+        self.fvm_ids = []
         self.floating_ips_list = []
         # Create key_pair and get available floating IP's
         self.create_key_pair(tvaultconf.key_pair_name, keypair_cleanup=False)
@@ -953,17 +951,21 @@ def snapshot_mount(self):
             raise Exception("Floating ips not available")
 
         # create file manager instance
-        fvm_name = "Test_tempest_fvm_1"
-        self.fvm_id = self.create_vm(
-            vm_cleanup=False,
-            vm_name=fvm_name,
-            key_pair=tvaultconf.key_pair_name,
-            security_group_id=self.security_group_id,
-            image_id=list(CONF.compute.fvm_image_ref.values())[0],
-            user_data=tvaultconf.user_frm_data,
-            flavor_id=CONF.compute.flavor_ref_alt)
-        time.sleep(10)
-        self.set_floating_ip(floating_ips_list[1], self.fvm_id)
+        num = 1
+        for fvm_image in list(CONF.compute.fvm_image_ref.values()) :
+            fvm_name = "Test_tempest_fvm_" + str(num)
+            fvm_id = self.create_vm(
+                vm_cleanup=False,
+                vm_name=fvm_name,
+                key_pair=tvaultconf.key_pair_name,
+                security_group_id=self.security_group_id,
+                image_id=fvm_image,
+                user_data=tvaultconf.user_frm_data,
+                flavor_id=CONF.compute.flavor_ref_alt)
+            self.fvm_ids.append(fvm_id)
+            time.sleep(10)
+            self.set_floating_ip(floating_ips_list[num], fvm_id)
+            num = num + 1
 
         # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
         # Partitioning and  formatting and mounting the attached disks
@@ -1003,8 +1005,7 @@ def snapshot_mount(self):
         self.addCustomfilesOnLinuxVM(self.ssh, "//opt", 2)
 
         # Add one  file to vm1 to path /home/ubuntu/mount_data_b
-        pth = "//home/" + str(CONF.validation.ssh_user) + "/mount_data_b"
-        self.addCustomfilesOnLinuxVM(self.ssh, pth, 1)
+        self.addCustomfilesOnLinuxVM(self.ssh, mount_points[0], 1)
         self.ssh.close()
 
         # Create workload
