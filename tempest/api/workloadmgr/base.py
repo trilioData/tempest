@@ -227,6 +227,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if(vm_name == ""):
             ts = str(datetime.now())
             vm_name = "Tempest_Test_Vm" + ts.replace('.', '-')
+            #vm_name = "Test_Tempest_Vm" + ts.replace('.', '-')
         if(tvaultconf.vms_from_file and self.is_vm_available()):
             server_id = self.read_vm_id()
         else:
@@ -1337,10 +1338,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              "\n",
                              "\n",
                              "w",
-                             "yes | sudo mkfs -t ext3 {}1".format(volume)])
+                             "sudo fdisk -l {}1".format(volume)])
+                             #"yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
-            LOG.debug("Executing: " + str(command))
+            LOG.debug("Executing fdisk: " + str(command))
             self.channel.send(command + "\n")
             time.sleep(5)
             while not self.channel.recv_ready():
@@ -1348,6 +1350,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
             output = self.channel.recv(9999)
             LOG.debug(str(output))
+        time.sleep(10)
+        for volume in volumes:
+            cmd = "sudo mkfs -t ext3 {}1".format(volume)
+            LOG.debug("Executing mkfs : " + str(cmd))
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            time.sleep(5)
+            while not stdout.channel.exit_status_ready():
+                time.sleep(3)
+            LOG.debug("mkfs output:  " + str(stdout.readlines()))
+            LOG.debug("mkfs error:  " + str(stderr.readlines()))
 
     '''
     disks mounting
@@ -1370,7 +1382,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "sudo mount {0}1 {1}".format(
                     volumes[i],
                     mount_points[i]),
-                "sudo df -h"]
+                "sudo df -h",
+                "pwd"]
 
             for command in commands:
                 LOG.debug("Executing: " + str(command))
@@ -2738,13 +2751,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cmd = "sudo su - root -c 'df -h'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("df -h output: %s", stdout.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Tempest_*/vda*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Tempest_*/vdb*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDB List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdc*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Tempest_*/vdc*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDC List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             buildCommand = "sudo su - root -c 'find "  + file_path_to_search + " -name " + file_name + "'"
