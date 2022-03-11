@@ -91,14 +91,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(self.network_details))
 
             # Fill some more data on each volume attached
-            def tree(): return collections.defaultdict(tree)
-            self.md5sums_dir_before = tree()
+            self.md5sums_dir_before = {}
+            md5sum_before_restore_list = []
             for floating_ip in self.floating_ips_list:
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
+                    temp_md5sum = self.calculatemmd5checksum(ssh, mount_point)
                     self.md5sums_dir_before[str(floating_ip)][str(
-                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+                        mount_point)] = temp_md5sum
+                    md5sum_before_restore_list.append(temp_md5sum)
                     ssh.close()
 
             LOG.debug("md5sums_dir_before" + str(self.md5sums_dir_before))
@@ -187,34 +189,31 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable to be assigned to restored instances")
 
             # calculate md5sum after restore
-            def tree(): return collections.defaultdict(tree)
-            md5_sum_after_selective_restore = tree()
+            md5_sum_after_selective_restore = {}
+            md5sum_after_restore_list = []
             for floating_ip in self.restored_vm_floating_ips:
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
                     self.execute_command_disk_mount(ssh, str(floating_ip),
                             tvaultconf.volumes_parts, tvaultconf.mount_points)
+                    temp_md5sum = self.calculatemmd5checksum(ssh, mount_point)
                     md5_sum_after_selective_restore[str(floating_ip)][str(
-                        mount_point)] = self.calculatemmd5checksum(ssh, mount_point)
+                        mount_point)] = temp_md5sum
+                    md5sum_after_restore_list.append(temp_md5sum)
                     ssh.close()
             LOG.debug("md5_sum_after_selective_restore" +
                       str(md5_sum_after_selective_restore))
 
             # md5sum verification
-            for o_floating_ip, r_floating_ip in zip(self.floating_ips_list,self.restored_vm_floating_ips):
-                for mount_point in mount_points:
-                    if(self.md5sums_dir_before[str(o_floating_ip)] == md5_sum_after_selective_restore[str(r_floating_ip)]):
-                        reporting.add_test_step("Md5 Orig IP [%s] vs Rest IP [%s] for Mount [%s]" % (o_floating_ip, 
-                            r_floating_ip, mount_point), tvaultconf.PASS)
-                    else:
-                        reporting.set_test_script_status(tvaultconf.FAIL)
-                        reporting.add_test_step("Md5 Orig IP [%s] vs Rest IP [%s] for Mount [%s]" % (o_floating_ip, 
-                            r_floating_ip, mount_point), tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
+            if md5sum_before_restore_list.sort() == md5sum_after_restore_list.sort():
+                reporting.add_test_step("md5 sum matched before and after restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("md5 sum do not before and after restore", tvaultconf.FAIL)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
             reporting.test_case_to_write()
