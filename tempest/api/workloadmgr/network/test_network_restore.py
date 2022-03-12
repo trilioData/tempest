@@ -31,7 +31,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_network_restore_api(self):
         try:
-            reporting.add_test_script(str(__name__)+"_api")
+            reporting.add_test_script(str(__name__)+"_full_snapshot_api")
             self.delete_network_topology()
             vms = []
             ntwrks = self.create_network()
@@ -233,7 +233,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_network_restore_cli(self):
         try:
-            reporting.add_test_script(str(__name__)+"_cli")
+            reporting.add_test_script(str(__name__)+"_full_snapshot_cli")
             self.delete_network_topology()
             vms = []
             ntwrks = self.create_network()
