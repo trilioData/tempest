@@ -210,14 +210,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute snapshot-delete command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
+            start_time = time.time()
             time.sleep(5)
             wc = query_data.get_workload_snapshot_delete_status(
                 tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
             LOG.debug("Snapshot Delete status: " + str(wc))
-            if (str(wc) == "1"):
+            while (str(wc) == "0" and (time.time() - start_time < 60)):
+                wc = query_data.get_workload_snapshot_delete_status(
+                    tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
+                time.sleep(5)
+            if(str(wc) == "1"):
                 reporting.add_test_step("Verification", tvaultconf.PASS)
                 LOG.debug("Workload snapshot successfully deleted")
             else:
+                LOG.debug("Timeout Waiting for snapshot deletion for the workload.")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Snapshot did not get deleted")
 
