@@ -61,6 +61,7 @@ do
         $PYTHON_CMD -c 'from tempest import reporting; reporting.end_report_table()'
     fi
     end=`date +%s`
+    runtime=$( echo "$end - $start" | bc -l)
     hours=$( printf "%02d\n" $(($runtime / 3600)))
     minutes=$( printf "%02d\n" $(( ($runtime % 3600) / 60 )))
     seconds=$( printf "%02d\n" $(( ($runtime % 3600) % 60 )))
