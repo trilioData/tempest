@@ -120,7 +120,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
-            self.wid = query_data.get_workload_id(tvaultconf.workload_name)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             if(self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
@@ -528,10 +528,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             volsnaps_after = self.get_volume_snapshots(volume_id)
             if len(volsnaps_after) == 0:
-                pass
+                reporting.add_test_step("Temp Volume snapshot is deleted ", tvaultconf.PASS)
             else:
                 LOG.debug("Workload reset failed")
-                raise Exception("Workload reset failed")
+                reporting.add_test_step("Temp Volume snapshot not deleted ", tvaultconf.FAIL)
+                raise Exception("Workload reset failed as temp volume snapshot is not deleted")
 
             snapshot_id_1 = self.workload_snapshot(
                 workload_id, True, snapshot_name="Snap2", snapshot_cleanup=True)
@@ -554,7 +555,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Workload reset", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
             else:
-                raise Exception("Workload reset")
+                raise Exception("Workload reset failed")
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
