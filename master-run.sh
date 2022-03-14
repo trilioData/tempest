@@ -20,7 +20,7 @@ mkdir -p logs
 sed -i '/test_results_file = /c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 #PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report_table()'
 
-echo "SUITES,DURATION" >> ${SUITE_D_CSV}
+echo "SUITES,DURATION" > ${SUITE_D_CSV}
 for suite in "${SUITE_LIST[@]}"
 do
     start=`date +%s`
