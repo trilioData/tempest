@@ -20,6 +20,7 @@ mkdir -p logs
 sed -i '/test_results_file = /c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 #PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report_table()'
 
+echo "SUITES,DURATION" >> ${SUITE_D_CSV}
 for suite in "${SUITE_LIST[@]}"
 do
     start=`date +%s`
@@ -70,7 +71,9 @@ done
 
 echo "<br><br>" > ${SUITE_D_HTML}
 echo "<table border=1 align=left>" >> ${SUITE_D_HTML}
-while read INPUT;do echo "<tr><td>${INPUT//,/</td><td>}</td></tr>" >> ${SUITE_D_HTML};done < ${SUITE_D_CSV}
+header=true
+while read INPUT;do if $header; then echo "<tr><th>${INPUT//,/</th><th>}</th></tr>";header=false; \
+        else echo "<tr><td>${INPUT//,/</td><td>}</td></tr>";fi >> suiteDuration.html;done < suiteDuration.csv
 echo "</table>" >> ${SUITE_D_HTML}
 
 $PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report()'
@@ -78,5 +81,3 @@ $PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report()'
 echo "Test results are written in $TEST_RESULTS_FILE"
 sed -i -e '9s/passed_count = [0-9]*/passed_count = 0/' tempest/reporting.py
 sed -i -e '10s/failed_count = [0-9]*/failed_count = 0/' tempest/reporting.py
-
-
