@@ -65,7 +65,7 @@ do
     hours=$( printf "%02d\n" $(($runtime / 3600)))
     minutes=$( printf "%02d\n" $(( ($runtime % 3600) / 60 )))
     seconds=$( printf "%02d\n" $(( ($runtime % 3600) % 60 )))
-    echo "$suite,$hours:$minutes:$seconds" >> ${SUITE_D_CSV}
+    echo "$testname,$hours:$minutes:$seconds" >> ${SUITE_D_CSV}
 done
 
 echo "<br><br>" > ${SUITE_D_HTML}
