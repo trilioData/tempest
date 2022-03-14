@@ -965,6 +965,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
+            self.wait_for_workload_tobe_available(self.wid)
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
             rest_details['instances'] = {self.vm_id: self.volumes}

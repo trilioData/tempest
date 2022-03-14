@@ -68,7 +68,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Execute workload_create command by backup role",
                     tvaultconf.PASS)
                 time.sleep(10)
-                self.wid1 = query_data.get_workload_id(
+                self.wid1 = query_data.get_workload_id_in_creation(
                     tvaultconf.workload_name)
                 workload_available = self.wait_for_workload_tobe_available(
                     self.wid1)
