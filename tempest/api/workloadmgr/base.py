@@ -2763,7 +2763,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("In VDC List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             buildCommand = "sudo su - root -c 'find "  + file_path_to_search + " -name " + file_name + "'"
             LOG.debug("build command to search file is :" + str(buildCommand))
-            stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
+            stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=300)
             output = stdout.read()
             LOG.debug(output)
             return(bytes(output))

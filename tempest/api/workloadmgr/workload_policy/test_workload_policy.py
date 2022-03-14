@@ -318,7 +318,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(workload_id))
             if(workload_id != ""):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -446,7 +446,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(workload_id))
             if(workload_id != ""):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -573,7 +573,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Workload policy with scheduler and retension parameter
     @decorators.attr(type='workloadmgr_cli')
     def test_7_policywith_scheduler_retension(self):
-        reporting.add_test_script(str(__name__) + "with_scheduler_retention")
+        reporting.add_test_script(str(__name__) + "_with_scheduler_retention")
         try:
             global vm_id
             global volume_id
@@ -597,7 +597,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
-            self.workload_id = query_data.get_workload_id(
+            self.workload_id = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(self.workload_id))
             if self.workload_id is not None:

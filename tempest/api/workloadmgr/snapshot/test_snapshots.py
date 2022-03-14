@@ -70,6 +70,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
+            time.sleep(5)
             snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
             LOG.debug("Snapshot ID: " + str(snapshot_id))
 
@@ -118,6 +119,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-snapshot command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
+            time.sleep(5)
             self.incr_snapshot_id = query_data.get_inprogress_snapshot_id(
                 workload_id)
             LOG.debug("Incremental Snapshot ID: " + str(self.incr_snapshot_id))
