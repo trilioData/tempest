@@ -70,7 +70,7 @@ do
 done
 
 echo "<br><br>" > ${SUITE_D_HTML}
-echo "<table border=1 align=left>" >> ${SUITE_D_HTML}
+echo "<table border>" >> ${SUITE_D_HTML}
 header=true
 while read INPUT;do if $header; then echo "<tr><th>${INPUT//,/</th><th>}</th></tr>";header=false; \
         else echo "<tr><td>${INPUT//,/</td><td>}</td></tr>";fi >> suiteDuration.html;done < suiteDuration.csv
