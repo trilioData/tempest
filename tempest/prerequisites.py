@@ -956,7 +956,7 @@ def create_instances_workload_snapshots(self, floating_ip_image, floating_ip_vol
     # Volume booted instance
     # Create volume, Launch instance, Attach volume to the instances and Assign Floating IP's
     # Partitioning and  formatting and mounting the attached disks
-    vm_name = "Test_Tempest_voloume_Vm1"
+    vm_name = "Test_Tempest_volume_Vm1"
     self.volumes_ids.append(
         self.create_volume(
         size=tvaultconf.bootfromvol_vol_size,
