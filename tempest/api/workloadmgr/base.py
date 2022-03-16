@@ -2111,6 +2111,45 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return is_successful
 
     '''
+    Method to verify mount snapshot and return the status
+    '''
+
+    def verify_snapshot_mount(
+        self,
+        floating_ip,
+        fvm_image):
+        is_successful = False
+        fvm_ssh_user = ""
+        if "centos" in fvm_image:
+            fvm_ssh_user = "centos"
+        elif "ubuntu" in fvm_image:
+            fvm_ssh_user = "ubuntu"
+        LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
+        ssh = self.SshRemoteMachineConnectionWithRSAKey(
+            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+        output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
+        ssh.close()
+        flag = 0
+        for i in output_list:
+            if 'vdb1.mnt' in i:
+                LOG.debug(
+                    "connect to fvm and check mountpoint is mounted on FVM instance")
+                flag = 1
+                if 'File_1' in i:
+                    LOG.debug("file exists on mounted snapshot")
+                    is_successful = True
+                else:
+                    LOG.debug("file does not exist on FVM instance")
+                    # raise Exception("file does not found on FVM instance")
+            else:
+                pass
+        if flag == 0:
+            LOG.debug(
+                "mount snapshot is unsuccessful on FVM")
+            LOG.debug("file does not found on FVM instance")
+        return is_successful, flag
+
+    '''
     Method to unmount snapshot and return the status
     '''
 
@@ -2130,6 +2169,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error('Snapshot unmount failed: %s' % snapshot_id)
             return False
+
+    '''
+    Method to verify unmount snapshot and return the status
+    '''
+
+    def verify_snapshot_unmount(
+            self,
+            floating_ip,
+            fvm_image):
+        is_successful = False
+        fvm_ssh_user = ""
+        if "centos" in fvm_image:
+            fvm_ssh_user = "centos"
+        elif "ubuntu" in fvm_image:
+            fvm_ssh_user = "ubuntu"
+        LOG.debug("validate that snapshot is unmounted from FVM")
+        ssh = self.SshRemoteMachineConnectionWithRSAKey(
+            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+        output_list = self.validate_snapshot_mount(ssh)
+        ssh.close()
+
+        if output_list == b'':
+            LOG.debug("Unmounting successful")
+            is_successful = True
+        else:
+            LOG.debug("Unmounting unsuccessful")
+            # raise Exception("Unmounting of a snapshot failed")
+        return is_successful
 
     '''
     Method to add newadmin role and newadmin_api rule to 
