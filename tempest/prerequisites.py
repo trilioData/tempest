@@ -1107,7 +1107,7 @@ def snapshot_mount(self):
             self.set_floating_ip(floating_ips_list[num], fvm_id)
             num = num + 1
 
-        # create_instances_workload_snapshots(self, floating_ips_list[num], floating_ips_list[num + 1])
+        create_instances_workload_snapshots(self, floating_ips_list[num], floating_ips_list[num + 1])
 
     except Exception as err:
         self.exception = err
