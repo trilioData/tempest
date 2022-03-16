@@ -7,6 +7,9 @@ TEST_RESULTS_FILE="$BASE_DIR/test_results"
 SUITE_LIST=("tempest.api.workloadmgr.sanity")
 REPORT_DIR="$BASE_DIR/Report"
 
+SUITE_D_CSV="suiteDuration.csv"
+SUITE_D_HTML="suiteDuration.html"
+
 #Clean old files
 rm -f $TEST_LIST_FILE
 rm -f $TEST_RESULTS_FILE
@@ -17,8 +20,10 @@ mkdir -p logs
 sed -i '/test_results_file = /c test_results_file="'$REPORT_DIR'/results.html"' tempest/reporting.py
 #PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report_table()'
 
+echo "SUITES,DURATION" > ${SUITE_D_CSV}
 for suite in "${SUITE_LIST[@]}"
 do
+    start=`date +%s`
     testname=$(echo $suite| cut -d'.' -f 4)
     $PYTHON_CMD -c "from tempest import reporting; reporting.setup_report('$testname')"
     touch $TEST_LIST_FILE
@@ -56,11 +61,23 @@ do
         done < "$TEST_LIST_FILE"
         $PYTHON_CMD -c 'from tempest import reporting; reporting.end_report_table()'
     fi
+    end=`date +%s`
+    runtime=$( expr $end - $start)
+    hours=$( printf "%02d\n" $(($runtime / 3600)))
+    minutes=$( printf "%02d\n" $(( ($runtime % 3600) / 60 )))
+    seconds=$( printf "%02d\n" $(( ($runtime % 3600) % 60 )))
+    echo "$testname,$hours:$minutes:$seconds" >> ${SUITE_D_CSV}
 done
+
+echo "<br><br>" > ${SUITE_D_HTML}
+echo "<table border=1 align=left>" >> ${SUITE_D_HTML}
+header=true
+while read INPUT;do if $header; then echo "<tr><th>${INPUT//,/</th><th>}</th></tr>";header=false; \
+        else echo "<tr><td>${INPUT//,/</td><td>}</td></tr>";fi >> suiteDuration.html;done < suiteDuration.csv
+echo "</table>" >> ${SUITE_D_HTML}
+
 $PYTHON_CMD -c 'from tempest import reporting; reporting.consolidate_report()'
 
 echo "Test results are written in $TEST_RESULTS_FILE"
 sed -i -e '9s/passed_count = [0-9]*/passed_count = 0/' tempest/reporting.py
 sed -i -e '10s/failed_count = [0-9]*/failed_count = 0/' tempest/reporting.py
-
-
