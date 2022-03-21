@@ -666,7 +666,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
-            self.workload_id2 = query_data.get_workload_id(
+            self.workload_id2 = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Workload2 ID: " + str(self.workload_id2))
             if(self.workload_id2 is not None):

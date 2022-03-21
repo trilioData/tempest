@@ -172,7 +172,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload-create command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
