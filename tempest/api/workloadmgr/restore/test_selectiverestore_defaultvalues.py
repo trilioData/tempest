@@ -94,6 +94,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.md5sums_dir_before = {}
             md5sum_before_restore_list = []
             for floating_ip in self.floating_ips_list:
+                self.md5sums_dir_before[str(floating_ip)] = {}
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))

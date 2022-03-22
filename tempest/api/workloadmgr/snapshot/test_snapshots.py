@@ -217,7 +217,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_workload_snapshot_delete_status(
                 tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
             LOG.debug("Snapshot Delete status: " + str(wc))
-            while (str(wc) == "0" and (time.time() - start_time < 60)):
+            while (str(wc) == "0" and (time.time() - start_time < 600)):
                 wc = query_data.get_workload_snapshot_delete_status(
                     tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
                 time.sleep(5)
