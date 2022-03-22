@@ -200,6 +200,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             incr_snapshot_id = self.create_snapshot(workload_id, is_full=False)
 
+            # Post snapshot, we need to wait on workload to be available on some setups
+            self.wait_for_workload_tobe_available(workload_id)
+            if (self.getWorkloadStatus(workload_id) == "available"):
+                LOG.debug("Workload available status: ", tvaultconf.PASS)
+            else:
+                LOG.debug("Workload available status: ", tvaultconf.FAIL)
+
             ### Selective restore ###
 
             rest_details = {}

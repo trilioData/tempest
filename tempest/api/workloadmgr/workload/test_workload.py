@@ -525,8 +525,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 volsnaps_before))
             self.workload_reset(workload_id)
 
+            start_time = time.time()
             time.sleep(10)
             volsnaps_after = self.get_volume_snapshots(volume_id)
+            while (len(volsnaps_after) != 0 and (time.time() - start_time < 600)):
+                volsnaps_after = self.get_volume_snapshots(volume_id)
+                time.sleep(5)
             if len(volsnaps_after) == 0:
                 reporting.add_test_step("Temp Volume snapshot is deleted ", tvaultconf.PASS)
             else:
