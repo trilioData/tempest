@@ -549,21 +549,25 @@ function configure_tempest
                 res=${IMAGE_NAME#*$search_pattern}
                 pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
                 TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=10
                 ;;
         *"centos"*)
                 search_pattern="centos"
                 res=${IMAGE_NAME#*$search_pattern}
                 pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
                 TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=10
                 ;;
         *"cirros"*)
                 search_pattern="cirros"
                 res=${IMAGE_NAME#*$search_pattern}
                 pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
                 TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=4
                 ;;
         *)
                 TEST_USER_NAME="ubuntu"
+		BOOTVOL_SIZE=10
                 ;;
     esac
 
@@ -574,6 +578,7 @@ function configure_tempest
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'$TEST_USER_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/bootfromvol_vol_size = /c bootfromvol_vol_size = '$BOOTVOL_SIZE'' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
