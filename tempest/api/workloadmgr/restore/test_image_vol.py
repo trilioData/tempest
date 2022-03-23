@@ -166,7 +166,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload-create command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -199,6 +199,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ### Incremental snapshot ###
 
             incr_snapshot_id = self.create_snapshot(workload_id, is_full=False)
+
+            # Post snapshot, we need to wait on workload to be available on some setups
+            self.wait_for_workload_tobe_available(workload_id)
+            if (self.getWorkloadStatus(workload_id) == "available"):
+                LOG.debug("Workload available status: ", tvaultconf.PASS)
+                reporting.add_test_step(
+                    "Workload available status: ", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+            else:
+                LOG.debug("Workload available status: ", tvaultconf.FAIL)
+                reporting.add_test_step(
+                    "Workload available status: ", tvaultconf.FAIL)
+                raise Exception("Workload is not in available state after incremental snapshot")
 
             ### Selective restore ###
 

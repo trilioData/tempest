@@ -39,6 +39,22 @@ def get_workload_id(workload_name):
         conn.close()
 
 
+def get_workload_id_in_creation(workload_name):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_id = ("select id from workloads where display_name='" +
+                           workload_name + "' order by created_at desc limit 1")
+        cursor.execute(get_workload_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
 def get_deleted_workload(workload_id):
     try:
         conn = db_handler.dbHandler()
