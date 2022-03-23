@@ -592,7 +592,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Compare rules for restored/instance attached security groups
             for t in range(0, len(sec_groups)):
-                restored_secgrp = "snap_of_{}{}".format(secgrp_names, t + 1)
+                restored_secgrp = secgrp_names + str(t + 1)
                 LOG.debug(
                     "Verify security group rules for restored security group {}".format(
                         restored_secgrp
