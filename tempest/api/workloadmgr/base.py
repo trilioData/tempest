@@ -1387,14 +1387,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "pwd"]
 
             for command in commands:
-                LOG.debug("Executing: " + str(command))
-                self.channel.send(command + "\n")
-                time.sleep(3)
-                while not self.channel.recv_ready():
-                    time.sleep(2)
-
-                output = self.channel.recv(9999)
-                LOG.debug(str(output))
+                LOG.debug("Executing disk mount: " + str(command))
+                stdin, stdout, stderr = ssh.exec_command(command)
+                time.sleep(5)
+                while not stdout.channel.exit_status_ready():
+                    time.sleep(3)
+                LOG.debug("disk mount command output:  " + str(stdout.readlines()))
+                LOG.debug("disk mount command error:  " + str(stderr.readlines()))
                 time.sleep(2)
 
     '''
@@ -2840,10 +2839,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDB List files output: %s ; list files error: %s", stdout.read(), stderr.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdc*'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDC List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             buildCommand = "sudo su - root -c 'find " + file_path_to_search + " -name " + file_name + "'"
