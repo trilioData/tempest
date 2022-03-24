@@ -202,15 +202,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Post snapshot, we need to wait on workload to be available on some setups
             self.wait_for_workload_tobe_available(workload_id)
-            if (self.getWorkloadStatus(workload_id) == "available"):
-                LOG.debug("Workload available status: ", tvaultconf.PASS)
+            workload_status = self.getWorkloadStatus(workload_id)
+            if (workload_status == "available"):
+                LOG.debug("Workload available status: %s ", workload_status)
                 reporting.add_test_step(
-                    "Workload available status: ", tvaultconf.PASS)
+                    "Workload available status ", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
             else:
-                LOG.debug("Workload available status: ", tvaultconf.FAIL)
+                LOG.debug("Workload available status: %s ", workload_status)
                 reporting.add_test_step(
-                    "Workload available status: ", tvaultconf.FAIL)
+                    "Workload available status ", tvaultconf.FAIL)
                 raise Exception("Workload is not in available state after incremental snapshot")
 
             ### Selective restore ###

@@ -44,7 +44,7 @@ def get_workload_id_in_creation(workload_name):
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
         get_workload_id = ("select id from workloads where display_name='" +
-                           workload_name + "' order by created_at desc limit 1")
+                           workload_name + "' and status <> 'deleted' order by created_at desc limit 1")
         cursor.execute(get_workload_id)
         rows = cursor.fetchall()
         for row in rows:
