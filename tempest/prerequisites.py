@@ -1220,7 +1220,7 @@ def network_topology(self):
 
         self.vms_ids = [x[1] for x in self.vms]
         self.workload_id = self.workload_create(
-            self.vms_ids, tvaultconf.parallel, workload_cleanup=True)
+            self.vms_ids, tvaultconf.parallel, workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.workload_id))
         if(self.workload_id is not None):
             self.wait_for_workload_tobe_available(self.workload_id)
@@ -1232,7 +1232,7 @@ def network_topology(self):
             raise Exception("Workload creation failed")
 
         self.snapshot_id = self.workload_snapshot(
-                self.workload_id, True, snapshot_cleanup=True)
+                self.workload_id, True, snapshot_cleanup=False)
         self.snapshot_ids.append(self.snapshot_id)
         time.sleep(5)
         self.wait_for_workload_tobe_available(self.workload_id)
@@ -1267,7 +1267,7 @@ def network_topology(self):
                 self.get_topology_details()
 
         self.incr_snapshot_id = self.workload_snapshot(
-            self.workload_id, False, snapshot_cleanup=True)
+            self.workload_id, False, snapshot_cleanup=False)
         self.snapshot_ids.append(self.incr_snapshot_id)
         time.sleep(5)
         self.wait_for_workload_tobe_available(self.workload_id)
