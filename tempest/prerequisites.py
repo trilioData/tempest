@@ -1194,3 +1194,97 @@ def snapshot_mount_bootfromvol(self):
     except Exception as err:
         self.exception = err
         LOG.error("Exception" + str(self.exception))
+
+def network_topology(self):
+    try:
+        self.exception = ""
+        self.delete_network_topology()
+        self.vms = []
+        self.snapshot_ids = []
+        ntwrks = self.create_network()
+        for network in ntwrks:
+            if network['name'] in ['Private-1', 'Private-2', 'Private-5']:
+                vm_name = "instance-{}".format(network['name'])
+                vmid = self.create_vm(vm_name=vm_name, networkid=[
+                                      {'uuid': network['id']}], vm_cleanup=True)
+                self.vms.append((vm_name, vmid))
+            elif network['name'] == 'Private-ipv6':
+                ipv6_network_id = network['id']
+        LOG.debug("Launched vms : {}".format(self.vms))
+        self.attach_interface_to_instance(self.vms[0][1], ipv6_network_id)
+
+        nws = [x['id'] for x in ntwrks]
+
+        self.nt_bf, self.sbnt_bf, self.rt_bf, self.intf_bf = \
+                self.get_topology_details()
+
+        self.vms_ids = [x[1] for x in self.vms]
+        self.workload_id = self.workload_create(
+            self.vms_ids, tvaultconf.parallel, workload_cleanup=True)
+        LOG.debug("Workload ID: " + str(self.workload_id))
+        if(self.workload_id is not None):
+            self.wait_for_workload_tobe_available(self.workload_id)
+            if(self.getWorkloadStatus(self.workload_id) == "available"):
+                LOG.debug("Create workload successful")
+            else:
+                raise Exception("Workload creation failed")
+        else:
+            raise Exception("Workload creation failed")
+
+        self.snapshot_id = self.workload_snapshot(
+                self.workload_id, True, snapshot_cleanup=True)
+        self.snapshot_ids.append(self.snapshot_id)
+        time.sleep(5)
+        self.wait_for_workload_tobe_available(self.workload_id)
+        if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == \
+                "available"):
+            LOG.debug("Full snapshot available!!")
+        else:
+            raise Exception("Full snapshot creation failed")
+
+        self.instance_details = []
+        for vm in self.vms:
+            temp_instance_data = {'id': vm[1],
+                                  'include': True,
+                                  'restore_boot_disk': True,
+                                  'name': vm[0] + "restored_instance",
+                                  'availability_zone': CONF.compute.vm_availability_zone,
+                                  'vdisks': []
+                                  }
+            self.instance_details.append(temp_instance_data)
+        LOG.debug("Instance details for restore: " + str(self.instance_details))
+
+        self.vm_details_bf = {}
+        for vm in self.vms:
+            self.vm_details_bf[vm[0]] = self.get_vm_details(vm[1])['server']
+        LOG.debug(f"vm_details_bf: {self.vm_details_bf}")
+
+        #Add ipv6 interface to all the vms and take incremental snapshot
+        for vm in self.vms:
+            self.attach_interface_to_instance(vm[1], ipv6_network_id)
+
+        self.nt_bf_1, self.sbnt_bf_1, self.rt_bf_1, self.intf_bf_1 = \
+                self.get_topology_details()
+
+        self.incr_snapshot_id = self.workload_snapshot(
+            self.workload_id, False, snapshot_cleanup=True)
+        self.snapshot_ids.append(self.incr_snapshot_id)
+        time.sleep(5)
+        self.wait_for_workload_tobe_available(self.workload_id)
+        if(self.getSnapshotStatus(self.workload_id, self.incr_snapshot_id) ==\
+                "available"):
+                LOG.debug("Incremental snapshot available!!")
+        else:
+            raise Exception("Incremental snapshot creation failed")
+
+        self.vm_details_bf_1 = {}
+        for vm in self.vms:
+            self.vm_details_bf_1[vm[0]] = self.get_vm_details(vm[1])['server']
+            self.delete_vm(vm[1])
+        LOG.debug(f"vm_details_bf_1: {self.vm_details_bf_1}")
+
+        self.delete_network_topology()
+    except Exception as err:
+        self.exception = err
+        LOG.error("Exception" + str(self.exception))
+
