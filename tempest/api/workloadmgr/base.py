@@ -35,6 +35,7 @@ from tempest import tvaultconf
 from tempest import command_argument_string
 from tempest.util import cli_parser
 from tempest.util import query_data
+from tempest import reporting
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -3619,4 +3620,106 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception in install_qemu: " + str(e))
 
+    '''
+    verify network components post restore
+    '''
+
+    def verify_network_restore(self, nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf, 
+            rt_af, vm_details_bf, vm_details_af, test_type):
+        try:
+            if nt_bf == nt_af:
+                reporting.add_test_step(
+                    "Verify network details after network restore",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify network details after network restore",
+                    tvaultconf.FAIL)
+                LOG.error(
+                    "Network details before and after restore: {0}, {1}".format(
+                        nt_bf, nt_af))
+
+            if sbnt_bf == sbnt_af:
+                reporting.add_test_step(
+                    "Verify subnet details after network restore",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify subnet details after network restore",
+                    tvaultconf.FAIL)
+                LOG.error(
+                    "Subnet details before and after restore: {0}, {1}".format(
+                        sbnt_bf, sbnt_af))
+
+            if rt_bf == rt_af:
+                reporting.add_test_step(
+                    "Verify router details after network restore",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify router details after network restore",
+                    tvaultconf.FAIL)
+                LOG.error(
+                    "Router details before and after restore: {0}, {1}".format(
+                        rt_bf, rt_af))
+
+            if test_type.lower() == 'cli':
+                if not vm_details_af:
+                    reporting.add_test_step("Instances not restored",
+                        tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Instances are restored",
+                        tvaultconf.FAIL)
+            else:
+                klist = sorted([*vm_details_bf])
+                vm_details_bf_sorted = {}
+                vm_details_af_sorted = {}
+
+                for vm in klist:
+                    netname = [*vm_details_bf[vm]['addresses']]
+                    for net in netname:
+                        for i in range((len(vm_details_bf[vm]['addresses'][net]))):
+                            vm_details_bf[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                            vm_details_af[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                    vm_details_bf[vm]['links'][1]['href'] = ''
+                    vm_details_af[vm]['links'][1]['href'] = ''
+                    if 'config_drive' in vm_details_af[vm]['metadata']:
+                        del vm_details_af[vm]['metadata']['config_drive']
+                    if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
+                        del vm_details_af[vm]['metadata']['ordered_interfaces']
+                    vm_details_bf[vm]['links'] = ''
+                    vm_details_af[vm]['links'] = ''
+                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:host'] = ''
+                    vm_details_af[vm]['OS-EXT-SRV-ATTR:host'] = ''
+                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
+                    vm_details_af[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
+                    vm_details_bf[vm]['hostId'] = ''
+                    vm_details_af[vm]['hostId'] = ''
+                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
+                    vm_details_af[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
+                    vm_details_bf[vm]['updated'] = ''
+                    vm_details_af[vm]['updated'] = ''
+                    vm_details_bf[vm]['created'] = ''
+                    vm_details_af[vm]['created'] = ''
+                    vm_details_bf[vm]['id'] = ''
+                    vm_details_af[vm]['id'] = ''
+                    vm_details_bf[vm]['OS-SRV-USG:launched_at'] = ''
+                    vm_details_af[vm]['OS-SRV-USG:launched_at'] = ''
+                    vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
+                        'restored_instance', '')
+                    vm_details_bf_sorted[vm]=vm_details_bf[vm]
+                    vm_details_af_sorted[vm]=vm_details_af[vm]
+
+                if vm_details_bf_sorted == vm_details_af_sorted:
+                    reporting.add_test_step(
+                        "Verify instance details after restore", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Verify instance details after restore", tvaultconf.FAIL)
+                    LOG.error(
+                        "Instance details before and after restore: {0}, {1}".format(
+                            vm_details_bf, vm_details_af))
+
+        except Exception as e:
+            LOG.debug("Exception in verify_network_restore: " + str(e))
 

@@ -74,6 +74,8 @@ def pre_req(arg1):
                 prerequisites.snapshot_mount(args[0])
             elif (arg1['type'] == 'snapshot_mount_bootfromvol') and (tvaultconf.pre_req==True):
                 prerequisites.snapshot_mount_bootfromvol(args[0])
+            elif (arg1['type'] == 'network_topology') and (tvaultconf.pre_req==True):
+                prerequisites.network_topology(args[0])
             elif tvaultconf.pre_req==False:
                 LOG.debug("Pre requisite configuration is False, taking parameters from test data files.")
                 prerequisites.load_prerequisites_data(args[0],arg1['type'])
