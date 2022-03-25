@@ -411,7 +411,7 @@ function configure_tempest
           0)
               echo "Found no routers to use! Creating new router\n"
               $OPENSTACK_CMD router create --enable --project $test_project_id test_router
-              router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
+              router_id=`($OPENSTACK_CMD router list --project $test_project_id | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
               $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
               $OPENSTACK_CMD router add subnet $router_id $subnet_id
               ;;
@@ -457,7 +457,7 @@ function configure_tempest
         0)
             echo "Found no internal networks to use! Creating new internal network\n"
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
-            network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
+            network_id=`($OPENSTACK_CMD network list --project $test_project_id | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
             network_id_alt=$network_id
             $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
             ASSIGN_ROUTER $network_id
