@@ -193,6 +193,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5_sum_after_selective_restore = {}
             md5sum_after_restore_list = []
             for floating_ip in self.restored_vm_floating_ips:
+                self.md5_sum_after_selective_restore[str(floating_ip)] = {}
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
