@@ -3687,24 +3687,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         del vm_details_af[vm]['metadata']['config_drive']
                     if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['ordered_interfaces']
-                    vm_details_bf[vm]['links'] = ''
-                    vm_details_af[vm]['links'] = ''
-                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:host'] = ''
-                    vm_details_af[vm]['OS-EXT-SRV-ATTR:host'] = ''
-                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
-                    vm_details_af[vm]['OS-EXT-SRV-ATTR:hypervisor_hostname'] = ''
-                    vm_details_bf[vm]['hostId'] = ''
-                    vm_details_af[vm]['hostId'] = ''
-                    vm_details_bf[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
-                    vm_details_af[vm]['OS-EXT-SRV-ATTR:instance_name'] = ''
-                    vm_details_bf[vm]['updated'] = ''
-                    vm_details_af[vm]['updated'] = ''
-                    vm_details_bf[vm]['created'] = ''
-                    vm_details_af[vm]['created'] = ''
-                    vm_details_bf[vm]['id'] = ''
-                    vm_details_af[vm]['id'] = ''
-                    vm_details_bf[vm]['OS-SRV-USG:launched_at'] = ''
-                    vm_details_af[vm]['OS-SRV-USG:launched_at'] = ''
+                    attributes = ['links', 'OS-EXT-SRV-ATTR:host', 
+                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId', 
+                            'OS-EXT-SRV-ATTR:instance_name', 'updated',
+                            'created', 'id', 'OS-SRV-USG:launched_at']
+                    for attr in attributes:
+                        vm_details_bf[vm][attr] = ''
+                        vm_details_af[vm][attr] = ''
                     vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
                         'restored_instance', '')
                     vm_details_bf_sorted[vm]=vm_details_bf[vm]
