@@ -348,8 +348,10 @@ def get_snapshot_restore_id(snapshot_id):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
+        #get_snapshot_restore_id = ("select id from restores where snapshot_id='" +
+        #                           snapshot_id + "' order by deleted_at asc limit 1")
         get_snapshot_restore_id = ("select id from restores where snapshot_id='" +
-                                   snapshot_id + "' order by deleted_at asc limit 1")
+                                   snapshot_id + "' order by created_at desc limit 1")
         cursor.execute(get_snapshot_restore_id)
         rows = cursor.fetchall()
         for row in rows:
