@@ -11,8 +11,8 @@ def cli_returncode(argument_string):
 
 def cli_output(argument_string):
     p = subprocess.Popen(argument_string, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
-    out = str(p.communicate()[0])
     p.wait()
+    out = str(p.communicate()[0])
     return out
 
 
