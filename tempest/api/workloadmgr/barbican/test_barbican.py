@@ -2341,7 +2341,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='workloadmgr_api')
+    @decorators.attr(type='workloadmgr_cli')
     def test_6_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_"
@@ -2351,19 +2351,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
-            self.volumes = []
-            fip = self.get_floating_ips()
-            LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
-            if len(fip) < 1:
-                raise Exception("Floating ips unavailable")
-            self.set_floating_ip(fip[0], self.vm_id)
-
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            self.install_qemu(ssh)
-            self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
-            LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
-            ssh.close()
 
             self.secret_uuid = self.create_secret()
 
