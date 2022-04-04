@@ -393,6 +393,17 @@ function configure_tempest
     sed -i "2i export OS_PROJECT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
 
     # network
+    ASSIGN_SUBNET () {
+      subnet_id=`($OPENSTACK_CMD subnet list --network $1 | awk '$2 && $2 != "ID" {print $2}')`
+      echo "subnet_id: "$subnet_id
+      if [[ $subnet_id == "" ]]; then
+         echo "Internal subnet not available, creating new subnet"
+         $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 18.18.1.0/24 --dhcp --ip-version 4 --network $1 test_internal_subnet
+      else
+         echo "Internal subnet available"
+      fi
+    }
+
     ASSIGN_ROUTER () {
       subnet_id=`($OPENSTACK_CMD subnet list | grep $1 | awk '$2 && $2 != "ID" {print $2}')`
       
@@ -459,7 +470,7 @@ function configure_tempest
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
             network_id=`($OPENSTACK_CMD network list --project $test_project_id | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
             network_id_alt=$network_id
-            $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
+	    ASSIGN_SUBNET $network_id
             ASSIGN_ROUTER $network_id
             ;;
         1)
@@ -468,12 +479,15 @@ function configure_tempest
                 network_id=${networks[0]}
                 network_id_alt=${networks[0]}
             fi
+	    ASSIGN_SUBNET $network_id
             ASSIGN_ROUTER $network_id
             ;;
         *)
             echo "Found multiple internal networks to use!\n"
             network_id=${networks[*]:0:1}
             network_id_alt=${networks[*]:1:1}
+	    ASSIGN_SUBNET $network_id
+	    ASSIGN_SUBNET $network_id_alt
             ASSIGN_ROUTER $network_id
             ASSIGN_ROUTER $network_id_alt
             ;;
