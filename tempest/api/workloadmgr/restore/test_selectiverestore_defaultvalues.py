@@ -118,7 +118,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if(self.getRestoreStatus(self.workload_id, self.snapshot_id, self.restore_id) == "available"):
                 reporting.add_test_step("Selective restore", tvaultconf.PASS)
             else:
-                restore_error = self.getRestoreDetails(self.restore_id)['restore']['error_msg']
+                restore_error = self.getRestoreDetails(self.restore_id)['error_msg']
                 error_msg = f"Selective restore failed with error {restore_error}"
                 reporting.add_test_step(error_msg, tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
@@ -193,6 +193,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5_sum_after_selective_restore = {}
             md5sum_after_restore_list = []
             for floating_ip in self.restored_vm_floating_ips:
+                md5_sum_after_selective_restore[str(floating_ip)] = {}
                 for mount_point in mount_points:
                     ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         str(floating_ip))
