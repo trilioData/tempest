@@ -6,6 +6,7 @@ from oslo_log import log as logging
 
 from tempest import config
 from tempest import reporting
+from tempest import tvaultconf
 from tempest.api.workloadmgr import base
 from tempest.lib import decorators
 
@@ -24,13 +25,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_image_restore(self):
+    def test_glanceimage_restore(self):
         try:
             reporting.add_test_script(str(__name__))
             self.image_id = self.create_image()
             LOG.debug(f"Image ID: {self.image_id}")
+            if not self.image_id:
+                raise Exception("Image not created")
             self.kp = self.create_key_pair()
+            self.flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                    20, 2, 2048, 0, 1)
+            self.original_flavor_conf = self.get_flavor_details(self.flavor_id)
             self.vm_id = self.create_vm(image_id=self.image_id,
+                                flavor_id=self.flavor_id,
                                 key_pair=self.kp)
             LOG.debug(f"VM ID: {self.vm_id}")
             self.volumes = []
