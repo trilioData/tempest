@@ -22,6 +22,8 @@ import requests
 import re
 import collections
 import base64
+import shutil
+import hashlib
 
 from oslo_log import log as logging
 from tempest import config
@@ -64,7 +66,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.snapshots_extensions_client = cls.os_primary.snapshots_extensions_client
         cls.ports_client = cls.os_primary.ports_client
         cls.networks_client = cls.os_primary.networks_client
-
+        cls.images_client = cls.os_primary.image_client_v2
         cls.volumes_client = cls.os_primary.volumes_v3_client
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
@@ -1552,8 +1554,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create key pair
     '''
 
-    def create_key_pair(self, keypair_name, keypair_cleanup=True):
-        foorprint = ""
+    def create_key_pair(self, keypair_name=tvaultconf.key_pair_name, 
+                        keypair_cleanup=True):
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
         for key in key_pairs:
@@ -1616,7 +1618,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def get_key_pair_details(self, keypair_name):
-        foorprint = ""
         key_pairs_list_response = self.keypairs_client.show_keypair(
             keypair_name)
         fingerprint = key_pairs_list_response['keypair']['fingerprint']
@@ -3722,4 +3723,107 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         except Exception as e:
             LOG.debug("Exception in verify_network_restore: " + str(e))
+
+    '''
+    download test image
+    '''
+
+    def download_image(self,
+            url=tvaultconf.image_url,
+            filename=tvaultconf.image_filename):
+        try:
+            f = open(filename,'wb')
+            f.write(requests.get(url+"/"+filename).content)
+            f.close()
+            return True
+        except Exception as e:
+            LOG.debug("Exception in download_image: " + str(e))
+            return False
+
+    '''
+    Store image file on glance
+    '''
+
+    def upload_image_data(self, image_id, filename=tvaultconf.image_filename):
+        try:
+            upload_file = self.images_client.store_image_file(
+                            image_id, io.open(filename,'rb'))
+            LOG.debug(f"upload_file response: {upload_file}")
+            return True
+        except Exception as e:
+            LOG.debug("Exception in upload_image_data: " + str(e))
+            return False
+
+    '''
+    update image properties
+    '''
+
+    def update_image(self, image_id, properties=tvaultconf.image_properties):
+        try:
+            payload = []
+            for k,v in properties.items():
+                temp = {"op": "add",
+                        "path": "/"+str(k),
+                        "value": v}
+                payload.append(temp)
+            self.images_client.update_image(image_id, payload)
+            return True
+        except Exception as e:
+            LOG.debug("Exception in update_image: " + str(e))
+            return False
+
+    '''
+    Create glance image
+    '''
+
+    def create_image(self,
+            image_name="tempest-test-image",
+            image_cleanup=True):
+        try:
+            if self.download_image():
+                image = self.images_client.create_image(
+                            disk_format='qcow2',
+                            container_format='bare',
+                            name=image_name,
+                            visibility='public')
+                image_id = image['id']
+                if (tvaultconf.cleanup and image_cleanup):
+                    self.addCleanup(self.delete_image, image_id)
+                if self.upload_image_data(image_id):
+                    LOG.debug("Image data uploaded")
+                else:
+                    raise Exception("Image data not uploaded")
+                if self.update_image(image_id):
+                    LOG.debug("Image properties updated")
+                else:
+                    raise Exception("Image properties not updated")
+                return image_id
+            else:
+                raise Exception("Image not created in glance")
+        except Exception as e:
+            LOG.debug("Exception in create_image: " + str(e))
+            return None
+
+    '''
+    Delete glance image
+    '''
+
+    def delete_image(self, image_id):
+        try:
+            image = self.images_client.delete_image(image_id)
+            LOG.debug(f"Delete_image response: {image}")
+        except Exception as e:
+            LOG.debug("Exception in delete_image: " + str(e))
+
+    '''
+    Reboot instance
+    '''
+
+    def reboot_instance(self, vm_id):
+        try:
+            self.servers_client.reboot_server(vm_id)
+            time.sleep(60)
+        except Exception as e:
+            LOG.debug("Exception in reboot_instance: " + str(e))
+
 
