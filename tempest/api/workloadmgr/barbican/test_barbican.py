@@ -2356,7 +2356,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --insecure --instance instance-id=" + str(self.vm_id) + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
@@ -2380,7 +2380,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 # Show workload details using CLI command
                 rc = cli_parser.cli_returncode(
-                command_argument_string.workload_show + self.wid1 + " --insecure")
+                command_argument_string.workload_show + self.wid1)
                 if rc != 0:
                     reporting.add_test_step("Execute workload-show command", tvaultconf.FAIL)
                     # raise Exception("Command did not execute correctly : " + str(rc))
@@ -2390,7 +2390,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Command executed correctly : " + str(rc))
 
                 out = cli_parser.cli_output(
-                    command_argument_string.workload_show + self.wid1 + " --insecure")
+                    command_argument_string.workload_show + self.wid1)
                 LOG.debug("Response from CLI: " + str(out))
 
                 if (cli_parser.cli_response_parser(out, 'encryption') == "True" and cli_parser.cli_response_parser(out, 'id') == self.wid1):
@@ -2405,7 +2405,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI with no sceret uuid
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --insecure --instance instance-id=" + str(self.vm_id)
+                                              " --instance instance-id=" + str(self.vm_id)
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful for no secret")
@@ -2443,7 +2443,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --insecure --instance instance-id=" + str(self.vm_id) + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + "invalid"
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
