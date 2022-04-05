@@ -5,15 +5,15 @@ import time
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
-#from tempest import command_argument_string
-#from tempest.util import cli_parser
-#from tempest.util import query_data
+from tempest import command_argument_string
+from tempest.util import cli_parser
+from tempest.util import query_data
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
-class WorkloadsTest(base.BaseWorkloadmgrTest):
 
+class WorkloadsTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
 
     @classmethod
@@ -2295,14 +2295,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
-                    reporting.add_test_step("Create encrypted workload", 
+                    reporting.add_test_step("Create encrypted workload",
                             tvaultconf.PASS)
                 else:
-                    reporting.add_test_step("Create encrypted workload", 
+                    reporting.add_test_step("Create encrypted workload",
                             tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                reporting.add_test_step("Create encrypted workload", 
+                reporting.add_test_step("Create encrypted workload",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Encrypted Workload creation failed")
@@ -2340,3 +2340,130 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_6_barbican(self):
+        try:
+            test_var = "tempest.api.workloadmgr.barbican.test_"
+            tests = [[test_var + "create_workload_with_encryption_CLI", 0],
+                     [test_var + "Create_Multiple_workloads_with_same_Secret_UUID", 0],
+                     [test_var + "create_workload_with_wrong_secretUUID", 0]]
+            reporting.add_test_script(tests[0][0])
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+            self.vm_id = self.create_vm(key_pair=self.kp)
+
+            self.secret_uuid = self.create_secret()
+
+            # Create workload with CLI
+            workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " --secret-uuid " + str(self.secret_uuid)
+            error = cli_parser.cli_error(workload_create_with_encryption)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("workload with encryption creation unsuccessful : " + error)
+                reporting.add_test_step(
+                    "Execute workload_create_with_encryption command",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Workload with encryption creation Failed")
+            else:
+                LOG.debug("workload with encryption created successfully")
+                reporting.add_test_step(
+                    "Execute workload_create_with_encryption command",
+                    tvaultconf.PASS)
+                time.sleep(10)
+                self.wid1 = query_data.get_workload_id_in_creation(
+                    tvaultconf.workload_name)
+                workload_available = self.wait_for_workload_tobe_available(
+                    self.wid1)
+                LOG.debug("Workload ID: " + str(self.wid1))
+
+                # Show workload details using CLI command
+                rc = cli_parser.cli_returncode(
+                command_argument_string.workload_show + self.wid1)
+                if rc != 0:
+                    reporting.add_test_step("Execute workload-show command", tvaultconf.FAIL)
+                    # raise Exception("Command did not execute correctly : " + str(rc))
+                    LOG.debug("Command not executed correctly : " + str(rc))
+                else:
+                    reporting.add_test_step("Execute workload-show command", tvaultconf.PASS)
+                    LOG.debug("Command executed correctly : " + str(rc))
+
+                out = cli_parser.cli_output(
+                    command_argument_string.workload_show + self.wid1)
+                LOG.debug("Response from CLI: " + str(out))
+
+                if (cli_parser.cli_response_parser(out, 'encryption') == "True" and cli_parser.cli_response_parser(out, 'id') == self.wid1):
+                    reporting.add_test_step(
+                        "workload-show command encryption value is true", tvaultconf.PASS)
+                    LOG.debug("Command executed correctly")
+                else:
+                    reporting.add_test_step(
+                        "workload-show command encryption value is false", tvaultconf.FAIL)
+                    # raise Exception("Command did not execute correctly : " + str(rc))
+                    LOG.debug("Command not executed correctly")
+
+            # Create workload with CLI with no sceret uuid
+            workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id)
+            error = cli_parser.cli_error(workload_create_with_encryption)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("workload with encryption creation unsuccessful for no secret")
+                reporting.add_test_step("Create encrypted workload cli failed for no secret UUID",
+                                        tvaultconf.PASS)
+                tests[0][1] = 1
+                reporting.test_case_to_write()
+            else:
+                LOG.debug("workload with encryption created successfully for no secret")
+                raise Exception("Create encrypted workload cli created with no secret UUID")
+
+            reporting.add_test_script(tests[1][0])
+            # Create workload with API
+            try:
+                self.wid = self.workload_create([self.vm_id],
+                                                tvaultconf.workload_type_id, encryption=True,
+                                                secret_uuid=str(self.secret_uuid))
+                reporting.add_test_step("Create multiple encrypted workloads with same secret UUID", tvaultconf.FAIL)
+            except Exception as e:
+                LOG.debug(f"Exception: {e}")
+                reporting.add_test_step("Create multiple encrypted workloads with same secret UUID", tvaultconf.PASS)
+                tests[1][1] = 1
+                reporting.test_case_to_write()
+
+            reporting.add_test_script(tests[2][0])
+            # Create workload with API
+            try:
+                self.wid = self.workload_create([self.vm_id],
+                                                tvaultconf.workload_type_id, encryption=True,
+                                                secret_uuid="invalid")
+                reporting.add_test_step("Create encrypted workload api created for invalid secret UUID", tvaultconf.FAIL)
+            except Exception as e:
+                LOG.debug(f"Exception: {e}")
+                reporting.add_test_step("Create encrypted workload api failed for invalid secret UUID", tvaultconf.PASS)
+
+            # Create workload with CLI
+            workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " --secret-uuid " + "invalid"
+            error = cli_parser.cli_error(workload_create_with_encryption)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("workload with encryption creation unsuccessful for invalid secret")
+                reporting.add_test_step("Create encrypted workload cli failed for invalid secret UUID", tvaultconf.PASS)
+                tests[2][1] = 1
+                reporting.test_case_to_write()
+            else:
+                LOG.debug("workload with encryption created successfully for invalid secret")
+                raise Exception("Create encrypted workload cli created with invalid secret UUID")
+
+
+        except Exception as e:
+            LOG.error(f"Exception: {e}")
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.add_test_script(test[0])
+                    reporting.test_case_to_write()

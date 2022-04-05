@@ -39,6 +39,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_create_full_snapshot(self):
         try:
             reporting.add_test_script(str(__name__) + "_create_full_snapshot")
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
 
             global vm_id
             global volume_id
