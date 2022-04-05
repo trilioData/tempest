@@ -7,7 +7,7 @@ workload_create = "workloadmgr workload-create --workload-type-id "+tvaultconf.w
                   " --source-platform "+tvaultconf.source_platform
 workload_create_with_encryption = "workloadmgr workload-create --workload-type-id "+tvaultconf.workload_type_id+\
                   " --display-name "+tvaultconf.workload_name+ \
-                  " --encryption " + True + \
+                  " --encryption True" + \
                   " --source-platform "+tvaultconf.source_platform
 workload_delete = "workloadmgr workload-delete "
 workload_modify = "workloadmgr workload-modify "
