@@ -27,8 +27,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_glanceimage_restore(self):
         try:
-            reporting.add_test_script(str(__name__))
-            self.image_id = self.create_image()
+            reporting.add_test_script(str(__name__)+"_vm_reboot")
+            self.image_name = "tempest_test_image"
+            self.image_id = self.create_image(image_name=self.image_name,
+                                    image_cleanup=False)
             LOG.debug(f"Image ID: {self.image_id}")
             if not self.image_id:
                 raise Exception("Image not created")
@@ -43,7 +45,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.volumes = []
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
-            if len(fip) < 2:
+            if len(fip) < 4:
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
 
@@ -137,6 +139,46 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 raise Exception("Selective restore of full snapshot")
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(str(__name__)+"_delete_image")
+            images_list_bf = self.list_images()
+            LOG.debug(f"images_list_bf: {images_list_bf}")
+            self.delete_image(self.image_id)
+
+            restore_id_2 = self.snapshot_selective_restore(
+                self.wid, self.snapshot_id,
+                restore_name="selective_restore_full_snap",
+                instance_details=payload['instance_details'],
+                network_details=payload['network_details'])
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+            if(self.getRestoreStatus(self.wid, self.snapshot_id,
+                    restore_id_2) == "available"):
+                reporting.add_test_step("Selective restore of full snapshot",
+                        tvaultconf.PASS)
+
+                images_list_af = self.list_images()
+                LOG.debug(f"images_list_af: {images_list_af}")
+
+                attributes = ['visibility', 'name', 'size', 'virtual_size',
+                        'checksum', 'os_hash_value', 'id', 'created_at',
+                        'updated_at', 'self', 'file']
+                for attr in attributes:
+                    del images_list_bf[0][attr]
+                    del images_list_af[0][attr]
+
+                if images_list_bf == images_list_af:
+                    reporting.add_test_step(
+                        "Image properties intact after restore",
+                        tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Image properties not restored properly",
+                        tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                raise Exception("Selective restore of full snapshot")
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
