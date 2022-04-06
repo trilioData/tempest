@@ -3731,9 +3731,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             url=tvaultconf.image_url,
             filename=tvaultconf.image_filename):
         try:
-            f = open(filename,'wb')
-            f.write(requests.get(url+"/"+filename).content)
-            f.close()
+            with open(filename, 'wb') as f:
+                f.write(requests.get(url+"/"+filename).content)
             return True
         except Exception as e:
             LOG.debug("Exception in download_image: " + str(e))
@@ -3824,5 +3823,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             time.sleep(60)
         except Exception as e:
             LOG.debug("Exception in reboot_instance: " + str(e))
+
+
+    '''
+    List available glance images
+    '''
+
+    def list_images(self):
+        try:
+            images = self.images_client.list_images({'sort':'created_at:desc'})['images']
+            LOG.debug(f"List_images response: {images}")
+            return images
+        except Exception as e:
+            LOG.debug("Exception in list_images: " + str(e))
+            return None
 
 
