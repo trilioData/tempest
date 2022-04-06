@@ -3810,8 +3810,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             image = self.images_client.delete_image(image_id)
             LOG.debug(f"Delete_image response: {image}")
+            return True
         except Exception as e:
             LOG.debug("Exception in delete_image: " + str(e))
+            return False
 
     '''
     Reboot instance
@@ -3819,8 +3821,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def reboot_instance(self, vm_id):
         try:
-            self.servers_client.reboot_server(vm_id)
-            time.sleep(60)
+            self.servers_client.reboot_server(vm_id, type='SOFT')
         except Exception as e:
             LOG.debug("Exception in reboot_instance: " + str(e))
 
