@@ -35,7 +35,7 @@ class ImagesClient(rest_client.RestClient):
         https://docs.openstack.org/api-ref/image/v2/#update-image
         """
         data = json.dumps(patch)
-        headers = {"Content-Type": "application/openstack-images-v2.0"
+        headers = {"Content-Type": "application/openstack-images-v2.1"
                                    "-json-patch"}
         resp, body = self.patch('images/%s' % image_id, data, headers)
         self.expected_success(200, resp.status)
