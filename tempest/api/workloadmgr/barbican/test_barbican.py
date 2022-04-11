@@ -36,18 +36,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
             self.volumes = []
+            self.disk_names = ["vda"]
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
             if len(fip) < 4:
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
 
+            self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
             self.frm_id = self.create_vm(
                 vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.frm_ssh_user = ""
+            if "centos" in self.frm_image:
+                self.frm_ssh_user = "centos"
+            elif "ubuntu" in self.frm_image:
+                self.frm_ssh_user = "ubuntu"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -102,6 +109,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0], 
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password, 
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -133,6 +161,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -151,7 +200,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1],self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -185,7 +234,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -206,7 +255,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -241,7 +290,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -541,6 +590,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.disk_names = ["vda", "vdb", "vdc"]
             for i in range(2):
                 self.volume_id = self.create_volume(
                         volume_type_id=CONF.volume.volume_type_id)
@@ -549,12 +599,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"Volumes attached: {self.volumes}")
 
             self.secret_uuid = self.create_secret()
+            self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
             self.frm_id = self.create_vm(
                 vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.frm_ssh_user = ""
+            if "centos" in self.frm_image:
+                self.frm_ssh_user = "centos"
+            elif "ubuntu" in self.frm_image:
+                self.frm_ssh_user = "ubuntu"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -619,6 +675,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -654,6 +731,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -670,7 +768,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_2").decode('UTF-8').split('\n')
                 ssh.close()
@@ -730,7 +828,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -751,7 +849,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -812,7 +910,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1145,6 +1243,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.volumes = []
+            self.disk_names = ["vda"]
             self.boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
@@ -1167,12 +1266,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
 
+            self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
             self.frm_id = self.create_vm(
                 vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.frm_ssh_user = ""
+            if "centos" in self.frm_image:
+                self.frm_ssh_user = "centos"
+            elif "ubuntu" in self.frm_image:
+                self.frm_ssh_user = "ubuntu"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -1227,6 +1332,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1258,6 +1384,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1276,7 +1423,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -1310,7 +1457,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1331,7 +1478,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1366,7 +1513,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1682,6 +1829,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.disk_names = ["vda", "vdb", "vdc"]
             self.volumes.append(self.boot_volume_id)
             for i in range(2):
                 self.volume_id = self.create_volume(
@@ -1691,12 +1839,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"Volumes attached: {self.volumes}")
 
             self.secret_uuid = self.create_secret()
+            self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
             self.frm_id = self.create_vm(
                 vm_name="file_recovery_manager",
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.frm_ssh_user = ""
+            if "centos" in self.frm_image:
+                self.frm_ssh_user = "centos"
+            elif "ubuntu" in self.frm_image:
+                self.frm_ssh_user = "ubuntu"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -1761,6 +1915,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1796,6 +1971,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    encrypted = False
+                    for disk_name in self.disk_names:
+                        self.snapshot_encrypted = \
+                            self.check_snapshot_encryption_on_backend(
+                                    tvaultconf.tvault_ip[0],
+                                    tvaultconf.tvault_username,
+                                    tvaultconf.tvault_password,
+                                    self.mount_path,
+                                    self.wid, self.snapshot_id,
+                                    self.vm_id, disk_name)
+                        LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
+                        if self.snapshot_encrypted:
+                            encrypted = True
+                    if encrypted:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1812,7 +2008,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_2").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1872,7 +2068,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1893,7 +2089,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1954,7 +2150,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
