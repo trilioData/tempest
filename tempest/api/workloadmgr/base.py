@@ -3825,7 +3825,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.debug("Exception in reboot_instance: " + str(e))
 
-
     '''
     List available glance images
     '''
@@ -3839,4 +3838,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Exception in list_images: " + str(e))
             return None
 
+    '''
+    Method returns True if snapshot is marked as encrypted on backup target media
+    '''
+
+    def check_snapshot_encryption_on_backend(
+            self,
+            ipaddress,
+            username,
+            password,
+            mount_path,
+            workload_id,
+            snapshot_id,
+            instance_id,
+            disk_name):
+        ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
+        disk_path = str(mount_path).strip() + "/workload_" + \
+                        str(workload_id).strip() + "/snapshot_" + \
+                        str(snapshot_id).strip() + "/vm_id_" + \
+                        str(instance_id).strip() + "/vm_res_id*_" + \
+                        str(disk_name) + "/*"
+        is_snapshot_encrypted = "qemu-img info " + disk_path +\
+                " | grep -q encrypted && echo 'exists' ||echo 'not exists'"
+        LOG.debug("snapshot command is : " + str(is_snapshot_encrypted))
+        stdin, stdout, stderr = ssh.exec_command(is_snapshot_encrypted)
+        snapshot_encrypt = stdout.read().decode('utf-8').strip()
+        LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
+        if str(snapshot_encrypt) == 'exists':
+            return True
+        else:
+            return False
 
