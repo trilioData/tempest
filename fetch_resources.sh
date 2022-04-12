@@ -211,7 +211,7 @@ function configure_tempest
 
     cnt=0
     for name in ${FVM_IMAGE_NAMES[@]}; do
-        id=$($OPENSTACK_CMD image list | grep -i $name | awk '$2 && $2 != "ID" {print $2}')
+        id=$($OPENSTACK_CMD image list | grep -i "$name " | awk '$2 && $2 != "ID" {print $2}')
         if [ $cnt -eq 0 ]
         then
             frm_data=$name':'$id
