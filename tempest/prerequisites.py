@@ -1288,3 +1288,25 @@ def network_topology(self):
         self.exception = err
         LOG.error("Exception" + str(self.exception))
 
+def barbican_workload(self):
+    try:
+        LOG.debug("Running prerequisites for : barbican_workload")
+
+        # Create volume
+        self.volume_id = self.create_volume(volume_cleanup=False)
+        LOG.debug("Volume ID: " + str(self.volume_id))
+
+        # create vm
+        self.vm_id = self.create_vm(vm_cleanup=False)
+        LOG.debug("Vm ID: " + str(self.vm_id))
+
+        # Attach volume to the instance
+        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
+        LOG.debug("Volume attached")
+
+        # Create secret UUID
+        self.secret_uuid = self.create_secret()
+
+    except Exception as err:
+        self.exception = err
+        LOG.error("Exception" + str(self.exception))
