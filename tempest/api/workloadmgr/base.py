@@ -2619,10 +2619,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             details = self.get_policy_details(policy_id)
             list_of_project_assigned_to_policy = details[4]
-            for i in range(len(list_of_project_assigned_to_policy)):
-                self.assign_unassign_workload_policy(
-                    policy_id, remove_project_ids_list=list_of_project_assigned_to_policy[i])
-
+            # for i in range(len(list_of_project_assigned_to_policy)):
+            #     self.assign_unassign_workload_policy(
+            #         policy_id, remove_project_ids_list=list_of_project_assigned_to_policy[i])
+            self.assign_unassign_workload_policy(
+                policy_id, remove_project_ids_list=list_of_project_assigned_to_policy)
             resp, body = self.wlm_client.client.delete(
                 "/workload_policy/" + policy_id)
             LOG.debug(
@@ -2660,7 +2661,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "#### policyid: %s , operation:assignorunassign_workload_policy" %
                 policy_id)
             LOG.debug("Response:" + str(resp.content))
-            if (resp.status_code != 202):
+            if (resp.status_code != 200 or resp.status_code != 202):
                 resp.raise_for_status()
             return True
         except Exception as e:
