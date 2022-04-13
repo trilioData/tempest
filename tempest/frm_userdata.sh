@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 DISTRO=$(awk '/ID=/' /etc/os-release | sed 's/ID=//' | sed -r 's/\"|\(|\)//g' | awk '{print $1;exit}')
 if [[ "$DISTRO" == "rhel" || "$DISTRO" == "centos" ]]; then
@@ -20,7 +20,7 @@ if [[ "$DISTRO" == "rhel" || "$DISTRO" == "centos" ]]; then
     sed -i '/SELINUX=enforcing/c SELINUX=disabled' /etc/selinux/config
     echo "nameserver 8.8.8.8" > /etc/resolv.conf
     sleep 50
-    yum install python3 lvm2 -y 
+    yum install python3 lvm2 -y
     reboot
 else
     echo "ubuntu based FRM image"
@@ -30,14 +30,15 @@ else
     apt-get update
     apt-get install qemu-guest-agent
     systemctl enable qemu-guest-agent
-    path=$(systemctl status qemu-guest-agent | grep Loaded)
-    if [[ $path =~ .*"/etc/init.d/qemu-guest-agent".* ]]
+	  NAME=$(awk '/^PRETTY_NAME=/' /etc/os-release | sed 's/PRETTY_NAME=//' | sed -r 's/\"|\(|\)//g')
+    if grep -q "Ubuntu 20.04" <<< "$NAME"
     then
-      sed -i '/DAEMON_ARGS=/c DAEMON_ARGS="-F/etc/qemu/fsfreeze-hook"' /etc/init.d/qemu-guest-agent
-    elif [[ $path =~ .*"/lib/systemd/system/qemu-guest-agent.service".* ]]
-    then
+	    echo "Ubuntu 20.04 image"
       mkdir -p /etc/systemd/system/qemu-guest-agent.service.d
       echo -e "[Service]\nExecStart=\nExecStart=/usr/sbin/qemu-ga -F/etc/qemu/fsfreeze-hook" >> /etc/systemd/system/qemu-guest-agent.service.d/override.conf
+    else
+      echo "Ubuntu image"
+	    sed -i '/DAEMON_ARGS=/c DAEMON_ARGS="-F/etc/qemu/fsfreeze-hook"' /etc/init.d/qemu-guest-agent
     fi
     systemctl daemon-reload
     systemctl restart qemu-guest-agent
