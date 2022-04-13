@@ -2619,11 +2619,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             details = self.get_policy_details(policy_id)
             list_of_project_assigned_to_policy = details[4]
+            LOG.debug("list_of_project_assigned_to_policy:" + str(list_of_project_assigned_to_policy))
             # for i in range(len(list_of_project_assigned_to_policy)):
-            #     self.assign_unassign_workload_policy(
-            #         policy_id, remove_project_ids_list=list_of_project_assigned_to_policy[i])
+                # self.assign_unassign_workload_policy(
+                    # policy_id, remove_project_ids_list=list_of_project_assigned_to_policy[i])
             self.assign_unassign_workload_policy(
-                policy_id, remove_project_ids_list=list_of_project_assigned_to_policy)
+                    policy_id, remove_project_ids_list=list_of_project_assigned_to_policy)
             resp, body = self.wlm_client.client.delete(
                 "/workload_policy/" + policy_id)
             LOG.debug(
@@ -2635,7 +2636,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
             return True
         except Exception as e:
-            LOG.error("Exception in workload_policy_delete: " + str(e))
+            LOG.debug("Exception in workload_policy_delete: " + str(e))
             return False
 
     '''
@@ -2654,6 +2655,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "add_projects": add_project_ids_list
                 }
             }
+            LOG.debug("Payload:" + str(payload))
             resp, body = self.wlm_client.client.post(
                 "/workload_policy/" + policy_id + "/assign", json=payload)
             policy_id = body['policy']['id']
@@ -2661,6 +2663,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "#### policyid: %s , operation:assignorunassign_workload_policy" %
                 policy_id)
             LOG.debug("Response:" + str(resp.content))
+            LOG.debug("Response code:" + str(resp.status_code))
             if (resp.status_code != 200 or resp.status_code != 202):
                 resp.raise_for_status()
             return True
@@ -3636,7 +3639,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     verify network components post restore
     '''
 
-    def verify_network_restore(self, nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf, 
+    def verify_network_restore(self, nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
             rt_af, vm_details_bf, vm_details_af, test_type):
         try:
             if nt_bf == nt_af:
@@ -3699,8 +3702,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         del vm_details_af[vm]['metadata']['config_drive']
                     if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['ordered_interfaces']
-                    attributes = ['links', 'OS-EXT-SRV-ATTR:host', 
-                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId', 
+                    attributes = ['links', 'OS-EXT-SRV-ATTR:host',
+                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
                             'OS-EXT-SRV-ATTR:instance_name', 'updated',
                             'created', 'id', 'OS-SRV-USG:launched_at']
                     for attr in attributes:
