@@ -2478,13 +2478,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.test_case_to_write()
             # Delete workload
             self.workload_delete(self.wid1)
-            # Delete vm
-            self.delete_vm(self.vm_id)
-            LOG.debug("vm deleted succesfully")
 
-            # delete volume
-            self.delete_volume(self.volume_id)
-            LOG.debug("volume deleted successfully")
 
     # Workload policy with scheduler and retention parameter
     @test.pre_req({'type': 'barbican_workload'})
@@ -2707,11 +2701,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Delete workload
             self.workload_delete(self.workload_id)
-
-            # Delete vm
-            self.delete_vm(self.vm_id)
-            LOG.debug("vm deleted succesfully")
-
-            # delete volume
-            self.delete_volume(self.volume_id)
-            LOG.debug("volume deleted successfully")
