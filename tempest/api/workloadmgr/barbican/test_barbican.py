@@ -2493,13 +2493,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_Create_encrypted_workload_with_workload_policy")
         try:
             snapshots_list = []
-            global workload_id
-            # vm_id = self.vm_id
-            # secret_uuid = self.secret_uuid
 
             # Create workload policy
             policy_id = self.workload_policy_create(
-                interval=tvaultconf.interval, policy_cleanup=False)
+                interval=tvaultconf.interval, policy_cleanup=True)
             if policy_id != "":
                 reporting.add_test_step(
                     "Create workload policy", tvaultconf.PASS)
@@ -2710,10 +2707,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Delete workload
             self.workload_delete(self.workload_id)
-            time.sleep(15)
-
-            # Delete policy
-            self.workload_policy_delete(policy_id)
 
             # Delete vm
             self.delete_vm(self.vm_id)

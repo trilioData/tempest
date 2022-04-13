@@ -2636,7 +2636,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug('WorkloadPolicyDeleted: %s' % policy_id)
             return True
         except Exception as e:
-            LOG.debug("Exception in workload_policy_delete: " + str(e))
+            LOG.error("Exception in workload_policy_delete: " + str(e))
             return False
 
     '''
