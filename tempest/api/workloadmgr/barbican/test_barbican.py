@@ -2467,3 +2467,66 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
+
+    #OS-2014 -
+    #Create VM and attach encrypted volume to it.
+    #Try to create a workload with encryption checkbox disabled and try to attach to above vm created.
+    #Result - Workload creation should fail with proper error.
+    @decorators.attr(type='workloadmgr_api')
+    def test_9_barbican(self):
+        try:
+            test_var = "tempest.api.workloadmgr.barbican.test_"
+            tests = [[test_var + "create_workload_with_encryption_checkbox_disabled", 0]]
+            reporting.add_test_script(tests[0][0])
+
+            #create key pair...
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            #create vm...
+            self.vm_id = self.create_vm(key_pair=self.kp)
+
+            #find volume_type = luks. So that existing encrypted volume type can be used.
+            #Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("luks") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+
+            if (vol_type_id == -1):
+                raise Exception("No luks volume found to create encrypted volume. Test cannot be continued")
+
+            #Now create volume with derived volume type id...
+            self.volume_id = self.create_volume(
+                volume_type_id=vol_type_id)
+
+            LOG.debug("Volume ID: " + str(self.volume_id))
+
+            self.volumes = []
+            self.volumes.append(self.volume_id)
+            #Attach volume to vm...
+            self.attach_volume(self.volume_id, self.vm_id)
+            LOG.debug("Encrypted Volume attached to vm: " + str(self.vm_id))
+
+            #create a workload with encryption status as disabled and try to attach it to vm...
+            try:
+                workload_id = self.workload_create([self.vm_id],
+                                                tvaultconf.workload_type_id, encryption=False,
+                                                workload_cleanup=True)
+
+                LOG.debug("Workload ID: " + str(workload_id))
+                reporting.add_test_step("Unencrypted Workload creation with encrypted volume is created.", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                reporting.add_test_step("Unencrypted Workload creation with encrypted volume failed.", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
+    #End of test case OS-2014
