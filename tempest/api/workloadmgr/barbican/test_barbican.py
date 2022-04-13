@@ -169,7 +169,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.tvault_username,
                                     tvaultconf.tvault_password,
                                     self.mount_path,
-                                    self.wid, self.snapshot_id,
+                                    self.wid, self.snapshot_id2,
                                     self.vm_id, disk_name)
                         LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
                         if self.snapshot_encrypted:
@@ -739,7 +739,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.tvault_username,
                                     tvaultconf.tvault_password,
                                     self.mount_path,
-                                    self.wid, self.snapshot_id,
+                                    self.wid, self.snapshot_id2,
                                     self.vm_id, disk_name)
                         LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
                         if self.snapshot_encrypted:
@@ -1392,7 +1392,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.tvault_username,
                                     tvaultconf.tvault_password,
                                     self.mount_path,
-                                    self.wid, self.snapshot_id,
+                                    self.wid, self.snapshot_id2,
                                     self.vm_id, disk_name)
                         LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
                         if self.snapshot_encrypted:
@@ -1979,7 +1979,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.tvault_username,
                                     tvaultconf.tvault_password,
                                     self.mount_path,
-                                    self.wid, self.snapshot_id,
+                                    self.wid, self.snapshot_id2,
                                     self.vm_id, disk_name)
                         LOG.debug(f"snapshot_encrypted: {self.snapshot_encrypted}")
                         if self.snapshot_encrypted:
