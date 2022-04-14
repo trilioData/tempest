@@ -57,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ssh.close()
 
             self.reboot_instance(self.vm_id)
+            time.sleep(45)
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             md5sums_after_reboot = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_after_reboot: {md5sums_after_reboot}")

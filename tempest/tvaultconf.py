@@ -109,7 +109,7 @@ enable_email_notification = {"smtp_email_enable" : 1}
 disable_email_notification = {"smtp_email_enable" : 0}
 
 #Glance image data
-image_url = "https://cloud-images.ubuntu.com/focal/20220324/"
+image_url = "https://cloud-images.ubuntu.com/focal/current/"
 image_filename = "focal-server-cloudimg-amd64.img"
 image_properties = {"hw_disk_busi": "scsi",
                     "hw_qemu_guest_agent": "yes",
