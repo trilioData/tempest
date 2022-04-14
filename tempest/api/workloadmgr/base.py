@@ -3633,7 +3633,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
             time.sleep(20)
         except Exception as e:
-            LOG.debug("Exception in install_qemu: " + str(e))
+            LOG.error("Exception in install_qemu: " + str(e))
 
     '''
     verify network components post restore
@@ -3725,7 +3725,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                             vm_details_bf, vm_details_af))
 
         except Exception as e:
-            LOG.debug("Exception in verify_network_restore: " + str(e))
+            LOG.error("Exception in verify_network_restore: " + str(e))
 
     '''
     download test image
@@ -3739,7 +3739,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 f.write(requests.get(url+"/"+filename).content)
             return True
         except Exception as e:
-            LOG.debug("Exception in download_image: " + str(e))
+            LOG.error("Exception in download_image: " + str(e))
             return False
 
     '''
@@ -3753,7 +3753,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(f"upload_file response: {upload_file}")
             return True
         except Exception as e:
-            LOG.debug("Exception in upload_image_data: " + str(e))
+            LOG.error("Exception in upload_image_data: " + str(e))
             return False
 
     '''
@@ -3771,7 +3771,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.images_client.update_image(image_id, payload)
             return True
         except Exception as e:
-            LOG.debug("Exception in update_image: " + str(e))
+            LOG.error("Exception in update_image: " + str(e))
             return False
 
     '''
@@ -3799,11 +3799,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug("Image properties updated")
                 else:
                     raise Exception("Image properties not updated")
+                self.addCleanup(self.delete_image, image_id)
                 return image_id
             else:
                 raise Exception("Image not created in glance")
         except Exception as e:
-            LOG.debug("Exception in create_image: " + str(e))
+            LOG.error("Exception in create_image: " + str(e))
             return None
 
     '''
@@ -3816,7 +3817,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(f"Delete_image response: {image}")
             return True
         except Exception as e:
-            LOG.debug("Exception in delete_image: " + str(e))
+            LOG.error("Exception in delete_image: " + str(e))
             return False
 
     '''
@@ -3827,7 +3828,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             self.servers_client.reboot_server(vm_id, type='SOFT')
         except Exception as e:
-            LOG.debug("Exception in reboot_instance: " + str(e))
+            LOG.error("Exception in reboot_instance: " + str(e))
 
     '''
     List available glance images
@@ -3839,7 +3840,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(f"List_images response: {images}")
             return images
         except Exception as e:
-            LOG.debug("Exception in list_images: " + str(e))
+            LOG.error("Exception in list_images: " + str(e))
             return None
 
     '''
