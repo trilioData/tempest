@@ -2519,8 +2519,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             except Exception as e:
                 LOG.error("Exception: " + str(e))
-                reporting.add_test_step("Unencrypted Workload creation with encrypted volume failed.", tvaultconf.PASS)
-                reporting.set_test_script_status(tvaultconf.PASS)
+                err_msg = ["Unencrypted workload cannot have instance", "with encrypted Volume"]
+                # look for all sub-string in error message.
+                result = all(x in e.message for x in err_msg)
+                if (result):
+                    reporting.add_test_step("Unencrypted Workload cannot have instance with encrypted volume",
+                                            tvaultconf.PASS)
+                    reporting.set_test_script_status(tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Different execption occurred than expected.", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
