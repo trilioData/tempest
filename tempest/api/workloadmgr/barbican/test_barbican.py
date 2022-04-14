@@ -2476,7 +2476,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_9_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_"
-            tests = [[test_var + "create_workload_with_encryption_checkbox_disabled", 0]]
+            tests = [[test_var + "create_unencrypted_workload_with_encrypted_volume", 0]]
             reporting.add_test_script(tests[0][0])
 
             #create key pair...
