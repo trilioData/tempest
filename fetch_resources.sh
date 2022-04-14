@@ -211,7 +211,7 @@ function configure_tempest
 
     cnt=0
     for name in ${FVM_IMAGE_NAMES[@]}; do
-        id=$($OPENSTACK_CMD image list | grep -i $name | awk '$2 && $2 != "ID" {print $2}')
+        id=$($OPENSTACK_CMD image list | grep -i "$name " | awk '$2 && $2 != "ID" {print $2}')
         if [ $cnt -eq 0 ]
         then
             frm_data=$name':'$id
@@ -434,7 +434,7 @@ function configure_tempest
               gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
               interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
               
-              if [[ $gateway_info == *"None"* ]] | [ $gateway_info == "null" ]
+              if [[ "$gateway_info" == *"None"* ]] | [ "$gateway_info" == "null" ]
               then
                   echo "External gateway not set"
                   output=$($OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id 2>&1)
