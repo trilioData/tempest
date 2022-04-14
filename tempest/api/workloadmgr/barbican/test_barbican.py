@@ -1,6 +1,7 @@
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest.lib import decorators
+from tempest import test
 import time
 from oslo_log import log as logging
 from tempest import tvaultconf
@@ -15,10 +16,45 @@ CONF = config.CONF
 
 class WorkloadsTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
+    workload_id = ""
+    vm_id = ""
+    volume_id = ""
+    policy_id = ""
+    secret_uuid = ""
 
     @classmethod
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
+
+    def _set_frm_user(self):
+        self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
+        self.frm_ssh_user = ""
+        if "centos" in self.frm_image:
+            self.frm_ssh_user = "centos"
+        elif "ubuntu" in self.frm_image:
+            self.frm_ssh_user = "ubuntu"
+
+    def _check_encryption_on_backend(self, wid, snapshot_id,
+                vm_id, disk_names, mount_path):
+        encrypted = False
+        for disk_name in disk_names:
+            snapshot_encrypted = self.check_snapshot_encryption_on_backend(
+                            tvaultconf.tvault_ip[0],
+                            tvaultconf.tvault_username,
+                            tvaultconf.tvault_password,
+                            mount_path, wid, snapshot_id,
+                            vm_id, disk_name)
+            LOG.debug(f"snapshot_encrypted: {snapshot_encrypted}")
+            if snapshot_encrypted:
+                encrypted = True
+        if encrypted:
+            reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.PASS)
+        else:
+            reporting.add_test_step("Verify snapshot encryption on "\
+                            "target backend", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
 
     @decorators.attr(type='workloadmgr_api')
     def test_1_barbican(self):
@@ -36,6 +72,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
             self.volumes = []
+            self.disk_names = ["vda"]
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
             if len(fip) < 4:
@@ -48,6 +85,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -102,6 +140,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -133,6 +174,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id2,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -151,7 +195,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1],self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -185,7 +229,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -206,7 +250,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -241,7 +285,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -541,6 +585,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.disk_names = ["vda", "vdb", "vdc"]
             for i in range(2):
                 self.volume_id = self.create_volume(
                         volume_type_id=CONF.volume.volume_type_id)
@@ -555,6 +600,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -619,6 +665,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -654,6 +703,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id2,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -670,7 +722,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_2").decode('UTF-8').split('\n')
                 ssh.close()
@@ -730,7 +782,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -751,7 +803,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -812,7 +864,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1145,6 +1197,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.volumes = []
+            self.disk_names = ["vda"]
             self.boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
@@ -1173,6 +1226,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -1227,6 +1281,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1258,6 +1315,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id2,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1276,7 +1336,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
                 ssh.close()
                 flag = 0
@@ -1310,7 +1370,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1331,7 +1391,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1366,7 +1426,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1682,6 +1742,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
             self.volumes = []
+            self.disk_names = ["vda", "vdb", "vdc"]
             self.volumes.append(self.boot_volume_id)
             for i in range(2):
                 self.volume_id = self.create_volume(
@@ -1697,6 +1758,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 
@@ -1761,6 +1823,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1796,6 +1861,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id2,
+                            self.vm_id, self.disk_names, self.mount_path)
+
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1812,7 +1880,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_2").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1872,7 +1940,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                    "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                    fip[1], CONF.validation.fvm_ssh_user)
+                    fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -1893,7 +1961,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1],CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh,
                         file_name="File_5").decode('UTF-8').split('\n')
                 ssh.close()
@@ -1954,7 +2022,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], CONF.validation.fvm_ssh_user)
+                        fip[1], self.frm_ssh_user)
                 output_list = self.validate_snapshot_mount(ssh)
                 ssh.close()
 
@@ -2341,18 +2409,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @test.pre_req({'type': 'barbican_workload'})
     @decorators.attr(type='workloadmgr_cli')
     def test_6_barbican(self):
         try:
+            global vm_id
+            global secret_uuid
+            global volume_id
             test_var = "tempest.api.workloadmgr.barbican.test_"
             tests = [[test_var + "create_workload_with_encryption_CLI", 0],
                      [test_var + "Create_Multiple_workloads_with_same_Secret_UUID", 0],
                      [test_var + "create_workload_with_wrong_secretUUID", 0]]
             reporting.add_test_script(tests[0][0])
-            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
-            self.vm_id = self.create_vm(key_pair=self.kp)
-
-            self.secret_uuid = self.create_secret()
+            vm_id = self.vm_id
+            secret_uuid = self.secret_uuid
+            volume_id = self.volume_id
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
@@ -2467,6 +2538,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
+            
+            # Delete workload
+            self.workload_delete(self.wid1)
 
     #OS-2014 -
     #Create VM and attach encrypted volume to it.
@@ -2538,3 +2612,226 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
     #End of test case OS-2014
+
+    # Workload policy with scheduler and retention parameter
+    @test.pre_req({'type': 'barbican_workload'})
+    @decorators.attr(type='workloadmgr_cli')
+    def test_7_barbican(self):
+        reporting.add_test_script(str(__name__) + "_Create_encrypted_workload_with_workload_policy")
+        try:
+            snapshots_list = []
+
+            # Create workload policy
+            policy_id = self.workload_policy_create(
+                interval=tvaultconf.interval, policy_cleanup=True)
+            if policy_id != "":
+                reporting.add_test_step(
+                    "Create workload policy", tvaultconf.PASS)
+                LOG.debug("Workload policy id is " + str(policy_id))
+            else:
+                reporting.add_test_step(
+                    "Create workload policy", tvaultconf.FAIL)
+                raise Exception(
+                    "Workload policy has not been created")
+
+            # Verify policy is created
+            policy_list = self.get_policy_list()
+            if policy_id in policy_list:
+                reporting.add_test_step(
+                    "Verify policy created", tvaultconf.PASS)
+                LOG.debug("Policy is created")
+            else:
+                reporting.add_test_step(
+                    "Verify policy created", tvaultconf.FAIL)
+                raise Exception("Policy is not creaed")
+
+            # Assign workload policy to projects
+            project_id = CONF.identity.tenant_id
+            status = self.assign_unassign_workload_policy(
+                str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
+            LOG.debug("Policy is assigned")
+
+            # Create workload with policy by CLI command
+            workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " --secret-uuid " + str(self.secret_uuid) + \
+                                              " --policy-id " + str(policy_id)
+            LOG.debug("workload_create_with_encryption : " + workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
+            LOG.debug("Workload created: " + error)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                reporting.add_test_step(
+                    "Execute workload-create with policy command",
+                    tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create with policy command",
+                    tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            time.sleep(10)
+            self.workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Created workload ID: " + str(self.workload_id))
+            if (self.workload_id != ""):
+                self.wait_for_workload_tobe_available(self.workload_id)
+                if (self.getWorkloadStatus(self.workload_id) == "available"):
+                    reporting.add_test_step(
+                        "Create workload with policy", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Create workload with policy", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Create workload with policy", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            # Verify that workload is created with same policy ID
+            workload_details = self.get_workload_details(self.workload_id)
+            policyid_from_workload_metadata = workload_details["metadata"]["policy_id"]
+            if policyid_from_workload_metadata == policy_id:
+                reporting.add_test_step(
+                    "Verfiy that same policy id is assigned in workload-metadata",
+                    tvaultconf.PASS)
+                LOG.debug("Same policy id is assigned in workload-metadata")
+            else:
+                reporting.add_test_step(
+                    "Verfiy that same policy id is assigned in workload-metadata",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "policy id not assigned properly in workload-metadata")
+
+            # Verify workload created with scheduler enable
+            status = self.getSchedulerStatus(self.workload_id)
+            if status:
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.PASS)
+                LOG.debug("Workload created with scheduler enabled successfully")
+            else:
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Workload has not been created with scheduler enabled")
+
+            # Get retention parameters values of wid wirh scheduler enabled
+            retention_policy_type_wid = self.getRetentionPolicyTypeStatus(
+                self.workload_id)
+            retention_policy_value_wid = self.getRetentionPolicyValueStatus(
+                self.workload_id)
+            Full_Backup_Interval_Value_wid = self.getFullBackupIntervalStatus(
+                self.workload_id)
+
+            # retention meets as mentioned value in the workload policy
+            # Create snapshots equal to number of retention_policy_value
+            for i in range(0, int(retention_policy_value_wid)):
+                snapshot_id = self.workload_snapshot(
+                    self.workload_id,
+                    True,
+                    snapshot_name=tvaultconf.snapshot_name +
+                                  str(i),
+                    snapshot_cleanup=False)
+                snapshots_list.append(snapshot_id)
+            LOG.debug("snapshot id list is : " + str(snapshots_list))
+
+            # Create one more snapshot
+            snapshot_id = self.workload_snapshot(
+                self.workload_id,
+                True,
+                snapshot_name=tvaultconf.snapshot_name +
+                              "_final",
+                snapshot_cleanup=False)
+            LOG.debug("Last snapshot id is : " + str(snapshot_id))
+
+            self.wait_for_snapshot_tobe_available(
+                self.workload_id, snapshot_id)
+            LOG.debug("wait for snapshot available state")
+
+            snapshots_list.append(snapshot_id)
+            LOG.debug("final snapshot list is " + str(snapshots_list))
+
+            # get snapshot count and snapshot_details
+            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
+            LOG.debug("snapshot list of workload retrieved using API is : " +
+                      str(snapshot_list_of_workload))
+
+            # verify that numbers of snapshot created persist
+            # retention_policy_value
+            LOG.debug("number of snapshots created : %d " %
+                      len(snapshot_list_of_workload))
+            if int(retention_policy_value_wid) == len(
+                    snapshot_list_of_workload):
+                reporting.add_test_step(
+                    "Verify number of snapshots created equals retention_policy_value",
+                    tvaultconf.PASS)
+                LOG.debug(
+                    "Number of snapshots created equals retention_policy_value")
+            else:
+                reporting.add_test_step(
+                    "Verify number of snapshots created equals retention_policy_value",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Number of snapshots created not equal to retention_policy_value")
+
+            # Check first snapshot is deleted or not after retention value
+            # exceed
+            deleted_snapshot_id = snapshots_list[0]
+            LOG.debug("snapshot id of first snapshot is : " +
+                      str(deleted_snapshot_id))
+            if deleted_snapshot_id in snapshot_list_of_workload:
+                reporting.add_test_step(
+                    "Verify first snapshot deleted after retention value exceeds",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "first snapshot not deleted after retention value exceeds")
+            else:
+                reporting.add_test_step(
+                    "Verify first snapshot deleted after retention value exceeds",
+                    tvaultconf.PASS)
+                LOG.debug("first snapshot deleted after retention value exceeds")
+
+            # Check first snapshot is deleted from backup target when retention
+            # value exceed
+            mount_path = self.get_mountpoint_path(
+                ipaddress=tvaultconf.tvault_ip[0],
+                username=tvaultconf.tvault_username,
+                password=tvaultconf.tvault_password)
+            LOG.debug("Backup target mount_path is : " + mount_path)
+            is_snapshot_exist = self.check_snapshot_exist_on_backend(
+                tvaultconf.tvault_ip[0],
+                tvaultconf.tvault_username,
+                tvaultconf.tvault_password,
+                mount_path,
+                self.workload_id,
+                deleted_snapshot_id)
+            LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
+            if not is_snapshot_exist:
+                LOG.debug("First snapshot is deleted from backup target")
+                reporting.add_test_step(
+                    "First snapshot deleted from backup target",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "First snapshot deleted from backup target",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "First snapshot is not deleted from backup target media")
+
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+            # Cleanup
+            # Delete snapshot
+            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
+            for i in range(0, len(snapshot_list_of_workload)):
+                self.snapshot_delete(
+                    self.workload_id, snapshot_list_of_workload[i])
+
+            # Delete workload
+            self.workload_delete(self.workload_id)
+            
