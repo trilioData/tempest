@@ -2833,3 +2833,142 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
     #End of test case OS-2014
+
+    #OS-2020 -
+    #Create workload without encryption having vm with non encrypted volume attached.
+    #take snapshot
+    #do workload edit and add 1 more vm having encrypted volume attached
+    #output - workload edit should fail...
+    @decorators.attr(type='workloadmgr_cli')
+    def test_9_barbican(self):
+        try:
+            test_var = "tempest.api.workloadmgr.barbican.test_"
+            tests = [[test_var + "workload_edit_with_unencrypted_and_encrypted_volume", 0]]
+            reporting.add_test_script(tests[0][0])
+
+            #create key pair...
+            kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            #create vm...
+            vm_id = self.create_vm(key_pair=kp)
+
+
+            #find unencrypted volume type. Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("luks") == -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+
+            if (vol_type_id == -1):
+                reporting.add_test_step("No unencrypted volume available to attach", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("No unencrypted volume available to attach...")
+
+            #Now create volume with derived volume type id...
+            volume_id = self.create_volume(
+                volume_type_id=vol_type_id)
+
+            #Attach volume to vm...
+            self.attach_volume(volume_id, vm_id)
+
+            #create a workload with encryption status as disabled and try to attach it to vm...
+            try:
+                wid = self.workload_create([vm_id],
+                                                tvaultconf.workload_type_id, encryption=False,
+                                                workload_cleanup=True)
+
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                reporting.add_test_step("Unencrypted Workload creation with unencrypted volume is failed to create.", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #create snapshot of workload created...
+            snapshot_id = self.workload_snapshot(wid, True)
+
+            self.wait_for_workload_tobe_available(wid)
+            snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
+
+            if(snapshot_status == "available"):
+                LOG.debug("Full snapshot created...")
+            else:
+                reporting.add_test_step("Full snapshot is not created...", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Create full snapshot failed")
+
+            #now create another vm with encrypted volume...
+            #create another key pair...
+            kp1 = self.create_key_pair(tvaultconf.key_pair_name)
+
+            #create another vm...
+            vm_id1 = self.create_vm(key_pair=kp1)
+
+            #find volume_type = luks. So that existing encrypted volume type can be used.
+            #Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("luks") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+
+            if (vol_type_id == -1):
+                reporting.add_test_step("No encrypted volume available to attach", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("No luks volume found to create encrypted volume.")
+
+            #Now create volume with derived volume type id...
+            volume_id1 = self.create_volume(
+                volume_type_id=vol_type_id)
+
+            #Attach volume to vm...
+            self.attach_volume(volume_id1, vm_id1)
+
+            #now edit the workload with workload_modify cli and try to attach vm with encrypted volume...
+            try:
+                workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
+                    str(vm_id1) + " --instance instance-id=" + str(vm_id) + " " + str(wid)
+
+                rc = cli_parser.cli_returncode(workload_modify_command)
+                if rc != 0:
+                    LOG.error("Command did not execute correctly")
+                    reporting.add_test_step(
+                        "Failed to execute workload-modify command to add one more vm",
+                        tvaultconf.PASS)
+                    reporting.set_test_script_status(tvaultconf.PASS)
+                else:
+                    LOG.debug("Command executed correctly")
+
+                    self.wait_for_workload_tobe_available(wid)
+                    #check for vm count - If it is more than 1 then test case failed...
+                    workload_vm_count = query_data.get_available_vms_of_workload(wid)
+
+                    if (workload_vm_count == 2):
+                        reporting.add_test_step(
+                            "Unencrypted Workload connected with another instance with encrypted volume",
+                            tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                        raise Exception("Added encrypted vm to existing workload. Failed to run test case")
+                    else:
+                        reporting.add_test_step(
+                            "After workload modify vm count is 1. Unencrypted Workload cannot have instance with encrypted volume.",
+                            tvaultconf.PASS)
+                        reporting.set_test_script_status(tvaultconf.PASS)
+
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                err_msg = ["Unencrypted workload cannot have instance","with encrypted Volume"]
+                result = all(x in e.message for x in err_msg)
+                if (result):
+                    reporting.add_test_step("Unencrypted Workload cannot have instance with encrypted volume", tvaultconf.PASS)
+                    reporting.set_test_script_status(tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Different execption occurred than expected.", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
+
+    #End of test case OS-2020
