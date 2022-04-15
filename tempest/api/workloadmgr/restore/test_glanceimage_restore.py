@@ -34,6 +34,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"Image ID: {self.image_id}")
             if not self.image_id:
                 raise Exception("Image not created")
+            self.ssh_username = "ubuntu"
             self.kp = self.create_key_pair()
             self.flavor_id = self.create_flavor(tvaultconf.flavor_name,
                                     20, 2, 2048, 0, 1)
@@ -49,7 +50,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
 
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0], 
+                        self.ssh_username)
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 2)
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
@@ -58,7 +60,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             self.reboot_instance(self.vm_id)
             time.sleep(45)
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0],
+                        self.ssh_username)
             md5sums_after_reboot = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_after_reboot: {md5sums_after_reboot}")
             ssh.close()
@@ -129,7 +132,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.set_floating_ip(fip[1], vm_list[0])
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[1]}")
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1],
+                            self.ssh_username)
                 md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
@@ -153,7 +157,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             attributes = ['visibility', 'name', 'size', 'virtual_size',
                         'checksum', 'os_hash_value', 'id', 'created_at',
-                        'updated_at', 'self', 'file']
+                        'updated_at', 'self', 'file', 'direct_url']
             for attr in attributes:
                 del images_list_bf[0][attr]
                 del images_list_af[0][attr]
