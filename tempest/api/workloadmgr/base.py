@@ -2931,7 +2931,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         interfaces = self.ports_client.list_ports()['ports']
         LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            if interface['device_owner'] in \
+            if interface['tenant_id'] == CONF.identity.tenant_id and \
+                interface['device_owner'] in \
                     ('network:router_interface', \
                      'network:ha_router_replicated_interface'):
                 for i in interface['fixed_ips']:
