@@ -2908,10 +2908,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             if (snapshot_status == "available"):
                 LOG.debug("Full snapshot created...")
-                reporting.add_test_step("Full snapshot is created...", tvaultconf.PASS)
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
             else:
-                reporting.add_test_step("Full snapshot is not created...", tvaultconf.FAIL)
+                reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Create full snapshot failed")
 
@@ -2939,12 +2939,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     err_msg = ["Unencrypted workload cannot have instance", "with encrypted Volume"]
                     result = all(x in error for x in err_msg)
                     if (result):
-                        reporting.add_test_step("workload_modify --> Unencrypted Workload cannot have instance with encrypted volume",
+                        reporting.add_test_step("Unencrypted Workload cannot have instance with encrypted volume",
                             tvaultconf.PASS)
                         reporting.set_test_script_status(tvaultconf.PASS)
                     else:
-                        reporting.add_test_step("workload_modify --> Different execption occurred than expected.",
-                                                tvaultconf.FAIL)
+                        reporting.add_test_step("Different execption occurred.", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
                 else:
                     # If no error is thrown then we should check for return code and vm count.
@@ -2960,14 +2959,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         workload_vm_count = query_data.get_available_vms_of_workload(wid)
 
                         if (workload_vm_count == 2):
-                            reporting.add_test_step(
-                                "workload_modify --> Unencrypted Workload connected with another instance with encrypted volume",
+                            reporting.add_test_step("Unencrypted workload connected with another instance with encrypted volume",
                                 tvaultconf.FAIL)
                             reporting.set_test_script_status(tvaultconf.FAIL)
                         else:
-                            reporting.add_test_step(
-                                "workload_modify --> After workload modify vm count is still 1." \
-                                "Unencrypted Workload cannot have instance with encrypted volume.", tvaultconf.PASS)
+                            reporting.add_test_step("Unencrypted Workload cannot have instance with encrypted volume.", tvaultconf.PASS)
                             reporting.set_test_script_status(tvaultconf.PASS)
 
             except Exception as e:
