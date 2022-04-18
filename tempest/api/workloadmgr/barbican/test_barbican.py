@@ -2950,7 +2950,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     rc = cli_parser.cli_returncode(workload_modify_command)
                     if rc != 0:
                         reporting.add_test_step(
-                            "Workload-modify command to add one more vm with encrypted volume failed.",
+                            "Unencrypted Workload cannot have instance with encrypted volume",
                             tvaultconf.PASS)
                         reporting.set_test_script_status(tvaultconf.PASS)
                     else:
