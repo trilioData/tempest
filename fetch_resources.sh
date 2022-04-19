@@ -288,6 +288,7 @@ function configure_tempest
     echo "Fetching volume type details\n"
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     shopt -s nocasematch
+    CINDER_BACKENDS_ENABLED=($(echo ${CINDER_BACKENDS_ENABLED[@]} | tr [:space:] '\n' | awk '!a[$0]++'))
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
             echo "No volume type available to use, using Default \n"
