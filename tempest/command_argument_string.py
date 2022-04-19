@@ -16,6 +16,8 @@ workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' 
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
 workload_import = "workloadmgr workload-importworkloads"
+workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
+
 
 get_storage_usage = "workloadmgr workload-get-storage-usage" 
 get_import_workloads_list = "workloadmgr workload-get-importworkloads-list" 
