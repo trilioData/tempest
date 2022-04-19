@@ -3800,7 +3800,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug("Image properties updated")
                 else:
                     raise Exception("Image properties not updated")
-                self.addCleanup(self.delete_image, image_id)
+                if (tvaultconf.cleanup and image_cleanup):
+                    self.addCleanup(self.delete_image, image_id)
                 return image_id
             else:
                 raise Exception("Image not created in glance")
@@ -3874,4 +3875,56 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         else:
             return False
+
+    '''
+    List WLM trusts
+    '''
+
+    def get_trusts(self):
+        try:
+            trust_list = []
+            resp, body = self.wlm_client.client.get("/trusts")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            trust_list = body['trust']
+        except Exception as e:
+            LOG.error(f"Exception in get_trusts: {e}")
+        finally:
+            return trust_list
+
+    '''
+    Create WLM trust
+    '''
+
+    def create_trust(self, role, is_cloud_admin=False, trust_cleanup=False):
+        try:
+            payload = {"trusts": {"role_name": role,
+                                  "is_cloud_trust": is_cloud_admin}
+                      }
+            resp, body = self.wlm_client.client.post("/trusts", json=payload)
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            trust_id = body['trust'][0]['name']
+            if (tvaultconf.cleanup and trust_cleanup):
+                self.addCleanup(self.delete_trust, trust_id)
+            return trust_id
+        except Exception as e:
+            LOG.error(f"Exception in create_trust: {e}")
+            return None
+
+    '''
+    Delete WLM trust
+    '''
+
+    def delete_trust(self, trust_id):
+        try:
+            resp, body = self.wlm_client.client.delete("/trusts/" +
+                                str(trust_id))
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in delete_trust: {e}")
+            return False
+
 

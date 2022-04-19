@@ -288,6 +288,7 @@ function configure_tempest
     echo "Fetching volume type details\n"
     volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
     shopt -s nocasematch
+    CINDER_BACKENDS_ENABLED=($(echo ${CINDER_BACKENDS_ENABLED[@]} | tr [:space:] '\n' | awk '!a[$0]++'))
     case "${#CINDER_BACKENDS_ENABLED[*]}" in
         0)
             echo "No volume type available to use, using Default \n"
@@ -617,6 +618,7 @@ function configure_tempest
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
+    sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
 
 }
 
