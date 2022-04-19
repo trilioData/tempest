@@ -26,10 +26,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
     vm_id = None
     volume_id = None
+    exception = ""
 
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
+
+    def _execute_scheduler_trust_validate_cli(self):
+        try:
+            cmd = command_argument_string.workload_scheduler_trust_check +\
+                    self.wid
+            resp = eval(cli_parser.cli_output(cmd))
+            reporting.add_test_step("Execute scheduler-trust-validate CLI",
+                    tvaultconf.PASS)
+            self.wlm_trust = resp['trust']
+            self.wlm_trust_valid = resp['is_valid']
+            self.wlm_scheduler = resp['scheduler_enabled']
+        except Exception as e:
+            LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
+            raise Exception("Execute scheduler-trust-validate CLI")
 
     @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
@@ -43,8 +58,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("pre req completed")
             global vm_id
             global volume_id
+            global exception
             vm_id = self.vm_id
             volume_id = self.volume_id
+            exception = self.exception
 
             # Create scheduled workload
             self.start_date = time.strftime("%m/%d/%Y")
@@ -67,17 +84,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create scheduled workload")
 
             #Execute scheduler-trust-validate CLI command
-            try:
-                cmd = command_argument_string.workload_scheduler_trust_check +\
-                            self.wid
-                resp = eval(cli_parser.cli_output(cmd))
-                reporting.add_test_step("Execute scheduler-trust-validate CLI",
-                        tvaultconf.PASS)
-                wlm_trust = resp['trust']
-                wlm_trust_valid = resp['is_valid']
-            except Exception as e:
-                LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
-                raise Exception("Execute scheduler-trust-validate CLI")
+            self._execute_scheduler_trust_validate_cli()
 
             #Fetch trust list from API
             trust_list = self.get_trusts()
@@ -85,36 +92,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Verify if trust details returned in steps 3 and 4 match
             found = False
             for trust in trust_list:
-                if trust['name'] == wlm_trust['name']:
+                if trust['name'] == self.wlm_trust['name']:
                     found = True
                     break
-            if found and wlm_trust_valid:
+            if found and self.wlm_trust_valid and self.wlm_scheduler:
                 reporting.add_test_step("Verify valid trust", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify valid trust", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Delete the trust using API
-            if self.delete_trust(wlm_trust['name']):
+            if self.delete_trust(self.wlm_trust['name']):
                 reporting.add_test_step("Delete trust", tvaultconf.PASS)
             else:
                 raise Exception("Delete trust")
 
             #Execute scheduler-trust-validate CLI for workload WL-1
-            try:
-                cmd = command_argument_string.workload_scheduler_trust_check +\
-                            self.wid
-                resp = eval(cli_parser.cli_output(cmd))
-                reporting.add_test_step("Execute scheduler-trust-validate CLI",
-                        tvaultconf.PASS)
-                wlm_trust = resp['trust']
-                wlm_trust_valid = resp['is_valid']
-            except Exception as e:
-                LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
-                raise Exception("Execute scheduler-trust-validate CLI")
+            self._execute_scheduler_trust_validate_cli()
 
             #Verify if trust details are returned appropriately
-            if not wlm_trust and not wlm_trust_valid:
+            if not self.wlm_trust and not self.wlm_trust_valid and \
+                    self.wlm_scheduler:
                 reporting.add_test_step("Verify broken trust", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify broken trust", tvaultconf.FAIL)
@@ -128,26 +126,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create user trust on project")
 
             #Execute scheduler-trust-validate CLI for workload WL-1
-            try:
-                cmd = command_argument_string.workload_scheduler_trust_check +\
-                            self.wid
-                resp = eval(cli_parser.cli_output(cmd))
-                reporting.add_test_step("Execute scheduler-trust-validate CLI",
-                        tvaultconf.PASS)
-                wlm_trust = resp['trust']
-                wlm_trust_valid = resp['is_valid']
-            except Exception as e:
-                LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
-                raise Exception("Execute scheduler-trust-validate CLI")
+            self._execute_scheduler_trust_validate_cli()
 
             #Verify if trust details are returned appropriately
             trust_list = self.get_trusts()
             found = False
             for trust in trust_list:
-                if trust['name'] == wlm_trust['name']:
+                if trust['name'] == self.wlm_trust['name']:
                     found = True
                     break
-            if found and wlm_trust_valid:
+            if found and self.wlm_trust_valid and self.wlm_scheduler:
                 reporting.add_test_step("Verify valid trust", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Verify valid trust", tvaultconf.FAIL)
@@ -158,6 +146,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
 
     @decorators.attr(type='workloadmgr_api')
     def test_3_cleanup(self):
