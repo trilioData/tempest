@@ -147,6 +147,96 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_cli')
+    def test_2_trust(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_validate_scheduler_trust_with_scheduler_disabled")
+            global vm_id
+            global volume_id
+            global exception
+            if exception != "":
+                LOG.error("pre req failed")
+                raise Exception(str(exception))
+            LOG.debug("pre req completed")
+
+            # Create workload with scheduler disabled using CLI
+            workload_create = command_argument_string.workload_create + \
+                " --instance instance-id=" + \
+                str(vm_id) + " --jobschedule enabled=False"
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Command workload create did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.PASS)
+
+            time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step(
+                        "Create workload with scheduler disable", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Create workload with scheduler disable", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                raise Exception("Create workload with scheduler disabled")
+
+            #Execute scheduler-trust-validate CLI command
+            self._execute_scheduler_trust_validate_cli()
+
+            #Fetch trust list from API
+            trust_list = self.get_trusts()
+
+            #Verify trust details returned
+            if not self.wlm_trust_valid and \
+                    not self.wlm_scheduler and \
+                    len(trust_list) > 0:
+                reporting.add_test_step("Verify trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Delete the trust using API
+            if self.delete_trust(trust_list[0]['name']):
+                reporting.add_test_step("Delete trust", tvaultconf.PASS)
+            else:
+                raise Exception("Delete trust")
+
+            #Execute scheduler-trust-validate CLI for workload WL-1
+            self._execute_scheduler_trust_validate_cli()
+
+            #Verify if trust details are returned appropriately
+            if not self.wlm_trust and \
+                    not self.wlm_trust_valid and \
+                    not self.wlm_scheduler:
+                reporting.add_test_step("Verify trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Create the trust again using API
+            trust_id = self.create_trust(tvaultconf.trustee_role)
+            if trust_id:
+                reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
+            else:
+                raise Exception("Create user trust on project")
+
+        except Exception as e:
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            self.workload_delete(self.wid)
+            reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_3_cleanup(self):
