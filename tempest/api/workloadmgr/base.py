@@ -3882,14 +3882,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def get_trusts(self):
         try:
+            trust_list = []
             resp, body = self.wlm_client.client.get("/trusts")
             if resp.status_code != 200:
                 resp.raise_for_status()
             trust_list = body['trust']
-            return trust_list
         except Exception as e:
             LOG.error(f"Exception in get_trusts: {e}")
-            return None
+        finally:
+            return trust_list
 
     '''
     Create WLM trust
