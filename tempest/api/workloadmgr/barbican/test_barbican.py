@@ -3033,22 +3033,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("volume id attached : " + str(volume_id))
 
             # create a workload with encryption status as disabled and try to attach it to vm...
-            try:
-                wid = self.workload_create([vm_id],
-                                           tvaultconf.workload_type_id, encryption=False,
-                                           workload_cleanup=True)
+            wid = self.workload_create([vm_id],
+                                       tvaultconf.workload_type_id, encryption=False,
+                                       workload_cleanup=True)
 
-                LOG.debug("Workload ID: " + str(wid))
-                reporting.add_test_step("Unencrypted workload creation with unencrypted volume.",
-                                        tvaultconf.PASS)
-                reporting.set_test_script_status(tvaultconf.PASS)
+            LOG.debug("Workload ID: " + str(wid))
 
-            except Exception as e:
-                LOG.error("Exception: " + str(e))
-                reporting.add_test_step("Unencrypted Workload creation with unencrypted volume.",
+            if (wid is not None):
+                self.wait_for_workload_tobe_available(wid)
+                if (self.getWorkloadStatus(wid) == "available"):
+                    reporting.add_test_step("Create unencrypted workload",
+                                            tvaultconf.PASS)
+                    reporting.set_test_script_status(tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Create unencrypted workload",
+                                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Create unencrypted workload",
                                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
+                raise Exception("Unencrypted Workload creation failed")
 
             # Now create an encrypted volume with derived volume type id...
             volume_id1 = self.create_volume(
