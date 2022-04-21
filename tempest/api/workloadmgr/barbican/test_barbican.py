@@ -3045,11 +3045,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if (self.getWorkloadStatus(wid) == "available"):
                     reporting.add_test_step("Create unencrypted workload",
                                             tvaultconf.PASS)
-                    reporting.set_test_script_status(tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create unencrypted workload",
                                             tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
+                    raise Exception("Unencrypted Workload creation failed")
             else:
                 reporting.add_test_step("Create unencrypted workload",
                                         tvaultconf.FAIL)
@@ -3084,6 +3084,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Full snapshot created with unencrypted and encrypted volume.")
                 reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Full snapshot created with unencrypted and encrypted volume")
             else:
                 #get the created snapshot information
                 snapshot_info = self.getSnapshotInfo(snapshot_id)
@@ -3094,7 +3095,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     if (result):
                         reporting.add_test_step("Unencrypted Workload cannot have instance with encrypted volume",
                             tvaultconf.PASS)
-                        reporting.set_test_script_status(tvaultconf.PASS)
                     else:
                         LOG.error("Error: " + str(error))
                         reporting.add_test_step("Different error occurred.", tvaultconf.FAIL)
