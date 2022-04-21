@@ -295,11 +295,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -874,11 +876,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -1436,11 +1440,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -2032,11 +2038,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
