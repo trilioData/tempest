@@ -2899,6 +2899,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Unencrypted Workload creation with unencrypted volume is failed to create.",
                                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Unencrypted workload creation failed.")
 
             # create snapshot of workload created...
             snapshot_id = self.workload_snapshot(wid, True)
@@ -3068,6 +3069,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if len(total_volumes) == 2:
                 reporting.add_test_step("Attach Encrypted volume to existing instance", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Attach Encrypted volume to existing instance", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Encrypted volume failed to attach existing instance")
 
             # create snapshot of workload created...
             snapshot_id = self.workload_snapshot(wid, True)
