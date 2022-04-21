@@ -1207,6 +1207,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_type_info = body['snapshot']['snapshot_type']
         snapshot_info.append(snapshot_type_info)
         LOG.debug('snapshot type is : %s' % snapshot_info[2])
+        snapshot_error_msg = body['snapshot']['error_msg']
+        snapshot_info.append(snapshot_error_msg)
+        LOG.debug('snapshot error msg is : %s' % snapshot_info[3])
         LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 200):
             resp.raise_for_status()
