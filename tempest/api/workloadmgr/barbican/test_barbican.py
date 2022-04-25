@@ -316,6 +316,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[3][1] = 1
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -345,6 +347,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
             md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
@@ -897,6 +900,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[3][1] = 1
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -926,6 +931,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 7)
             md5sums_after_incr = {}
@@ -1461,6 +1467,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[3][1] = 1
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -2059,6 +2067,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[3][1] = 1
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -2088,6 +2098,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
+
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 7)
             md5sums_after_incr = {}
