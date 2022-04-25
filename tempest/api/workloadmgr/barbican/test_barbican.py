@@ -127,7 +127,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(self.workload_status == "available"):
                     reporting.add_test_step("Create encrypted workload "\
                             "with image booted vm", tvaultconf.PASS)
-                    tests[0][1] = 1
+                    #tests[0][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Create encrypted workload "\
@@ -157,7 +157,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[1][1] = 1
+                    #tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -191,7 +191,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[2][1] = 1
+                    #tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -236,6 +236,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
                 else:
                     pass
+            else:
+                reporting.add_test_step("Snapshot mount of full snapshot", tvaultconf.FAIL)
 
             unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id)
             LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
@@ -292,6 +294,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
                 else:
                     pass
+            else:
+                reporting.add_test_step(
+                    "Snapshot mount of incremental snapshot", tvaultconf.FAIL)
 
             unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id2)
             LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
@@ -306,8 +311,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if output_list == b'':
                     reporting.add_test_step(
                         "Unmount incremental snapshot", tvaultconf.PASS)
-                    tests[3][1] = 1
-                    reporting.test_case_to_write()
+                    #tests[3][1] = 1
+                    #reporting.test_case_to_write()
                 else:
                     reporting.add_test_step(
                         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
@@ -328,23 +333,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.vm_id, "/opt/File_4")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, "/opt/File_4")
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
+            if(snapshot_wise_filecount == None):
                 reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-                tests[4][1] = 1
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
+
+                if filesearch_status:
+                    LOG.debug("Filepath_Search default_parameters successful")
+                    reporting.add_test_step(
                         "Verification of Filesearch with default parameters",
-                        tvaultconf.FAIL)
+                        tvaultconf.PASS)
+                    #tests[4][1] = 1
+                else:
+                    LOG.debug("Filepath Search default_parameters unsuccessful")
+                    reporting.add_test_step(
+                            "Verification of Filesearch with default parameters",
+                            tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -427,7 +437,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[5][1] = 1
+                    #tests[5][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -437,7 +447,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[5][1] = 1
+            #tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -490,7 +500,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[6][1] = 1
+                    #tests[6][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -500,7 +510,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            #tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -560,7 +570,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[7][1] = 1
+                    #tests[7][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -569,7 +579,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            #reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -577,11 +587,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.add_test_script(test[0])
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+        #    for test in tests:
+         #       if test[1] != 1:
+          #          reporting.set_test_script_status(tvaultconf.FAIL)
+           #         reporting.add_test_script(test[0])
+            #        reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_2_barbican(self):
@@ -657,7 +668,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create encrypted workload "\
                             "with image booted vm and vol attached",
                             tvaultconf.PASS)
-                    tests[0][1] = 1
+                    #tests[0][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Create encrypted workload "\
@@ -687,7 +698,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[1][1] = 1
+                    #tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -725,7 +736,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[2][1] = 1
+                    #tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -890,8 +901,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if output_list == b'':
                     reporting.add_test_step(
                         "Unmount incremental snapshot", tvaultconf.PASS)
-                    tests[3][1] = 1
-                    reporting.test_case_to_write()
+                    #tests[3][1] = 1
+                    #reporting.test_case_to_write()
                 else:
                     reporting.add_test_step(
                         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
@@ -923,7 +934,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Verification of Filesearch with default parameters",
                     tvaultconf.PASS)
-                tests[4][1] = 1
+                #tests[4][1] = 1
             else:
                 LOG.debug("Filepath Search default_parameters unsuccessful")
                 reporting.add_test_step(
@@ -1027,7 +1038,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[5][1] = 1
+                    #tests[5][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1037,7 +1048,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[5][1] = 1
+            #tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -1103,7 +1114,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[6][1] = 1
+                    #tests[6][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1113,7 +1124,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            #tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -1185,7 +1196,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[7][1] = 1
+                    #tests[7][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1193,18 +1204,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            #reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.add_test_script(test[0])
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+            #for test in tests:
+             #   if test[1] != 1:
+              #      reporting.set_test_script_status(tvaultconf.FAIL)
+               #     reporting.add_test_script(test[0])
+                #    reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_3_barbican(self):
@@ -1278,7 +1290,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(self.workload_status == "available"):
                     reporting.add_test_step("Create encrypted workload "\
                             "with volume booted vm", tvaultconf.PASS)
-                    tests[0][1] = 1
+                    #tests[0][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Create encrypted workload "\
@@ -1308,7 +1320,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[1][1] = 1
+                    #tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -1342,7 +1354,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[2][1] = 1
+                    #tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -1387,6 +1399,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
                 else:
                     pass
+            else:
+                reporting.add_test_step(
+                    "Snapshot mount of full snapshot", tvaultconf.FAIL)
 
             unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id)
             LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
@@ -1443,7 +1458,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
                 else:
                     pass
-
+            else:
+                reporting.add_test_step(
+                    "Snapshot mount of incremental snapshot", tvaultconf.FAIL)
             unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id2)
             LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
             if unmount_status:
@@ -1457,8 +1474,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if output_list == b'':
                     reporting.add_test_step(
                         "Unmount incremental snapshot", tvaultconf.PASS)
-                    tests[3][1] = 1
-                    reporting.test_case_to_write()
+                    #tests[3][1] = 1
+                    #reporting.test_case_to_write()
                 else:
                     reporting.add_test_step(
                         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
@@ -1490,14 +1507,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Verification of Filesearch with default parameters",
                     tvaultconf.PASS)
-                tests[4][1] = 1
+                #tests[4][1] = 1
             else:
                 LOG.debug("Filepath Search default_parameters unsuccessful")
                 reporting.add_test_step(
                         "Verification of Filesearch with default parameters",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[4][1] = 1
+            #tests[4][1] = 1
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
             md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
@@ -1577,7 +1594,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[5][1] = 1
+                    #tests[5][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1587,7 +1604,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[5][1] = 1
+            #tests[5][1] = 1
 
             #Inplace restore for full snapshot
             reporting.add_test_script(tests[6][0])
@@ -1641,7 +1658,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[6][1] = 1
+                    #tests[6][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1651,7 +1668,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            #tests[6][1] = 1
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
@@ -1711,7 +1728,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[7][1] = 1
+                    #tests[7][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -1720,7 +1737,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            #reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -1728,11 +1745,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.add_test_script(test[0])
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+            #for test in tests:
+             #   if test[1] != 1:
+              #      reporting.set_test_script_status(tvaultconf.FAIL)
+               #     reporting.add_test_script(test[0])
+                #    reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_4_barbican(self):
@@ -1824,7 +1842,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create encrypted workload "\
                             "with volume booted vm and vol attached",
                             tvaultconf.PASS)
-                    tests[0][1] = 1
+                    #tests[0][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Create encrypted workload "\
@@ -1854,7 +1872,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[1][1] = 1
+                    #tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -1892,7 +1910,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[2][1] = 1
+                    #tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
@@ -2057,8 +2075,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if output_list == b'':
                     reporting.add_test_step(
                         "Unmount incremental snapshot", tvaultconf.PASS)
-                    tests[3][1] = 1
-                    reporting.test_case_to_write()
+                    #tests[3][1] = 1
+                    #reporting.test_case_to_write()
                 else:
                     reporting.add_test_step(
                         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
@@ -2090,7 +2108,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Verification of Filesearch with default parameters",
                     tvaultconf.PASS)
-                tests[4][1] = 1
+                #tests[4][1] = 1
             else:
                 LOG.debug("Filepath Search default_parameters unsuccessful")
                 reporting.add_test_step(
@@ -2194,7 +2212,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[5][1] = 1
+                    #tests[5][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -2268,7 +2286,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[6][1] = 1
+                    #tests[6][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -2349,7 +2367,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification", tvaultconf.PASS)
-                    tests[7][1] = 1
+                    #tests[7][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -2357,18 +2375,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
-            reporting.test_case_to_write()
+            #reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.add_test_script(test[0])
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+            #for test in tests:
+             #   if test[1] != 1:
+              #      reporting.set_test_script_status(tvaultconf.FAIL)
+               #     reporting.add_test_script(test[0])
+                #    reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_5_barbican(self):
