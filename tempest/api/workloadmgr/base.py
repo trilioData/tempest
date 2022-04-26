@@ -3930,4 +3930,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in delete_trust: {e}")
             return False
 
+    '''
+    This method creates a secret order 
+    '''
+
+    def create_secret_order(self, order_cleanup=True):
+        resp = self.order_client.create_order(
+            type="key",
+            name="sec_order1",
+            algorithm="aes",
+            bit_length=256,
+            payload_content_type="application/octet-stream", mode="cbc")
+        order_uuid = resp['order_ref']
+        if (tvaultconf.cleanup and order_cleanup):
+            self.addCleanup(self.delete_order, order_uuid)
+        return order_uuid
+
+    '''
+    This method retrieves secret key from secret order
+    '''
+    def get_secret_from_order(self, order_uuid, secret_cleanup=True):
+        resp = self.order_client.get_order(order_uuid)
+        secret_uuid = resp['secret_ref']
+        if (tvaultconf.cleanup and secret_cleanup):
+            self.addCleanup(self.delete_secret, secret_uuid)
+        return secret_uuid
+
+    '''
+    This method deletes a secret order
+    '''
+    def delete_secret_order(self, order_uuid):
+        resp = self.order_client.delete_order(order_uuid)
+        LOG.debug(f"resp {resp}")
+        return resp
 
