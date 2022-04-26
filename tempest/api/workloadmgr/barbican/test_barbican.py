@@ -3351,8 +3351,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_14_barbican(self):
         reporting.add_test_script(str(__name__) + "_Workload_reset_on_encrypted_workload")
         try:
-            volumes = ["/dev/vdb"]
-            mount_points = ["mount_data_b"]
             self.snapshot_ids = []
 
             # create key pair...
