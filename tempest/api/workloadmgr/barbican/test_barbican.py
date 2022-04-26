@@ -3364,6 +3364,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.workload_delete(self.wid)
             reporting.test_case_to_write()
 
+    # Test case automated #OS-2025
+    # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2025
     @decorators.attr(type='workloadmgr_api')
     def test_13_barbican(self):
         try:
@@ -3403,8 +3405,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
-            self.order_uuid = self.create_secret_order(self, order_cleanup=True)
+
+            self.order_uuid = self.create_secret_order()
+            LOG.debug("Created secret order: {}".format(self.order_uuid))
             self.secret_uuid = self.get_secret_from_order(self.order_uuid)
+            LOG.debug("Getting secret key from secret order: {}".format(self.secret_uuid))
 
             # Create workload with API
             try:

@@ -3938,21 +3938,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def create_secret_order(self, order_cleanup=True):
         resp = self.order_client.create_order(
             type="key",
-            name="sec_order1",
-            algorithm="aes",
-            bit_length=256,
-            payload_content_type="application/octet-stream", mode="cbc")
-        order_uuid = resp['order_ref']
+            meta={"name": "sec_order1", "algorithm": "aes", "bit_length": 256, "payload_content_type": "application/octet-stream", "mode": "cbc"}
+            )
+        order_uuid = resp['order_ref'].split('/')[-1]
         if (tvaultconf.cleanup and order_cleanup):
-            self.addCleanup(self.delete_order, order_uuid)
+            self.addCleanup(self.delete_secret_order, order_uuid)
         return order_uuid
 
     '''
     This method retrieves secret key from secret order
     '''
-    def get_secret_from_order(self, order_uuid, secret_cleanup=True):
+    def get_secret_from_order(self, order_uuid):
         resp = self.order_client.get_order(order_uuid)
-        secret_uuid = resp['secret_ref']
+        LOG.debug("response from get secret order: {}".format(resp))
+        secret_uuid = resp['secret_ref'].split('/')[-1]
         return secret_uuid
 
     '''
@@ -3962,4 +3961,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = self.order_client.delete_order(order_uuid)
         LOG.debug(f"resp {resp}")
         return resp
-
