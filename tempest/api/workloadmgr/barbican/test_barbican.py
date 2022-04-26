@@ -3112,3 +3112,82 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
     #End of test case OS-2024
+
+    #OS-2018 -
+    #Create secret with empty payload.
+    #Create encrypted workload with above secret UUID.
+    #Result - Workload creation should fail as secert UUID should map to payload
+    @decorators.attr(type='workloadmgr_cli')
+    def test_11_barbican(self):
+        try:
+
+            test_var = "tempest.api.workloadmgr.barbican.test_"
+            tests = [[test_var + "create_secret_with_empty_payload", 0]]
+            reporting.add_test_script(tests[0][0])
+
+            #create key pair...
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            #create vm...
+            self.vm_id = self.create_vm(key_pair=self.kp)
+
+            #create secret with empty payload.
+            empty_payload = "\"\""
+            secret_key_cmd = command_argument_string.openstack_create_secret + \
+                                  "-p " + str(empty_payload) + \
+                                  " --insecure"
+
+            error = cli_parser.cli_error(secret_key_cmd)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                reporting.add_test_step(
+                    "Create secret with an empty payload.",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Create secret with an empty payload.")
+            else:
+                reporting.add_test_step(
+                    "Create secret with an empty payload.",
+                    tvaultconf.PASS)
+
+            #parse the output to get the secret uuid.
+            out = cli_parser.cli_output(secret_key_cmd)
+            LOG.debug("Response from CLI: " + str(out))
+
+            out = out.split('/secrets/')[1].split('|')[0].strip('.')
+            self.secret_uuid = out.replace(" ","")
+
+            LOG.debug("secret uuid to pass for workload instance creation: " + str(self.secret_uuid))
+
+            # Create workload with CLI
+            workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " --secret-uuid " + str(self.secret_uuid)
+            error = cli_parser.cli_error(workload_create_with_encryption)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("Error: " + str(error))
+                if error:
+                    err_msg = ["Either the secret UUID or the payload of the secret is invalid"]
+                    result  = all(x in error for x in err_msg)
+                    if (result):
+                        reporting.add_test_step("Creation of workload instance cannot have an empty payload",
+                                tvaultconf.PASS)
+                        reporting.set_test_script_status(tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Different error occurred.",
+                                tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                LOG.debug("workload with encryption created successfully")
+                reporting.add_test_step("workload instance with secret uuid of an empty payload",
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
+    #End of test case OS-2018
+

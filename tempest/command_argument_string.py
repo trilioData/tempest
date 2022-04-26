@@ -45,6 +45,9 @@ restore_cancel = "workloadmgr restore-cancel "
 restore_security_groups = "workloadmgr restore-security-groups "
 network_restore = "workloadmgr restore-network-topology "
 
+#openstack secret commands
+openstack_list_secret = "openstack secret list"
+openstack_create_secret = "openstack secret store "
 
 #Nova commands
 delete_vm = "nova delete "
