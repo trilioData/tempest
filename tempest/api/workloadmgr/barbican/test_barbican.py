@@ -3403,8 +3403,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
-            self.order_uuid = self.create_secret_order()
-            self.secret_uuid = self.get_secret_from_order(self.order_uuid, secret_cleanup=True)
+            self.order_uuid = self.create_secret_order(self, order_cleanup=True)
+            self.secret_uuid = self.get_secret_from_order(self.order_uuid)
 
             # Create workload with API
             try:
