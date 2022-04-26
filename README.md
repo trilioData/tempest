@@ -26,7 +26,7 @@ Repo for automation build, test etc.
     - CentOS 8
          - Install required packages
            ```
-           yum install gcc python3-virtualenv epel-release centos-release-openstack-train -y
+           yum install gcc python3-virtualenv epel-release centos-release-openstack-wallaby python3-barbicanclient -y
            pip3 install apscheduler
            ```
 
