@@ -70,6 +70,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.order_client = cls.os_primary.order_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -3952,8 +3953,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_secret_from_order(self, order_uuid, secret_cleanup=True):
         resp = self.order_client.get_order(order_uuid)
         secret_uuid = resp['secret_ref']
-        if (tvaultconf.cleanup and secret_cleanup):
-            self.addCleanup(self.delete_secret, secret_uuid)
         return secret_uuid
 
     '''
