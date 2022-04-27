@@ -3370,7 +3370,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_13_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.with_secret_order_"
-            tests = [[test_var+"workload_api", 0],
+            tests = [[test_var+"create_secret", 0],
+                    [test_var+"workload_api", 0],
                     [test_var+"full_snapshot_api", 0],
                     [test_var+"incremental_snapshot_api", 0],
                     [test_var+"snapshot_mount_api", 0],
@@ -3378,7 +3379,21 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     [test_var+"selectiverestore_api", 0],
                     [test_var+"inplacerestore_api", 0],
                     [test_var+"oneclickrestore_api", 0]]
+
             reporting.add_test_script(tests[0][0])
+            try:
+                self.order_uuid = self.create_secret_order()
+                LOG.debug("Created secret order: {}".format(self.order_uuid))
+                self.secret_uuid = self.get_secret_from_order(self.order_uuid)
+                LOG.debug("Getting secret key from secret order: {}".format(self.secret_uuid))
+                reporting.add_test_step("Creating secret key using secret order", tvaultconf.PASS)
+                tests[0][1] = 1
+                reporting.test_case_to_write()
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Getting secret key from secret order")
+
+            reporting.add_test_script(tests[1][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
             self.volumes = []
@@ -3406,11 +3421,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
 
-            self.order_uuid = self.create_secret_order()
-            LOG.debug("Created secret order: {}".format(self.order_uuid))
-            self.secret_uuid = self.get_secret_from_order(self.order_uuid)
-            LOG.debug("Getting secret key from secret order: {}".format(self.secret_uuid))
-
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
@@ -3427,7 +3437,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if(self.workload_status == "available"):
                     reporting.add_test_step("Create encrypted workload "\
                             "with image booted vm", tvaultconf.PASS)
-                    tests[0][1] = 1
+                    tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Create encrypted workload "\
@@ -3436,7 +3446,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create encrypted workload with image "\
                         "booted vm")
 
-            reporting.add_test_script(tests[1][0])
+            reporting.add_test_script(tests[2][0])
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -3457,14 +3467,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[1][1] = 1
+                    tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
                 raise Exception("Create full snapshot")
 
-            reporting.add_test_script(tests[2][0])
+            reporting.add_test_script(tests[3][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
             md5sums_before_incr = self.calculatemmd5checksum(ssh, "/opt")
@@ -3491,14 +3501,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
                             self.vm_id, self.disk_names, self.mount_path)
 
-                    tests[2][1] = 1
+                    tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
                 raise Exception("Create incremental snapshot")
 
-            reporting.add_test_script(tests[3][0])
+            reporting.add_test_script(tests[4][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
                 self.wid, self.snapshot_id, self.frm_id)
@@ -3609,8 +3619,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if output_list == b'':
                     reporting.add_test_step(
                         "Unmount incremental snapshot", tvaultconf.PASS)
-                    #tests[3][1] = 1
-                    #reporting.test_case_to_write()
                 else:
                     reporting.add_test_step(
                         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
@@ -3620,10 +3628,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[3][1] = 1
+            tests[4][1] = 1
 
             #File search
-            reporting.add_test_script(tests[4][0])
+            reporting.add_test_script(tests[5][0])
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
@@ -3647,14 +3655,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verification of Filesearch with default parameters",
                         tvaultconf.PASS)
-                    #tests[4][1] = 1
                 else:
                     LOG.debug("Filepath Search default_parameters unsuccessful")
                     reporting.add_test_step(
                             "Verification of Filesearch with default parameters",
                             tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[4][1] = 1
+            tests[5][1] = 1
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
@@ -3663,7 +3670,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh.close()
 
             #selective restore
-            reporting.add_test_script(tests[5][0])
+            reporting.add_test_script(tests[6][0])
             rest_details = {}
             rest_details['rest_type'] = 'selective'
             rest_details['network_id'] = CONF.network.internal_network_id
@@ -3735,7 +3742,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    #tests[5][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -3745,10 +3751,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[5][1] = 1
+            tests[6][1] = 1
 
             #Inplace restore for full snapshot
-            reporting.add_test_script(tests[6][0])
+            reporting.add_test_script(tests[7][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
             rest_details['instances'] = {self.vm_id: self.volumes}
@@ -3798,7 +3804,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    #tests[6][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
@@ -3808,9 +3813,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.FAIL)
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            tests[7][1] = 1
 
-            reporting.add_test_script(tests[7][0])
+            reporting.add_test_script(tests[8][0])
             self.delete_vm(self.vm_id)
             time.sleep(10)
             rest_details = {}
@@ -3868,7 +3873,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("***MDSUMS MATCH***")
                     reporting.add_test_step(
                         "Md5 Verification for boot disk", tvaultconf.PASS)
-                    tests[7][1] = 1
+                    tests[8][1] = 1
                 else:
                     LOG.debug("***MDSUMS DON'T MATCH***")
                     reporting.add_test_step(
