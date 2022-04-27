@@ -3436,8 +3436,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
     # End of test case OS-2018
 
-
-
     @decorators.attr(type='workloadmgr_api')
     def test_15_barbican(self):
         reporting.add_test_script(str(__name__) + "_Workload_reset_on_encrypted_workload")
