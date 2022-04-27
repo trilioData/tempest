@@ -46,8 +46,7 @@ restore_security_groups = "workloadmgr restore-security-groups "
 network_restore = "workloadmgr restore-network-topology "
 
 #openstack secret commands
-openstack_list_secret = "openstack secret list"
-openstack_create_secret = "openstack secret store "
+openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json --insecure "
 
 #Nova commands
 delete_vm = "nova delete "
