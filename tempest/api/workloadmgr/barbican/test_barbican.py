@@ -72,7 +72,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             raise Exception("Execute scheduler-trust-validate CLI")
 
     @decorators.attr(type='workloadmgr_api')
-    def test_1_barbican(self):
+    def test_01_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_image_booted_"
             tests = [[test_var+"workload_api", 0],
@@ -595,7 +595,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_2_barbican(self):
+    def test_02_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_image_boot_vol_attach_"
             tests = [[test_var+"workload_api", 0],
@@ -1218,7 +1218,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_3_barbican(self):
+    def test_03_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_volume_booted_"
             tests = [[test_var+"workload_api", 0],
@@ -1752,7 +1752,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_4_barbican(self):
+    def test_04_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_volume_boot_vol_attach_"
             tests = [[test_var+"workload_api", 0],
@@ -2390,7 +2390,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_5_barbican(self):
+    def test_05_barbican(self):
         try:
             reporting.add_test_script(str(__name__) + "_retention")
             vm_id = self.create_vm(vm_cleanup=True)
@@ -2463,7 +2463,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @test.pre_req({'type': 'barbican_workload'})
     @decorators.attr(type='workloadmgr_cli')
-    def test_6_barbican(self):
+    def test_06_barbican(self):
         try:
             global vm_id
             global secret_uuid
@@ -2596,7 +2596,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     # Workload policy with scheduler and retention parameter
     @test.pre_req({'type': 'barbican_workload'})
     @decorators.attr(type='workloadmgr_cli')
-    def test_7_barbican(self):
+    def test_07_barbican(self):
         reporting.add_test_script(str(__name__) + "_Create_encrypted_workload_with_workload_policy")
         try:
             snapshots_list = []
@@ -2820,7 +2820,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     #Try to create a workload with encryption checkbox disabled and try to attach to above vm created.
     #Result - Workload creation should fail with proper error.
     @decorators.attr(type='workloadmgr_api')
-    def test_8_barbican(self):
+    def test_08_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_"
             tests = [[test_var + "create_unencrypted_workload_with_encrypted_volume", 0]]
@@ -2892,7 +2892,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     #do workload edit and add 1 more vm having encrypted volume attached
     #output - workload edit should fail...
     @decorators.attr(type='workloadmgr_cli')
-    def test_9_barbican(self):
+    def test_09_barbican(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_"
             tests = [[test_var + "workload_edit_with_unencrypted_and_encrypted_volume", 0]]
@@ -3993,4 +3993,149 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
     # End of test case OS-2018
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_15_barbican(self):
+        reporting.add_test_script(str(__name__) + "_Workload_reset_on_encrypted_workload")
+        try:
+            self.snapshot_ids = []
 
+            # create key pair...
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            # create vm...
+            vm_id = self.create_vm(key_pair=self.kp)
+
+            # Create secret UUID
+            secret_uuid = self.create_secret()
+
+            # find volume_type = encrypted and unencrypted.
+            # Get the volume_type_id
+            encrypted_vol_type = -1
+            unencrypted_vol_type = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("luks") != -1):
+                    encrypted_vol_type = CONF.volume.volume_types[vol]
+                else:
+                    unencrypted_vol_type = CONF.volume.volume_types[vol]
+
+            if (encrypted_vol_type == -1):
+                reporting.add_test_step("Encrypted volume type is missing." \
+                                        "openstack-setup.conf should have luks volume types like - luks-lvm, luks-ceph, luks etc." \
+                                        "Cannot continue with the test...", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("No luks volume type found to create encrypted volume.")
+
+            if (unencrypted_vol_type == -1):
+                reporting.add_test_step("Unecrypted volume type is missing." \
+                                        "openstack-setup.conf should have volume types like - lvm, ceph, rbd etc." \
+                                        "Cannot continue with the test...", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("No volume type like lvm, ceph, rbd etc. found to create unencrypted volume.")
+
+            # Now create unencrypted volume with derived volume type id...
+            volume_id = self.create_volume(
+                volume_type_id=unencrypted_vol_type)
+
+            # Attach volume to vm...
+            self.attach_volume(volume_id, vm_id)
+            LOG.debug("volume id attached : " + str(volume_id))
+
+            # Now create encrypted volume with derived volume type id...
+            encrypt_volume_id = self.create_volume(
+                volume_type_id=encrypted_vol_type)
+
+            LOG.debug("Encrypted Volume ID: " + str(encrypt_volume_id))
+
+            self.volumes = []
+            self.volumes.append(volume_id)
+            self.volumes.append(encrypt_volume_id)
+            # Attach volume to vm...
+            self.attach_volume(encrypt_volume_id, vm_id)
+            LOG.debug("Encrypted Volume attached to vm: " + str(vm_id))
+
+            # create a workload
+            workload_id = self.workload_create([vm_id],
+                                               tvaultconf.workload_type_id, encryption=True,
+                                               secret_uuid=secret_uuid)
+
+            LOG.debug("Workload ID: " + str(workload_id))
+            reporting.add_test_step("Encrypted Workload with encrypted and non encrypted volume is created.",
+                                    tvaultconf.PASS)
+
+            # Create full snapshot
+            self.snapshot_id_full = self.workload_snapshot(
+                workload_id, True)
+            self.wait_for_workload_tobe_available(workload_id)
+            if (self.getSnapshotStatus(workload_id, self.snapshot_id_full) != "available"):
+                self.exception = "Create full snapshot"
+                raise Exception(str(self.exception))
+
+            self.snapshot_ids.append(self.snapshot_id_full)
+
+            LOG.debug("Snapshot ID-1: " + str(self.snapshot_ids[0]))
+            reporting.add_test_step("Full Snapshot is created.",
+                                    tvaultconf.PASS)
+
+
+            # Create incremental-1 snapshot
+            self.snapshot_id_inc = self.workload_snapshot(
+                workload_id, False)
+            self.wait_for_workload_tobe_available(workload_id)
+            if (self.getSnapshotStatus(workload_id, self.snapshot_id_inc) != "available"):
+                self.exception = "Create incremental-1 snapshot"
+                raise Exception(str(self.exception))
+
+            self.snapshot_ids.append(self.snapshot_id_inc)
+            LOG.debug("Snapshot ID-2: " + str(self.snapshot_ids[1]))
+            reporting.add_test_step("Incremental Snapshot is created.",
+                                    tvaultconf.PASS)
+
+            volume_snapshots1 = self.get_volume_snapshots(volume_id)
+            LOG.debug("Volumes snapshots for: " +
+                      str(volume_id) + ": " + str(volume_snapshots1))
+            if len(volume_snapshots1) == 1:
+                reporting.add_test_step("Unencrypted Volume snapshot count is 1", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Unencrypted Volume snapshot count is not 1", tvaultconf.FAIL)
+                raise Exception("Unencrypted Volume snapshot count is not 1")
+
+            volume_snapshots2 = self.get_volume_snapshots(encrypt_volume_id)
+            LOG.debug("Volumes snapshots for: " +
+                      str(encrypt_volume_id) + ": " + str(volume_snapshots2))
+            if len(volume_snapshots2) == 1:
+                reporting.add_test_step("Encrypted Volume snapshot count is 1", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Encrypted Volume snapshot count is not 1", tvaultconf.FAIL)
+                raise Exception("Encrypted Volume snapshot count is not 1")
+
+            workload_reset_status = self.workload_reset(workload_id)
+            if workload_reset_status:
+                reporting.add_test_step("Workload reset request raised", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reset request failed")
+                reporting.add_test_step("Workload reset request failed", tvaultconf.FAIL)
+                raise Exception("Workload reset request failed")
+
+            start_time = time.time()
+            time.sleep(10)
+            volsnaps_after = self.get_volume_snapshots(volume_id)
+            while (len(volsnaps_after) != 0 and (time.time() - start_time < 600)):
+                volsnaps_after = self.get_volume_snapshots(volume_id)
+                time.sleep(5)
+            if len(volsnaps_after) == 0:
+                reporting.add_test_step("Temp Volume snapshot is deleted after workload reset", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Temp Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
+                raise Exception("Workload reset failed as temp volume snapshot is not deleted")
+            volsnaps_after1 = self.get_volume_snapshots(encrypt_volume_id)
+            if len(volsnaps_after1) == 0:
+                reporting.add_test_step("Encrypted Volume snapshot is deleted after workload reset", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Encrypted Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
+                raise Exception("Workload reset failed as Encrypted volume snapshot is not deleted")
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
