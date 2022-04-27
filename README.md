@@ -60,6 +60,7 @@ Repo for automation build, test etc.
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
+           apt-get install python3-barbicanclient -y
            ```
 
          - Run below script to create virtual environment:
@@ -80,6 +81,7 @@ Repo for automation build, test etc.
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
+           apt-get install python3-barbicanclient -y
            ```
 
          - Run below script to create virtual environment:
