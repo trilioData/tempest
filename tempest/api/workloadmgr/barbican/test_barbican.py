@@ -9,6 +9,7 @@ from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
 from tempest.util import query_data
+from oslo_serialization import jsonutils as json
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -21,6 +22,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     volume_id = ""
     policy_id = ""
     secret_uuid = ""
+    exception = ""
 
     @classmethod
     def setup_clients(cls):
@@ -55,6 +57,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             "target backend", tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
 
+    def _execute_scheduler_trust_validate_cli(self):
+        try:
+            cmd = command_argument_string.workload_scheduler_trust_check +\
+                    self.wid
+            resp = eval(cli_parser.cli_output(cmd))
+            reporting.add_test_step("Execute scheduler-trust-validate CLI",
+                    tvaultconf.PASS)
+            self.wlm_trust = resp['trust']
+            self.wlm_trust_valid = resp['is_valid']
+            self.wlm_scheduler = resp['scheduler_enabled']
+        except Exception as e:
+            LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
+            raise Exception("Execute scheduler-trust-validate CLI")
 
     @decorators.attr(type='workloadmgr_api')
     def test_1_barbican(self):
@@ -295,11 +310,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -874,11 +891,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -1436,11 +1455,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -2032,11 +2053,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tests[3][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception(
-                        "Snapshot unmount of incremental snapshot")
+                    reporting.add_test_step(
+                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                raise Exception(
-                    "Snapshot unmount of incremental snapshot")
+                reporting.add_test_step(
+                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             #File search
             reporting.add_test_script(tests[4][0])
@@ -3113,12 +3136,225 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
     #End of test case OS-2024
 
+    @test.pre_req({'type': 'small_workload'})
+    @decorators.attr(type='workloadmgr_cli')
+    def test_11_barbican(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_validate_scheduler_trust_with_scheduler_enabled")
+            if self.exception != "":
+                LOG.error("pre req failed")
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
+            global vm_id
+            global volume_id
+            global exception
+            global secret_uuid
+            vm_id = self.vm_id
+            volume_id = self.volume_id
+            exception = self.exception
+
+            # Create scheduled encrypted workload
+            self.secret_uuid = self.create_secret(secret_cleanup=False)
+            secret_uuid = self.secret_uuid
+
+            self.start_date = time.strftime("%m/%d/%Y")
+            self.start_time = time.strftime("%I:%M %p")
+            self.wid = self.workload_create([vm_id], tvaultconf.parallel,
+                        jobschedule={"start_date": self.start_date,
+                            "start_time": self.start_time,
+                            "interval": tvaultconf.interval,
+                            "retention_policy_type":
+                                tvaultconf.retention_policy_type,
+                            "retention_policy_value":
+                                tvaultconf.retention_policy_value,
+                            "enabled": "True"}, encryption=True,
+                        secret_uuid=secret_uuid)
+            LOG.debug("Workload ID: " + str(self.wid))
+            self.wait_for_workload_tobe_available(self.wid)
+            if(self.getWorkloadStatus(self.wid) == "available"):
+                reporting.add_test_step(
+                    "Create scheduled encrypted workload", tvaultconf.PASS)
+            else:
+                raise Exception("Create scheduled encrypted workload")
+
+            #Execute scheduler-trust-validate CLI command
+            self._execute_scheduler_trust_validate_cli()
+
+            #Fetch trust list from API
+            trust_list = self.get_trusts()
+
+            #Verify if trust details returned in steps 3 and 4 match
+            found = False
+            for trust in trust_list:
+                if trust['name'] == self.wlm_trust['name']:
+                    found = True
+                    break
+            if found and self.wlm_trust_valid and self.wlm_scheduler:
+                reporting.add_test_step("Verify valid trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify valid trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Delete the trust using API
+            if self.delete_trust(self.wlm_trust['name']):
+                reporting.add_test_step("Delete trust", tvaultconf.PASS)
+            else:
+                raise Exception("Delete trust")
+
+            #Execute scheduler-trust-validate CLI for workload WL-1
+            self._execute_scheduler_trust_validate_cli()
+
+            #Verify if trust details are returned appropriately
+            if not self.wlm_trust and not self.wlm_trust_valid and \
+                    self.wlm_scheduler:
+                reporting.add_test_step("Verify broken trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify broken trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Create the trust again using API
+            trust_id = self.create_trust(tvaultconf.trustee_role)
+            if trust_id:
+                reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
+            else:
+                raise Exception("Create user trust on project")
+
+            #Execute scheduler-trust-validate CLI for workload WL-1
+            self._execute_scheduler_trust_validate_cli()
+
+            #Verify if trust details are returned appropriately
+            trust_list = self.get_trusts()
+            found = False
+            for trust in trust_list:
+                if trust['name'] == self.wlm_trust['name']:
+                    found = True
+                    break
+            if found and self.wlm_trust_valid and self.wlm_scheduler:
+                reporting.add_test_step("Verify valid trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify valid trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_12_barbican(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_validate_scheduler_trust_with_scheduler_disabled")
+            global vm_id
+            global volume_id
+            global exception
+            global secret_uuid
+            if exception != "":
+                LOG.error("pre req failed")
+                raise Exception(str(exception))
+            LOG.debug("pre req completed")
+
+            # Create workload with scheduler disabled using CLI
+            workload_create = \
+                    command_argument_string.workload_create_with_encryption +\
+                " --instance instance-id=" + \
+                str(vm_id) + " --jobschedule enabled=False" + \
+                " --secret-uuid " + str(secret_uuid)
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Command workload create did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command with scheduler disable",
+                    tvaultconf.PASS)
+
+            time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step(
+                        "Create workload with scheduler disable", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Create workload with scheduler disable", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                raise Exception("Create workload with scheduler disabled")
+
+            #Execute scheduler-trust-validate CLI command
+            self._execute_scheduler_trust_validate_cli()
+
+            #Fetch trust list from API
+            trust_list = self.get_trusts()
+
+            #Verify trust details returned
+            if not self.wlm_trust_valid and \
+                    not self.wlm_scheduler and \
+                    len(trust_list) > 0:
+                reporting.add_test_step("Verify trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Delete the trust using API
+            if self.delete_trust(trust_list[0]['name']):
+                reporting.add_test_step("Delete trust", tvaultconf.PASS)
+            else:
+                raise Exception("Delete trust")
+
+            #Execute scheduler-trust-validate CLI for workload WL-1
+            self._execute_scheduler_trust_validate_cli()
+
+            #Verify if trust details are returned appropriately
+            if not self.wlm_trust and \
+                    not self.wlm_trust_valid and \
+                    not self.wlm_scheduler:
+                reporting.add_test_step("Verify trust", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verify trust", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Create the trust again using API
+            trust_id = self.create_trust(tvaultconf.trustee_role)
+            if trust_id:
+                reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
+            else:
+                raise Exception("Create user trust on project")
+
+        except Exception as e:
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            self.workload_delete(self.wid)
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_13_cleanup(self):
+        try:
+            global vm_id
+            global volume_id
+            global secret_uuid
+            self.delete_vm(vm_id)
+            self.delete_volume(volume_id)
+            self.delete_secret(secret_uuid)
+        except Exception as e:
+            LOG.error(f"Exception in test_13_cleanup: {e}")
+
+
     #OS-2018 -
     #Create secret with empty payload.
     #Create encrypted workload with above secret UUID.
     #Result - Workload creation should fail as secert UUID should map to payload
     @decorators.attr(type='workloadmgr_cli')
-    def test_15_barbican(self):
+    def test_14_barbican(self):
         try:
 
             test_var = "tempest.api.workloadmgr.barbican.test_"

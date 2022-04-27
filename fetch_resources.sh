@@ -178,6 +178,40 @@ function configure_tempest
         sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
         iniset $TEMPEST_CONFIG wlm insecure True
     fi
+
+    # Volume
+    echo "Fetching volume type details\n"
+    volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
+    shopt -s nocasematch
+    CINDER_BACKENDS_ENABLED=($(echo ${CINDER_BACKENDS_ENABLED[@]} | tr [:space:] '\n' | awk '!x[$0]++'))
+    case "${#CINDER_BACKENDS_ENABLED[*]}" in
+        0)
+            echo "No volume type available to use, using Default \n"
+            type="DEFAULT"
+            type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}')
+            volume_type=$type
+            volume_type_id=$type_id
+            volume_types=$type":"$type_id
+            enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""]
+            ;;
+        *)
+            cnt=0
+            for type in ${CINDER_BACKENDS_ENABLED[@]}; do
+                type_id=$($OPENSTACK_CMD volume type list | grep -i " $type " | awk '$2 && $2 != "ID" {print $2}')
+                if [ $cnt -eq 0 ]
+                then
+                    volume_type=$type
+                    volume_type_id=$type_id
+                    volume_types=$type":"$type_id
+                    enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
+                else
+                    volume_types+=,$type":"$type_id
+                    enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
+                fi
+                cnt=$((cnt+1))
+            done
+            enabled_tests+=]
+    esac
     
     declare -a images
 
@@ -283,40 +317,6 @@ function configure_tempest
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
     iniset $TEMPEST_CONFIG compute vm_availability_zone $compute_az
-
-    # Volume
-    echo "Fetching volume type details\n"
-    volume_az=$($OPENSTACK_CMD availability zone list --volume | awk "/ available / { print \$2 }")
-    shopt -s nocasematch
-    CINDER_BACKENDS_ENABLED=($(echo ${CINDER_BACKENDS_ENABLED[@]} | tr [:space:] '\n' | awk '!a[$0]++'))
-    case "${#CINDER_BACKENDS_ENABLED[*]}" in
-        0)
-            echo "No volume type available to use, using Default \n"
-            type="DEFAULT"
-            type_id=$($OPENSTACK_CMD volume type list | grep -i $type | awk '$2 && $2 != "ID" {print $2}')
-	    volume_type=$type
-            volume_type_id=$type_id
-            volume_types=$type":"$type_id
-            enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""]
-            ;;
-        *)
-            cnt=0
-            for type in ${CINDER_BACKENDS_ENABLED[@]}; do
-                type_id=$($OPENSTACK_CMD volume type list | grep -i " $type " | awk '$2 && $2 != "ID" {print $2}')
-                if [ $cnt -eq 0 ]
-                then
-		    volume_type=$type
-		    volume_type_id=$type_id
-	            volume_types=$type":"$type_id
-                    enabled_tests=[\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
-                else
-		    volume_types+=,$type":"$type_id
-                    enabled_tests+=,\"Attached_Volume_"$type\"",\"Boot_from_Volume_"$type\""
-                fi
-		cnt=$((cnt+1))
-            done
-	    enabled_tests+=]
-    esac
 
     iniset $TEMPEST_CONFIG volume volume_availability_zone $volume_az
     iniset $TEMPEST_CONFIG volume volume_type $volume_type

@@ -48,6 +48,7 @@ network_restore = "workloadmgr restore-network-topology "
 #openstack secret commands
 openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json --insecure "
 
+
 #Nova commands
 delete_vm = "nova delete "
 list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
