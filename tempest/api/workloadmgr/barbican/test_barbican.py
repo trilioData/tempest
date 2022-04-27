@@ -3348,7 +3348,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error(f"Exception in test_13_cleanup: {e}")
 
     @decorators.attr(type='workloadmgr_api')
-    def test_14_barbican(self):
+    def test_15_barbican(self):
         reporting.add_test_script(str(__name__) + "_Workload_reset_on_encrypted_workload")
         try:
             self.snapshot_ids = []
@@ -3395,16 +3395,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("volume id attached : " + str(volume_id))
 
             # Now create encrypted volume with derived volume type id...
-            encryp_volume_id = self.create_volume(
+            encrypt_volume_id = self.create_volume(
                 volume_type_id=encrypted_vol_type)
 
-            LOG.debug("Encrypted Volume ID: " + str(encryp_volume_id))
+            LOG.debug("Encrypted Volume ID: " + str(encrypt_volume_id))
 
             self.volumes = []
             self.volumes.append(volume_id)
-            self.volumes.append(encryp_volume_id)
+            self.volumes.append(encrypt_volume_id)
             # Attach volume to vm...
-            self.attach_volume(encryp_volume_id, vm_id)
+            self.attach_volume(encrypt_volume_id, vm_id)
             LOG.debug("Encrypted Volume attached to vm: " + str(vm_id))
 
             # create a workload
@@ -3453,16 +3453,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Unencrypted Volume snapshot count is not 1", tvaultconf.FAIL)
                 raise Exception("Unencrypted Volume snapshot count is not 1")
 
-            volume_snapshots2 = self.get_volume_snapshots(encryp_volume_id)
+            volume_snapshots2 = self.get_volume_snapshots(encrypt_volume_id)
             LOG.debug("Volumes snapshots for: " +
-                      str(encryp_volume_id) + ": " + str(volume_snapshots2))
+                      str(encrypt_volume_id) + ": " + str(volume_snapshots2))
             if len(volume_snapshots2) == 1:
                 reporting.add_test_step("Encrypted Volume snapshot count is 1", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Encrypted Volume snapshot count is not 1", tvaultconf.FAIL)
                 raise Exception("Encrypted Volume snapshot count is not 1")
 
-            self.workload_reset(workload_id)
+            workload_reset_status = self.workload_reset(workload_id)
+            if workload_reset_status:
+                reporting.add_test_step("Workload reset request raised", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reset request failed")
+                reporting.add_test_step("Workload reset request failed", tvaultconf.FAIL)
+                raise Exception("Workload reset request failed")
 
             start_time = time.time()
             time.sleep(10)
@@ -3473,14 +3479,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if len(volsnaps_after) == 0:
                 reporting.add_test_step("Temp Volume snapshot is deleted after workload reset", tvaultconf.PASS)
             else:
-                LOG.debug("Workload reset failed")
                 reporting.add_test_step("Temp Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
                 raise Exception("Workload reset failed as temp volume snapshot is not deleted")
-            volsnaps_after1 = self.get_volume_snapshots(encryp_volume_id)
+            volsnaps_after1 = self.get_volume_snapshots(encrypt_volume_id)
             if len(volsnaps_after1) == 0:
                 reporting.add_test_step("Encrypted Volume snapshot is deleted after workload reset", tvaultconf.PASS)
             else:
-                LOG.debug("Workload reset failed")
                 reporting.add_test_step("Encrypted Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
                 raise Exception("Workload reset failed as Encrypted volume snapshot is not deleted")
 
