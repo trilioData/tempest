@@ -710,6 +710,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         except Exception as e:
             LOG.error("Exception in workload_reassign: " + str(e))
+            return False
 
     '''
     Method to do workload reassign
