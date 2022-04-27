@@ -176,6 +176,7 @@ function configure_tempest
     then
         git checkout tempest/command_argument_string.py
         sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
+        sed -i 's/openstack /openstack --insecure /g' tempest/command_argument_string.py
         iniset $TEMPEST_CONFIG wlm insecure True
     fi
 
