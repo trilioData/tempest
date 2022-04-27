@@ -697,15 +697,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def workload_reset(self, workload_id):
-        self.wait_for_workload_tobe_available(workload_id)
-        resp, body = self.wlm_client.client.post(
-            "/workloads/" + workload_id + "/reset")
-        LOG.debug("#### workloadid: %s, operation: workload-reset " %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        LOG.debug("Response code:" + str(resp.status_code))
-        if (resp.status_code != 202):
-            resp.raise_for_status()
+        try:
+            self.wait_for_workload_tobe_available(workload_id)
+            resp, body = self.wlm_client.client.post(
+                "/workloads/" + workload_id + "/reset")
+            LOG.debug("#### workloadid: %s, operation: workload-reset " %
+                      workload_id)
+            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("Response code:" + str(resp.status_code))
+            if (resp.status_code != 202):
+                resp.raise_for_status()
+            return True
+        except Exception as e:
+            LOG.error("Exception in workload_reassign: " + str(e))
 
     '''
     Method to do workload reassign
