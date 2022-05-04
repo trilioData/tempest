@@ -330,27 +330,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.vm_id, "/opt/File_4")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, "/opt/File_4")
-            if(snapshot_wise_filecount == None):
-                reporting.add_test_step(
-                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                for snapshot_id in filecount_in_snapshots.keys():
-                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                        filesearch_status = True
-                    else:
-                        filesearch_status = False
 
-                if filesearch_status:
-                    LOG.debug("Filepath_Search default_parameters successful")
-                    reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.PASS)
+            for snapshot_id in filecount_in_snapshots.keys():
+                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                    filesearch_status = True
                 else:
-                    LOG.debug("Filepath Search default_parameters unsuccessful")
-                    reporting.add_test_step(
-                            "Verification of Filesearch with default parameters",
-                            tvaultconf.FAIL)
+                    filesearch_status = False
+            if filesearch_status:
+                LOG.debug("Filepath_Search default_parameters successful")
+                reporting.add_test_step(
+                    "Verification of Filesearch with default parameters",
+                    tvaultconf.PASS)
+            else:
+                LOG.debug("Filepath Search default_parameters unsuccessful")
+                reporting.add_test_step(
+                        "Verification of Filesearch with default parameters",
+                        tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
