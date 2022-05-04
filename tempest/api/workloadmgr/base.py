@@ -1772,6 +1772,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for security_group in security_groups_list:
             if security_group['name'] == security_group_name:
                 security_group_id = security_group['id']
+        LOG.debug("security group id for security group {}").format(security_group_id)
         if security_group_id != "":
             return security_group_id
         else:
@@ -3940,10 +3941,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method creates a secret order 
     '''
 
-    def create_secret_order(self, order_cleanup=True):
+    def create_secret_order(self, order_name, order_cleanup=True):
         resp = self.order_client.create_order(
             type="key",
-            meta={"name": "sec_order1", "algorithm": "aes", "bit_length": 256, "payload_content_type": "application/octet-stream", "mode": "cbc"}
+            meta={"name": order_name, "algorithm": "aes", "bit_length": 256, "payload_content_type": "application/octet-stream", "mode": "cbc"}
             )
         order_uuid = resp['order_ref'].split('/')[-1]
         if (tvaultconf.cleanup and order_cleanup):

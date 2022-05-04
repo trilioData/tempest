@@ -3600,8 +3600,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(tests[0][0])
             try:
-                self.order_uuid = self.create_secret_order()
+                self.order_uuid = self.create_secret_order("sec_order1")
                 LOG.debug("Created secret order: {}".format(self.order_uuid))
+                time.sleep(10)
                 self.secret_uuid = self.get_secret_from_order(self.order_uuid)
                 LOG.debug("Getting secret key from secret order: {}".format(self.secret_uuid))
                 reporting.add_test_step("Creating secret key using secret order", tvaultconf.PASS)
