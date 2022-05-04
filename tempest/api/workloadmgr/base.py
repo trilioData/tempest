@@ -70,6 +70,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.order_client = cls.os_primary.order_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -1771,6 +1772,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for security_group in security_groups_list:
             if security_group['name'] == security_group_name:
                 security_group_id = security_group['id']
+        LOG.debug("security group id for security group {}").format(security_group_id)
         if security_group_id != "":
             return security_group_id
         else:
@@ -3935,4 +3937,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in delete_trust: {e}")
             return False
 
+    '''
+    This method creates a secret order 
+    '''
 
+    def create_secret_order(self, order_name, order_cleanup=True):
+        resp = self.order_client.create_order(
+            type="key",
+            meta={"name": order_name, "algorithm": "aes", "bit_length": 256, "payload_content_type": "application/octet-stream", "mode": "cbc"}
+            )
+        order_uuid = resp['order_ref'].split('/')[-1]
+        if (tvaultconf.cleanup and order_cleanup):
+            self.addCleanup(self.delete_secret_order, order_uuid)
+        return order_uuid
+
+    '''
+    This method retrieves secret key from secret order
+    '''
+    def get_secret_from_order(self, order_uuid):
+        resp = self.order_client.get_order(order_uuid)
+        LOG.debug("response from get secret order: {}".format(resp))
+        secret_uuid = resp['secret_ref'].split('/')[-1]
+        return secret_uuid
+
+    '''
+    This method deletes a secret order
+    '''
+    def delete_secret_order(self, order_uuid):
+        resp = self.order_client.delete_order(order_uuid)
+        LOG.debug(f"resp {resp}")
+        return resp
