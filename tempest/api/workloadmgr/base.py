@@ -3436,7 +3436,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for each in rule_list:
             self.security_group_rules_client.delete_security_group_rule(each["id"])
 
-    # Compare the security groups by id and assert if verification fails
+    # Compare the security groups by id and fail if verification fails
     def verifySecurityGroupsByID(self, secgrp_id):
         LOG.debug("Compare security groups for: {}".format(secgrp_id))
         flag = False
@@ -3453,11 +3453,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     )
                     flag = True
             return flag
-        except AssertionError as e:
+        except Exception as e:
             LOG.error("Exception in verifySecurityGroupsByID: {}".format(e))
             return False
 
-    # Compare the security groups by name and assert if verification fails
+    # Compare the security groups by name and fail if verification fails
     def verifySecurityGroupsByname(self, secgrp_name):
         LOG.debug("Compare security groups for: {}".format(secgrp_name))
         flag = False
@@ -3474,7 +3474,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     )
                     flag = True
             return flag
-        except AssertionError as e:
+        except Exception as e:
             LOG.error("Exception in verifySecurityGroupsByname: {}".format(e))
             return False
 
