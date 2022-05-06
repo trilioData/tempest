@@ -44,14 +44,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Create workload", tvaultconf.PASS
                 )
-            else:
-                reporting.add_test_step(
-                    "Create workload", tvaultconf.FAIL
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
         else:
             reporting.add_test_step(
-                "Create workload", tvaultconf.FAIL)
+                "Create workload", tvaultconf.FAIL
+            )
             reporting.set_test_script_status(tvaultconf.FAIL)
             raise Exception("Workload creation failed")
         return workload_id
@@ -69,6 +65,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step(
                 "Create full snapshot", tvaultconf.FAIL
             )
+            reporting.set_test_script_status(tvaultconf.FAIL)
             raise Exception("Snapshot creation failed")
         LOG.debug("\nFull snapshot ids : {}\n".format(snapshot_id))
         return snapshot_id
@@ -106,15 +103,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Security group restore command verification",
                     tvaultconf.PASS,
                 )
-                self.created = True
                 break
             else:
-                if str(wc) == "error":
-                    reporting.add_test_step(
-                        "security group restore command verification",
-                        tvaultconf.FAIL,
-                    )
-                    break
+                reporting.add_test_step(
+                    "security group restore command verification",
+                    tvaultconf.FAIL,
+                )
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                break
 
     # Generate security groups and rules data
     def _generate_data_for_secgrp(self, security_group_count, rules_count):
@@ -198,6 +194,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     ),
                     tvaultconf.FAIL,
                 )
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
     # Test case automation for #OS-1892 : Security_Group_Restore_using_CLI_for_single_group
     # Test case automation for #OS-1893 : Security_Group_Restore_using_CLI_for_multiple_groups
@@ -291,6 +288,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         "Security groups verification failed pre and post restore",
                         tvaultconf.FAIL,
                     )
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
                 LOG.debug("Compare the security group rules before and after restore")
                 rules_after = self.list_security_group_rules()
@@ -304,6 +302,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         "Security group rules verification pre and post restore",
                         tvaultconf.FAIL,
                     )
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
                 LOG.debug("Comparing restored security group & rules for {}".format(tvaultconf.security_group_name))
                 self._security_group_and_rules_verification(security_group_names, data_sec_group_and_rules, rules_count)
