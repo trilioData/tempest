@@ -3976,5 +3976,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method will add additional security groups to instance
     '''
     def add_security_group_to_instance(self, instance_id, sgid):
-        self.servers_client.add_security_group(instance_id, name=sgid)
-        LOG.debug("Added security group {} to instance {}".format(sgid, instance_id))
+        try:
+            self.servers_client.add_security_group(instance_id, name=sgid)
+            LOG.debug("Added security group {} to instance {}".format(sgid, instance_id))
+            return True
+        except AssertionError as e:
+            LOG.error("Exception in add_security_group_to_instance: {}".format(e))
+            return False
+
