@@ -201,7 +201,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     # Test case automation for #OS-1892 : Security_Group_Restore_using_CLI_for_single_group
     # Test case automation for #OS-1893 : Security_Group_Restore_using_CLI_for_multiple_groups
-    @decorators.attr(type="workloadmgr_api")
+    @decorators.attr(type="workloadmgr_cli")
     def test_01_security_group(self):
         test_var = "tempest.api.workloadmgr.security_group.test_"
         tests = [[test_var + "wlm_cli_single_security_group", 1, 3],
@@ -244,7 +244,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # Assign additional security groups if provided
                 LOG.debug("Security groups before adding to instance: {}".format(created_security_groups))
                 for i in range(1, security_group_count):
-                    self.add_security_group_to_instance(self.vm_id, created_security_groups[i])
+                    result = self.add_security_group_to_instance(self.vm_id, created_security_groups[i])
+                    if result == False:
+                        raise Exception("Add security group to instance failed")
                 LOG.debug("Assigned all security groups to instance")
 
                 # Create a workload for the instance.
