@@ -1772,10 +1772,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for security_group in security_groups_list:
             if security_group['name'] == security_group_name:
                 security_group_id = security_group['id']
-        LOG.debug("security group id for security group {}").format(security_group_id)
         if security_group_id != "":
+            LOG.debug("security group id for security group {}".format(security_group_id))
             return security_group_id
         else:
+            LOG.debug("security group id is NOT present/restored")
             return None
 
     '''create_flavor'''
@@ -3531,11 +3532,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def list_security_groups(self):
         body = self.security_groups_client.list_security_groups()
         security_groups = body["security_groups"]
+        LOG.debug("No. of security groups: {}".format(len(security_groups)))
+        LOG.debug("List of security groups: {}".format(security_groups))
         return security_groups
 
     def list_security_group_rules(self):
         body = self.security_group_rules_client.list_security_group_rules()
         rules_list = body["security_group_rules"]
+        LOG.debug("No. of security group rules: {}".format(len(rules_list)))
         return rules_list
 
     # Delete vms, volumes, security groups
@@ -3543,7 +3547,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Delete VM + volume + security groups")
         vol = []
         for vm in vms:
-            LOG.debug("Get list of all volumes to be deleted")
+            LOG.debug("Get list of all volumes to be deleted from instance {}".format(vm))
             vol.append(self.get_attached_volumes(vm))
         self.delete_vms([*vms])
         LOG.debug("Delete volumes: {}".format(vol))
@@ -3967,3 +3971,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = self.order_client.delete_order(order_uuid)
         LOG.debug(f"resp {resp}")
         return resp
+
+    '''
+    This method will add additional security groups to instance
+    '''
+    def add_security_group_to_instance(self, instance_id, sgid):
+        self.servers_client.add_security_group(instance_id, name=sgid)
+        LOG.debug("Added security group {} to instance {}".format(sgid, instance_id))
