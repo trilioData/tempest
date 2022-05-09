@@ -297,7 +297,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create in-place restore with CLI command
             restore_command = command_argument_string.selective_restore + \
                               str(tvaultconf.restore_filename) + " " + str(snapshot_id)
-
+            LOG.debug("command for selective restore: " + str(restore_command))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -347,11 +347,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
-    def test_6_cleanup(self):
-        try:
-            for snapshot_id in snapshot_ids:
-                self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
-            self.addCleanup(self.workload_delete, workload_id)
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
+    # def test_6_cleanup(self):
+    #     try:
+    #         for snapshot_id in snapshot_ids:
+    #             self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
+    #         self.addCleanup(self.workload_delete, workload_id)
+    #     except Exception as e:
+    #         LOG.error("Exception: " + str(e))
 
