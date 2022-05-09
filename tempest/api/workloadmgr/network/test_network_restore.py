@@ -349,11 +349,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
-    # def test_6_cleanup(self):
-    #     try:
-    #         for snapshot_id in snapshot_ids:
-    #             self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
-    #         self.addCleanup(self.workload_delete, workload_id)
-    #     except Exception as e:
-    #         LOG.error("Exception: " + str(e))
+    def test_6_cleanup(self):
+        try:
+            for snapshot_id in snapshot_ids:
+                self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
+            self.addCleanup(self.workload_delete, workload_id)
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
 
