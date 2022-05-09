@@ -295,8 +295,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             with open(tvaultconf.restore_filename, 'w') as f:
                 f.write(str(yaml.safe_load(restore_json)))
             # Create in-place restore with CLI command
-            restore_command = command_argument_string.selective_restore + \
-                              str(tvaultconf.restore_filename) + " " + str(snapshot_id)
+            restore_command = command_argument_string.selective_restore + " " + str(snapshot_id)
             LOG.debug("command for selective restore: " + str(restore_command))
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
