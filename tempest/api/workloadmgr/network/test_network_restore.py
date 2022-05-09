@@ -1,6 +1,9 @@
+import json
 import os
 import sys
 import time
+
+import yaml
 
 from oslo_log import log as logging
 
@@ -282,8 +285,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
             snapshot_id = snapshot_ids[0]
-            network_restore_cmd = command_argument_string.network_restore + snapshot_id
-            rc = cli_parser.cli_returncode(network_restore_cmd)
+
+            payload = {'instance_details': instance_details,
+                       'restore_topology': True}
+
+            restore_json = json.dumps(payload)
+            LOG.debug("restore.json for selective restore: " + str(restore_json))
+            # Create Restore.json
+            with open(tvaultconf.restore_filename, 'w') as f:
+                f.write(str(yaml.safe_load(restore_json)))
+            # Create in-place restore with CLI command
+            restore_command = command_argument_string.selective_restore + \
+                              str(tvaultconf.restore_filename) + " " + str(snapshot_id)
+
+            rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute restore-network-topology command",
@@ -332,11 +347,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
-    # def test_6_cleanup(self):
-    #     try:
-    #         for snapshot_id in snapshot_ids:
-    #             self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
-    #         self.addCleanup(self.workload_delete, workload_id)
-    #     except Exception as e:
-    #         LOG.error("Exception: " + str(e))
+    def test_6_cleanup(self):
+        try:
+            for snapshot_id in snapshot_ids:
+                self.addCleanup(self.snapshot_delete, workload_id, snapshot_id)
+            self.addCleanup(self.workload_delete, workload_id)
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
 
