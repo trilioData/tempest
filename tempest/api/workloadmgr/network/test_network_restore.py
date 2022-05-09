@@ -293,7 +293,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute restore-network-topology command",
                     tvaultconf.PASS)
-                LOG.debug("Command executed correctly")
+                LOG.debug("Command executed correctly - " + str(rc))
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
