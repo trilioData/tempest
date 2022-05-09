@@ -286,8 +286,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             snapshot_id = snapshot_ids[0]
 
-            payload = {'instance_details': instance_details,
-                       'restore_topology': True}
+            payload = {"type":"openstack",
+                       "openstack":{"instances":{'instances': instance_details,
+                                                 "networks_mapping":{},
+                                                 "restore_topology": True }},
+                       "restore_type":"selective"}
 
             restore_json = json.dumps(payload)
             LOG.debug("restore.json for selective restore: " + str(restore_json))
