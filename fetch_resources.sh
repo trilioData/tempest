@@ -310,7 +310,7 @@ function configure_tempest
     fi
     flavor_ref_alt=${fvm_flavor[0]}
 
-    compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }" | head -1)
+    compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }" | tail -1)
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
