@@ -30,78 +30,78 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @test.pre_req({'type': 'network_topology'})
-    @decorators.attr(type='workloadmgr_api')
-    def test_1_network_restore_api(self):
-        try:
-            reporting.add_test_script(str(__name__) + "_full_snapshot_api")
-            if self.exception != "":
-                LOG.debug("pre req failed")
-                raise Exception(str(self.exception))
-            LOG.debug("pre req completed")
-
-            global workload_id
-            global snapshot_ids
-            global instance_details
-            global nt_bf, nt_bf_1
-            global sbnt_bf, sbnt_bf_1
-            global rt_bf, rt_bf_1
-            global intf_bf, intf_bf_1
-            global vm_details_bf, vm_details_bf_1
-            workload_id = self.workload_id
-            snapshot_ids = self.snapshot_ids
-            instance_details = self.instance_details
-            nt_bf, nt_bf_1 = self.nt_bf, self.nt_bf_1
-            sbnt_bf, sbnt_bf_1 = self.sbnt_bf, self.sbnt_bf_1
-            rt_bf, rt_bf_1 = self.rt_bf, self.rt_bf_1
-            intf_bf, intf_bf_1 = self.intf_bf, self.intf_bf_1
-            vm_details_bf, vm_details_bf_1 = self.vm_details_bf, \
-                                             self.vm_details_bf_1
-
-            snapshot_id = snapshot_ids[0]
-            restore_id = self.snapshot_selective_restore(
-                workload_id,
-                snapshot_id,
-                restore_name=tvaultconf.restore_name,
-                instance_details=instance_details,
-                network_restore_flag=True,
-                restore_cleanup=True)
-
-            self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-            if (self.getRestoreStatus(workload_id, snapshot_id, restore_id) == \
-                    "available"):
-                reporting.add_test_step(
-                    "Selective restore of full snapshot with network restore",
-                    tvaultconf.PASS)
-            else:
-                raise Exception(
-                    "Selective restore of full snapshot with network restore failed")
-
-            nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
-            LOG.debug(
-                "Interface details before and after restore: {0}, {1}".format(
-                    intf_bf, intf_af))
-
-            vm_details_af = {}
-            restored_vms = self.get_restored_vm_list(restore_id)
-            for vm in restored_vms:
-                vm_details = self.get_vm_details(vm)['server']
-                vm_details_af[vm_details['name'].replace(
-                    'restored_instance', '')] = vm_details
-
-            self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
-                                        rt_af, vm_details_bf, vm_details_af, test_type='API')
-
-            for rvm in restored_vms:
-                self.delete_vm(rvm)
-            self.delete_network_topology()
-
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.add_test_step(str(e), tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-        finally:
-            reporting.test_case_to_write()
+    # @test.pre_req({'type': 'network_topology'})
+    # @decorators.attr(type='workloadmgr_api')
+    # def test_1_network_restore_api(self):
+    #     try:
+    #         reporting.add_test_script(str(__name__) + "_full_snapshot_api")
+    #         if self.exception != "":
+    #             LOG.debug("pre req failed")
+    #             raise Exception(str(self.exception))
+    #         LOG.debug("pre req completed")
+    #
+    #         global workload_id
+    #         global snapshot_ids
+    #         global instance_details
+    #         global nt_bf, nt_bf_1
+    #         global sbnt_bf, sbnt_bf_1
+    #         global rt_bf, rt_bf_1
+    #         global intf_bf, intf_bf_1
+    #         global vm_details_bf, vm_details_bf_1
+    #         workload_id = self.workload_id
+    #         snapshot_ids = self.snapshot_ids
+    #         instance_details = self.instance_details
+    #         nt_bf, nt_bf_1 = self.nt_bf, self.nt_bf_1
+    #         sbnt_bf, sbnt_bf_1 = self.sbnt_bf, self.sbnt_bf_1
+    #         rt_bf, rt_bf_1 = self.rt_bf, self.rt_bf_1
+    #         intf_bf, intf_bf_1 = self.intf_bf, self.intf_bf_1
+    #         vm_details_bf, vm_details_bf_1 = self.vm_details_bf, \
+    #                                          self.vm_details_bf_1
+    #
+    #         snapshot_id = snapshot_ids[0]
+    #         restore_id = self.snapshot_selective_restore(
+    #             workload_id,
+    #             snapshot_id,
+    #             restore_name=tvaultconf.restore_name,
+    #             instance_details=instance_details,
+    #             network_restore_flag=True,
+    #             restore_cleanup=True)
+    #
+    #         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+    #         if (self.getRestoreStatus(workload_id, snapshot_id, restore_id) == \
+    #                 "available"):
+    #             reporting.add_test_step(
+    #                 "Selective restore of full snapshot with network restore",
+    #                 tvaultconf.PASS)
+    #         else:
+    #             raise Exception(
+    #                 "Selective restore of full snapshot with network restore failed")
+    #
+    #         nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
+    #         LOG.debug(
+    #             "Interface details before and after restore: {0}, {1}".format(
+    #                 intf_bf, intf_af))
+    #
+    #         vm_details_af = {}
+    #         restored_vms = self.get_restored_vm_list(restore_id)
+    #         for vm in restored_vms:
+    #             vm_details = self.get_vm_details(vm)['server']
+    #             vm_details_af[vm_details['name'].replace(
+    #                 'restored_instance', '')] = vm_details
+    #
+    #         self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
+    #                                     rt_af, vm_details_bf, vm_details_af, test_type='API')
+    #
+    #         for rvm in restored_vms:
+    #             self.delete_vm(rvm)
+    #         self.delete_network_topology()
+    #
+    #     except Exception as e:
+    #         LOG.error("Exception: " + str(e))
+    #         reporting.add_test_step(str(e), tvaultconf.FAIL)
+    #         reporting.set_test_script_status(tvaultconf.FAIL)
+    #     finally:
+    #         reporting.test_case_to_write()
 
     # @decorators.attr(type='workloadmgr_cli')
     # def test_2_network_restore_cli(self):
@@ -264,6 +264,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     #     finally:
     #         reporting.test_case_to_write()
 
+    @test.pre_req({'type': 'network_topology'})
     @decorators.attr(type='workloadmgr_cli')
     def test_5_network_restore_cli_workload_reassign(self):
         try:
@@ -313,7 +314,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly - " + str(rc))
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-            time.sleep(10)
+            time.sleep(15)
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
             if (self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
                 reporting.add_test_step(
