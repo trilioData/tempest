@@ -24,7 +24,6 @@ CONF = config.CONF
 
 
 class WorkloadTest(base.BaseWorkloadmgrTest):
-
     credentials = ['primary']
 
     @classmethod
@@ -35,7 +34,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_1_network_restore_api(self):
         try:
-            reporting.add_test_script(str(__name__)+"_full_snapshot_api")
+            reporting.add_test_script(str(__name__) + "_full_snapshot_api")
             if self.exception != "":
                 LOG.debug("pre req failed")
                 raise Exception(str(self.exception))
@@ -57,7 +56,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rt_bf, rt_bf_1 = self.rt_bf, self.rt_bf_1
             intf_bf, intf_bf_1 = self.intf_bf, self.intf_bf_1
             vm_details_bf, vm_details_bf_1 = self.vm_details_bf, \
-                    self.vm_details_bf_1
+                                             self.vm_details_bf_1
 
             snapshot_id = snapshot_ids[0]
             restore_id = self.snapshot_selective_restore(
@@ -69,10 +68,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 restore_cleanup=True)
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-            if(self.getRestoreStatus(workload_id, snapshot_id, restore_id) ==\
+            if (self.getRestoreStatus(workload_id, snapshot_id, restore_id) == \
                     "available"):
                 reporting.add_test_step(
-                    "Selective restore of full snapshot with network restore", 
+                    "Selective restore of full snapshot with network restore",
                     tvaultconf.PASS)
             else:
                 raise Exception(
@@ -80,8 +79,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
             LOG.debug(
-                    "Interface details before and after restore: {0}, {1}".format(
-                        intf_bf, intf_af))
+                "Interface details before and after restore: {0}, {1}".format(
+                    intf_bf, intf_af))
 
             vm_details_af = {}
             restored_vms = self.get_restored_vm_list(restore_id)
@@ -91,7 +90,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     'restored_instance', '')] = vm_details
 
             self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
-                    rt_af, vm_details_bf, vm_details_af, test_type='API')
+                                        rt_af, vm_details_bf, vm_details_af, test_type='API')
 
             for rvm in restored_vms:
                 self.delete_vm(rvm)
@@ -284,13 +283,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
+            # os.environ['OS_PROJECT_NAME'] = CONF.identity.nonadmin_user
+            os.environ['OS_PROJECT_ID'] = tenant_id_1
+
             snapshot_id = snapshot_ids[0]
 
-            payload = {"type":"openstack",
-                       "openstack":{"instances": instance_details,
-                                    "networks_mapping":{},
-                                    "restore_topology": True },
-                       "restore_type":"selective"}
+            payload = {"type": "openstack",
+                       "openstack": {"instances": instance_details,
+                                     "networks_mapping": {},
+                                     "restore_topology": True},
+                       "restore_type": "selective"}
 
             restore_json = json.dumps(payload)
             LOG.debug("restore.json for selective restore: " + str(restore_json))
@@ -313,6 +315,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly - " + str(rc))
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+            time.sleep(10)
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
             if (self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available"):
                 reporting.add_test_step(
@@ -347,6 +350,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
+            os.environ['OS_PROJECT_ID'] = tenant_id
             reporting.test_case_to_write()
 
     # def test_6_cleanup(self):
@@ -356,4 +360,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     #         self.addCleanup(self.workload_delete, workload_id)
     #     except Exception as e:
     #         LOG.error("Exception: " + str(e))
-
