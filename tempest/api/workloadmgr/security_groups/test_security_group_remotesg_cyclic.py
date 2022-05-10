@@ -321,7 +321,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Test case OS-1683 : Security_Group_Restore_1
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-1683
     @decorators.attr(type="workloadmgr_api")
-    def test_with_samerule(self):
+    def test_with_cyclicsg_01(self):
         try:
             # Verification of cyclic security group restore with same rules
             LOG.debug("\nStarted test execution: ")
@@ -478,7 +478,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Test case OS-1684 : Security_Group_Restore_2
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-1684
     @decorators.attr(type="workloadmgr_api")
-    def test_with_diffrule(self):
+    def test_with_cyclicsg_02(self):
         try:
             # Verification of cyclic security group restore with different rules
             reporting.add_test_script(
@@ -603,9 +603,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Test case #OS-1685 : Security_Group_Restore_3
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-1685
     @decorators.attr(type="workloadmgr_api")
-    def test_with_cyclicsg_01(self):
+    def test_with_cyclicsg_03(self):
         try:
-            reporting.add_test_script("tempest.api.workloadmgr.security_groups.test_security_group_remotesg_cyclic.vol_attach_vm")
+            reporting.add_test_script("tempest.api.workloadmgr.security_groups.test_security_group_cyclic.restore_after_deleting_single_sg")
 
             security_group_names = tvaultconf.security_group_name + str(random.randint(0,10000))
             security_group_count = 3
@@ -627,7 +627,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 "Create an image booted instance with Security group P,Q,R and attach an volume."
             )
             vms = self._create_vms_with_secgroup(created_sec_groups[0])
-            # vms= ["d7fa6302-e828-4dca-b59e-2e46474416f6"]
             LOG.debug("\nVMs : {}\n".format(vms))
             volumes = self._attach_empty_volume(vms)
             LOG.debug("\nEmpty Volume attached : {}\n".format(vms))
@@ -747,145 +746,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         raise Exception("Deletion of restored vm and restored security group/s failed")
                     time.sleep(60)
 
-            """
-            # Trigger selective restore
-            restore_id = self._perform_selective_restore(vms, volumes, workload_id, snapshot_id)
-            restored_vms = self.get_restored_vm_list(restore_id)
-            LOG.debug("\nRestored vms : {}\n".format(restored_vms))
-            restored_secgrps = self.getRestoredSecGroupPolicies(restored_vms)
-            LOG.debug("Get the restored security groups: {}".format(restored_secgrps))
-
-            # Compare the security groups and rules before and after restore
-            secgroups_after = self.list_security_groups()
-            if len(secgroups_after) != len(secgroups_before):
-                LOG.error("Compare the security groups before and after selective restore")
-                reporting.add_test_step(
-                    "Compare the security groups before and after selective restore",
-                    tvaultconf.FAIL,
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.add_test_step(
-                    "Compare the security groups before and after selective restore",
-                    tvaultconf.PASS,
-                )
-
-            rules_after = self.list_security_group_rules()
-            if len(rules_after) != len(rules_before):
-                LOG.error("Compare the security group rules before and after selective restore")
-                reporting.add_test_step(
-                    "Compare the security group rules before and after selective restore",
-                    tvaultconf.FAIL,
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.add_test_step(
-                    "Compare the security group rules before and after selective restore",
-                    tvaultconf.PASS,
-                )
-
-            # Compare the security group & rules assigned to the restored instance
-            LOG.debug("Comparing restored security group & rules for {}".format(delete_secgrp))
-            for restored_secgrp in restored_secgrps:
-                if self.verifySecurityGroupsByname(restored_secgrp["name"]):
-                    reporting.add_test_step(
-                        "Security group {} present after selective restore".format(restored_secgrp["name"]),
-                        tvaultconf.PASS)
-                else:
-                    reporting.add_test_step(
-                        "Security group {} NOT present after selective restore".format(restored_secgrp["name"]),
-                        tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                # Check for deleted security group
-                for each in delete_secgrp:
-                    if each == restored_secgrp["name"]:
-                        reporting.add_test_step(
-                            "Deleted Security group {} is restored after selective restore".format(each),
-                            tvaultconf.PASS)
-                    else:
-                        reporting.add_test_step(
-                            "Deleted Security group {} is NOT restored after selective restore".format(each),
-                            tvaultconf.FAIL)
-                        reporting.set_test_script_status(tvaultconf.FAIL)
-
-            self._rules_verification_post_restore(security_group_names, data_sec_group_and_rules, rules_count)
-
-             # Delete restored vms and security groups created during selective restore
-            try:
-                LOG.debug("deleting restored vm and restored security groups and rules")
-                self.delete_vm_secgroups(restored_vms, restored_secgrps)
-                reporting.add_test_step(
-                    "Delete restored vm and restored security groups before proceeding with onelick restore", tvaultconf.PASS
-                )
-            except Exception as e:
-                LOG.error(f"Exception: {e}")
-                raise Exception("Deletion of vm and security group/s failed")
-            time.sleep(60)
-
-            # Perform one click restore
-            LOG.debug("Perform one click restore")
-            restore_id = self._perform_oneclick_restore(workload_id, snapshot_id)
-
-            restored_vms = self.get_restored_vm_list(restore_id)
-            LOG.debug("\nRestored vms : {}\n".format(restored_vms))
-            restored_secgrps = self.getRestoredSecGroupPolicies(restored_vms)
-            LOG.debug("Get the restored security groups: {}".format(restored_secgrps))
-
-            # Compare the security groups and rules before and after restore
-            LOG.debug("Compare the security groups before and after Oneclick restore")
-            secgroups_after = self.list_security_groups()
-            if len(secgroups_after) == len(secgroups_before):
-                reporting.add_test_step(
-                    "Compare the security groups before and after oneclick restore",
-                    tvaultconf.PASS,
-                )
-            else:
-                reporting.add_test_step(
-                    "Compare the security groups before and after oneclick restore",
-                    tvaultconf.FAIL,
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            LOG.debug("Compare the security group rules before and after oneclick restore")
-            rules_after = self.list_security_group_rules()
-            if len(rules_after) == len(rules_before):
-                reporting.add_test_step(
-                    "Compare the security group rules before and after oneclick restore",
-                    tvaultconf.PASS,
-                )
-            else:
-                reporting.add_test_step(
-                    "Compare the security group rules before and after oneclick restore",
-                    tvaultconf.FAIL,
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            # Compare the security group & rules assigned to the restored instance after oneclick restore
-            LOG.debug("Verify restored security group & rules for {} after oneclick restore".format(delete_secgrp))
-            for restored_secgrp in restored_secgrps:
-                if self.verifySecurityGroupsByname(restored_secgrp["name"]):
-                    reporting.add_test_step(
-                        "Security group {} present after oneclick restore".format(restored_secgrp["name"]),
-                        tvaultconf.PASS)
-                else:
-                    reporting.add_test_step(
-                        "Security group {} NOT present after oneclick restore".format(restored_secgrp["name"]),
-                        tvaultconf.FAIL)
-
-                # Check for deleted security group
-                for each in delete_secgrp:
-                    if each == restored_secgrp["name"]:
-                        reporting.add_test_step(
-                            "Deleted Security group {} is restored after oneclick restore".format(each),
-                            tvaultconf.PASS)
-                    else:
-                        reporting.add_test_step(
-                            "Deleted Security group {} is NOT restored after oneclick restore".format(each),
-                            tvaultconf.FAIL)
-                        reporting.set_test_script_status(tvaultconf.FAIL)
-
-            self._rules_verification_post_restore(security_group_names, data_sec_group_and_rules, rules_count)
-            """
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
@@ -901,7 +761,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Test case #OS-1895 : Security_Group_Restore_using_CLI_for_cyclic_group
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-1895
     @decorators.attr(type="workloadmgr_cli")
-    def test_with_cyclicsg_02(self):
+    def test_with_cyclicsg_04(self):
         try:
             reporting.add_test_script("tempest.api.workloadmgr.security_groups.test_security_group_remotesg_cyclic.cli_restore")
 
