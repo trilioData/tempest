@@ -268,9 +268,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_5_network_restore_cli_workload_reassign(self):
         try:
             reporting.add_test_script(str(__name__) + "_full_snapshot_cli")
-            tenant_id = CONF.identity.tenant_id
             tenant_id_1 = CONF.identity.tenant_id_1
-
             user_id = CONF.identity.user_id
 
             rc = self.workload_reassign(tenant_id_1, workload_id, user_id)
@@ -283,7 +281,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
-            # os.environ['OS_PROJECT_NAME'] = CONF.identity.nonadmin_user
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
             os.environ['OS_PROJECT_ID'] = tenant_id_1
 
             snapshot_id = snapshot_ids[0]
@@ -350,7 +348,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            os.environ['OS_PROJECT_ID'] = tenant_id
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
             reporting.test_case_to_write()
 
     # def test_6_cleanup(self):
