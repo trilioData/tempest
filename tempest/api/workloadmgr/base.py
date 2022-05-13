@@ -3702,28 +3702,36 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 vm_details_af_sorted = {}
 
                 for vm in klist:
+                    LOG.debug("VM compare 1: " + str(vm))
                     netname = [*vm_details_bf[vm]['addresses']]
                     for net in netname:
                         for i in range((len(vm_details_bf[vm]['addresses'][net]))):
+                            LOG.debug("VM compare 3")
                             vm_details_bf[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
+                            LOG.debug("VM compare 3.1")
                             vm_details_af[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
-                    vm_details_bf[vm]['links'][1]['href'] = ''
-                    vm_details_af[vm]['links'][1]['href'] = ''
-                    if 'config_drive' in vm_details_af[vm]['metadata']:
-                        del vm_details_af[vm]['metadata']['config_drive']
-                    if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
-                        del vm_details_af[vm]['metadata']['ordered_interfaces']
-                    attributes = ['links', 'OS-EXT-SRV-ATTR:host',
-                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
-                            'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                            'created', 'id', 'OS-SRV-USG:launched_at']
-                    for attr in attributes:
-                        vm_details_bf[vm][attr] = ''
-                        vm_details_af[vm][attr] = ''
-                    vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
-                        'restored_instance', '')
-                    vm_details_bf_sorted[vm]=vm_details_bf[vm]
-                    vm_details_af_sorted[vm]=vm_details_af[vm]
+                            LOG.debug("VM compare 3.2")
+                LOG.debug("VM compare 4")
+                vm_details_bf[vm]['links'][1]['href'] = ''
+                vm_details_af[vm]['links'][1]['href'] = ''
+                LOG.debug("VM compare 5")
+                if 'config_drive' in vm_details_af[vm]['metadata']:
+                    del vm_details_af[vm]['metadata']['config_drive']
+                if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
+                    del vm_details_af[vm]['metadata']['ordered_interfaces']
+                attributes = ['links', 'OS-EXT-SRV-ATTR:host',
+                              'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
+                              'OS-EXT-SRV-ATTR:instance_name', 'updated',
+                              'created', 'id', 'OS-SRV-USG:launched_at']
+                LOG.debug("VM compare 6")
+                for attr in attributes:
+                    vm_details_bf[vm][attr] = ''
+                    vm_details_af[vm][attr] = ''
+                LOG.debug("VM compare 7")
+                vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
+                    'restored_instance', '')
+                vm_details_bf_sorted[vm] = vm_details_bf[vm]
+                vm_details_af_sorted[vm] = vm_details_af[vm]
 
                 if vm_details_bf_sorted == vm_details_af_sorted:
                     reporting.add_test_step(
