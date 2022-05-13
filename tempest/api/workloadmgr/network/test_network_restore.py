@@ -329,20 +329,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(
                 "Interface details before and after restore: {0}, {1}".format(
                     intf_bf, intf_af))
-            intf_flag = False
-            for intf in intf_af:
-                if intf_af[intf]["project_id"] == tenant_id_1 and intf_bf[intf]["project_id"] == tenant_id \
-                        and intf_af[intf]["tenant_id"] == tenant_id_1 and intf_bf[intf]["tenant_id"] == tenant_id:
-                    intf_flag = True
-
-            if intf_flag:
-                reporting.add_test_step(
-                    "Verify interface details after network restore",
-                    tvaultconf.PASS)
-            else:
-                reporting.add_test_step(
-                    "Verify interface details after network restore",
-                    tvaultconf.FAIL)
 
             vm_details_af = {}
             restored_vms = query_data.get_restored_vmids(restore_id)
