@@ -267,7 +267,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_5_network_restore_cli_workload_reassign(self):
         try:
-            reporting.add_test_script(str(__name__) + "_full_snapshot_cli")
+            reporting.add_test_script(str(__name__) + "_network_restore_cli_workload_reassign_full_snapshot_cli")
             tenant_id = CONF.identity.tenant_id
             tenant_id_1 = CONF.identity.tenant_id_1
             user_id = CONF.identity.user_id
