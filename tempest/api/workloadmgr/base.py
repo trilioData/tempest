@@ -3707,8 +3707,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         for i in range((len(vm_details_bf[vm]['addresses'][net]))):
                             vm_details_bf[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
                             vm_details_af[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
-                    vm_details_bf[vm]['links'][1]['href'] = ''
-                    vm_details_af[vm]['links'][1]['href'] = ''
+                    if 'links' in vm_details_bf[vm].keys() and len(vm_details_bf[vm]['links']) > 1:
+                        vm_details_bf[vm]['links'][1]['href'] = ''
+                        vm_details_af[vm]['links'][1]['href'] = ''
                     if 'config_drive' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['config_drive']
                     if 'ordered_interfaces' in vm_details_af[vm]['metadata']:

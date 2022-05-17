@@ -47,7 +47,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global sbnt_bf, sbnt_bf_1
             global rt_bf, rt_bf_1
             global intf_bf, intf_bf_1
-            global vm_details_bf, vm_details_bf_1
+            global vm_details_bf, vm_details_bf_1, vm_details_bf_2
             workload_id = self.workload_id
             snapshot_ids = self.snapshot_ids
             instance_details = self.instance_details
@@ -57,6 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             intf_bf, intf_bf_1 = self.intf_bf, self.intf_bf_1
             vm_details_bf, vm_details_bf_1 = self.vm_details_bf, \
                                              self.vm_details_bf_1
+            vm_details_bf_2 = vm_details_bf
 
             snapshot_id = snapshot_ids[0]
             restore_id = self.snapshot_selective_restore(
@@ -278,9 +279,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Workload reassign from tenant 1 to 2", tvaultconf.PASS)
             else:
-                LOG.error("Workload reassign from tenant 1 to 2 failed")
-                reporting.add_test_step(
-                    "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
+                raise Exception("Workload reassign from tenant 1 to 2 failed")
 
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
             os.environ['OS_PROJECT_ID'] = tenant_id_1
@@ -336,11 +335,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details = self.get_vm_details(vm)['server']
                 vm_name = vm_details['name'].replace('restored_instance', '')
                 vm_details_af[vm_name] = vm_details
-                if vm_details_af[vm_name]['tenant_id'] == tenant_id_1 and vm_details_bf[vm_name][
+                if vm_details_af[vm_name]['tenant_id'] == tenant_id_1 and vm_details_bf_2[vm_name][
                     'tenant_id'] == tenant_id:
                     del vm_details_af[vm_name]['tenant_id']
-                    del vm_details_bf[vm_name]['tenant_id']
-                    del vm_details_bf[vm_name]['security_groups']
+                    del vm_details_bf_2[vm_name]['tenant_id']
+                    del vm_details_bf_2[vm_name]['security_groups']
 
             for nt in nt_af:
                 if nt_af[nt]["project_id"] == tenant_id_1 and nt_bf[nt]["project_id"] == tenant_id \
@@ -367,7 +366,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     del rt_bf[rt]['tenant_id']
 
             self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
-                                        rt_af, vm_details_bf, vm_details_af, test_type='API')
+                                        rt_af, vm_details_bf_2, vm_details_af, test_type='API')
 
             for rvm in restored_vms:
                 self.delete_vm(rvm)
