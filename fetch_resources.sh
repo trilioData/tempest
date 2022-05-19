@@ -483,7 +483,7 @@ function configure_tempest
             network_id_alt="$NETWORK_UUID"     
         fi
         networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id --internal | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
  
 
     case "${#networks[*]}" in
@@ -563,10 +563,11 @@ function configure_tempest
     IP=""
     cnt=0
     IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
+    TVAULT_IP="["
     for i in "${IP[@]}"; do
        if [ $cnt -eq 0 ]
        then
-          TVAULT_IP="[""\""$i"\""
+          TVAULT_IP+="\""$i"\""
        else
           TVAULT_IP+=", \""$i"\""
        fi
