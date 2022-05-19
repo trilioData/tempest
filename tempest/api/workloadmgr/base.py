@@ -2918,17 +2918,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete list of ports
     '''
 
-    def delete_network(self, network_id):
+    def delete_network(self, network_id, tenant_id=CONF.identity.tenant_id):
         ports_list = []
         router_id_list = []
         routers = self.routers_client.list_routers()['routers']
         routers = [x for x in routers if x['tenant_id'] ==
-                   CONF.identity.tenant_id]
+                   tenant_id]
         self.delete_router_routes(routers)
         router_id_list = [x['id']
-                          for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
+                          for x in routers if x['tenant_id'] == tenant_id]
         for router in router_id_list:
-            self.delete_router_interfaces(router)
+            self.delete_router_interfaces(tenant_id)
         self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
@@ -2938,11 +2938,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete router interface
     '''
 
-    def delete_router_interfaces(self, router_id):
+    def delete_router_interfaces(self, tenant_id=CONF.identity.tenant_id):
         interfaces = self.ports_client.list_ports()['ports']
         LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            if interface['tenant_id'] == CONF.identity.tenant_id and \
+            if interface['tenant_id'] == tenant_id and \
                 interface['device_owner'] in \
                     ('network:router_interface', \
                      'network:ha_router_replicated_interface'):
@@ -2987,13 +2987,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method won't delete public network
     '''
 
-    def delete_network_topology(self):
+    def delete_network_topology(self, tenant_id=CONF.identity.tenant_id):
         LOG.debug("Deleting the existing networks")
         networkslist = self.networks_client.list_networks()['networks']
 
         for network in networkslist:
-            if network['router:external'] == False and network['tenant_id'] == CONF.identity.tenant_id:
-                self.delete_network(network['id'])
+            if network['router:external'] == False and network['tenant_id'] == tenant_id:
+                self.delete_network(network['id'],tenant_id)
             else:
                 pass
 
@@ -3711,23 +3711,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         for i in range((len(vm_details_bf[vm]['addresses'][net]))):
                             vm_details_bf[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
                             vm_details_af[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
-                    vm_details_bf[vm]['links'][1]['href'] = ''
-                    vm_details_af[vm]['links'][1]['href'] = ''
+                    if 'links' in vm_details_bf[vm].keys() and len(vm_details_bf[vm]['links']) > 1:
+                        vm_details_bf[vm]['links'][1]['href'] = ''
+                        vm_details_af[vm]['links'][1]['href'] = ''
                     if 'config_drive' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['config_drive']
                     if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['ordered_interfaces']
                     attributes = ['links', 'OS-EXT-SRV-ATTR:host',
-                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
-                            'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                            'created', 'id', 'OS-SRV-USG:launched_at']
+                                  'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
+                                  'OS-EXT-SRV-ATTR:instance_name', 'updated',
+                                  'created', 'id', 'OS-SRV-USG:launched_at']
                     for attr in attributes:
                         vm_details_bf[vm][attr] = ''
                         vm_details_af[vm][attr] = ''
+                    LOG.debug("VM compare 7")
                     vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
                         'restored_instance', '')
-                    vm_details_bf_sorted[vm]=vm_details_bf[vm]
-                    vm_details_af_sorted[vm]=vm_details_af[vm]
+                    vm_details_bf_sorted[vm] = vm_details_bf[vm]
+                    vm_details_af_sorted[vm] = vm_details_af[vm]
 
                 if vm_details_bf_sorted == vm_details_af_sorted:
                     reporting.add_test_step(

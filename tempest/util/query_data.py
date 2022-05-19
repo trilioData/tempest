@@ -361,6 +361,25 @@ def get_snapshot_restore_id(snapshot_id):
         conn.close()
 
 
+def get_restored_vmids(restore_id):
+    try:
+        vm_ids = []
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_restored_vmid = (
+            "select vm_id from restored_vms where restore_id='" + restore_id + "'")
+        cursor.execute(get_restored_vmid)
+        rows = cursor.fetchall()
+        for row in rows:
+            vm_ids.append(row[0])
+        return vm_ids
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
 def get_available_vms_of_workload(workload_id):
     try:
         conn = db_handler.dbHandler()

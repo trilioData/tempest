@@ -330,9 +330,11 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
     iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity tenant_name_1 $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity project_alt_name $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity domain_name $TEST_USER_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
