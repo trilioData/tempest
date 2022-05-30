@@ -1744,11 +1744,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Port deletion for " + str(ports) + " started.")
         self.delete_ports(ports)
 
+    """
     '''create_security_group'''
 
     def create_security_group(self, name, description, secgrp_cleanup=True):
         self.security_group_id = self.security_groups_client.create_security_group(
             name=name, description=description)['security_group']['id']
+        if (tvaultconf.cleanup and secgrp_cleanup):
+            self.addCleanup(self.delete_security_group, self.security_group_id)
+        return self.security_group_id
+    """
+
+    '''create_security_group'''
+
+    def create_security_group(self, name, description, tenant_id=CONF.identity.tenant_id, secgrp_cleanup=True):
+        self.security_group_id = self.security_groups_client.create_security_group(
+            name=name, description=description, tenant_id=tenant_id)['security_group']['id']
         if (tvaultconf.cleanup and secgrp_cleanup):
             self.addCleanup(self.delete_security_group, self.security_group_id)
         return self.security_group_id
@@ -3985,4 +3996,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
-

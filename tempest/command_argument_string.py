@@ -79,3 +79,6 @@ quota_update = "workloadmgr project-allowed-quota-update "
 quota_list = "workloadmgr project-allowed-quota-list -f json "
 quota_show = "workloadmgr project-allowed-quota-show -f value "
 quota_delete = "workloadmgr project-allowed-quota-delete "
+
+#RBAC commands
+rbac_create_secgroup = "openstack network rbac create --target-project "
