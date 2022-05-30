@@ -366,8 +366,8 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    wlm_pod=`kubectl -n openstack get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
-    conn_str=`kubectl -n openstack exec -it $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f2`
+    wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
+    conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
     echo "sql_connection: "$conn_str
     dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
