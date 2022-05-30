@@ -1,3 +1,5 @@
+import os
+
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest.lib import decorators
@@ -4109,6 +4111,266 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.add_test_script(test[0])
+                    reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_17_barbican(self):
+        try:
+            test_var = "tempest.api.workloadmgr.barbican.test_image_boot_vol_attach_"
+            tests = [[test_var + "workload_api", 0],
+                     [test_var + "full_snapshot_api", 0],
+                     [test_var + "incremental_snapshot_api", 0],
+                     [test_var + "workload_reassign", 0],
+                     [test_var + "selectiverestore_api", 0]]
+            reporting.add_test_script(tests[0][0])
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+            self.vm_id = self.create_vm(key_pair=self.kp)
+            fip = self.get_floating_ips()
+            LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
+            if len(fip) < 2:
+                raise Exception("Floating ips unavailable")
+            self.set_floating_ip(fip[0], self.vm_id)
+
+            # Get the volume_type_id
+            encrypted_vol_type = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("luks") != -1):
+                    encrypted_vol_type = CONF.volume.volume_types[vol]
+
+            if (encrypted_vol_type == -1):
+                reporting.add_test_step("Encrypted volume type is missing." \
+                                        "openstack-setup.conf should have luks volume types like - luks-lvm, luks-ceph, luks etc." \
+                                        "Cannot continue with the test...", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("No luks volume type found to create encrypted volume.")
+            self.volumes = []
+            self.disk_names = ["vda", "vdb", "vdc"]
+            for i in range(2):
+                self.volume_id = self.create_volume(
+                    volume_type_id=encrypted_vol_type)
+                self.volumes.append(self.volume_id)
+                self.attach_volume(self.volume_id, self.vm_id)
+            LOG.debug(f"Volumes attached: {self.volumes}")
+
+            self.secret_uuid = self.create_secret()
+
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.install_qemu(ssh)
+            self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
+            self.execute_command_disk_create(ssh, fip[0],
+                                             tvaultconf.volumes_parts, tvaultconf.mount_points)
+            self.execute_command_disk_mount(ssh, fip[0],
+                                            tvaultconf.volumes_parts, tvaultconf.mount_points)
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 4)
+
+            md5sums_before_full = {}
+            md5sums_before_full['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+            for mp in tvaultconf.mount_points:
+                md5sums_before_full[mp] = self.calculatemmd5checksum(ssh, mp)
+            LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
+            ssh.close()
+
+            # Create workload with API
+            try:
+                self.wid = self.workload_create([self.vm_id],
+                                                tvaultconf.workload_type_id, encryption=True,
+                                                secret_uuid=self.secret_uuid)
+                LOG.debug("Workload ID: " + str(self.wid))
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Create encrypted workload " \
+                                "with image booted vm and vol attached")
+            if (self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                self.workload_status = self.getWorkloadStatus(self.wid)
+                if (self.workload_status == "available"):
+                    reporting.add_test_step("Create encrypted workload " \
+                                            "with image booted vm and vol attached",
+                                            tvaultconf.PASS)
+                    tests[0][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Create encrypted workload " \
+                                    "with image booted vm and vol attached")
+            else:
+                raise Exception("Create encrypted workload with image " \
+                                "booted vm and vol attached")
+
+            reporting.add_test_script(tests[1][0])
+            self.snapshot_id = self.workload_snapshot(self.wid, True)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+                self.mount_path = self.get_mountpoint_path(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
+                    self.wid, self.snapshot_id)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on " \
+                                            "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id,
+                                                      self.vm_id, self.disk_names, self.mount_path)
+
+                    tests[1][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create full snapshot")
+
+            reporting.add_test_script(tests[2][0])
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
+            md5sums_before_incr = {}
+            md5sums_before_incr['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 6)
+                md5sums_before_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
+            ssh.close()
+
+            self.snapshot_id2 = self.workload_snapshot(self.wid, False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id2)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
+                self.mount_path = self.get_mountpoint_path(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
+                    self.wid, self.snapshot_id2)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on " \
+                                            "target backend", tvaultconf.PASS)
+                    self._check_encryption_on_backend(self.wid, self.snapshot_id2,
+                                                      self.vm_id, self.disk_names, self.mount_path)
+
+                    tests[2][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create incremental snapshot")
+
+            reporting.add_test_script(tests[3][0])
+
+            tenant_id = CONF.identity.tenant_id
+            tenant_id_1 = CONF.identity.tenant_id_1
+            user_id = CONF.identity.user_id
+
+            rc = self.workload_reassign(tenant_id_1, self.wid, user_id)
+            if rc == 0:
+                LOG.debug("Workload reassign from tenant 1 to tenant 2 passed")
+                reporting.add_test_step(
+                    "Workload reassign from tenant 1 to 2", tvaultconf.PASS)
+            else:
+                raise Exception("Workload reassign from tenant 1 to 2 failed")
+
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
+            os.environ['OS_PROJECT_ID'] = tenant_id_1
+
+            reporting.test_case_to_write()
+            tests[3][1] = 1
+
+            # File search
+            reporting.add_test_script(tests[4][0])
+            rest_details = {}
+            rest_details['rest_type'] = 'selective'
+            rest_details['network_id'] = CONF.network.internal_network_id
+            rest_details['subnet_id'] = self.get_subnet_id(
+                CONF.network.internal_network_id)
+            rest_details['instances'] = {self.vm_id: self.volumes}
+
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger selective restore of incremental snapshot
+            restore_id = self.snapshot_selective_restore(
+                self.wid, self.snapshot_id2,
+                restore_name="selective_restore_incr_snap",
+                instance_details=payload['instance_details'],
+                network_details=payload['network_details'])
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
+            if (self.getRestoreStatus(self.wid, self.snapshot_id2,
+                                      restore_id) == "available"):
+                reporting.add_test_step("Selective restore of incremental snapshot",
+                                        tvaultconf.PASS)
+                vm_list = self.get_restored_vm_list(restore_id)
+                LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+                time.sleep(60)
+                self.set_floating_ip(fip[1], vm_list[0])
+                LOG.debug("Floating ip assigned to selective restored vm -> " + \
+                          f"{fip[1]}")
+                md5sums_after_incr_selective = {}
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
+                self.execute_command_disk_mount(ssh, fip[1],
+                                                tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
+
+                md5sums_after_full_selective = {}
+                self.execute_command_disk_mount(ssh, fip[1],
+                                                tvaultconf.volumes_parts, tvaultconf.mount_points)
+                time.sleep(5)
+                md5sums_after_full_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+                for mp in tvaultconf.mount_points:
+                    md5sums_after_full_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
+                ssh.close()
+
+                if md5sums_before_full == \
+                        md5sums_after_full_selective:
+                    LOG.debug("***MDSUMS MATCH***")
+                    reporting.add_test_step(
+                        "Md5 Verification", tvaultconf.PASS)
+                else:
+                    LOG.debug("***MDSUMS DON'T MATCH***")
+                    reporting.add_test_step(
+                        "Md5 Verification", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
+                md5sums_after_incr_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+                for mp in tvaultconf.mount_points:
+                    md5sums_after_incr_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
+                ssh.close()
+
+                if md5sums_before_incr == \
+                        md5sums_after_incr_selective:
+                    LOG.debug("***MDSUMS MATCH***")
+                    reporting.add_test_step(
+                        "Md5 Verification", tvaultconf.PASS)
+                else:
+                    LOG.debug("***MDSUMS DON'T MATCH***")
+                    reporting.add_test_step(
+                        "Md5 Verification", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Selective restore of incremental snapshot",
+                                        tvaultconf.FAIL)
+            reporting.test_case_to_write()
+            tests[4][1] = 1
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
             for test in tests:
                 if test[1] != 1:
                     reporting.set_test_script_status(tvaultconf.FAIL)
