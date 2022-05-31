@@ -26,12 +26,15 @@ sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
+cd /root
+eval "$(<env.sh)"
+export cli_pod=$(kubectl -n openstack get pod -l application=keystone,component=client -ojsonpath='{.items[*].metadata.name}')
+OPENSTACK_CMD="kubectl -n openstack exec $cli_pod -- openstack "
+cd -
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
-    OPENSTACK_CMD="openstack --insecure"
     sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
-else
-    OPENSTACK_CMD="openstack"
 fi
 
 function ini_has_option {
@@ -362,12 +365,13 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    wlm_pod=`kubectl -n openstack get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
-    conn_str=`kubectl -n openstack exec -it $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f2`
+    wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
+    conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
     echo "sql_connection: "$conn_str
     dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    #mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
     dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 

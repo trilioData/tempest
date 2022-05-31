@@ -27,7 +27,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_1_list_workloadtype(self):
+    def test_01_list_workloadtype(self):
         reporting.add_test_script(str(__name__) + "_list_workloadtype_cli")
         try:
             rc = cli_parser.cli_returncode(
@@ -61,7 +61,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_2_show_workloadtype(self):
+    def test_02_show_workloadtype(self):
         reporting.add_test_script(str(__name__) + "_show_workloadtype_cli")
         try:
             rc = cli_parser.cli_returncode(
@@ -98,7 +98,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_3_create_workload(self):
+    def test_03_create_workload(self):
         reporting.add_test_script(str(__name__) + "_create_workload_cli")
         try:
             self.created = False
@@ -143,7 +143,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_4_create_workload(self):
+    def test_04_create_workload(self):
         reporting.add_test_script(str(__name__) + "_create_workload_api")
         try:
             # Prerequisites
@@ -171,7 +171,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_5_create_scheduled_workload(self):
+    def test_05_create_scheduled_workload(self):
         reporting.add_test_script(str(__name__) + "_create_scheduled_workload_cli")
         try:
             # Prerequisites
@@ -234,7 +234,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_6_list_workload(self):
+    def test_06_list_workload(self):
         reporting.add_test_script(str(__name__) + "_list_workload_cli")
         try:
             # Prerequisites
@@ -284,7 +284,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_7_delete_workload(self):
+    def test_07_delete_workload(self):
         reporting.add_test_script(str(__name__) + "_delete_workload_cli")
         try:
             # Prerequisites
@@ -345,7 +345,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_8_show_workload(self):
+    def test_08_show_workload(self):
         reporting.add_test_script(str(__name__) + "_show_workload_cli")
         try:
             # Prerequisites
@@ -418,7 +418,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_9_unlock_workload(self):
+    def test_09_unlock_workload(self):
         reporting.add_test_script(str(__name__) + "_unlock_workload_cli")
         try:
             # Prerequisites
