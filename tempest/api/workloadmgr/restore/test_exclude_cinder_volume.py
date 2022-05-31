@@ -240,9 +240,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create full snapshot", tvaultconf.FAIL)
                 raise Exception("Full snapshot creation failed.")
 
-            # take incremental snapshot
-            incr_snapshot_id = self.create_snapshot(wid, is_full=False)
-
             # delete few files from original vm instance
             self.data_ops_delete_files(floating_ip_1, mount_point[0], 1)
             time.sleep(10)
@@ -268,9 +265,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             self.wait_for_snapshot_tobe_available(wid, snapshot_id)
             if (self.getRestoreStatus(wid, snapshot_id, restore_id_1) == "available"):
-                reporting.add_test_step("Selective restore", tvaultconf.PASS)
+                reporting.add_test_step("Selective restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.PASS)
             else:
-                reporting.add_test_step("Selective restore", tvaultconf.FAIL)
+                reporting.add_test_step("Selective restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
             # Fetch instance details after restore
@@ -325,9 +324,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # get in-place restore status
             if (self.getRestoreStatus(wid, snapshot_id, restore_id_2) == "available"):
-                reporting.add_test_step("In-place restore", tvaultconf.PASS)
+                reporting.add_test_step("In-place restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.PASS)
             else:
-                reporting.add_test_step("In-place restore", tvaultconf.FAIL)
+                reporting.add_test_step("In-place restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.FAIL)
                 raise Exception("In-place restore failed")
 
             # Fetch instance details after restore
@@ -374,7 +375,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             deleted = 1
 
             # Create one-click restore using CLI command
-            restore_command = command_argument_string.oneclick_restore + " " + incr_snapshot_id
+            restore_command = command_argument_string.oneclick_restore + " " + snapshot_id
             rc = cli_parser.cli_returncode(restore_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -387,16 +388,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("One-click restore command executed successfully")
 
-            restore_id_3 = query_data.get_snapshot_restore_id(incr_snapshot_id)
+            restore_id_3 = query_data.get_snapshot_restore_id(snapshot_id)
             LOG.debug("Restore ID: " + str(restore_id_3))
 
             self.wait_for_snapshot_tobe_available(
-                wid, incr_snapshot_id)
-            if (self.getRestoreStatus(wid, incr_snapshot_id, restore_id_3) == "available"):
-                reporting.add_test_step("One-click restore", tvaultconf.PASS)
+                wid, snapshot_id)
+
+            # get one-click restore status
+            if (self.getRestoreStatus(wid, snapshot_id, restore_id_3) == "available"):
+                reporting.add_test_step("One-click restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.PASS)
                 LOG.debug("One-click restore passed")
             else:
-                reporting.add_test_step("One-click restore", tvaultconf.FAIL)
+                reporting.add_test_step("One-click restore of snapshot id = {} ".format(
+                    snapshot_id), tvaultconf.FAIL)
                 LOG.debug("One-click restore failed")
                 raise Exception("One-click restore failed")
 
