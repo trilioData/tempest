@@ -26,16 +26,15 @@ sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
+cd /root
+eval "$(<env.sh)"
+export cli_pod=$(kubectl -n openstack get pod -l application=keystone,component=client -ojsonpath='{.items[*].metadata.name}')
+OPENSTACK_CMD="kubectl -n openstack exec $cli_pod -- openstack "
+cd -
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
-    cd /root
-    eval "$(<env.sh)"
-    export cli_pod=$(kubectl -n openstack get pod -l application=keystone,component=client -ojsonpath='{.items[*].metadata.name}')
-    OPENSTACK_CMD="kubectl -n openstack exec $cli_pod -- openstack "
-    cd -
     sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
-else
-    OPENSTACK_CMD="openstack"
 fi
 
 function ini_has_option {
