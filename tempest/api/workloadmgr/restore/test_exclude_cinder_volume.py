@@ -265,11 +265,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             self.wait_for_snapshot_tobe_available(wid, snapshot_id)
             if (self.getRestoreStatus(wid, snapshot_id, restore_id_1) == "available"):
-                reporting.add_test_step("Selective restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.PASS)
+                reporting.add_test_step("Selective restore of full snapshot", tvaultconf.PASS)
             else:
-                reporting.add_test_step("Selective restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.FAIL)
+                reporting.add_test_step("Selective restore of full snapshot", tvaultconf.FAIL)
                 raise Exception("Selective restore failed")
 
             # Fetch instance details after restore
@@ -324,11 +322,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # get in-place restore status
             if (self.getRestoreStatus(wid, snapshot_id, restore_id_2) == "available"):
-                reporting.add_test_step("In-place restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.PASS)
+                reporting.add_test_step("In-place restore of full snapshot", tvaultconf.PASS)
             else:
-                reporting.add_test_step("In-place restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.FAIL)
+                reporting.add_test_step("In-place restore of full snapshot", tvaultconf.FAIL)
                 raise Exception("In-place restore failed")
 
             # Fetch instance details after restore
@@ -396,12 +392,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # get one-click restore status
             if (self.getRestoreStatus(wid, snapshot_id, restore_id_3) == "available"):
-                reporting.add_test_step("One-click restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.PASS)
+                reporting.add_test_step("One-click restore of full snapshot", tvaultconf.PASS)
                 LOG.debug("One-click restore passed")
             else:
-                reporting.add_test_step("One-click restore of snapshot id = {} ".format(
-                    snapshot_id), tvaultconf.FAIL)
+                reporting.add_test_step("One-click restore of full snapshot", tvaultconf.FAIL)
                 LOG.debug("One-click restore failed")
                 raise Exception("One-click restore failed")
 
