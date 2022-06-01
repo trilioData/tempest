@@ -554,6 +554,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method creates a workload and returns Workload id
     '''
 
+    '''
+    Method to update volume metadaa
+    '''
+    def modify_volume_metadata(self, volume_id, metadata_tag_name):
+        body = ""
+        try:
+            body = self.volumes_client.update_volume_metadata(
+                volume_id, metadata_tag_name)['metadata']
+
+        except Exception as e:
+            LOG.error("Exception" + str(e))
+            pass
+
+        return body
+
     def workload_create(
             self,
             instances,
