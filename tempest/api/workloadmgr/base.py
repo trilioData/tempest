@@ -1759,18 +1759,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Port deletion for " + str(ports) + " started.")
         self.delete_ports(ports)
 
-    """
-    '''create_security_group'''
-
-    def create_security_group(self, name, description, secgrp_cleanup=True):
-        self.security_group_id = self.security_groups_client.create_security_group(
-            name=name, description=description)['security_group']['id']
-        if (tvaultconf.cleanup and secgrp_cleanup):
-            self.addCleanup(self.delete_security_group, self.security_group_id)
-        return self.security_group_id
-    """
-
-    '''create_security_group'''
+    '''create_security_group in same/another project'''
 
     def create_security_group(self, name, description, tenant_id=CONF.identity.tenant_id, secgrp_cleanup=True):
         self.security_group_id = self.security_groups_client.create_security_group(
@@ -3580,7 +3569,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.delete_volumes(vol)
         for secgrp in secgrp_ids:
             self.delete_security_group(secgrp)
-            LOG.debug("Delete security groups: {}".format(secgrp))
+            LOG.debug("Deleted security groups: {}".format(secgrp))
 
     '''
     This method creates a secret for workloads
@@ -4011,3 +4000,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
+
+    def get_restored_security_group_id_by_name(self, security_group_name):
+        security_group_id = ""
+        security_groups_list = self.security_groups_client.list_security_groups()[
+            'security_groups']
+        LOG.debug("Security groups list" + str(security_groups_list))
+        for security_group in security_groups_list:
+            if security_group['name'] == security_group_name and "Restored from original security group" in security_group['description']:
+                security_group_id = security_group['id']
+        if security_group_id != "":
+            LOG.debug("security group id for security group {}".format(security_group_id))
+            return security_group_id
+        else:
+            LOG.debug("security group id is NOT present/restored")
+            return None
