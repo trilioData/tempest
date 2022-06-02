@@ -425,6 +425,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         self.delete_security_group(secgrp)
 
     # Test case automation for #OS-2028 : Shared Security_Group_Restore
+    # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2028
     @decorators.attr(type="workloadmgr_api")
     def test_02_shared_security_group(self):
         test_var = "tempest.api.workloadmgr.security_group.test_"
