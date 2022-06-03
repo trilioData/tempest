@@ -670,3 +670,287 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         finally:
             reporting.test_case_to_write()
+
+    # Test case automation for #OS-2029 : Shared Security_Group_Restore
+    # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2029
+    @decorators.attr(type="workloadmgr_api")
+    def test_03_multilevel_shared_security_group(self):
+        test_var = "tempest.api.workloadmgr.security_group.test_multilevel_shared_security_group"
+
+        tenant_id = CONF.identity.tenant_id
+        tenant_id_1 = CONF.identity.tenant_id_1
+
+        reporting.add_test_script(test_var)
+        security_group_count = 1
+        rules_count = 3
+        restored_secgroup_ids = []
+        try:
+            LOG.debug("Creating third project for the test")
+            project_details = self.create_project(project_cleanup=True)
+            tenant_id_2 = project_details["id"]
+            proj_name_2 = project_details["name"]
+
+            LOG.debug("Create shared Security group/s with distinct rules")
+            security_group_names_projA = tvaultconf.security_group_name + str(random.randint(0, 10000))
+            security_group_names_projB = tvaultconf.security_group_name + str(random.randint(0, 10000))
+            security_group_names_projC = tvaultconf.security_group_name + str(random.randint(0, 10000))
+            try:
+                # create security group in project A (tenant_id_1)
+                LOG.debug(
+                    "Setting project to project-A: {} and {}".format(CONF.identity.project_alt_name, tenant_id_1))
+                data_sec_group_and_rules_tenantA = self._generate_data_for_secgrp(
+                    security_group_count, rules_count
+                )
+                security_groups_tenantA = self._create_sec_groups_rule(
+                    security_group_names_projA,
+                    data_sec_group_and_rules_tenantA,
+                    tenant_id_1
+                )
+                print("project A sec group id: {}".format(security_groups_tenantA[0]))
+                reporting.add_test_step(
+                    "creating shared security group/s {} with distinct rules in project-A ".format(
+                        security_group_names_projA + str(1)),
+                    tvaultconf.PASS,
+                )
+
+                # Create the RBAC policy entry using the openstack network rbac create and share the above created security_group with project-B
+                rbac_command = command_argument_string.rbac_create_secgroup + tenant_id_2 + " --action access_as_shared --type security_group " + \
+                               security_groups_tenantA[0]
+                LOG.debug("rbac command: {}".format(rbac_command))
+                rc = cli_parser.cli_returncode(rbac_command)
+                if rc != 0:
+                    reporting.add_test_step(
+                        "Execute create rbac policy for security group {}".format(security_group_names_projA + str(1)),
+                        tvaultconf.FAIL,
+                    )
+                    raise Exception("rbac command did not execute correctly")
+                else:
+                    reporting.add_test_step(
+                        "Execute create rbac policy for security group {}".format(security_group_names_projA + str(1)),
+                        tvaultconf.PASS,
+                    )
+                time.sleep(10)
+
+                # Create security group in project-B (tenant_id)
+                LOG.debug("Setting project to project-B: {} and {}".format(proj_name_2, tenant_id_2))
+                data_sec_group_and_rules_tenantB = self._generate_data_for_secgrp(
+                    security_group_count, rules_count
+                )
+                security_groups_tenantB = self._create_sec_groups_rule(
+                    security_group_names_projB,
+                    data_sec_group_and_rules_tenantB,
+                    tenant_id_2
+                )
+                print("project B sec group id: {}".format(security_groups_tenantB[0]))
+
+                # create security_group_rule for the sec_group created in above step, attach the remote-sec-group as the shared sec_group.
+                LOG.debug("Create security group rule with shared security group")
+                self.add_security_group_rule(
+                    parent_grp_id=security_groups_tenantB[0],
+                    remote_grp_id=security_groups_tenantA[0],
+                    ip_proto="tcp",
+                    from_prt=1567,
+                    to_prt=3269,
+                )
+                reporting.add_test_step(
+                    "creating security group/s {} with shared security group from project-B ".format(
+                        security_group_names_projB + str(1)),
+                    tvaultconf.PASS,
+                )
+
+                # Create the RBAC policy entry using the openstack network rbac create and share the above created security_group with project-B
+                rbac_command = command_argument_string.rbac_create_secgroup + tenant_id + " --action access_as_shared --type security_group " + \
+                               security_groups_tenantB[0]
+                LOG.debug("rbac command: {}".format(rbac_command))
+                rc = cli_parser.cli_returncode(rbac_command)
+                if rc != 0:
+                    reporting.add_test_step(
+                        "Execute create rbac policy for security group {}".format(security_group_names_projB + str(1)),
+                        tvaultconf.FAIL,
+                    )
+                    raise Exception("rbac command did not execute correctly")
+                else:
+                    reporting.add_test_step(
+                        "Execute create rbac policy for security group {}".format(security_group_names_projB + str(1)),
+                        tvaultconf.PASS,
+                    )
+                time.sleep(10)
+
+                # Create security group in project-C (tenant_id)
+                LOG.debug("Setting project to project-C: {} and {}".format(CONF.identity.project_name, tenant_id))
+                data_sec_group_and_rules_tenantC = self._generate_data_for_secgrp(
+                    security_group_count, rules_count
+                )
+                security_groups_tenantC = self._create_sec_groups_rule(
+                    security_group_names_projC,
+                    data_sec_group_and_rules_tenantC,
+                )
+                print("project C sec group id: {}".format(security_groups_tenantC[0]))
+
+                # create security_group_rule for the sec_group created in above step, attach the remote-sec-group as the shared sec_group.
+                LOG.debug("Create security group rule with shared security group")
+                self.add_security_group_rule(
+                    parent_grp_id=security_groups_tenantC[0],
+                    remote_grp_id=security_groups_tenantB[0],
+                    ip_proto="tcp",
+                    from_prt=3487,
+                    to_prt=9659,
+                )
+                reporting.add_test_step(
+                    "creating security group/s {} with shared security group from project-C ".format(
+                        security_group_names_projC + str(1)),
+                    tvaultconf.PASS,
+                )
+
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Shared security group and rules creation failed")
+
+            # Create an image booted instance with Security group and attach an volume.
+            LOG.debug(
+                "Create an image booted instance with Security group and attach an volume"
+            )
+            # Create volume
+            self.volume_id = self.create_volume(volume_cleanup=True)
+            LOG.debug("Volume ID: " + str(self.volume_id))
+
+            # create vm
+            self.vm_id = self.create_vm(
+                security_group_id=security_groups_tenantC[0], vm_cleanup=True
+            )
+            LOG.debug("Vm ID: " + str(self.vm_id))
+
+            # Attach volume to the instance
+            self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=True)
+            LOG.debug("Volume attached")
+
+            # Create a workload for the instance.
+            LOG.debug("Create a workload for this instance.")
+            workload_id = self._create_workload([self.vm_id])
+            LOG.debug("\nWorkload created : {}\n".format(workload_id))
+
+            # Take a Full snapshot
+            LOG.debug("Take a full snapshot")
+            snapshot_id = self._take_full_snapshot(workload_id)
+
+            # Get the sec groups and rules list for verification post restore
+            secgroups_before = self.list_security_groups()
+            rules_before = self.list_security_group_rules()
+
+            # Delete vm, volumes, security groups as per the test step
+            try:
+                vol = []
+                for vm in [self.vm_id]:
+                    LOG.debug("Get list of all volumes to be deleted from instance {}".format(vm))
+                    vol.append(self.get_attached_volumes(vm))
+                self.delete_vms([self.vm_id])
+                LOG.debug("Delete volumes: {}".format(vol))
+                self.delete_volumes(vol)
+                reporting.add_test_step("Deleted vm {} before proceeding with restore".format(self.vm_id),
+                                        tvaultconf.PASS, )
+                time.sleep(10)
+
+                # Delete security group assigned to instance and shared security group
+                delete_secgrp_ids = [security_groups_tenantA[0], security_groups_tenantB[0], security_groups_tenantC[0]]
+                for secgrp in delete_secgrp_ids:
+                    self.delete_security_group(secgrp)
+                    LOG.debug(
+                        "Delete security group assigned to instance and shared security group: {}".format(
+                            secgrp))
+                reporting.add_test_step(
+                    "Deleted security groups/shared security group {} before proceeding with restore".format(
+                        delete_secgrp_ids),
+                    tvaultconf.PASS, )
+
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Deletion of vms/security group/Shared security group failed")
+
+            # Perform restores - selective, oneclick
+            restore_tests = [[test_var + "._selectiverestore_api", "selective"],
+                             [test_var + "._oneclickrestore_api", "oneclick"]]
+
+            restore_id = ""
+            for restore_test in restore_tests:
+                # restored_secgroup_ids = []
+                reporting.add_test_script(restore_test[0])
+                restore = restore_test[1]
+                LOG.debug("Perform {} restore".format(restore))
+
+                if restore == "oneclick":
+                    restore_id = self._perform_oneclick_restore(workload_id, snapshot_id)
+                elif restore == "selective":
+                    restore_id = self._perform_selective_restore([self.vm_id], self.volume_id, workload_id,
+                                                                 snapshot_id)
+
+                restored_vms = self.get_restored_vm_list(restore_id)
+                LOG.debug("\nRestored vms : {}\n".format(restored_vms))
+
+                # Security group and rules verification post restore
+                LOG.debug("Compare the security groups before and after restore")
+                secgroups_after = self.list_security_groups()
+                if len(secgroups_after) == len(secgroups_before):
+                    reporting.add_test_step(
+                        "Security group verification pre and post restore",
+                        tvaultconf.PASS,
+                    )
+                else:
+                    LOG.error("Security groups verification pre and post restore")
+                    reporting.add_test_step(
+                        "Security groups verification failed pre and post restore",
+                        tvaultconf.FAIL,
+                    )
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
+                LOG.debug("Compare the security group rules before and after restore")
+                rules_after = self.list_security_group_rules()
+                if len(rules_after) == len(rules_before):
+                    reporting.add_test_step(
+                        "Security group rules verification pre and post restore",
+                        tvaultconf.PASS,
+                    )
+                else:
+                    reporting.add_test_step(
+                        "Security group rules verification pre and post restore",
+                        tvaultconf.FAIL,
+                    )
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
+                # Verify the security group & rules assigned to the restored instance
+                LOG.debug(
+                    "Comparing restored security group & rules for {}".format(
+                        security_group_names_projB
+                    )
+                )
+                restored_secgrps = self.getRestoredSecGroupPolicies(restored_vms)
+                LOG.debug(
+                    "Comparing security group & rules assigned to the restored instances."
+                )
+                self._security_group_verification_post_restore(restored_secgrps)
+                restored_secgroup_ids = self._security_group_and_rules_verification(
+                    security_group_names_projC, data_sec_group_and_rules_tenantC, rules_count
+                )
+
+                # Verify security group and rules for shared security group
+                restored_secgroup_ids.extend(self._security_group_and_rules_verification(
+                    security_group_names_projB, data_sec_group_and_rules_tenantB, rules_count
+                ))
+
+                # Verify security group and rules for shared security group
+                restored_secgroup_ids.extend(self._security_group_and_rules_verification(
+                    security_group_names_projA, data_sec_group_and_rules_tenantA, rules_count
+                ))
+                LOG.debug("Check if restored security groups and rules {} are present".format(restored_secgroup_ids))
+
+                # Delete restored vms and security groups created during earlier restore
+                # if restore_test != restore_tests[-1]:
+                LOG.debug("deleting restored vm and restored security groups and rules")
+                self._delete_vms_secgroups(restored_vms, restored_secgroup_ids)
+                reporting.test_case_to_write()
+
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()

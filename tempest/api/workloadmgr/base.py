@@ -37,6 +37,7 @@ from tempest import command_argument_string
 from tempest.util import cli_parser
 from tempest.util import query_data
 from tempest import reporting
+from tempest.lib.common.utils import data_utils
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -71,6 +72,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
         cls.order_client = cls.os_primary.order_client
+        cls.projects_client = cls.os_primary.projects_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -810,7 +812,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             workload_id,
             snapshot_id,
             restore_name="",
-            restore_cleanup=True):
+            restore_cleanup=True,
+            sec_group_cleanup=False):
         LOG.debug("At the start of snapshot_restore method")
         if (restore_name == ""):
             restore_name = tvaultconf.snapshot_restore_name
@@ -846,9 +849,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         self.restored_vms = self.get_restored_vm_list(restore_id)
         self.restored_volumes = self.get_restored_volume_list(restore_id)
+        self.restored_secgrps = self.getRestoredSecGroupPolicies(self.restored_vms)
         if (tvaultconf.cleanup and restore_cleanup):
             # self.restored_vms = self.get_restored_vm_list(restore_id)
             # self.restored_volumes = self.get_restored_volume_list(restore_id)
+            if sec_group_cleanup:
+                for each in self.restored_secgrps:
+                    self.restored_security_group_id = self.get_restored_security_group_id_by_name(each)
+                    self.addCleanup(self.delete_security_group, self.restored_security_group_id)
             self.addCleanup(self.restore_delete, workload_id,
                             snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms,
@@ -909,13 +917,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(
                     restore_id)
+                self.restored_secgrps = self.getRestoredSecGroupPolicies(self.restored_vms)
                 self.addCleanup(self.restore_delete,
                                 workload_id, snapshot_id, restore_id)
                 if sec_group_cleanup:
-                    self.restored_security_group_id = self.get_security_group_id_by_name(
-                        "snap_of_" + tvaultconf.security_group_name)
-                    self.addCleanup(self.delete_security_group,
-                                    self.restored_security_group_id)
+                    for each in self.restored_secgrps:
+                        self.restored_security_group_id = self.get_restored_security_group_id_by_name(each)
+                        self.addCleanup(self.delete_security_group, self.restored_security_group_id)
                 self.addCleanup(self.delete_restored_vms,
                                 self.restored_vms, self.restored_volumes)
         else:
@@ -4015,3 +4023,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             LOG.debug("security group id is NOT present/restored")
             return None
+
+    def create_project(self, project_cleanup=True):
+        project_name = data_utils.rand_name(name=self.__class__.__name__)
+        project = self.projects_client.create_project(
+            project_name,
+            domain_id=CONF.identity.domain_id)['project']
+        project_id = project['id']
+        project_details = {project_id: project_name}
+        if (tvaultconf.cleanup and project_cleanup):
+            self.addCleanup(self.projects_client.delete_project, project['id'])
+        return project_details
