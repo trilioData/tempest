@@ -170,6 +170,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Image properties not restored properly", tvaultconf.FAIL)
+                LOG.error(f"images_list_bf: {images_list_bf} and " +\
+                        f"images_list_af: {images_list_af}")
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
         except Exception as e:
