@@ -190,7 +190,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -248,7 +248,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -713,7 +713,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -795,7 +795,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -1316,7 +1316,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -1375,7 +1375,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -1856,7 +1856,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -1938,7 +1938,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -3673,7 +3673,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[4][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -3731,7 +3731,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
