@@ -201,7 +201,12 @@ function configure_tempest
         *)
             cnt=0
             for type in ${CINDER_BACKENDS_ENABLED[@]}; do
-                type_id=$($OPENSTACK_CMD volume type list | grep -i " $type " | awk '$2 && $2 != "ID" {print $2}')
+                if [[ "$type" == "DEFAULT" ]]
+                then
+                    type_id=$($OPENSTACK_CMD volume type list | grep -i "$type" | awk '$2 && $2 != "ID" {print $2}')
+                else
+                    type_id=$($OPENSTACK_CMD volume type list | grep -i " $type " | awk '$2 && $2 != "ID" {print $2}')
+                fi
                 if [ $cnt -eq 0 ]
                 then
                     volume_type=$type
