@@ -330,9 +330,11 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
     iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity tenant_name_1 $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME
+    iniset $TEMPEST_CONFIG identity project_alt_name $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity domain_name $TEST_USER_DOMAIN_NAME
     iniset $TEMPEST_CONFIG identity tenant_id $test_project_id
     iniset $TEMPEST_CONFIG identity tenant_id_1 $test_alt_project_id
@@ -481,7 +483,7 @@ function configure_tempest
             network_id_alt="$NETWORK_UUID"     
         fi
         networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id --internal | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
  
 
     case "${#networks[*]}" in
@@ -561,10 +563,11 @@ function configure_tempest
     IP=""
     cnt=0
     IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
+    TVAULT_IP="["
     for i in "${IP[@]}"; do
        if [ $cnt -eq 0 ]
        then
-          TVAULT_IP="[""\""$i"\""
+          TVAULT_IP+="\""$i"\""
        else
           TVAULT_IP+=", \""$i"\""
        fi
@@ -611,7 +614,7 @@ function configure_tempest
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
-    sed -i '/instance_username = /c instance_username = "'$TEST_USER_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'${TEST_USER_NAME,,}'"' $TEMPEST_TVAULTCONF
     sed -i '/bootfromvol_vol_size = /c bootfromvol_vol_size = '$BOOTVOL_SIZE'' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF

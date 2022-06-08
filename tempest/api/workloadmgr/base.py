@@ -37,6 +37,7 @@ from tempest import command_argument_string
 from tempest.util import cli_parser
 from tempest.util import query_data
 from tempest import reporting
+from tempest.lib.common.utils import data_utils
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -70,6 +71,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.order_client = cls.os_primary.order_client
+        cls.projects_client = cls.os_primary.projects_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -712,15 +715,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def workload_reset(self, workload_id):
-        self.wait_for_workload_tobe_available(workload_id)
-        resp, body = self.wlm_client.client.post(
-            "/workloads/" + workload_id + "/reset")
-        LOG.debug("#### workloadid: %s, operation: workload-reset " %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        LOG.debug("Response code:" + str(resp.status_code))
-        if (resp.status_code != 202):
-            resp.raise_for_status()
+        try:
+            self.wait_for_workload_tobe_available(workload_id)
+            resp, body = self.wlm_client.client.post(
+                "/workloads/" + workload_id + "/reset")
+            LOG.debug("#### workloadid: %s, operation: workload-reset " %
+                      workload_id)
+            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("Response code:" + str(resp.status_code))
+            if (resp.status_code != 202):
+                resp.raise_for_status()
+            return True
+        except Exception as e:
+            LOG.error("Exception in workload_reassign: " + str(e))
+            return False
 
     '''
     Method to do workload reassign
@@ -804,7 +812,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             workload_id,
             snapshot_id,
             restore_name="",
-            restore_cleanup=True):
+            restore_cleanup=True,
+            sec_group_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if (restore_name == ""):
             restore_name = tvaultconf.snapshot_restore_name
@@ -840,9 +849,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
         self.restored_vms = self.get_restored_vm_list(restore_id)
         self.restored_volumes = self.get_restored_volume_list(restore_id)
+        self.restored_secgrps = self.getRestoredSecGroupPolicies(self.restored_vms)
         if (tvaultconf.cleanup and restore_cleanup):
             # self.restored_vms = self.get_restored_vm_list(restore_id)
             # self.restored_volumes = self.get_restored_volume_list(restore_id)
+            if sec_group_cleanup:
+                for each in self.restored_secgrps:
+                    self.restored_security_group_id = self.get_restored_security_group_id_by_name(each)
+                    self.addCleanup(self.delete_security_group, self.restored_security_group_id)
             self.addCleanup(self.restore_delete, workload_id,
                             snapshot_id, restore_id)
             self.addCleanup(self.delete_restored_vms,
@@ -863,7 +877,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             network_details=[],
             network_restore_flag=False,
             restore_cleanup=True,
-            sec_group_cleanup=False):
+            sec_group_cleanup=True):
         LOG.debug("At the start of snapshot_selective_restore method")
         if (restore_name == ""):
             restore_name = "Tempest_test_restore"
@@ -903,13 +917,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(
                     restore_id)
+                self.restored_secgrps = self.getRestoredSecGroupPolicies(self.restored_vms)
                 self.addCleanup(self.restore_delete,
                                 workload_id, snapshot_id, restore_id)
                 if sec_group_cleanup:
-                    self.restored_security_group_id = self.get_security_group_id_by_name(
-                        "snap_of_" + tvaultconf.security_group_name)
-                    self.addCleanup(self.delete_security_group,
-                                    self.restored_security_group_id)
+                    for each in self.restored_secgrps:
+                        self.restored_security_group_id = self.get_restored_security_group_id_by_name(each)
+                        self.addCleanup(self.delete_security_group, self.restored_security_group_id)
                 self.addCleanup(self.delete_restored_vms,
                                 self.restored_vms, self.restored_volumes)
         else:
@@ -1753,11 +1767,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Port deletion for " + str(ports) + " started.")
         self.delete_ports(ports)
 
-    '''create_security_group'''
+    '''create_security_group in same/another project'''
 
-    def create_security_group(self, name, description, secgrp_cleanup=True):
+    def create_security_group(self, name, description, tenant_id=CONF.identity.tenant_id, secgrp_cleanup=True):
         self.security_group_id = self.security_groups_client.create_security_group(
-            name=name, description=description)['security_group']['id']
+            name=name, description=description, tenant_id=tenant_id)['security_group']['id']
         if (tvaultconf.cleanup and secgrp_cleanup):
             self.addCleanup(self.delete_security_group, self.security_group_id)
         return self.security_group_id
@@ -1782,8 +1796,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if security_group['name'] == security_group_name:
                 security_group_id = security_group['id']
         if security_group_id != "":
+            LOG.debug("security group id for security group {}".format(security_group_id))
             return security_group_id
         else:
+            LOG.debug("security group id is NOT present/restored")
             return None
 
     '''create_flavor'''
@@ -2925,17 +2941,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete list of ports
     '''
 
-    def delete_network(self, network_id):
+    def delete_network(self, network_id, tenant_id=CONF.identity.tenant_id):
         ports_list = []
         router_id_list = []
         routers = self.routers_client.list_routers()['routers']
         routers = [x for x in routers if x['tenant_id'] ==
-                   CONF.identity.tenant_id]
+                   tenant_id]
         self.delete_router_routes(routers)
         router_id_list = [x['id']
-                          for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
+                          for x in routers if x['tenant_id'] == tenant_id]
         for router in router_id_list:
-            self.delete_router_interfaces(router)
+            self.delete_router_interfaces(tenant_id)
         self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
@@ -2945,11 +2961,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete router interface
     '''
 
-    def delete_router_interfaces(self, router_id):
+    def delete_router_interfaces(self, tenant_id=CONF.identity.tenant_id):
         interfaces = self.ports_client.list_ports()['ports']
         LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            if interface['tenant_id'] == CONF.identity.tenant_id and \
+            if interface['tenant_id'] == tenant_id and \
                 interface['device_owner'] in \
                     ('network:router_interface', \
                      'network:ha_router_replicated_interface'):
@@ -2994,13 +3010,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     This method won't delete public network
     '''
 
-    def delete_network_topology(self):
+    def delete_network_topology(self, tenant_id=CONF.identity.tenant_id):
         LOG.debug("Deleting the existing networks")
         networkslist = self.networks_client.list_networks()['networks']
 
         for network in networkslist:
-            if network['router:external'] == False and network['tenant_id'] == CONF.identity.tenant_id:
-                self.delete_network(network['id'])
+            if network['router:external'] == False and network['tenant_id'] == tenant_id:
+                self.delete_network(network['id'],tenant_id)
             else:
                 pass
 
@@ -3443,7 +3459,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for each in rule_list:
             self.security_group_rules_client.delete_security_group_rule(each["id"])
 
-    # Compare the security groups by id and assert if verification fails
+    # Compare the security groups by id and fail if verification fails
     def verifySecurityGroupsByID(self, secgrp_id):
         LOG.debug("Compare security groups for: {}".format(secgrp_id))
         flag = False
@@ -3460,11 +3476,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     )
                     flag = True
             return flag
-        except AssertionError as e:
+        except Exception as e:
             LOG.error("Exception in verifySecurityGroupsByID: {}".format(e))
             return False
 
-    # Compare the security groups by name and assert if verification fails
+    # Compare the security groups by name and fail if verification fails
     def verifySecurityGroupsByname(self, secgrp_name):
         LOG.debug("Compare security groups for: {}".format(secgrp_name))
         flag = False
@@ -3481,7 +3497,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     )
                     flag = True
             return flag
-        except AssertionError as e:
+        except Exception as e:
             LOG.error("Exception in verifySecurityGroupsByname: {}".format(e))
             return False
 
@@ -3539,11 +3555,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def list_security_groups(self):
         body = self.security_groups_client.list_security_groups()
         security_groups = body["security_groups"]
+        LOG.debug("No. of security groups: {}".format(len(security_groups)))
+        LOG.debug("List of security groups: {}".format(security_groups))
         return security_groups
 
     def list_security_group_rules(self):
         body = self.security_group_rules_client.list_security_group_rules()
         rules_list = body["security_group_rules"]
+        LOG.debug("No. of security group rules: {}".format(len(rules_list)))
         return rules_list
 
     # Delete vms, volumes, security groups
@@ -3551,14 +3570,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Delete VM + volume + security groups")
         vol = []
         for vm in vms:
-            LOG.debug("Get list of all volumes to be deleted")
+            LOG.debug("Get list of all volumes to be deleted from instance {}".format(vm))
             vol.append(self.get_attached_volumes(vm))
         self.delete_vms([*vms])
         LOG.debug("Delete volumes: {}".format(vol))
         self.delete_volumes(vol)
         for secgrp in secgrp_ids:
             self.delete_security_group(secgrp)
-            LOG.debug("Delete security groups: {}".format(secgrp))
+            LOG.debug("Deleted security groups: {}".format(secgrp))
 
     '''
     This method creates a secret for workloads
@@ -3715,23 +3734,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         for i in range((len(vm_details_bf[vm]['addresses'][net]))):
                             vm_details_bf[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
                             vm_details_af[vm]['addresses'][net][i]['OS-EXT-IPS-MAC:mac_addr'] = ''
-                    vm_details_bf[vm]['links'][1]['href'] = ''
-                    vm_details_af[vm]['links'][1]['href'] = ''
+                    if 'links' in vm_details_bf[vm].keys() and len(vm_details_bf[vm]['links']) > 1:
+                        vm_details_bf[vm]['links'][1]['href'] = ''
+                        vm_details_af[vm]['links'][1]['href'] = ''
                     if 'config_drive' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['config_drive']
                     if 'ordered_interfaces' in vm_details_af[vm]['metadata']:
                         del vm_details_af[vm]['metadata']['ordered_interfaces']
                     attributes = ['links', 'OS-EXT-SRV-ATTR:host',
-                            'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
-                            'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                            'created', 'id', 'OS-SRV-USG:launched_at']
+                                  'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
+                                  'OS-EXT-SRV-ATTR:instance_name', 'updated',
+                                  'created', 'id', 'OS-SRV-USG:launched_at']
                     for attr in attributes:
                         vm_details_bf[vm][attr] = ''
                         vm_details_af[vm][attr] = ''
+                    LOG.debug("VM compare 7")
                     vm_details_af[vm]['name'] = vm_details_af[vm]['name'].replace(
                         'restored_instance', '')
-                    vm_details_bf_sorted[vm]=vm_details_bf[vm]
-                    vm_details_af_sorted[vm]=vm_details_af[vm]
+                    vm_details_bf_sorted[vm] = vm_details_bf[vm]
+                    vm_details_af_sorted[vm] = vm_details_af[vm]
 
                 if vm_details_bf_sorted == vm_details_af_sorted:
                     reporting.add_test_step(
@@ -3945,4 +3966,71 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in delete_trust: {e}")
             return False
 
+    '''
+    This method creates a secret order 
+    '''
 
+    def create_secret_order(self, order_name, order_cleanup=True):
+        resp = self.order_client.create_order(
+            type="key",
+            meta={"name": order_name, "algorithm": "aes", "bit_length": 256, "payload_content_type": "application/octet-stream", "mode": "cbc"}
+            )
+        order_uuid = resp['order_ref'].split('/')[-1]
+        if (tvaultconf.cleanup and order_cleanup):
+            self.addCleanup(self.delete_secret_order, order_uuid)
+        return order_uuid
+
+    '''
+    This method retrieves secret key from secret order
+    '''
+    def get_secret_from_order(self, order_uuid):
+        resp = self.order_client.get_order(order_uuid)
+        LOG.debug("response from get secret order: {}".format(resp))
+        secret_uuid = resp['secret_ref'].split('/')[-1]
+        return secret_uuid
+
+    '''
+    This method deletes a secret order
+    '''
+    def delete_secret_order(self, order_uuid):
+        resp = self.order_client.delete_order(order_uuid)
+        LOG.debug(f"resp {resp}")
+        return resp
+
+    '''
+    This method will add additional security groups to instance
+    '''
+    def add_security_group_to_instance(self, instance_id, sgid):
+        try:
+            self.servers_client.add_security_group(instance_id, name=sgid)
+            LOG.debug("Added security group {} to instance {}".format(sgid, instance_id))
+            return True
+        except Exception as e:
+            LOG.error("Exception in add_security_group_to_instance: {}".format(e))
+            return False
+
+    def get_restored_security_group_id_by_name(self, security_group_name):
+        security_group_id = ""
+        security_groups_list = self.security_groups_client.list_security_groups()[
+            'security_groups']
+        LOG.debug("Security groups list" + str(security_groups_list))
+        for security_group in security_groups_list:
+            if security_group['name'] == security_group_name and "Restored from original security group" in security_group['description']:
+                security_group_id = security_group['id']
+        if security_group_id != "":
+            LOG.debug("security group id for security group {}".format(security_group_id))
+            return security_group_id
+        else:
+            LOG.debug("security group id is NOT present/restored")
+            return None
+
+    def create_project(self, project_cleanup=True):
+        project_name = data_utils.rand_name(name=self.__class__.__name__)
+        project = self.projects_client.create_project(
+            project_name,
+            domain_id=CONF.identity.domain_id)['project']
+        project_id = project['id']
+        project_details = {project_id: project_name}
+        if (tvaultconf.cleanup and project_cleanup):
+            self.addCleanup(self.projects_client.delete_project, project['id'])
+        return project_details

@@ -53,6 +53,7 @@ wlm_dbpasswd = "sample-password"
 wlm_dbhost = "192.168.6.17"
 smtp_password = "sample-password"
 smtp_password_pwdless = "sample-password"
+trustee_role = "_member_"
 
 no_of_compute_nodes = 1
 
@@ -82,7 +83,7 @@ instance_username = "ubuntu"
 snapshot_restore_name = "Tempest Test Restore"
 restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
-security_group_name = "test_security"
+security_group_name = "test-Security-Groups"
 flavor_name = "test_flavor"
 bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]

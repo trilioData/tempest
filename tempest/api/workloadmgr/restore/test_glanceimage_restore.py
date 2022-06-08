@@ -25,7 +25,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_glanceimage_restore(self):
+    def test_1_glanceimage_restore(self):
         try:
             reporting.add_test_script(str(__name__)+"_vm_reboot")
             self.image_name = "tempest_test_image"
@@ -159,8 +159,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         'checksum', 'os_hash_value', 'id', 'created_at',
                         'updated_at', 'self', 'file', 'direct_url']
             for attr in attributes:
-                del images_list_bf[0][attr]
-                del images_list_af[0][attr]
+                if attr in images_list_bf[0]:
+                    del images_list_bf[0][attr]
+                if attr in images_list_af[0]:
+                    del images_list_af[0][attr]
 
             if images_list_bf == images_list_af:
                 reporting.add_test_step(
