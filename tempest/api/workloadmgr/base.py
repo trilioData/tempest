@@ -813,7 +813,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             snapshot_id,
             restore_name="",
             restore_cleanup=True,
-            sec_group_cleanup=False):
+            sec_group_cleanup=True):
         LOG.debug("At the start of snapshot_restore method")
         if (restore_name == ""):
             restore_name = tvaultconf.snapshot_restore_name
@@ -877,7 +877,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             network_details=[],
             network_restore_flag=False,
             restore_cleanup=True,
-            sec_group_cleanup=False):
+            sec_group_cleanup=True):
         LOG.debug("At the start of snapshot_selective_restore method")
         if (restore_name == ""):
             restore_name = "Tempest_test_restore"
