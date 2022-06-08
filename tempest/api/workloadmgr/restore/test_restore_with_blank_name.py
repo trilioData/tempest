@@ -84,8 +84,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       0]]
 
 
+            reporting.add_test_script(tests[0][0])
+
+            # get floating ip list
             fip = self.get_floating_ips()
-            if len(fip) < 2:
+            if len(fip) < 1:
                 raise Exception("Floating ips unavailable")
 
             # create key_pair value
@@ -142,13 +145,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # take full snapshot
             snapshot_id = self.create_snapshot(wid, is_full=True)
 
-            # Add some more data to files on VM
-            self.data_ops_for_bootdisk(floating_ip_1, data_dir_path[1], 3)
-
-            ### Incremental snapshot ###
-            incr_snapshot_id = self.create_snapshot(wid, is_full=False)
-
-
             self.wait_for_workload_tobe_available(wid)
             snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
 
@@ -159,10 +155,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Full snapshot creation failed.")
                 raise Exception("Create full snapshot")
 
-            reporting.test_case_to_write()
 
             ### In-place restore ###
-            reporting.add_test_script(tests[0][0])
 
             volumeslist = []
             rest_details = {}
@@ -182,7 +176,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Inplace Restore_command is :=" + str(restore_command))
 
             rc = cli_parser.cli_returncode(restore_command)
-            
+
             if rc != 0:
                 LOG.debug("In-Place restore cli command with blank name command")
                 raise Exception("In-Place restore cli command with blank name command")
@@ -227,8 +221,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             deleted = 1
             time.sleep(10)
 
-	        # Create one-click restore using CLI command
-            restore_command = command_argument_string.oneclick_restore_with_blank_name + str(incr_snapshot_id)
+            # Create one-click restore using CLI command
+            restore_command = command_argument_string.oneclick_restore_with_blank_name + str(snapshot_id)
             LOG.debug("Restore_command is :=" + str(restore_command))
 
             rc = cli_parser.cli_returncode(restore_command)
@@ -241,13 +235,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("One-click restore with blank name command executed successfully")
 
-            restore_id_2 = query_data.get_snapshot_restore_id(incr_snapshot_id)
+            restore_id_2 = query_data.get_snapshot_restore_id(snapshot_id)
 
             self.wait_for_snapshot_tobe_available(
-                wid, incr_snapshot_id)
+                wid, snapshot_id)
 
             # get one-click restore status
-            if (self.getRestoreStatus(wid, incr_snapshot_id, restore_id_2) == "available"):
+            if (self.getRestoreStatus(wid, snapshot_id, restore_id_2) == "available"):
                 LOG.debug("One-click restore of full snapshot passed.")
                 reporting.add_test_step("One-click restore of full snapshot", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
@@ -263,10 +257,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.test_case_to_write()
 
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+
 
         finally:
             for test in tests:
@@ -283,8 +279,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.delete_vm(inplace_vm_list[0])
             except BaseException:
                 pass
-
-
 
 
 
