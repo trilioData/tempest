@@ -553,6 +553,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                     volumes[volume], 'available')
 
     '''
+    Method to update volume metadaa
+    '''
+    def modify_volume_metadata(self, volume_id, metadata_tag_name):
+        body = ""
+        try:
+            body = self.volumes_client.update_volume_metadata(
+                volume_id, metadata_tag_name)['metadata']
+
+        except Exception as e:
+            LOG.error("Exception" + str(e))
+            pass
+
+        return body
+
+    '''
     Method creates a workload and returns Workload id
     '''
 
@@ -3999,4 +4014,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
+
+    '''
+    Method to list available key pairs
+    '''
+
+    def list_key_pairs(self):
+        key_pairs_list_response = self.keypairs_client.list_keypairs()
+        key_pair_list = key_pairs_list_response['keypairs']
+        return key_pair_list
 

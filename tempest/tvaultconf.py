@@ -129,3 +129,11 @@ workload_allowed_value = 1
 workload_watermark_value = 1
 vm_allowed_value = 1
 vm_watermark_value = 1
+
+#custom metadata for exclusion of bootdisk and cinder volume.
+#metadata for the cinder volume exclusion
+enable_cinder_volume_exclusion = {"exclude_from_backup": "True"}
+#metadata for the bootdisk exclusion
+enable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "True"}
+disable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "False"}
+

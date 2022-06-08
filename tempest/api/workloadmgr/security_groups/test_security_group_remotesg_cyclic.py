@@ -727,7 +727,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
                 # Check for deleted security group
-                secgrp_val = [val['name'] for val in restored_secgrps if val['name'] in delete_secgrp]
+                secgrp_val = [val['id'] for val in restored_secgrps if val['name'] in delete_secgrp]
                 if secgrp_val:
                     reporting.add_test_step(
                         "Deleted Security group/s: {} are restored after {} restore".format(delete_secgrp, restore),
@@ -743,7 +743,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # Delete restored vms and security groups created during earlier restore
                 if test != tests[-1]:
                     LOG.debug("deleting restored vm and restored security groups and rules")
-                    self._delete_vms_secgroups(restored_vms, self.restored_secgroup_ids)
+                    self._delete_vms_secgroups(restored_vms, secgrp_val)
                     reporting.test_case_to_write()
 
         except Exception as e:
