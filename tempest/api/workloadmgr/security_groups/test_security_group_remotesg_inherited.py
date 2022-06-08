@@ -92,10 +92,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         return workload_id
 
     # Generate security groups and rules data
-    def generate_data_for_secgrp(self, secgrp_count, rules_count):
+    def generate_data_for_secgrp(self, security_group_count, rules_count):
         secgrp_list_with_rules = []
         ip_protocols = ["tcp", "udp"]
-        for t in range(1, secgrp_count + 1):
+        for t in range(1, security_group_count + 1):
             rules_dict = []
             for i in range(0, rules_count):
                 protocol = random.choice(ip_protocols)
@@ -111,7 +111,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("sec group + rules: {}".format(secgrp_list_with_rules))
         return secgrp_list_with_rules
 
-    """ Method to create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R -> P """
+    """ Method to create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R """
 
     def create_sec_groups_rule(self, secgrp_names, secgrp_list):
         LOG.debug("Create security group and rule")
@@ -174,21 +174,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.idempotent_id("c7aea6be-6c29-4d3b-bde9-98d515256c9d")
     @decorators.attr(type="workloadmgr_api")
     def test_wlm_cli(self):
+        restored_sgids = []
         try:
             ### Verification of remote security group having inherited security groups ###
             LOG.debug("\nStarted test execution: ")
-
-            status = 1
-            restored_sgids = []
-            secgrp_names = "test_secgroup-instance_wlm_cli"
-            secgrp_count = 3
+            secgrp_names = "test_secgroup-instance_wlm_cli"  + str(random.randint(0, 10000))
+            security_group_count = 3
             rules_count = 2
 
             # 1. Create Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R
             LOG.debug(
                 "\nCreate Security groups P, Q, R with distinct rules and assign the relationship like P -> Q -> R "
             )
-            secgrp_list = self.generate_data_for_secgrp(secgrp_count, rules_count)
+            secgrp_list = self.generate_data_for_secgrp(
+                security_group_count, rules_count
+            )
             sec_groups = self.create_sec_groups_rule(secgrp_names, secgrp_list)
 
             # 2. Create an image booted instance with Security group P and attach an empty volume.
@@ -233,7 +233,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_vm_secgroups(vms, sec_groups)
             time.sleep(60)
 
-            ### Perform security groups restore through wlm command
+            # 6. Perform security groups restore through wlm command
             restore_command = (
                 command_argument_string.restore_security_groups + " " + snapshot_id
             )
@@ -249,15 +249,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 )
                 LOG.debug("Command executed correctly")
 
-            # DB verification of the command execution
+            # 7. DB verification of the command execution
             wc = query_data.get_snapshot_restore_status(
-                tvaultconf.restore_name, snapshot_id
+                tvaultconf.security_group_restore_name, snapshot_id
             )
             LOG.debug("Security group restore status: " + str(wc))
             while str(wc) != "available" or str(wc) != "error":
                 time.sleep(5)
                 wc = query_data.get_snapshot_restore_status(
-                    tvaultconf.secgrp_restore_name, snapshot_id
+                    tvaultconf.security_group_restore_name, snapshot_id
                 )
                 LOG.debug("Snapshot restore status: " + str(wc))
                 if str(wc) == "available":
@@ -274,9 +274,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             "security group restore command execution has thrown error ",
                             tvaultconf.FAIL,
                         )
-                        break
+                        raise Exception("security group restore command verification has failed")
 
-            # 9. Compare the security groups and rules before and after restore
+            # 8. Compare the security groups and rules before and after restore
             LOG.debug("Compare the security groups before and after restore")
             secgroups_after = self.list_security_groups()
             if len(secgroups_after) == len(secgroups_before):
@@ -291,7 +291,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Security groups verification failed pre and post restore",
                     tvaultconf.FAIL,
                 )
-                status = 0
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             LOG.debug("Compare the security group rules before and after restore")
             rules_after = self.list_security_group_rules()
@@ -311,12 +311,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Security group rules verification failed pre and post restore",
                     tvaultconf.FAIL,
                 )
-                status = 0
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
-            # 10. Compare the security group & rules for restored security groups
+            # 9. Compare the security group & rules for restored security groups
             LOG.debug("Comparing restored security group & rules.")
             for t in range(0, len(sec_groups)):
-                restored_secgrp = "snap_of_{}{}".format(secgrp_names, t + 1)
+                restored_secgrp = secgrp_names + str(t + 1)
                 LOG.debug(
                     "Print name of restored security groups : {}".format(
                         restored_secgrp
@@ -376,17 +376,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         ),
                         tvaultconf.FAIL,
                     )
-                    status = 0
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            if status == 0:
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.set_test_script_status(tvaultconf.PASS)
             reporting.test_case_to_write()
-
             if len(restored_sgids) != 0:
                 for secgrp in restored_sgids:
                     LOG.debug("Deleting security groups: {}".format(secgrp))
