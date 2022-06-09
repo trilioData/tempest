@@ -61,13 +61,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def _verify_post_restore(self, images_list_bf, images_list_af,
             key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af,
             test_id):
+        tmp_fail = False
         if images_list_bf == images_list_af:
             reporting.add_test_step(
                 "Image properties intact after restore", tvaultconf.PASS)
         else:
             reporting.add_test_step(
                 "Image properties not restored properly", tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
+            tmp_fail = True
 
         if key_pair_list_bf == key_pair_list_af:
             reporting.add_test_step(
@@ -75,17 +76,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         else:
             reporting.add_test_step(
                 "Keypair not restored properly", tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
+            tmp_fail = True
 
         #md5sum verification
         if md5sums_bf == md5sums_af:
             reporting.add_test_step("Md5sum verification", tvaultconf.PASS)
-            if test_id != "":
-                tests[test_id][1] = 1
-                reporting.test_case_to_write()
         else:
             reporting.add_test_step("Md5sum verification", tvaultconf.FAIL)
+            tmp_fail = True
+        
+        if tmp_fail:
             reporting.set_test_script_status(tvaultconf.FAIL)
+        else:
+            if test_id != "":
+                self.tests[test_id][1] = 1
+        reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_1_glanceimage_restore(self):
@@ -226,9 +231,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_2_glanceimage_volume_booted_instance(self):
         try:
             test_var = "tempest.api.workloadmgr.barbican.test_volume_booted_"
-            tests = [[test_var+"selective_restore_api", 0],
+            self.tests = [[test_var+"selective_restore_api", 0],
                     [test_var+"oneclickrestore_api", 0]]
-            reporting.add_test_script(tests[0][0])
+            reporting.add_test_script(self.tests[0][0])
             self.image_name = "tempest_test_image"
             self.image_id = self.create_image(image_name=self.image_name,
                                     image_cleanup=False)
@@ -404,8 +409,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
-            reporting.add_test_script(tests[1][0])
+            reporting.add_test_script(self.tests[1][0])
             #Delete restored image, keypair and flavor
             if restored_image_id:
                 self.delete_image(restored_image_id)
@@ -483,13 +489,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            for test in tests:
+            for test in self.tests:
                 if test[1] != 1:
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
