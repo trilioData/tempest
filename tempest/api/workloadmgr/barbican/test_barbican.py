@@ -3209,6 +3209,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("pre req completed")
 
             # Create workload with scheduler disabled using CLI
+            time.sleep(10)
             workload_create = \
                     command_argument_string.workload_create_with_encryption +\
                 " --instance instance-id=" + \
