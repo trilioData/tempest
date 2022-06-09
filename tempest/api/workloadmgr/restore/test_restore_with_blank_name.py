@@ -29,23 +29,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    def assign_floating_ips(self, fip, vm_id, cleanup):
-        self.set_floating_ip(str(fip), vm_id, floatingip_cleanup=cleanup)
-        return fip
-
-    def create_directory_on_remote_machine(self, ssh, data_dir_path):
-        cmd = "sudo mkdir -p " + data_dir_path
-        LOG.debug("CMD TO RUN = "+ str(cmd))
-        stdin, stdout, stderr = ssh.exec_command(cmd)
-        time.sleep(10)
-
-    def data_ops_for_bootdisk(self, flo_ip, data_dir_path, file_count):
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
-        self.install_qemu(ssh)
-        self.create_directory_on_remote_machine(ssh, data_dir_path)
-        self.addCustomfilesOnLinuxVM(ssh, data_dir_path, file_count)
-        ssh.close()
-
     def create_snapshot(self, workload_id, is_full=True):
         if is_full:
             substitution = 'Full'
@@ -71,11 +54,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             raise Exception("Full snapshot failed")
         return(snapshot_id)
 
+
     @decorators.attr(type='workloadmgr_cli')
     def test_restore_with_blank_name(self):
         try:
             deleted = 0
-            data_dir_path = ["/opt/testfolder1", "/opt/testfolder2"]
             global volumes
             ## VM and Workload ###
             tests = [['tempest.api.workloadmgr.restore.test_inplace_restore_with_blank_name',
@@ -83,13 +66,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                      ['tempest.api.workloadmgr.restore.test_oneclick_restore_with_blank_name',
                       0]]
 
-
             reporting.add_test_script(tests[0][0])
-
-            # get floating ip list
-            fip = self.get_floating_ips()
-            if len(fip) < 1:
-                raise Exception("Floating ips unavailable")
 
             # create key_pair value
             kp = self.create_key_pair(
@@ -100,14 +77,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_id = self.create_vm(key_pair=kp, vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             time.sleep(30)
-
-            # assign floating ip
-            floating_ip_1 = self.assign_floating_ips(fip[0], vm_id, False)
-            LOG.debug("Assigned floating IP : " + str(floating_ip_1))
-            time.sleep(20)
-
-            # add some data to boot disk...
-            self.data_ops_for_bootdisk(floating_ip_1, data_dir_path[0], 3)
 
             # Create workload using CLI
             workload_create = command_argument_string.workload_create + \
@@ -189,7 +158,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # get restore id from database
             restore_id_1 = query_data.get_snapshot_restore_id(snapshot_id)
 
-
             self.wait_for_snapshot_tobe_available(wid, snapshot_id)
 
             # get in-place restore status
@@ -208,6 +176,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Restored vm(In-place) ID : " + str(inplace_vm_list))
 
             reporting.test_case_to_write()
+
 
             ### One-click restore ###
             reporting.add_test_script(tests[1][0])
@@ -279,6 +248,5 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.delete_vm(inplace_vm_list[0])
             except BaseException:
                 pass
-
 
 
