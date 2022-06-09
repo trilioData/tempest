@@ -3189,6 +3189,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Network details for restore: " + str(network_details))
             instances = rest_details['instances']
             instance_details = []
+            if rest_details['volume_type'] == None:
+                rest_details['volume_type'] = CONF.volume.volume_type
             for instance in instances:
                 temp_vdisks_data = []
                 for volume in instances[instance]:
@@ -3196,7 +3198,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'availability_zone': CONF.volume.volume_availability_zone,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 vm_name = "tempest_test_vm_" + instance + "_selectively_restored"
                 temp_instance_data = {
                     'id': instance,
@@ -3205,7 +3207,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'restore_boot_disk': True,
                     'name': vm_name,
                     'vdisks': temp_vdisks_data}
-            instance_details.append(temp_instance_data)
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {'instance_details': instance_details,
                        'network_details': network_details}

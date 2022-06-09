@@ -314,6 +314,7 @@ function configure_tempest
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
+    iniset $TEMPEST_CONFIG compute image_ref_alt $image_uuid_alt
     iniset $TEMPEST_CONFIG compute fvm_image_ref $frm_data
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
