@@ -64,6 +64,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             tests = [['tempest.api.workloadmgr.restore.test_inplace_restore_with_blank_name',
                       0],
                      ['tempest.api.workloadmgr.restore.test_oneclick_restore_with_blank_name',
+                      0],
+                     ['tempest.api.workloadmgr.restore.test_selective_restore_with_blank_name',
                       0]]
 
             reporting.add_test_script(tests[0][0])
@@ -227,6 +229,72 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
 
+            ### Selective restore ###
+            reporting.add_test_script(tests[2][0])
+
+            instance_details = []
+            volumeslist = []
+            vm_name = 'tempest_test_vm_'+str(vm_id)+'_selectively_restored'
+            rest_details = {'id': str(vm_id),
+                            'availability_zone': CONF.volume.volume_availability_zone,
+                            'include': True,
+                            'restore_boot_disk': True,
+                            'name': vm_name,
+                            'vdisk':volumeslist}
+
+            instance_details.append(rest_details)
+
+            #payload to pass - selective restore cli command.
+            payload = {"type": "openstack",
+                       "oneclickrestore": False,
+                       "openstack": {"instances": instance_details,
+                                     "networks_mapping": {"networks": []},
+                                     "restore_topology": True},
+                       "restore_type": "selective"}
+
+
+            restore_json = json.dumps(payload)
+            LOG.debug("restore.json for selective restore: " + str(restore_json))
+
+            # Create Restore.json
+            with open(tvaultconf.restore_filename, 'w') as f:
+                f.write(str(yaml.safe_load(restore_json)))
+
+            # Create selective restore with CLI command
+            restore_command = command_argument_string.selective_restore_with_blank_name + \
+                              str(tvaultconf.restore_filename) + " " + str(snapshot_id)
+            LOG.debug("Restore_command for selective restore :=" + str(restore_command))
+
+            rc = cli_parser.cli_returncode(restore_command)
+            if rc != 0:
+                LOG.debug("Selective restore cli command with blank name command")
+                raise Exception("Selective restore cli command with blank name command")
+            else:
+                reporting.add_test_step(
+                    "Selective restore cli with blank name command", tvaultconf.PASS)
+                LOG.debug("Selective restore Command executed correctly")
+
+
+            restore_id = query_data.get_snapshot_restore_id(snapshot_id)
+
+            self.wait_for_snapshot_tobe_available(wid, snapshot_id)
+
+            if (self.getRestoreStatus(wid, snapshot_id, restore_id) == "available"):
+                reporting.add_test_step("Selective restore of full snapshot", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+                tests[2][1] = 1
+            else:
+                LOG.debug("Selective restore of full snapshot")
+                raise Exception("Selective restore of full snapshot")
+
+            # Fetch instance details after restore
+            selective_vm_list = []
+            selective_vm_list = self.get_restored_vm_list(restore_id)
+            LOG.debug("Restored vm(selective) ID : " + str(selective_vm_list))
+
+            reporting.test_case_to_write()
+
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
@@ -240,13 +308,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.test_case_to_write()
 
+
             try:
                 if (deleted == 0):
                     self.delete_vm(vm_id)
 
                 self.delete_vm(oneclick_vm_list[0])
                 self.delete_vm(inplace_vm_list[0])
+                self.delete_vm(selective_vm_list[0])
             except BaseException:
                 pass
+
 
 
