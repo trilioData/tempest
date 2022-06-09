@@ -34,6 +34,111 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         elif "ubuntu" in self.frm_image:
             self.frm_ssh_user = "ubuntu"
 
+    def _add_data_on_instance_and_volume(self, ip, full=True):
+        ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
+        file_count = 5
+        if full:
+            self.install_qemu(ssh)
+            self.execute_command_disk_create(ssh, str(ip),
+                                         [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+            self.execute_command_disk_mount(ssh, str(ip),
+                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+            file_count = 3
+
+        self.addCustomfilesOnLinuxVM(ssh, "/opt", file_count)
+        self.addCustomfilesOnLinuxVM(ssh, tvaultconf.mount_points[0], file_count)
+        md5sums_opt = self.calculatemmd5checksum(ssh, "/opt")
+        md5sums_vol = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
+        ssh.close()
+        return md5sums_opt, md5sums_vol
+
+    def _selective_restore(self,payload,ip_list,md5sums_list,full=True):
+        if full:
+            snapshot_id = self.snapshot_id
+            snapshot_type = 'full'
+        else:
+            snapshot_id = self.snapshot_id2
+            snapshot_type = 'incremental'
+        # Trigger selective restore of full snapshot
+        restore_id_1 = self.snapshot_selective_restore(
+            self.wid, snapshot_id,
+            restore_name="selective_restore_full_snap",
+            instance_details=payload['instance_details'],
+            network_details=payload['network_details'])
+        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+        if (self.getRestoreStatus(self.wid, self.snapshot_id,
+                                  restore_id_1) == "available"):
+            reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
+                                    tvaultconf.PASS)
+            vm_list = self.get_restored_vm_list(restore_id_1)
+            LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+            time.sleep(60)
+            self.set_floating_ip(ip_list[0], vm_list[0])
+            self.set_floating_ip(ip_list[1], vm_list[1])
+            LOG.debug("Floating ip assigned to selective restored vm -> " + \
+                      f"{ip_list[0]} and {ip_list[1]}")
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[0])
+            md5sums_after_opt_selective1 = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_vol_selective1 = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
+            LOG.debug(
+                f"md5sums_after_selective_opt: {md5sums_after_opt_selective1} md5sums_after_selective_vol: {md5sums_after_vol_selective1}")
+            ssh.close()
+
+            if md5sums_list[0] == \
+                    md5sums_after_opt_selective1:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[0] + " actual: " + md5sums_after_opt_selective1)
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if md5sums_list[1] == \
+                    md5sums_after_vol_selective1:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[1] + " actual: " + md5sums_after_vol_selective1)
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[1])
+            md5sums_after_opt_selective2 = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_vol_selective2 = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
+            LOG.debug(
+                f"md5sums_after_selective_opt: {md5sums_after_opt_selective2} md5sums_after_selective_vol: {md5sums_after_vol_selective2}")
+            ssh.close()
+
+            if md5sums_list[2] == \
+                    md5sums_after_opt_selective2:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[2] + " actual: " + md5sums_after_opt_selective2)
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if md5sums_list[3] == \
+                    md5sums_after_vol_selective2:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[3] + " actual: " + md5sums_after_vol_selective2)
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        else:
+            reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
+                                    tvaultconf.FAIL)
+
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
         try:
@@ -105,35 +210,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # LOG.debug("FRM Instance ID: " + str(self.frm_id))
             # self.set_floating_ip(fip[2], self.frm_id)
 
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            self.install_qemu(ssh)
-            self.execute_command_disk_create(ssh, str(fip[0]),
-                                             [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-            self.execute_command_disk_mount(ssh, str(fip[0]),
-                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-
-            self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
-            md5sums_before_full1 = self.calculatemmd5checksum(ssh, "/opt")
-            md5sums_before_full1_vol = self.calculatemmd5checksum(ssh, mount_point)
+            md5sums_before_full1, md5sums_before_full1_vol = self._add_data_on_instance_and_volume(fip[0])
             LOG.debug(
                 f"md5sums_before_full: {md5sums_before_full1} md5sums_before_full_vol: {md5sums_before_full1_vol}")
-            ssh.close()
 
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
-            self.install_qemu(ssh)
-            self.execute_command_disk_create(ssh, str(fip[1]),
-                                             [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-            self.execute_command_disk_mount(ssh, str(fip[1]),
-                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-
-            self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
-            md5sums_before_full2 = self.calculatemmd5checksum(ssh, "/opt")
-            md5sums_before_full2_vol = self.calculatemmd5checksum(ssh, mount_point)
+            md5sums_before_full2, md5sums_before_full2_vol = self._add_data_on_instance_and_volume(fip[1])
             LOG.debug(
                 f"md5sums_before_full: {md5sums_before_full2} md5sums_before_full_vol: {md5sums_before_full2_vol}")
-            ssh.close()
 
             # Create workload with API
             try:
@@ -186,23 +269,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create full snapshot")
 
             reporting.add_test_script(tests[2][0])
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
-            self.addCustomfilesOnLinuxVM(ssh, mount_point, 5)
-            md5sums_before_incr1 = self.calculatemmd5checksum(ssh, "/opt")
-            md5sums_before_incr1_vol = self.calculatemmd5checksum(ssh, mount_point)
+            md5sums_before_incr1, md5sums_before_incr1_vol = self._add_data_on_instance_and_volume(fip[0],False)
             LOG.debug(
                 f"md5sums_before_incr: {md5sums_before_incr1} md5sums_before_incr_vol: {md5sums_before_incr1_vol}")
-            ssh.close()
 
-            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
-            self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
-            self.addCustomfilesOnLinuxVM(ssh, mount_point, 5)
-            md5sums_before_incr2 = self.calculatemmd5checksum(ssh, "/opt")
-            md5sums_before_incr2_vol = self.calculatemmd5checksum(ssh, mount_point)
+            md5sums_before_incr2, md5sums_before_incr2_vol = self._add_data_on_instance_and_volume(fip[1], False)
             LOG.debug(
                 f"md5sums_before_incr: {md5sums_before_incr2} md5sums_before_incr_vol: {md5sums_before_incr2_vol}")
-            ssh.close()
 
             self.snapshot_id2 = self.workload_snapshot(self.wid, False)
             self.wait_for_workload_tobe_available(self.wid)
@@ -397,164 +470,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
-            restore_id_1 = self.snapshot_selective_restore(
-                self.wid, self.snapshot_id,
-                restore_name="selective_restore_full_snap",
-                instance_details=payload['instance_details'],
-                network_details=payload['network_details'])
-            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-            if (self.getRestoreStatus(self.wid, self.snapshot_id,
-                                      restore_id_1) == "available"):
-                reporting.add_test_step("Selective restore of full snapshot",
-                                        tvaultconf.PASS)
-                vm_list = self.get_restored_vm_list(restore_id_1)
-                LOG.debug("Restored vm(selective) ID : " + str(vm_list))
-                time.sleep(60)
-                self.set_floating_ip(fip[2], vm_list[0])
-                self.set_floating_ip(fip[3], vm_list[1])
-                LOG.debug("Floating ip assigned to selective restored vm -> " + \
-                          f"{fip[2]} and {fip[3]}")
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective1 = self.calculatemmd5checksum(ssh, "/opt")
-                md5sums_after_full_selective1_vol = self.calculatemmd5checksum(ssh, mount_point)
-                LOG.debug(
-                    f"md5sums_after_full_selective: {md5sums_after_full_selective1} md5sums_after_full_selective_vol: {md5sums_after_full_selective1_vol}")
-                ssh.close()
-
-                if md5sums_before_full1 == \
-                        md5sums_after_full_selective1:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                if md5sums_before_full1_vol == \
-                        md5sums_after_full_selective1_vol:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
-                md5sums_after_full_selective2 = self.calculatemmd5checksum(ssh, "/opt")
-                md5sums_after_full_selective2_vol = self.calculatemmd5checksum(ssh, mount_point)
-                LOG.debug(
-                    f"md5sums_after_full_selective: {md5sums_after_full_selective2} md5sums_after_full_selective_vol: {md5sums_after_full_selective2_vol}")
-                ssh.close()
-
-                if md5sums_before_full2 == \
-                        md5sums_after_full_selective2:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                if md5sums_before_full2_vol == \
-                        md5sums_after_full_selective2_vol:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-            else:
-                reporting.add_test_step("Selective restore of full snapshot",
-                                        tvaultconf.FAIL)
+            self._selective_restore(payload,[fip[2],fip[3]],
+                                    [md5sums_before_full1, md5sums_before_full1_vol,
+                                     md5sums_before_full2, md5sums_before_full2_vol])
 
             # Trigger selective restore of incremental snapshot
-            restore_id_2 = self.snapshot_selective_restore(
-                self.wid, self.snapshot_id2,
-                restore_name="selective_restore_full_snap",
-                instance_details=payload['instance_details'],
-                network_details=payload['network_details'])
-            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
-            if (self.getRestoreStatus(self.wid, self.snapshot_id2,
-                                      restore_id_2) == "available"):
-                reporting.add_test_step("Selective restore of incremental snapshot",
-                                        tvaultconf.PASS)
-                vm_list = self.get_restored_vm_list(restore_id_2)
-                LOG.debug("Restored vm(selective) ID : " + str(vm_list))
-                time.sleep(60)
-                self.set_floating_ip(fip[4], vm_list[0])
-                self.set_floating_ip(fip[5], vm_list[1])
-                LOG.debug("Floating ip assigned to selective restored vm -> " + \
-                          f"{fip[4]} and {fip[5]}")
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[4])
-                md5sums_after_incr_selective1 = self.calculatemmd5checksum(ssh, "/opt")
-                md5sums_after_incr_selective1_vol = self.calculatemmd5checksum(ssh, mount_point)
-                LOG.debug(
-                    f"md5sums_after_incr_selective: {md5sums_after_incr_selective1} md5sums_after_incr_selective_vol: {md5sums_after_incr_selective1_vol}")
-                ssh.close()
-
-                if md5sums_before_incr1 == \
-                        md5sums_after_incr_selective1:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                if md5sums_before_incr1_vol == \
-                        md5sums_after_incr_selective1_vol:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for volume disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[5])
-                md5sums_after_incr_selective2 = self.calculatemmd5checksum(ssh, "/opt")
-                md5sums_after_incr_selective2_vol = self.calculatemmd5checksum(ssh, mount_point)
-                LOG.debug(
-                    f"md5sums_after_incr_selective: {md5sums_after_incr_selective2} md5sums_after_incr_selective_vol: {md5sums_after_incr_selective2_vol}")
-                ssh.close()
-
-                if md5sums_before_incr2 == \
-                        md5sums_after_incr_selective2:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for boot disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-                if md5sums_before_incr2_vol == \
-                        md5sums_after_incr_selective2_vol:
-                    LOG.debug("***MDSUMS MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for voulme disk", tvaultconf.PASS)
-                else:
-                    LOG.debug("***MDSUMS DON'T MATCH***")
-                    reporting.add_test_step(
-                        "Md5 Verification for voulme disk", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-
-            else:
-                reporting.add_test_step("Selective restore of incremental snapshot",
-                                        tvaultconf.FAIL)
+            self._selective_restore(payload, [fip[4], fip[5]],
+                                    [md5sums_before_incr1, md5sums_before_incr1_vol,
+                                     md5sums_before_incr2,md5sums_before_incr2_vol],
+                                    False)
             reporting.test_case_to_write()
             tests[3][1] = 1
 
