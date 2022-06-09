@@ -553,10 +553,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                     volumes[volume], 'available')
 
     '''
-    Method creates a workload and returns Workload id
-    '''
-
-    '''
     Method to update volume metadaa
     '''
     def modify_volume_metadata(self, volume_id, metadata_tag_name):
@@ -570,6 +566,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             pass
 
         return body
+
+    '''
+    Method creates a workload and returns Workload id
+    '''
 
     def workload_create(
             self,
@@ -3228,6 +3228,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'restore_boot_disk': True,
                     'name': vm_name,
                     'vdisks': temp_vdisks_data}
+                if 'flavor' in rest_details:
+                    LOG.debug("Flavor details set")
+                    temp_instance_data['flavor'] = {
+                            'vcpus': rest_details['flavor']['vcpus'],
+                            'ram': rest_details['flavor']['ram'],
+                            'disk': rest_details['flavor']['disk'],
+                            'ephemeral': rest_details['flavor']['OS-FLV-EXT-DATA:ephemeral'],
+                            'swap': rest_details['flavor']['swap']
+                            }
+                else:
+                    LOG.debug("Flavor details not set")
             instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {'instance_details': instance_details,
@@ -4034,3 +4045,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if (tvaultconf.cleanup and project_cleanup):
             self.addCleanup(self.projects_client.delete_project, project['id'])
         return project_details
+
+    '''
+    Method to list available key pairs
+    '''
+
+    def list_key_pairs(self):
+        key_pairs_list_response = self.keypairs_client.list_keypairs()
+        key_pair_list = key_pairs_list_response['keypairs']
+        return key_pair_list
