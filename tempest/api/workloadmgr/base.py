@@ -3176,7 +3176,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def create_restore_json(self, rest_details):
-        if 'volume_type' in rest_details.keys():
+        if 'volume_type' not in rest_details.keys():
             rest_details['volume_type'] = CONF.volume.volume_type
         if rest_details['rest_type'] == 'selective':
             snapshot_network = {
