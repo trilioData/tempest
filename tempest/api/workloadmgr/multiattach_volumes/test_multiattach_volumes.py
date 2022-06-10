@@ -78,62 +78,62 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Floating ip assigned to selective restored vm -> " + \
                       f"{ip_list[0]} and {ip_list[1]}")
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[0])
+            self.execute_command_disk_mount(ssh, ip_list[0],
+                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
             md5sums_after_opt_selective1 = self.calculatemmd5checksum(ssh, "/opt")
             md5sums_after_vol_selective1 = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
             LOG.debug(
                 f"md5sums_after_selective_opt: {md5sums_after_opt_selective1} md5sums_after_selective_vol: {md5sums_after_vol_selective1}")
             ssh.close()
 
-            if md5sums_list[0] == \
-                    md5sums_after_opt_selective1:
-                LOG.debug("***MDSUMS MATCH***")
-                reporting.add_test_step(
-                    "Md5 Verification for boot disk", tvaultconf.PASS)
-            else:
-                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[0] + " actual: " + md5sums_after_opt_selective1)
-                reporting.add_test_step(
-                    "Md5 Verification for boot disk", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            # if md5sums_list[1] == \
-            #         md5sums_after_vol_selective1:
-            #     LOG.debug("***MDSUMS MATCH***")
-            #     reporting.add_test_step(
-            #         "Md5 Verification for volume disk", tvaultconf.PASS)
-            # else:
-            #     LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[1] + " actual: " + md5sums_after_vol_selective1)
-            #     reporting.add_test_step(
-            #         "Md5 Verification for volume disk", tvaultconf.FAIL)
-            #     reporting.set_test_script_status(tvaultconf.FAIL)
-
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[1])
+            self.execute_command_disk_mount(ssh, ip_list[1],
+                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
             md5sums_after_opt_selective2 = self.calculatemmd5checksum(ssh, "/opt")
             md5sums_after_vol_selective2 = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
             LOG.debug(
                 f"md5sums_after_selective_opt: {md5sums_after_opt_selective2} md5sums_after_selective_vol: {md5sums_after_vol_selective2}")
             ssh.close()
 
-            if md5sums_list[2] == \
-                    md5sums_after_opt_selective2:
+            if md5sums_list[0] == md5sums_after_opt_selective1 or md5sums_list[0] == md5sums_after_opt_selective2:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
-                    "Md5 Verification for boot disk", tvaultconf.PASS)
+                    "Md5 Verification for boot disk for VM1", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[0] + " actual: " + md5sums_after_opt_selective1)
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk for VM1", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if md5sums_list[1] == md5sums_after_vol_selective1 or md5sums_list[1] == md5sums_after_vol_selective2:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk for VM1", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[1] + " actual: " + md5sums_after_vol_selective1)
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk for VM1", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            if md5sums_list[2] == md5sums_after_opt_selective2 or md5sums_list[2] ==md5sums_after_opt_selective1:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for boot disk for VM2", tvaultconf.PASS)
             else:
                 LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[2] + " actual: " + md5sums_after_opt_selective2)
                 reporting.add_test_step(
-                    "Md5 Verification for boot disk", tvaultconf.FAIL)
+                    "Md5 Verification for boot disk for VM2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            # if md5sums_list[3] == \
-            #         md5sums_after_vol_selective2:
-            #     LOG.debug("***MDSUMS MATCH***")
-            #     reporting.add_test_step(
-            #         "Md5 Verification for volume disk", tvaultconf.PASS)
-            # else:
-            #     LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[3] + " actual: " + md5sums_after_vol_selective2)
-            #     reporting.add_test_step(
-            #         "Md5 Verification for volume disk", tvaultconf.FAIL)
-            #     reporting.set_test_script_status(tvaultconf.FAIL)
+            if md5sums_list[3] == md5sums_after_vol_selective2 or md5sums_list[3] == md5sums_after_vol_selective1:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk for VM2", tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[3] + " actual: " + md5sums_after_vol_selective2)
+                reporting.add_test_step(
+                    "Md5 Verification for volume disk for VM2", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
         else:
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
@@ -148,14 +148,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "incremental_snapshot_api", 0],
                      # [test_var+"snapshot_mount_api", 0],
                      # [test_var+"filesearch_api", 0],
-                     [test_var + "selectiverestore_api", 0]]
-            # [test_var+"inplacerestore_api", 0],
-            # [test_var+"oneclickrestore_api", 0]]
+                     [test_var + "selectiverestore_api", 0],
+                     [test_var+"inplacerestore_api", 0]]
+                    # [test_var+"oneclickrestore_api", 0]]
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id_1 = self.create_vm(key_pair=self.kp)
             self.vm_id_2 = self.create_vm(key_pair=self.kp)
-            mount_point = "mount_data_b"
 
             # find volume_type = multiattach. So that existing multiattach volume type can be used.
             # Get the volume_type_id
@@ -180,7 +179,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id_1,attach_cleanup=False)
             self.attach_volume(self.volume_id, self.vm_id_2,attach_cleanup=False)
             LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1) + " and " + str(self.vm_id_2))
-            self.disk_names = ["vdb"]
 
             vol_vm_1 = self.get_attached_volumes(self.vm_id_1)
             vol_vm_2 = self.get_attached_volumes(self.vm_id_2)
@@ -194,21 +192,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Multiattach volume failed to attach existing instance")
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
-            # if len(fip) < 8:
+
             if len(fip) < 6:
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id_1)
             self.set_floating_ip(fip[1], self.vm_id_2)
 
-            # self.frm_id = self.create_vm(
-            #     vm_name="file_recovery_manager",
-            #     flavor_id=CONF.compute.flavor_ref_alt,
-            #     user_data=tvaultconf.user_frm_data,
-            #     key_pair=self.kp,
-            #     image_id=list(CONF.compute.fvm_image_ref.values())[0])
-            # self._set_frm_user()
-            # LOG.debug("FRM Instance ID: " + str(self.frm_id))
-            # self.set_floating_ip(fip[2], self.frm_id)
 
             md5sums_before_full1, md5sums_before_full1_vol = self._add_data_on_instance_and_volume(fip[0])
             LOG.debug(
@@ -302,161 +291,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create incremental snapshot")
 
-            # reporting.add_test_script(tests[3][0])
-            # # Mount full snapshot
-            # mount_status = self.mount_snapshot(
-            #     self.wid, self.snapshot_id, self.frm_id)
-            # LOG.debug(f"mount_status for full snapshot: {mount_status}")
-            # if mount_status:
-            #     reporting.add_test_step(
-            #         "Snapshot mount of full snapshot", tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            #             fip[1],self.frm_ssh_user)
-            #     output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
-            #     ssh.close()
-            #     flag = 0
-            #     for i in output_list:
-            #         if 'vda1.mnt' in i:
-            #             reporting.add_test_step(
-            #                 "Verify that mountpoint mounted is shown on FVM instance",
-            #                 tvaultconf.PASS)
-            #             flag = 1
-            #             if 'File_1' in i:
-            #                 reporting.add_test_step(
-            #                     "Verification of file's existance on mounted snapshot",
-            #                     tvaultconf.PASS)
-            #             else:
-            #                 reporting.add_test_step(
-            #                     "Verification of file's existance on mounted snapshot",
-            #                     tvaultconf.FAIL)
-            #         else:
-            #             pass
-            #
-            #     if flag == 0:
-            #         reporting.add_test_step(
-            #             "Verify that mountpoint mounted is shown on FVM instance",
-            #             tvaultconf.FAIL)
-            #     else:
-            #         pass
-            # else:
-            #     reporting.add_test_step("Snapshot mount of full snapshot", tvaultconf.FAIL)
-            #
-            # unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id)
-            # LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
-            # if unmount_status:
-            #     reporting.add_test_step(
-            #        "Snapshot unmount of full snapshot", tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            #         fip[1], self.frm_ssh_user)
-            #     output_list = self.validate_snapshot_mount(ssh)
-            #     ssh.close()
-            #
-            #     if output_list == b'':
-            #         reporting.add_test_step(
-            #             "Unmount full snapshot", tvaultconf.PASS)
-            #     else:
-            #         reporting.add_test_step(
-            #                 "Snapshot unmount of full snapshot", tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step(
-            #         "Snapshot unmount of full snapshot", tvaultconf.FAIL)
-            #
-            # # Mount incremental snapshot
-            # mount_status = self.mount_snapshot(
-            #     self.wid, self.snapshot_id2, self.frm_id)
-            # if mount_status:
-            #     reporting.add_test_step(
-            #         "Snapshot mount of incremental snapshot", tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            #             fip[1], self.frm_ssh_user)
-            #     output_list = self.validate_snapshot_mount(ssh,
-            #             file_name="File_5").decode('UTF-8').split('\n')
-            #     ssh.close()
-            #     flag = 0
-            #     for i in output_list:
-            #         if 'vda1.mnt' in i:
-            #             reporting.add_test_step(
-            #                 "Verify that mountpoint mounted is shown on FVM instance",
-            #                 tvaultconf.PASS)
-            #             flag = 1
-            #             if 'File_5' in i:
-            #                 reporting.add_test_step(
-            #                     "Verification of file's existance on mounted snapshot",
-            #                     tvaultconf.PASS)
-            #             else:
-            #                 reporting.add_test_step(
-            #                     "Verification of file's existance on mounted snapshot",
-            #                     tvaultconf.FAIL)
-            #         else:
-            #             pass
-            #
-            #     if flag == 0:
-            #         reporting.add_test_step(
-            #             "Verify that mountpoint mounted is shown on FVM instance",
-            #             tvaultconf.FAIL)
-            #     else:
-            #         pass
-            # else:
-            #     reporting.add_test_step(
-            #         "Snapshot mount of incremental snapshot", tvaultconf.FAIL)
-            #
-            # unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id2)
-            # LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
-            # if unmount_status:
-            #     reporting.add_test_step(
-            #         "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            #             fip[1], self.frm_ssh_user)
-            #     output_list = self.validate_snapshot_mount(ssh)
-            #     ssh.close()
-            #
-            #     if output_list == b'':
-            #         reporting.add_test_step(
-            #             "Unmount incremental snapshot", tvaultconf.PASS)
-            #     else:
-            #         reporting.add_test_step(
-            #             "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-            #         reporting.set_test_script_status(tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step(
-            #         "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-            #     reporting.set_test_script_status(tvaultconf.FAIL)
-            # reporting.test_case_to_write()
-            # tests[3][1] = 1
-            #
-            # #File search
-            # reporting.add_test_script(tests[4][0])
-            # filecount_in_snapshots = {
-            #     self.snapshot_id: 0,
-            #     self.snapshot_id2: 1}
-            # filesearch_id = self.filepath_search(
-            #     self.vm_id, "/opt/File_4")
-            # snapshot_wise_filecount = self.verifyFilepath_Search(
-            #     filesearch_id, "/opt/File_4")
-            #
-            # for snapshot_id in filecount_in_snapshots.keys():
-            #     if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-            #         filesearch_status = True
-            #     else:
-            #         filesearch_status = False
-            # if filesearch_status:
-            #     LOG.debug("Filepath_Search default_parameters successful")
-            #     reporting.add_test_step(
-            #         "Verification of Filesearch with default parameters",
-            #         tvaultconf.PASS)
-            # else:
-            #     LOG.debug("Filepath Search default_parameters unsuccessful")
-            #     reporting.add_test_step(
-            #             "Verification of Filesearch with default parameters",
-            #             tvaultconf.FAIL)
-            # reporting.test_case_to_write()
-            # tests[4][1] = 1
-            #
-            # ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            # self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            # md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
-            # LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
-            # ssh.close()
 
             # selective restore
             reporting.add_test_script(tests[3][0])
@@ -482,136 +316,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
             tests[3][1] = 1
 
-            # #Inplace restore for full snapshot
-            # reporting.add_test_script(tests[6][0])
-            # rest_details = {}
-            # rest_details['rest_type'] = 'inplace'
-            # rest_details['instances'] = {self.vm_id: self.volumes}
-            # payload = self.create_restore_json(rest_details)
-            # # Trigger inplace restore of full snapshot
-            # restore_id_3 = self.snapshot_inplace_restore(
-            #     self.wid, self.snapshot_id, payload)
-            # self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-            # if(self.getRestoreStatus(self.wid, self.snapshot_id,
-            #         restore_id_3) == "available"):
-            #     reporting.add_test_step("Inplace restore of full snapshot",
-            #             tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            #     md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
-            #     LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
-            #     ssh.close()
-            #
-            #     if md5sums_before_full == \
-            #             md5sums_after_full_inplace:
-            #         LOG.debug("***MDSUMS MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.PASS)
-            #     else:
-            #         LOG.debug("***MDSUMS DON'T MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.FAIL)
-            #         reporting.set_test_script_status(tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step("Inplace restore of full snapshot",
-            #             tvaultconf.FAIL)
-            #
-            # # Trigger inplace restore of incremental snapshot
-            # restore_id_4 = self.snapshot_inplace_restore(
-            #     self.wid, self.snapshot_id2, payload)
-            # self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
-            # if(self.getRestoreStatus(self.wid, self.snapshot_id2,
-            #         restore_id_4) == "available"):
-            #     reporting.add_test_step("Inplace restore of incremental snapshot",
-            #             tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            #     md5sums_after_incr_inplace = self.calculatemmd5checksum(ssh, "/opt")
-            #     LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
-            #     ssh.close()
-            #
-            #     if md5sums_before_incr == \
-            #             md5sums_after_incr_inplace:
-            #         LOG.debug("***MDSUMS MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.PASS)
-            #     else:
-            #         LOG.debug("***MDSUMS DON'T MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.FAIL)
-            #         reporting.set_test_script_status(tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step("Inplace restore of incremental snapshot",
-            #             tvaultconf.FAIL)
-            # reporting.test_case_to_write()
-            # tests[6][1] = 1
-            #
-            # reporting.add_test_script(tests[7][0])
-            # self.delete_vm(self.vm_id)
-            # time.sleep(10)
-            # rest_details = {}
-            # rest_details['rest_type'] = 'oneclick'
-            # payload = self.create_restore_json(rest_details)
-            # # Trigger oneclick restore of full snapshot
-            # restore_id_5 = self.snapshot_inplace_restore(
-            #     self.wid, self.snapshot_id, payload)
-            # self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-            # if(self.getRestoreStatus(self.wid, self.snapshot_id,
-            #         restore_id_5) == "available"):
-            #     reporting.add_test_step("Oneclick restore of full snapshot",
-            #             tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            #     md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
-            #     LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
-            #     ssh.close()
-            #
-            #     if md5sums_before_full == \
-            #             md5sums_after_full_oneclick:
-            #         LOG.debug("***MDSUMS MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.PASS)
-            #     else:
-            #         LOG.debug("***MDSUMS DON'T MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.FAIL)
-            #         reporting.set_test_script_status(tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step("Oneclick restore of full snapshot",
-            #             tvaultconf.FAIL)
-            #
-            # vm_list = self.get_restored_vm_list(restore_id_5)
-            # LOG.debug(f"vm_list: {vm_list}, self.vm_id: {self.vm_id}")
-            # self.delete_vm(vm_list[0])
-            # time.sleep(5)
-            # rest_details = {}
-            # rest_details['rest_type'] = 'oneclick'
-            # payload = self.create_restore_json(rest_details)
-            # # Trigger oneclick restore of incremental snapshot
-            # restore_id_6 = self.snapshot_inplace_restore(
-            #     self.wid, self.snapshot_id2, payload)
-            # self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
-            # if(self.getRestoreStatus(self.wid, self.snapshot_id2,
-            #         restore_id_6) == "available"):
-            #     reporting.add_test_step("Oneclick restore of incremental snapshot",
-            #             tvaultconf.PASS)
-            #     ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-            #     md5sums_after_incr_oneclick = self.calculatemmd5checksum(ssh, "/opt")
-            #     LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
-            #     ssh.close()
-            #
-            #     if md5sums_before_incr == \
-            #             md5sums_after_incr_oneclick:
-            #         LOG.debug("***MDSUMS MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.PASS)
-            #         tests[7][1] = 1
-            #     else:
-            #         LOG.debug("***MDSUMS DON'T MATCH***")
-            #         reporting.add_test_step(
-            #             "Md5 Verification for boot disk", tvaultconf.FAIL)
-            #         reporting.set_test_script_status(tvaultconf.FAIL)
-            # else:
-            #     reporting.add_test_step("Oneclick restore of incremental snapshot",
-            #             tvaultconf.FAIL)
-            # reporting.test_case_to_write()
+
+
             try:
                 self.detach_volume(self.vm_id_1, self.volume_id)
             except:

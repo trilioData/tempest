@@ -3176,6 +3176,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def create_restore_json(self, rest_details):
+        if 'volume_type' in rest_details.keys():
+            rest_details['volume_type'] = CONF.volume.volume_type
         if rest_details['rest_type'] == 'selective':
             snapshot_network = {
                 'id': rest_details['network_id'],
@@ -3189,8 +3191,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Network details for restore: " + str(network_details))
             instances = rest_details['instances']
             instance_details = []
-            if rest_details['volume_type'] == None:
-                rest_details['volume_type'] = CONF.volume.volume_type
             for instance in instances:
                 temp_vdisks_data = []
                 for volume in instances[instance]:
@@ -3223,13 +3223,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'restore_cinder_volume': True,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 temp_instance_data = {
                     'id': instance,
                     'include': True,
                     'restore_boot_disk': True,
                     'vdisks': temp_vdisks_data}
-            instance_details.append(temp_instance_data)
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {
                 'name': 'Inplace Restore',
