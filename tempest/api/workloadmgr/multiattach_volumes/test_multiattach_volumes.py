@@ -95,42 +95,42 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 f"md5sums_after_selective_opt: {md5sums_after_opt_selective2} md5sums_after_selective_vol: {md5sums_after_vol_selective2}")
             ssh.close()
 
-            if md5sums_list[0] == md5sums_after_opt_selective1 or md5sums_list[0] == md5sums_after_opt_selective2:
+            if md5sums_list[0] in [md5sums_after_opt_selective1,md5sums_after_opt_selective2]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for boot disk for VM1", tvaultconf.PASS)
             else:
-                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[0] + " actual: " + md5sums_after_opt_selective1)
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[0] + " actual: " + str([md5sums_after_opt_selective1,md5sums_after_opt_selective2]))
                 reporting.add_test_step(
                     "Md5 Verification for boot disk for VM1", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if md5sums_list[1] == md5sums_after_vol_selective1 or md5sums_list[1] == md5sums_after_vol_selective2:
+            if md5sums_list[1] in [md5sums_after_vol_selective1,md5sums_after_vol_selective2]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for volume disk for VM1", tvaultconf.PASS)
             else:
-                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[1] + " actual: " + md5sums_after_vol_selective1)
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[1] + " actual: " + str([md5sums_after_vol_selective1,md5sums_after_vol_selective2]))
                 reporting.add_test_step(
                     "Md5 Verification for volume disk for VM1", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if md5sums_list[2] == md5sums_after_opt_selective2 or md5sums_list[2] ==md5sums_after_opt_selective1:
+            if md5sums_list[2] in [md5sums_after_opt_selective2,md5sums_after_opt_selective1]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for boot disk for VM2", tvaultconf.PASS)
             else:
-                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[2] + " actual: " + md5sums_after_opt_selective2)
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[2] + " actual: " + str([md5sums_after_vol_selective1,md5sums_after_vol_selective2]))
                 reporting.add_test_step(
                     "Md5 Verification for boot disk for VM2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            if md5sums_list[3] == md5sums_after_vol_selective2 or md5sums_list[3] == md5sums_after_vol_selective1:
+            if md5sums_list[3] in [md5sums_after_vol_selective2,md5sums_after_vol_selective1]:
                 LOG.debug("***MDSUMS MATCH***")
                 reporting.add_test_step(
                     "Md5 Verification for volume disk for VM2", tvaultconf.PASS)
             else:
-                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[3] + " actual: " + md5sums_after_vol_selective2)
+                LOG.debug("***MDSUMS DON'T MATCH*** expected: " + md5sums_list[3] + " actual: " + str([md5sums_after_vol_selective2,md5sums_after_vol_selective1]))
                 reporting.add_test_step(
                     "Md5 Verification for volume disk for VM2", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
