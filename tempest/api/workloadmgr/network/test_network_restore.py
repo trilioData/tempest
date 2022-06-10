@@ -348,6 +348,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     del nt_af[nt]['tenant_id']
                     del nt_bf[nt]['project_id']
                     del nt_bf[nt]['tenant_id']
+                    nt_bf[nt.replace(tenant_id, '')] = nt_bf[nt]
+                    nt_bf[nt]['name'] = nt_bf[nt]['name'].replace(tenant_id, '')
+                    nt_af[nt.replace(tenant_id_1, '')] = nt_af[nt]
+                    nt_af[nt]['name'] = nt_af[nt]['name'].replace(tenant_id_1, '')
+                    del nt_bf[nt]
+                    del nt_af[nt]
 
             for sbnt in sbnt_af:
                 if sbnt_af[sbnt]["project_id"] == tenant_id_1 and sbnt_bf[sbnt]["project_id"] == tenant_id \
@@ -356,6 +362,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     del sbnt_af[sbnt]['tenant_id']
                     del sbnt_bf[sbnt]['project_id']
                     del sbnt_bf[sbnt]['tenant_id']
+                    sbnt_bf[sbnt.replace(tenant_id, '')] = sbnt_bf[sbnt]
+                    sbnt_bf[sbnt]['name'] = sbnt_bf[sbnt]['name'].replace(tenant_id, '')
+                    sbnt_af[sbnt.replace(tenant_id_1, '')] = sbnt_af[sbnt]
+                    sbnt_af[sbnt]['name'] = sbnt_af[sbnt]['name'].replace(tenant_id_1, '')
+                    del sbnt_bf[sbnt]
+                    del sbnt_af[sbnt]
 
             for rt in rt_af:
                 if rt_af[rt]["project_id"] == tenant_id_1 and rt_bf[rt]["project_id"] == tenant_id \
