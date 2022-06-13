@@ -3199,6 +3199,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def create_restore_json(self, rest_details):
+        if 'volume_type' not in rest_details.keys():
+            rest_details['volume_type'] = CONF.volume.volume_type
         if rest_details['rest_type'] == 'selective':
             snapshot_network = {
                 'id': rest_details['network_id'],
@@ -3219,7 +3221,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'availability_zone': CONF.volume.volume_availability_zone,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 vm_name = "tempest_test_vm_" + instance + "_selectively_restored"
                 temp_instance_data = {
                     'id': instance,
@@ -3239,7 +3241,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                             }
                 else:
                     LOG.debug("Flavor details not set")
-            instance_details.append(temp_instance_data)
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {'instance_details': instance_details,
                        'network_details': network_details}
@@ -3255,13 +3257,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'restore_cinder_volume': True,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 temp_instance_data = {
                     'id': instance,
                     'include': True,
                     'restore_boot_disk': True,
                     'vdisks': temp_vdisks_data}
-            instance_details.append(temp_instance_data)
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {
                 'name': 'Inplace Restore',
