@@ -28,24 +28,29 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         elif "ubuntu" in self.frm_image:
             self.frm_ssh_user = "ubuntu"
 
-    def _add_data_on_instance_and_volume(self, ip, full=True):
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
+    def _add_data_on_instance_and_volume(self, ip_list, full=True):
+        md5sums_list = []
         file_count = 5
-        if full:
-            self.install_qemu(ssh)
-            self.execute_command_disk_create(ssh, str(ip),
-                                             [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-            self.execute_command_disk_mount(ssh, str(ip),
-                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
-            file_count = 3
+        for ip in ip_list:
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
 
-        self.addCustomfilesOnLinuxVM(ssh, "/opt", file_count)
-        self.addCustomfilesOnLinuxVM(ssh, tvaultconf.mount_points[0], file_count)
-        md5sums = {}
-        md5sums['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-        md5sums[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
-        ssh.close()
-        return md5sums
+            if full:
+                self.install_qemu(ssh)
+                self.execute_command_disk_create(ssh, str(ip),
+                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                self.execute_command_disk_mount(ssh, str(ip),
+                                                [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                file_count = 3
+
+            self.addCustomfilesOnLinuxVM(ssh, "/opt", file_count)
+            self.addCustomfilesOnLinuxVM(ssh, tvaultconf.mount_points[0], file_count)
+            md5sums = {}
+            md5sums['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
+            ssh.close()
+            md5sums_list.append(md5sums)
+
+        return md5sums_list
 
     def _check_data_after_restore(self, ip_list, md5sums_list, restore_type):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[0])
@@ -99,6 +104,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "Md5 Verification for VM2", tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
 
+    def _delete_restored_vms(self, restore_id):
+        vm_list = self.get_restored_vm_list(restore_id)
+        volume_list = self.get_restored_volume_list(restore_id)
+        LOG.debug(f"volume_list: {volume_list}")
+        LOG.debug(f"vm_list: {vm_list}, self.vm_id_1: {self.vm_id_1}, self.vm_id_2: {self.vm_id_2}")
+        for vm_id in vm_list:
+            self.delete_vm(vm_id)
+        time.sleep(5)
+        for volume_id in volume_list:
+            self.delete_volume(volume_id)
+        time.sleep(5)
+
     def _selective_restore(self, payload, ip_list, md5sums_list, full=True):
         if full:
             snapshot_id = self.snapshot_id
@@ -106,18 +123,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
             snapshot_id = self.snapshot_id2
             snapshot_type = 'incremental'
-        # Trigger selective restore of full snapshot
-        restore_id_1 = self.snapshot_selective_restore(
+        # Trigger selective restore of snapshot
+        restore_id = self.snapshot_selective_restore(
             self.wid, snapshot_id,
             restore_name="selective_restore_" + snapshot_type + "_snap",
             instance_details=payload['instance_details'],
             network_details=payload['network_details'])
-        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-        if (self.getRestoreStatus(self.wid, self.snapshot_id,
-                                  restore_id_1) == "available"):
+        self.wait_for_snapshot_tobe_available(self.wid, snapshot_id)
+        if (self.getRestoreStatus(self.wid, snapshot_id,
+                                  restore_id) == "available"):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
-            vm_list = self.get_restored_vm_list(restore_id_1)
+            vm_list = self.get_restored_vm_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
             time.sleep(60)
             self.set_floating_ip(ip_list[0], vm_list[0])
@@ -125,6 +142,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Floating ip assigned to selective restored vm -> " + \
                       f"{ip_list[0]} and {ip_list[1]}")
             self._check_data_after_restore(ip_list, md5sums_list, 'selective')
+
+            self._delete_restored_vms(restore_id)
         else:
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
@@ -137,15 +156,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_id = self.snapshot_id2
             snapshot_type = 'incremental'
 
-        # Trigger inplace restore of full snapshot
-        restore_id_3 = self.snapshot_inplace_restore(
-            self.wid, self.snapshot_id, payload)
-        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+        # Trigger inplace restore of snapshot
+        restore_id = self.snapshot_inplace_restore(
+            self.wid, snapshot_id, payload)
+        self.wait_for_snapshot_tobe_available(self.wid, snapshot_id)
         if (self.getRestoreStatus(self.wid, snapshot_id,
-                                  restore_id_3) == "available"):
+                                  restore_id) == "available"):
             reporting.add_test_step("Inplace restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             self._check_data_after_restore(ip_list, md5sums_list, 'inplace')
+
+            # self._delete_restored_vms(restore_id)
         else:
             reporting.add_test_step("Inplace restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
@@ -160,25 +181,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         rest_details = {}
         rest_details['rest_type'] = 'oneclick'
         payload = self.create_restore_json(rest_details)
-        # Trigger oneclick restore snapshot
-        restore_id_5 = self.snapshot_inplace_restore(
+        # Trigger oneclick restore of snapshot
+        restore_id = self.snapshot_inplace_restore(
             self.wid, snapshot_id, payload)
-        self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
-        if (self.getRestoreStatus(self.wid, self.snapshot_id,
-                                  restore_id_5) == "available"):
+        self.wait_for_snapshot_tobe_available(self.wid, snapshot_id)
+        if (self.getRestoreStatus(self.wid, snapshot_id,
+                                  restore_id) == "available"):
             reporting.add_test_step("Oneclick restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             self._check_data_after_restore(ip_list, md5sums_list, 'oneclick')
+
+            self._delete_restored_vms(restore_id)
         else:
             reporting.add_test_step("Oneclick restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
-
-        if full:
-            vm_list = self.get_restored_vm_list(restore_id_5)
-            LOG.debug(f"vm_list: {vm_list}, self.vm_id_1: {self.vm_id_1}, self.vm_id_2: {self.vm_id_2}")
-            self.delete_vm(vm_list[0])
-            self.delete_vm(vm_list[1])
-            time.sleep(5)
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
@@ -239,15 +255,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.set_floating_ip(fip[0], self.vm_id_1)
             self.set_floating_ip(fip[1], self.vm_id_2)
 
-            md5sums_before_full1 = self._add_data_on_instance_and_volume(fip[0])
+            md5sums_before_full = self._add_data_on_instance_and_volume([fip[0],fip[1]])
             LOG.debug(
-                f"md5sums_before_full: {md5sums_before_full1['opt']} md5sums_before_full_vol: {md5sums_before_full1[tvaultconf.mount_points[0]]}")
-
-            md5sums_before_full2 = self._add_data_on_instance_and_volume(fip[1])
-            LOG.debug(
-                f"md5sums_before_full: {md5sums_before_full2['opt']} md5sums_before_full_vol: {md5sums_before_full2[tvaultconf.mount_points[0]]}")
-
-            md5sums_before_full = [md5sums_before_full1, md5sums_before_full2]
+                f"md5sums_before_full: {md5sums_before_full}")
 
             # Create workload with API
             try:
@@ -300,15 +310,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create full snapshot")
 
             reporting.add_test_script(tests[2][0])
-            md5sums_before_incr1 = self._add_data_on_instance_and_volume(fip[0], False)
+            md5sums_before_incr = self._add_data_on_instance_and_volume([fip[0],fip[1]], False)
             LOG.debug(
-                f"md5sums_before_incr: {md5sums_before_incr1['opt']} md5sums_before_full_vol: {md5sums_before_incr1[tvaultconf.mount_points[0]]}")
-
-            md5sums_before_incr2 = self._add_data_on_instance_and_volume(fip[1], False)
-            LOG.debug(
-                f"md5sums_before_incr: {md5sums_before_incr2['opt']} md5sums_before_full_vol: {md5sums_before_incr2[tvaultconf.mount_points[0]]}")
-
-            md5sums_before_incr = [md5sums_before_incr1, md5sums_before_incr2]
+                f"md5sums_before_incr: {md5sums_before_incr}")
 
             self.snapshot_id2 = self.workload_snapshot(self.wid, False)
             self.wait_for_workload_tobe_available(self.wid)
@@ -335,7 +339,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create incremental snapshot")
 
-            # selective restore
+            # Selective restore
             reporting.add_test_script(tests[3][0])
             rest_details = {}
             rest_details['rest_type'] = 'selective'
