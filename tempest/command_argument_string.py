@@ -45,6 +45,11 @@ restore_cancel = "workloadmgr restore-cancel "
 restore_security_groups = "workloadmgr restore-security-groups "
 network_restore = "workloadmgr restore-network-topology "
 
+#Restore commands with blank names.
+oneclick_restore_with_blank_name = "workloadmgr --insecure snapshot-oneclick-restore --display-name \" \" --display-description \" \" "
+inplace_restore_with_blank_name = "workloadmgr --insecure snapshot-inplace-restore --display-name \" \" --display-description \" \" --filename "
+selective_restore_with_blank_name = "workloadmgr --insecure snapshot-selective-restore --display-name \" \" --display-description \" \" --filename "
+
 #openstack secret commands
 openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json "
 
@@ -79,3 +84,6 @@ quota_update = "workloadmgr project-allowed-quota-update "
 quota_list = "workloadmgr project-allowed-quota-list -f json "
 quota_show = "workloadmgr project-allowed-quota-show -f value "
 quota_delete = "workloadmgr project-allowed-quota-delete "
+
+#RBAC commands
+rbac_create_secgroup = "openstack network rbac create --target-project "
