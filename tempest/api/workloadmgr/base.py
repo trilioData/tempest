@@ -3148,8 +3148,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                                             'revision_number')} for x in interfaceslist]
             interfaces[self.routers_client.show_router(
                 router)['router']['name']] = intrfs
-        LOG.debug(f"get_topology_details returns: {networks}; {subnets}; "\
-                    f"{routers}; {interfaces}")
         return (networks, subnets, routers, interfaces)
 
     def workload_snapshot_cli(self, workload_id, is_full):
