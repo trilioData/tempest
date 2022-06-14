@@ -31,15 +31,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _add_data_on_instance_and_volume(self, ip_list, full=True):
         md5sums_list = []
         file_count = 5
+        i = 1
         for ip in ip_list:
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
 
             if full:
                 self.install_qemu(ssh)
-                self.execute_command_disk_create(ssh, str(ip),
-                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                self.execute_command_disk_create_multiattach_volume(ssh, str(ip),
+                                                 tvaultconf.volumes_parts[0], [tvaultconf.mount_points[0]],i,"+3GB")
                 self.execute_command_disk_mount(ssh, str(ip),
-                                                [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                                                [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]],i)
                 file_count = 3
 
             self.addCustomfilesOnLinuxVM(ssh, "/opt", file_count)
@@ -49,13 +50,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh, tvaultconf.mount_points[0])
             ssh.close()
             md5sums_list.append(md5sums)
+            i = i + 1
 
         return md5sums_list
 
     def _check_data_after_restore(self, ip_list, md5sums_list, restore_type):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[0])
         self.execute_command_disk_mount(ssh, ip_list[0],
-                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]],1)
         md5sums_after_vm1 = {}
         md5sums_after_vm1['opt'] = self.calculatemmd5checksum(ssh, "/opt")
         md5sums_after_vm1[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh,
@@ -66,7 +68,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[1])
         self.execute_command_disk_mount(ssh, ip_list[1],
-                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]])
+                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]],2)
         md5sums_after_vm2 = {}
         md5sums_after_vm2['opt'] = self.calculatemmd5checksum(ssh, "/opt")
         md5sums_after_vm2[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh,
@@ -137,8 +139,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             vm_list = self.get_restored_vm_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
             time.sleep(60)
-            self.set_floating_ip(ip_list[0], vm_list[0])
-            self.set_floating_ip(ip_list[1], vm_list[1])
+            self.set_floating_ip(ip_list[0], vm_list[1])
+            self.set_floating_ip(ip_list[1], vm_list[0])
             LOG.debug("Floating ip assigned to selective restored vm -> " + \
                       f"{ip_list[0]} and {ip_list[1]}")
             self._check_data_after_restore(ip_list, md5sums_list, 'selective')
@@ -226,7 +228,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Now create volume with derived volume type id...
             self.volume_id = self.create_volume(
-                volume_type_id=vol_type_id, size=10, volume_cleanup=False)
+                volume_type_id=vol_type_id, size=6, volume_cleanup=False)
 
             LOG.debug("Volume ID: " + str(self.volume_id))
 

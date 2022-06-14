@@ -1370,8 +1370,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              "n",
                              "p",
                              "1",
-                             "\n",
-                             "\n",
+                             "",
+                             "",
                              "w",
                              "sudo fdisk -l {}1".format(volume)])
                              #"yes | sudo mkfs -t ext3 {}1".format(volume)])
@@ -1397,6 +1397,47 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("mkfs error:  " + str(stderr.readlines()))
 
     '''
+    layout creation and formatting the disks for multiattach volumes
+    '''
+
+    def execute_command_disk_create_multiattach_volume(
+            self,
+            ssh,
+            ipAddress,
+            volume,
+            mount_points,partition=1,size=""):
+        self.channel = ssh.invoke_shell()
+        commands = []
+        commands.extend(["sudo fdisk {}".format(volume),
+                         "n",
+                         "p",
+                         "",
+                         "",
+                         size,
+                         "w",
+                         "sudo fdisk -l {0}{1}".format(volume,partition)])
+            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
+
+        for command in commands:
+            LOG.debug("Executing fdisk: " + str(command))
+            self.channel.send(command + "\n")
+            time.sleep(5)
+            while not self.channel.recv_ready():
+                time.sleep(3)
+
+            output = self.channel.recv(9999)
+            LOG.debug(str(output))
+        time.sleep(10)
+        cmd = "sudo mkfs -t ext3 {0}{1}".format(volume,partition)
+        LOG.debug("Executing mkfs : " + str(cmd))
+        stdin, stdout, stderr = ssh.exec_command(cmd)
+        time.sleep(5)
+        while not stdout.channel.exit_status_ready():
+            time.sleep(3)
+        LOG.debug("mkfs output:  " + str(stdout.readlines()))
+        LOG.debug("mkfs error:  " + str(stderr.readlines()))
+
+    '''
     disks mounting
     '''
 
@@ -1405,7 +1446,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh,
             ipAddress,
             volumes,
-            mount_points):
+            mount_points, partition=1):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
         self.channel = ssh.invoke_shell()
@@ -1414,8 +1455,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             commands = [
                 "sudo mkdir " +
                 mount_points[i],
-                "sudo mount {0}1 {1}".format(
-                    volumes[i],
+                "sudo mount {0}{1} {2}".format(
+                    volumes[i],partition,
                     mount_points[i]),
                 "sudo df -h",
                 "pwd"]
