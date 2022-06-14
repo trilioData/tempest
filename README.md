@@ -56,7 +56,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-1/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -77,7 +77,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-1/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
