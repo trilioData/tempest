@@ -37,8 +37,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             if full:
                 self.install_qemu(ssh)
-                self.execute_command_disk_create_multiattach_volume(ssh, str(ip),
-                                                 tvaultconf.volumes_parts[0], [tvaultconf.mount_points[0]],i,"+3GB")
+                self.execute_command_disk_create(ssh, str(ip),
+                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]],i,"+3GB")
                 self.execute_command_disk_mount(ssh, str(ip),
                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]],i)
                 file_count = 3
