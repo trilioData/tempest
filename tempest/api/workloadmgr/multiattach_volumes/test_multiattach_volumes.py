@@ -77,7 +77,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             f"md5sums_after_vm2_{restore_type}: {md5sums_after_vm2}")
         ssh.close()
         md5sums_after_list = [md5sums_after_vm1, md5sums_after_vm2]
-        if restore_type == 'slective':
+        if restore_type == 'selective':
             check_vm1 = (md5sums_list[0] in md5sums_after_list)
             check_vm2 = (md5sums_list[1] in md5sums_after_list)
         else:
