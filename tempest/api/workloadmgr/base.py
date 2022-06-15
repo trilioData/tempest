@@ -553,10 +553,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                     volumes[volume], 'available')
 
     '''
-    Method creates a workload and returns Workload id
-    '''
-
-    '''
     Method to update volume metadaa
     '''
     def modify_volume_metadata(self, volume_id, metadata_tag_name):
@@ -570,6 +566,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             pass
 
         return body
+
+    '''
+    Method creates a workload and returns Workload id
+    '''
 
     def workload_create(
             self,
@@ -3199,6 +3199,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def create_restore_json(self, rest_details):
+        if 'volume_type' not in rest_details.keys():
+            rest_details['volume_type'] = CONF.volume.volume_type
         if rest_details['rest_type'] == 'selective':
             snapshot_network = {
                 'id': rest_details['network_id'],
@@ -3219,7 +3221,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'availability_zone': CONF.volume.volume_availability_zone,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 vm_name = "tempest_test_vm_" + instance + "_selectively_restored"
                 temp_instance_data = {
                     'id': instance,
@@ -3228,7 +3230,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     'restore_boot_disk': True,
                     'name': vm_name,
                     'vdisks': temp_vdisks_data}
-            instance_details.append(temp_instance_data)
+                if 'flavor' in rest_details:
+                    LOG.debug("Flavor details set")
+                    temp_instance_data['flavor'] = {
+                            'vcpus': rest_details['flavor']['vcpus'],
+                            'ram': rest_details['flavor']['ram'],
+                            'disk': rest_details['flavor']['disk'],
+                            'ephemeral': rest_details['flavor']['OS-FLV-EXT-DATA:ephemeral'],
+                            'swap': rest_details['flavor']['swap']
+                            }
+                else:
+                    LOG.debug("Flavor details not set")
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {'instance_details': instance_details,
                        'network_details': network_details}
@@ -3244,13 +3257,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         {
                             'id': volume,
                             'restore_cinder_volume': True,
-                            'new_volume_type': CONF.volume.volume_type})
+                            'new_volume_type': rest_details['volume_type']})
                 temp_instance_data = {
                     'id': instance,
                     'include': True,
                     'restore_boot_disk': True,
                     'vdisks': temp_vdisks_data}
-            instance_details.append(temp_instance_data)
+                instance_details.append(temp_instance_data)
             LOG.debug("Instance details for restore: " + str(instance_details))
             payload = {
                 'name': 'Inplace Restore',
@@ -4046,3 +4059,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 trilio_vol_snapshots.append(each)
         LOG.debug("Trilio vault generated cinder snapshots: {}".format(trilio_vol_snapshots))
         return trilio_vol_snapshots
+
+    '''
+    Method to list available key pairs
+    '''
+
+    def list_key_pairs(self):
+        key_pairs_list_response = self.keypairs_client.list_keypairs()
+        key_pair_list = key_pairs_list_response['keypairs']
+        return key_pair_list

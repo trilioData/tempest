@@ -268,7 +268,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_5_network_restore_cli_workload_reassign(self):
         try:
-            reporting.add_test_script(str(__name__) + "_network_restore_cli_workload_reassign_full_snapshot_cli")
+            reporting.add_test_script(str(__name__) + "_workload_reassign_full_snapshot_cli")
             tenant_id = CONF.identity.tenant_id
             tenant_id_1 = CONF.identity.tenant_id_1
             user_id = CONF.identity.user_id
@@ -315,7 +315,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
             restore_id = query_data.get_snapshot_restore_id(snapshot_id)
-            if query_data.get_snapshot_restore_status(tvaultconf.selective_restore_name, snapshot_id) == "available":
+            if query_data.get_snapshot_restore_status(
+                    tvaultconf.selective_restore_name, snapshot_id) == "available":
                 reporting.add_test_step(
                     "Network topology restore from CLI", tvaultconf.PASS)
             else:
@@ -335,38 +336,83 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 vm_details = self.get_vm_details(vm)['server']
                 vm_name = vm_details['name'].replace('restored_instance', '')
                 vm_details_af[vm_name] = vm_details
-                if vm_details_af[vm_name]['tenant_id'] == tenant_id_1 and vm_details_bf_2[vm_name][
-                    'tenant_id'] == tenant_id:
+                if vm_details_af[vm_name]['tenant_id'] == tenant_id_1 and \
+                        vm_details_bf_2[vm_name]['tenant_id'] == tenant_id:
                     del vm_details_af[vm_name]['tenant_id']
                     del vm_details_bf_2[vm_name]['tenant_id']
                     del vm_details_bf_2[vm_name]['security_groups']
 
-            for nt in nt_af:
-                if nt_af[nt]["project_id"] == tenant_id_1 and nt_bf[nt]["project_id"] == tenant_id \
-                        and nt_af[nt]["tenant_id"] == tenant_id_1 and nt_bf[nt]["tenant_id"] == tenant_id:
-                    del nt_af[nt]['project_id']
-                    del nt_af[nt]['tenant_id']
+            klist = sorted([*nt_bf])
+            nt_bf_sorted = {}
+
+            for nt in klist:
+                if tenant_id in nt:
+                    new_bf = nt.replace(tenant_id, '')
+                    nt_bf[nt]['name'] = \
+                            nt_bf[nt]['name'].replace(tenant_id, '')
+                    nt_bf_sorted[new_bf] = nt_bf[nt]
+                if nt_bf[nt]['project_id'] == tenant_id and \
+                        nt_bf[nt]['tenant_id'] == tenant_id:
                     del nt_bf[nt]['project_id']
                     del nt_bf[nt]['tenant_id']
+                    nt_bf_sorted[nt] = nt_bf[nt]
+    
+            klist = sorted([*nt_af])
+            nt_af_sorted = {}
+            for nt in klist:
+                if tenant_id_1 in nt:
+                    new_af = nt.replace(tenant_id_1, '')
+                    nt_af[nt]['name'] = \
+                            nt_af[nt]['name'].replace(tenant_id_1, '')
+                    nt_af_sorted[new_af] = nt_af[nt]
+                if nt_af[nt]['project_id'] == tenant_id_1 and \
+                        nt_af[nt]['tenant_id'] == tenant_id_1:
+                    del nt_af[nt]['project_id']
+                    del nt_af[nt]['tenant_id']
+                    nt_af_sorted[nt] = nt_af[nt]
 
-            for sbnt in sbnt_af:
-                if sbnt_af[sbnt]["project_id"] == tenant_id_1 and sbnt_bf[sbnt]["project_id"] == tenant_id \
-                        and sbnt_af[sbnt]["tenant_id"] == tenant_id_1 and sbnt_bf[sbnt]["tenant_id"] == tenant_id:
-                    del sbnt_af[sbnt]['project_id']
-                    del sbnt_af[sbnt]['tenant_id']
+            klist = sorted([*sbnt_bf])
+            sbnt_bf_sorted = {}
+
+            for sbnt in klist:
+                if tenant_id in sbnt:
+                    new_bf = sbnt.replace(tenant_id, '')
+                    sbnt_bf[sbnt]['name'] = \
+                            sbnt_bf[sbnt]['name'].replace(tenant_id, '')
+                    sbnt_bf_sorted[new_bf] = sbnt_bf[sbnt]
+                if sbnt_bf[sbnt]['project_id'] == tenant_id and \
+                        sbnt_bf[sbnt]['tenant_id'] == tenant_id:
                     del sbnt_bf[sbnt]['project_id']
                     del sbnt_bf[sbnt]['tenant_id']
+                    sbnt_bf_sorted[sbnt] = sbnt_bf[sbnt]
+
+            klist = sorted([*sbnt_af])
+            sbnt_af_sorted = {}
+            for sbnt in klist:
+                if tenant_id_1 in sbnt:
+                    new_af = sbnt.replace(tenant_id_1, '')
+                    sbnt_af[sbnt]['name'] = \
+                            sbnt_af[sbnt]['name'].replace(tenant_id_1, '')
+                    sbnt_af_sorted[new_af] = sbnt_af[sbnt]
+                if sbnt_af[sbnt]['project_id'] == tenant_id_1 and \
+                        sbnt_af[sbnt]['tenant_id'] == tenant_id_1:
+                    del sbnt_af[sbnt]['project_id']
+                    del sbnt_af[sbnt]['tenant_id']
+                    sbnt_af_sorted[sbnt] = sbnt_af[sbnt]
 
             for rt in rt_af:
-                if rt_af[rt]["project_id"] == tenant_id_1 and rt_bf[rt]["project_id"] == tenant_id \
-                        and rt_af[rt]["tenant_id"] == tenant_id_1 and rt_bf[rt]["tenant_id"] == tenant_id:
+                if rt_af[rt]["project_id"] == tenant_id_1 and \
+                        rt_bf[rt]["project_id"] == tenant_id and \
+                        rt_af[rt]["tenant_id"] == tenant_id_1 and \
+                        rt_bf[rt]["tenant_id"] == tenant_id:
                     del rt_af[rt]['project_id']
                     del rt_af[rt]['tenant_id']
                     del rt_bf[rt]['project_id']
                     del rt_bf[rt]['tenant_id']
 
-            self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
-                                        rt_af, vm_details_bf_2, vm_details_af, test_type='API')
+            self.verify_network_restore(nt_bf_sorted, nt_af_sorted, 
+                    sbnt_bf_sorted, sbnt_af_sorted, rt_bf, rt_af, 
+                    vm_details_bf_2, vm_details_af, test_type='API')
 
             for rvm in restored_vms:
                 self.delete_vm(rvm)
