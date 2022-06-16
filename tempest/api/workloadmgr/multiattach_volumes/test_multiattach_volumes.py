@@ -108,14 +108,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     def _delete_restored_vms(self, restore_id):
         vm_list = self.get_restored_vm_list(restore_id)
-        volume_list = self.get_restored_volume_list(restore_id)
-        LOG.debug(f"volume_list: {volume_list}")
         LOG.debug(f"vm_list: {vm_list}, self.vm_id_1: {self.vm_id_1}, self.vm_id_2: {self.vm_id_2}")
         for vm_id in vm_list:
             self.delete_vm(vm_id)
-        time.sleep(5)
-        for volume_id in volume_list:
-            self.delete_volume(volume_id)
         time.sleep(5)
 
     def _selective_restore(self, payload, ip_list, md5sums_list, full=True):
@@ -391,6 +386,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Trigger oneclick restore of incremental snapshot
             self._one_click_restore([fip[0], fip[1]], md5sums_before_incr, False)
             reporting.test_case_to_write()
+            tests[5][1] = 1
 
             try:
                 self.detach_volume(self.vm_id_1, self.volume_id)
