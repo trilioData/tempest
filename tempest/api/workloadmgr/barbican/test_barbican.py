@@ -71,38 +71,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
             raise Exception("Execute scheduler-trust-validate CLI")
 
-    def _rbd_cleanup_verification(self, trilio_vol_snapshots_before, workload_id, snapshot_id, restore_id):
-        restored_vms = self.get_restored_vm_list(restore_id)
-        LOG.debug("Restored vm(selective) ID : " + str(restored_vms))
-        restored_volumes = self.get_restored_volume_list(restore_id_1)
-        LOG.debug("Restored volumes list: {}".format(restored_volumes))
-        time.sleep(60)
-
-        # Verify restored instance and volumes are deleted properly.
-        try:
-            self.delete_restored_vms(restored_vms, restored_volumes)
-            self.restore_delete(workload_id, snapshot_id, restore_id)
-            reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
-        except exception as e:
-            raise Exception(str(e))
-
-        # Delete workload snapshots and verify
-        self.snapshot_delete(workload_id, snapshot_id)
-        trilio_vol_snapshots_after = self.get_trilio_volume_snapshot()
-        if trilio_vol_snapshots_after == trilio_vol_snapshots_before:
-            LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
-        else:
-            raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
-
-        # Delete workloads and verify
-        self.workload_delete(workload_id)
-        trilio_vol_snapshots_after = self.get_trilio_volume_snapshot()
-        if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
-            LOG.debug("triliovault created snapshots are still present")
-            reporting.add_test_step("triliovault created snapshots are deleted after workload deletion",
-                                    tvaultconf.PASS)
-        else:
-            raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_barbican(self):
@@ -541,7 +509,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of full snapshot
-            restore_id_5 = self.snapshot_restore(
+            restore_id_5 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -575,7 +543,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of incremental snapshot
-            restore_id_6 = self.snapshot_restore(
+            restore_id_6 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id2, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
             if(self.getRestoreStatus(self.wid, self.snapshot_id2,
@@ -1149,7 +1117,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of full snapshot
-            restore_id_5 = self.snapshot_restore(
+            restore_id_5 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -1189,7 +1157,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of incremental snapshot
-            restore_id_6 = self.snapshot_restore(
+            restore_id_6 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id2, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
             if(self.getRestoreStatus(self.wid, self.snapshot_id2,
@@ -1686,7 +1654,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of full snapshot
-            restore_id_5 = self.snapshot_restore(
+            restore_id_5 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -1720,7 +1688,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of incremental snapshot
-            restore_id_6 = self.snapshot_restore(
+            restore_id_6 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id2, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
             if(self.getRestoreStatus(self.wid, self.snapshot_id2,
@@ -2309,7 +2277,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of full snapshot
-            restore_id_5 = self.snapshot_restore(
+            restore_id_5 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -2349,7 +2317,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of incremental snapshot
-            restore_id_6 = self.snapshot_restore(
+            restore_id_6 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id2, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
             if(self.getRestoreStatus(self.wid, self.snapshot_id2,
@@ -4074,7 +4042,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of full snapshot
-            restore_id_5 = self.snapshot_restore(
+            restore_id_5 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -4108,7 +4076,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rest_details['rest_type'] = 'oneclick'
             payload = self.create_restore_json(rest_details)
             # Trigger oneclick restore of incremental snapshot
-            restore_id_6 = self.snapshot_restore(
+            restore_id_6 = self.snapshot_inplace_restore(
                 self.wid, self.snapshot_id2, payload)
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id2)
             if(self.getRestoreStatus(self.wid, self.snapshot_id2,
@@ -4152,16 +4120,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2031
     @decorators.attr(type='workloadmgr_api')
     def test_17_barbican(self):
-        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup.attach_ceph_volume_"
-        tests = [[test_var + "workload_api", 0],
-                 [test_var + "full_snapshot_api", 0]]
+        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup_.attach_ceph_volume_"
+        restore_tests = [[test_var + "selectiverestore_api", "selective"], [test_var + "inplacerestore_api", "inplace"], [test_var + "oneclickrestore_api", "oneclick"]]
 
-        restore_tests = [[test_var + "selectiverestore_api", "selective"],
-                 [test_var + "inplacerestore_api", "inplace"],
-                 [test_var + "oneclickrestore_api", "oneclick"]]
-        try:
-            for restore_test in restore_tests:
-                reporting.add_test_script(tests[0][0])
+        for restore_test in restore_tests:
+            try:
+                reporting.add_test_script(restore_test[0])
+
                 try:
                     order_uuid = self.create_secret_order("sec_order1")
                     LOG.debug("Created secret order: {}".format(order_uuid))
@@ -4173,13 +4138,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.error(f"Exception: {e}")
                     raise Exception("Getting secret key from secret order")
 
-                #reporting.add_test_script(tests[1][0])
                 vm_id = self.create_vm(vm_cleanup=True)
+                # Get the details of luks-ceph (encrypted ceph) volumes from setup
+                volume_type_id = -1
+                for vol in CONF.volume.volume_types:
+                    if (vol.lower().find("luks") != -1):
+                        if (vol.lower().find("ceph") != -1) or (vol.lower().find("tripleo") != -1) or (
+                                vol.lower().find("rbd") != -1):
+                            volume_type_id = CONF.volume.volume_types[vol]
+                            LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
+
+                if (volume_type_id == None):
+                    raise Exception("Exiting the test as encrypted volume type is not found")
+
+                vol_count = 2
                 volumes = []
-                #disk_names = ["vda", "vdb", "vdc"]
-                for i in range(2):
+                disk_names = ["vda", "vdb", "vdc"]
+                for i in range(vol_count):
                     volume_id = self.create_volume(
-                            volume_type_id=CONF.volume.volume_types['ceph'])
+                        volume_type_id=CONF.volume.volume_types['tripleo'])
                     volumes.append(volume_id)
                     self.attach_volume(volume_id, vm_id)
                 LOG.debug(f"Volumes attached: {volumes}")
@@ -4188,133 +4165,228 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 wid = []
                 try:
                     wid = self.workload_create([vm_id],
-                            tvaultconf.workload_type_id, encryption=True,
-                            secret_uuid=secret_uuid)
+                                               tvaultconf.workload_type_id, encryption=True,
+                                               secret_uuid=secret_uuid, workload_cleanup=False)
                     LOG.debug("Workload ID: " + str(wid))
                 except Exception as e:
                     LOG.error(f"Exception: {e}")
                     raise Exception("Create encrypted workload with attached ceph volume")
                 time.sleep(10)
-                if(wid is not None):
+                if (wid is not None):
                     self.wait_for_workload_tobe_available(wid)
                     self.workload_status = self.getWorkloadStatus(wid)
-                    if(self.workload_status == "available"):
+                    if (self.workload_status == "available"):
                         reporting.add_test_step("Created encrypted workload with attached ceph volume", tvaultconf.PASS)
-                        tests[1][1] = 1
-                        reporting.test_case_to_write()
                     else:
                         raise Exception("Create encrypted workload with attached ceph volume")
                 else:
                     raise Exception("Create encrypted workload with attached ceph volume")
 
-                reporting.add_test_script(tests[1][0])
-                snapshot_id = self.workload_snapshot(wid, True)
+                snapshot_id = self.workload_snapshot(wid, True, snapshot_cleanup=False)
                 self.wait_for_workload_tobe_available(wid)
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
-                if(snapshot_status == "available"):
+                if (snapshot_status == "available"):
                     reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
                     mount_path = self.get_mountpoint_path(
-                            tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                            tvaultconf.tvault_password)
+                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                        tvaultconf.tvault_password)
                     snapshot_found = self.check_snapshot_exist_on_backend(
-                            tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                            tvaultconf.tvault_password, mount_path,
-                            wid, snapshot_id)
+                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                        tvaultconf.tvault_password, mount_path,
+                        wid, snapshot_id)
                     LOG.debug(f"snapshot_found: {snapshot_found}")
                     if snapshot_found:
-                        reporting.add_test_step("Verify snapshot existence on "\
-                                "target backend", tvaultconf.PASS)
+                        reporting.add_test_step("Verify snapshot existence on " \
+                                                "target backend", tvaultconf.PASS)
                         self._check_encryption_on_backend(wid, snapshot_id,
-                                vm_id, disk_names, mount_path)
-
-                        tests[1][1] = 1
-                        reporting.test_case_to_write()
+                                                          vm_id, disk_names, mount_path)
                     else:
                         raise Exception("Verify snapshot existence on target backend")
                 else:
                     raise Exception("Create full snapshot")
 
-                trilio_vol_snapshots_before = self.get_trilio_volume_snapshot()
+                vol_snap_name = "TrilioVaultSnapshot"
 
-                reporting.add_test_script(restore_test[0])
+                restore_id = ""
                 if (restore_test[1] == "selective"):
+                    trilio_vol_snapshots_before = self.get_trilio_volume_snapshot(vol_snap_name)
                     # selective restore
-                    #reporting.add_test_script(restore_test[0])
                     rest_details = {}
                     rest_details['rest_type'] = 'selective'
                     rest_details['network_id'] = CONF.network.internal_network_id
                     rest_details['subnet_id'] = self.get_subnet_id(
                         CONF.network.internal_network_id)
                     rest_details['instances'] = {vm_id: volumes}
-
                     payload = self.create_restore_json(rest_details)
+
                     # Trigger selective restore of full snapshot
-                    sel_restore_id = self.snapshot_selective_restore(
+                    restore_id = self.snapshot_selective_restore(
                         wid, snapshot_id,
                         restore_name="selective_restore_full_snap",
                         instance_details=payload['instance_details'],
-                        network_details=payload['network_details'])
+                        network_details=payload['network_details'], restore_cleanup=False)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
 
-                    if(self.getRestoreStatus(wid, snapshot_id, sel_restore_id) == "available"):
+                    if (self.getRestoreStatus(wid, snapshot_id, restore_id) == "available"):
                         reporting.add_test_step("Selective restore for instance with attached ceph", tvaultconf.PASS)
                     else:
                         raise Exception("Selective restore failed for instance with attached ceph")
+
+                    restored_vms = self.get_restored_vm_list(restore_id)
+                    LOG.debug("Restored vm(selective) ID : " + str(restored_vms))
+                    restored_volumes = self.get_restored_volume_list(restore_id)
+                    LOG.debug("Restored volumes list: {}".format(restored_volumes))
+                    time.sleep(60)
+
+                    # Verify restored instance and volumes are deleted properly.
+                    try:
+                        self.delete_restored_vms(restored_vms, restored_volumes)
+                        self.restore_delete(wid, snapshot_id, restore_id)
+                        reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
+                    except Exception as e:
+                        raise Exception(str(e))
+
+                    # Delete workload snapshots and verify
+                    self.snapshot_delete(wid, snapshot_id)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
+                    if trilio_vol_snapshots_after == trilio_vol_snapshots_before:
+                        LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
+                    else:
+                        raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
+
+                    # Delete workloads and verify
+                    self.workload_delete(wid)
+                    time.sleep(30)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
+                    if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
+                        LOG.debug("triliovault created snapshots are still present")
+                        reporting.add_test_step("triliovault created snapshots are deleted after workload deletion",
+                                                tvaultconf.PASS)
+                    else:
+                        raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
+
+
                 elif (restore_test[1] == "inplace"):
                     # Inplace restore for full snapshot
+                    vol_snap_name_for_inplace = "TriliVault-Inplace_Snapshot"
+                    trilio_vol_snapshots_before_restore = self.get_trilio_volume_snapshot(vol_snap_name)
+                    LOG.debug("Volume snapshot details before inplace restore: {}".format(
+                        trilio_vol_snapshots_before_restore))
                     rest_details = {}
                     rest_details['rest_type'] = 'inplace'
                     rest_details['instances'] = {vm_id: volumes}
                     payload = self.create_restore_json(rest_details)
+
                     # Trigger inplace restore of full snapshot
-                    inplace_restore = self.snapshot_inplace_restore(
-                        wid, snapshot_id, payload)
+                    restore_id = self.snapshot_inplace_restore(
+                        wid, snapshot_id, payload, restore_cleanup=False)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
-                                              inplace_restore) == "available"):
+                                              restore_id) == "available"):
                         reporting.add_test_step("Inplace restore of full snapshot",
                                                 tvaultconf.PASS)
                     else:
                         reporting.add_test_step("Inplace restore of full snapshot",
                                                 tvaultconf.FAIL)
+                    trilio_vol_snapshots_before = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
+
+                    # rbd cleanup verification for in_place restore
+                    restored_vms = self.get_restored_vm_list(restore_id)
+                    LOG.debug("Restored vm(in_place) ID : " + str(restored_vms))
+                    restored_volumes = self.get_restored_volume_list(restore_id)
+                    LOG.debug("Restored volumes list: {}".format(restored_volumes))
+                    time.sleep(60)
+
+                    self.restore_delete(wid, snapshot_id, restore_id)
+
+                    # Delete workload snapshots and verify
+                    self.snapshot_delete(wid, snapshot_id)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
+                    if trilio_vol_snapshots_after:
+                        LOG.debug(
+                            "triliovault created snapshots for in_place restore are present after deleting workload snapshots")
+                    else:
+                        raise Exception(
+                            "triliovault created snapshots for in_place restore are deleted after deleting workload snapshots")
+
+                    # Delete workloads and verify
+                    self.workload_delete(wid)
+                    time.sleep(30)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
+                    LOG.debug("Inplace restore - trilio_vol_snapshots_before : {}".format(trilio_vol_snapshots_before))
+                    LOG.debug("Inplace restore - trilio_vol_snapshots_after : {}".format(trilio_vol_snapshots_after))
+
+                    if trilio_vol_snapshots_after == trilio_vol_snapshots_before:
+                        LOG.debug("triliovault created snapshots are still present")
+                        reporting.add_test_step(
+                            "triliovault created snapshots for in_place restore are present after workload deletion",
+                            tvaultconf.PASS)
+                    else:
+                        raise Exception(
+                            "triliovault created snapshots for in_place restore are deleted after workload deletion")
+
+                    # Verify restored instance and volumes are deleted properly.
+                    try:
+                        self.delete_restored_vms(restored_vms, restored_volumes)
+                        trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
+                        if not trilio_vol_snapshots_after:
+                            reporting.add_test_step(
+                                "Deletion of vms, volumes and volume snapshots post inplace restore is successful",
+                                tvaultconf.PASS)
+                    except Exception as e:
+                        raise Exception(str(e))
+
                 elif (restore_test[1] == "oneclick"):
-                    # reporting.add_test_script(tests[4][0])
+                    trilio_vol_snapshots_before = self.get_trilio_volume_snapshot(vol_snap_name)
                     self.delete_vm(vm_id)
                     time.sleep(10)
                     rest_details = {}
                     rest_details['rest_type'] = 'oneclick'
                     payload = self.create_restore_json(rest_details)
+
                     # Trigger oneclick restore of full snapshot
-                    oneclick_restore = self.snapshot_restore(
-                        wid, snapshot_id, payload)
+                    restore_id = self.snapshot_inplace_restore(
+                        wid, snapshot_id, payload, restore_cleanup=False)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
-                                              oneclick_restore) == "available"):
+                                              restore_id) == "available"):
                         reporting.add_test_step("Oneclick restore of full snapshot",
                                                 tvaultconf.PASS)
                     else:
                         reporting.add_test_step("Oneclick restore of full snapshot",
                                                 tvaultconf.FAIL)
 
-                    #vm_list = self.get_restored_vm_list(oneclick_restore)
-                    #LOG.debug(f"vm_list: {vm_list}, self.vm_id: {self.vm_id}")
-                    #self.delete_vm(vm_list[0])
-                    #time.sleep(5)
+                    restored_vms = self.get_restored_vm_list(restore_id)
+                    LOG.debug("Restored vm(selective) ID : " + str(restored_vms))
+                    restored_volumes = self.get_restored_volume_list(restore_id)
+                    LOG.debug("Restored volumes list: {}".format(restored_volumes))
+                    time.sleep(60)
 
-                ### rbd cleanup verification tests
-                self._rbd_cleanup_verification(trilio_vol_snapshots_before, workload_id=wid, snapshot_id=snapshot_id, restore_id=sel_restore_id, )
+                    # Delete workload snapshots and verify
+                    self.snapshot_delete(wid, snapshot_id)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
+                    if trilio_vol_snapshots_after == trilio_vol_snapshots_before:
+                        LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
+                    else:
+                        raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
 
+                    # Delete workloads and verify
+                    self.workload_delete(wid)
+                    time.sleep(30)
+                    trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
+                    if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
+                        LOG.debug("triliovault created snapshots are still present")
+
+                    try:
+                        self.delete_restored_vms(restored_vms, restored_volumes)
+                        reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
+                    except Exception as e:
+                        raise Exception(str(e))
+                
                 reporting.test_case_to_write()
 
-        except Exception as e:
-            LOG.error(f"Exception: {e}")
-            reporting.add_test_step(str(e), tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
-
-        #finally:
-        #    for test in tests:
-        #        if test[1] != 1:
-        #            reporting.set_test_script_status(tvaultconf.FAIL)
-        #            reporting.add_test_script(test[0])
-        #            reporting.test_case_to_write()
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                reporting.add_test_step(str(e), tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
