@@ -4140,7 +4140,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                 vm_id = self.create_vm(vm_cleanup=True)
                 # Get the details of luks-ceph (encrypted ceph) volumes from setup
-                volume_type_id = -1
+                volume_type_id = ""
                 for vol in CONF.volume.volume_types:
                     if (vol.lower().find("luks") != -1):
                         if (vol.lower().find("ceph") != -1) or (vol.lower().find("tripleo") != -1) or (
@@ -4148,8 +4148,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             volume_type_id = CONF.volume.volume_types[vol]
                             LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
 
-                if (volume_type_id == None):
-                    raise Exception("Exiting the test as encrypted volume type is not found")
+                if not volume_type_id:
+                    raise Exception("Exiting the test as encrypted ceph/rbd volume type is not found")
 
                 vol_count = 2
                 volumes = []
@@ -4382,7 +4382,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
                     except Exception as e:
                         raise Exception(str(e))
-                
+
                 reporting.test_case_to_write()
 
             except Exception as e:
