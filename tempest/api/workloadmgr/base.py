@@ -1365,19 +1365,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh,
             ipAddress,
             volumes,
-            mount_points):
+            mount_points,
+            partition=1,
+            size=""):
         self.channel = ssh.invoke_shell()
         commands = []
         for volume in volumes:
             commands.extend(["sudo fdisk {}".format(volume),
                              "n",
                              "p",
-                             "1",
-                             "\n",
-                             "\n",
+                             "",
+                             "",
+                             str(size),
                              "w",
-                             "sudo fdisk -l {}1".format(volume)])
-                             #"yes | sudo mkfs -t ext3 {}1".format(volume)])
+                             "sudo fdisk -l {0}{1}".format(volume, partition)])
+            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing fdisk: " + str(command))
@@ -1390,7 +1392,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(str(output))
         time.sleep(10)
         for volume in volumes:
-            cmd = "sudo mkfs -t ext3 {}1".format(volume)
+            cmd = "sudo mkfs -t ext3 {0}{1}".format(volume, partition)
             LOG.debug("Executing mkfs : " + str(cmd))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             time.sleep(5)
@@ -1408,7 +1410,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh,
             ipAddress,
             volumes,
-            mount_points):
+            mount_points, partition=1):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
         self.channel = ssh.invoke_shell()
@@ -1417,8 +1419,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             commands = [
                 "sudo mkdir " +
                 mount_points[i],
-                "sudo mount {0}1 {1}".format(
-                    volumes[i],
+                "sudo mount {0}{1} {2}".format(
+                    volumes[i],partition,
                     mount_points[i]),
                 "sudo df -h",
                 "pwd"]
