@@ -77,12 +77,24 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             f"md5sums_after_vm2_{restore_type}: {md5sums_after_vm2}")
         ssh.close()
         md5sums_after_list = [md5sums_after_vm1, md5sums_after_vm2]
+
         if restore_type == 'selective':
-            check_vm1 = (md5sums_list[0] in md5sums_after_list)
-            check_vm2 = (md5sums_list[1] in md5sums_after_list)
-        else:
-            check_vm1 = (md5sums_list[0] == md5sums_after_vm1)
-            check_vm2 = (md5sums_list[1] == md5sums_after_vm2)
+            tempopt_vm1 = md5sums_after_vm1['opt']
+            tempopt_vm2 = md5sums_after_vm2['opt']
+            tempmp_vm1 = md5sums_after_vm1[tvaultconf.mount_points[0]]
+            tempmp_vm2 = md5sums_after_vm2[tvaultconf.mount_points[0]]
+            if md5sums_list[0]['opt'] != md5sums_after_vm1['opt'] \
+                    and md5sums_list[0]['opt'] == md5sums_after_vm2['opt']:
+                md5sums_after_vm1['opt'] = tempopt_vm2
+                md5sums_after_vm2['opt'] = tempopt_vm1
+            if md5sums_list[0][tvaultconf.mount_points[0]] != md5sums_after_vm1[tvaultconf.mount_points[0]] \
+                    and md5sums_list[0][tvaultconf.mount_points[0]] == md5sums_after_vm2[tvaultconf.mount_points[0]]:
+                md5sums_after_vm1[tvaultconf.mount_points[0]] = tempmp_vm2
+                md5sums_after_vm2[tvaultconf.mount_points[0]] = tempmp_vm1
+            md5sums_after_list = [md5sums_after_vm1, md5sums_after_vm2]
+
+        check_vm1 = (md5sums_list[0] == md5sums_after_vm1)
+        check_vm2 = (md5sums_list[1] == md5sums_after_vm2)
         LOG.debug("***MDSUMS*** expected: " + str(md5sums_list) + " actual: " + str(
             md5sums_after_list))
 
@@ -263,22 +275,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
-                raise Exception("Create workload " \
-                                "with image booted vm")
+                raise Exception("Create workload with image booted vm")
             if (self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
                 self.workload_status = self.getWorkloadStatus(self.wid)
                 if (self.workload_status == "available"):
-                    reporting.add_test_step("Create workload " \
-                                            "with image booted vm", tvaultconf.PASS)
+                    reporting.add_test_step("Create workload with image booted vm", tvaultconf.PASS)
                     tests[0][1] = 1
                     reporting.test_case_to_write()
                 else:
-                    raise Exception("Create workload " \
-                                    "with image booted vm")
+                    raise Exception("Create workload with image booted vm")
             else:
-                raise Exception("Create workload with image " \
-                                "booted vm")
+                raise Exception("Create workload with image booted vm")
 
             reporting.add_test_script(tests[1][0])
             self.snapshot_id = self.workload_snapshot(self.wid, True)
@@ -296,8 +304,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
-                    reporting.add_test_step("Verify snapshot existence on " \
-                                            "target backend", tvaultconf.PASS)
+                    reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
 
                     tests[1][1] = 1
                     reporting.test_case_to_write()
