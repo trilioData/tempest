@@ -19,6 +19,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @classmethod
     def setup_clients(cls):
+        api_version.COMPUTE_MICROVERSION = '2.60'
         super(WorkloadsTest, cls).setup_clients()
 
     def _set_frm_user(self):
@@ -208,7 +209,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
-        api_version.COMPUTE_MICROVERSION = '2.60'
         try:
             test_var = "tempest.api.workloadmgr.multiattach_volumes.test_image_booted_"
             tests = [[test_var + "workload_api", 0],
