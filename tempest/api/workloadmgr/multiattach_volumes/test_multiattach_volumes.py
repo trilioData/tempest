@@ -8,6 +8,7 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
+from tempest.lib.services.compute import base_compute_client as api_version
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -207,6 +208,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
+        api_version.COMPUTE_MICROVERSION = '2.60'
         try:
             test_var = "tempest.api.workloadmgr.multiattach_volumes.test_image_booted_"
             tests = [[test_var + "workload_api", 0],
