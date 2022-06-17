@@ -4039,7 +4039,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method to get security group id for given security group name
+    This method will add get restored security groups for provided name
     '''
     def get_restored_security_group_id_by_name(self, security_group_name):
         security_group_id = ""
@@ -4057,7 +4057,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return None
 
     '''
-    Method to create project
+    This method will create new project as required for the test
     '''
     def create_project(self, project_cleanup=True):
         project_name = data_utils.rand_name(name=self.__class__.__name__)
@@ -4072,6 +4072,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.addCleanup(self.projects_client.delete_project, project['id'])
         return project_details
 
+    '''
+    This method will get the list of triliovault created snapshots
+    '''
     def get_trilio_volume_snapshot(self, vol_snap_name):
         trilio_vol_snapshots = []
         vol_snapshots = self.snapshots_extensions_client.list_snapshots()
