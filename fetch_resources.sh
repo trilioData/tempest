@@ -26,12 +26,15 @@ sed -i "2i export PYTHON_VERSION=$PYTHON_VERSION" run_tempest.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" sanity-run.sh
 sed -i "/PYTHON_CMD=/c PYTHON_CMD=\"$TEMPEST_VENV_DIR/bin/python$PYTHON_VERSION\"" master-run.sh
 
+cd /root
+eval "$(<env.sh)"
+export cli_pod=$(kubectl -n openstack get pod -l application=keystone,component=client -ojsonpath='{.items[*].metadata.name}')
+OPENSTACK_CMD="kubectl -n openstack exec $cli_pod -- openstack "
+cd -
+
 if [[ "$AUTH_URL" =~ "https" ]]
 then
-    OPENSTACK_CMD="openstack --insecure"
     sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
-else
-    OPENSTACK_CMD="openstack"
 fi
 
 function ini_has_option {
@@ -367,14 +370,17 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    env | grep OS_
-    conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+    wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
+    conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
     echo "sql_connection: "$conn_str
     dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
-    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
+    #mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
+    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
+    datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
+    command_prefix="kubectl -n triliovault exec $datamover_pod -- "
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -564,23 +570,6 @@ function configure_tempest
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
 
-    TEMP_IP=${TVAULT_IP}
-    IP=""
-    cnt=0
-    IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
-    TVAULT_IP="["
-    for i in "${IP[@]}"; do
-       if [ $cnt -eq 0 ]
-       then
-          TVAULT_IP+="\""$i"\""
-       else
-          TVAULT_IP+=", \""$i"\""
-       fi
-       cnt=`expr $cnt + 1`
-    done
-    TVAULT_IP+="]"
-
-
     #check for user name in TEST_IMAGE_NAME
     #keep TEST_USER_NAME value as "ubuntu" for the default case.
     #convert test image name to lower case for comparison...
@@ -615,8 +604,6 @@ function configure_tempest
 
 
     # tvaultconf.py
-    sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
-    echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'${TEST_USER_NAME,,}'"' $TEMPEST_TVAULTCONF
@@ -628,6 +615,8 @@ function configure_tempest
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
+    echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+    sed -i 's/\r//g' $TEMPEST_TVAULTCONF
 
 }
 

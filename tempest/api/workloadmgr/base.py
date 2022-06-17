@@ -23,6 +23,8 @@ import re
 import collections
 import base64
 import io
+import subprocess
+import shlex
 
 from oslo_log import log as logging
 from tempest import config
@@ -2277,6 +2279,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
@@ -2317,6 +2321,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def revert_changes_policyyaml(self, rule):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
@@ -2764,41 +2770,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns mountpoint path of backup target media
     '''
 
-    def get_mountpoint_path(self, ipaddress, username, password):
-        ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
-        show_mountpoint_cmd = "mount | grep triliovault-mounts | awk '{print $3}'"
-        stdin, stdout, stderr = ssh.exec_command(show_mountpoint_cmd)
-        mountpoint_path = stdout.read().decode('utf-8')
+    def get_mountpoint_path(self):
+        cmd = tvaultconf.command_prefix + "mount"
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        mountpoint_path = None
+        for line in stdout.splitlines():
+            if str(line).find('triliovault-mounts') != -1:
+                mountpoint_path = str(line).split()[2]
         LOG.debug("mountpoint path is : " + str(mountpoint_path))
-        ssh.close()
         return str(mountpoint_path)
+
 
     '''
     Method returns True if snapshot dir is exists on backup target media
     '''
 
-    def check_snapshot_exist_on_backend(
-            self,
-            ipaddress,
-            username,
-            password,
-            mount_path,
+    def check_snapshot_exist_on_backend(self, mount_path,
             workload_id,
             snapshot_id):
-        ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
-        snapshot_path = str(mount_path).strip() + "/workload_" + \
-                        str(workload_id).strip() + "/snapshot_" + str(snapshot_id).strip()
-        is_snapshot_exist = "test -d " + \
-                            str(snapshot_path).strip() + \
-                            " && echo 'exists' ||echo 'not exists'"
-        LOG.debug("snapshot command is : " + str(is_snapshot_exist))
-        stdin, stdout, stderr = ssh.exec_command(is_snapshot_exist)
-        snapshot_exists = stdout.read().decode('utf-8').strip()
-        LOG.debug("is snapshot exists command output" + str(snapshot_exists))
-        if str(snapshot_exists) == 'exists':
-            return True
-        else:
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+                "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
             return False
+        else:
+            return True
 
     '''
     Method to return policies list assigned to particular project
@@ -2851,6 +2853,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def restart_wlm_api_service(self):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
@@ -3903,32 +3907,42 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns True if snapshot is marked as encrypted on backup target media
     '''
 
-    def check_snapshot_encryption_on_backend(
-            self,
-            ipaddress,
-            username,
-            password,
-            mount_path,
-            workload_id,
-            snapshot_id,
-            instance_id,
-            disk_name):
-        ssh = self.SshRemoteMachineConnection(ipaddress, username, password)
-        disk_path = str(mount_path).strip() + "/workload_" + \
-                        str(workload_id).strip() + "/snapshot_" + \
-                        str(snapshot_id).strip() + "/vm_id_" + \
-                        str(instance_id).strip() + "/vm_res_id*_" + \
-                        str(disk_name) + "/*"
-        is_snapshot_encrypted = "qemu-img info " + disk_path +\
-                " | grep -q encrypted && echo 'exists' ||echo 'not exists'"
-        LOG.debug("snapshot command is : " + str(is_snapshot_encrypted))
-        stdin, stdout, stderr = ssh.exec_command(is_snapshot_encrypted)
-        snapshot_encrypt = stdout.read().decode('utf-8').strip()
-        LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
-        if str(snapshot_encrypt) == 'exists':
-            return True
-        else:
-            return False
+    def check_snapshot_encryption_on_backend(self, mount_path, workload_id,
+            snapshot_id, instance_id, disk_name):
+        cmd = tvaultconf.command_prefix + "ls " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        match_pattern = "_" + disk_name
+        for line in stdout.splitlines():
+            if match_pattern in str(line):
+                cmd1 = line.decode('utf-8')
+                break
+        cmd += "/" + cmd1
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        cmd2 = stdout.decode('utf-8')
+
+        final_cmd = tvaultconf.command_prefix + "qemu-img info " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+        p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        is_encrypted = False
+        for line in stdout.splitlines():
+            if str(line).find('encrypted') != -1:
+                is_encrypted = True
+                break
+        return is_encrypted
 
     '''
     List WLM trusts
@@ -4024,6 +4038,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
 
+    '''
+    Method to get security group id for given security group name
+    '''
     def get_restored_security_group_id_by_name(self, security_group_name):
         security_group_id = ""
         security_groups_list = self.security_groups_client.list_security_groups()[
@@ -4039,6 +4056,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("security group id is NOT present/restored")
             return None
 
+    '''
+    Method to create project
+    '''
     def create_project(self, project_cleanup=True):
         project_name = data_utils.rand_name(name=self.__class__.__name__)
         project = self.projects_client.create_project(

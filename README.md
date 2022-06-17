@@ -9,7 +9,6 @@ Repo for automation build, test etc.
     - Execute prerequisites at test suite level in order to reuse resources and reduce execution time
 
 * Supported Operating systems & Python versions:
-    - CentOS 8 with Python 3.6
     - Ubuntu 18.04 with Python 3.6
     - Ubuntu 20.04 with Python 3.8
     
@@ -18,34 +17,11 @@ Repo for automation build, test etc.
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
-      git clone -b stable/4.2 https://github.com/trilioData/tempest.git
+      git clone -b stable/5.0-beta https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       
 * Prerequisites:
-    - CentOS 8
-         - Install required packages
-           ```
-           yum install gcc python3-virtualenv epel-release centos-release-openstack-wallaby python3-barbicanclient -y
-           pip3 install apscheduler
-           ```
-
-         - Install WLM client
-           ```
-           cat > /etc/yum.repos.d/trilio.repo <<-EOF
-           [trilio]
-           name=Trilio Repository
-           baseurl=http://{TVAULT_IP}:8085/yum-repo/queens/
-           enabled=1
-           gpgcheck=0
-           EOF
-           yum install python3-workloadmgrclient-el8 -y
-           ```
-           
-         - Run below script to create virtual environment:
-           ```
-           python3 tools/install_venv.py
-            ```
     - Ubuntu 18.04
          - Install required packages
            ```
@@ -56,7 +32,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-5-0-beta/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -77,7 +53,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-5-0-beta/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -111,8 +87,6 @@ Repo for automation build, test etc.
       ```
       ./fetch_resources.sh
       ```
-    - Update tempest/tvaultconf.py and provide below:
-        - tvault_password = "sample password" → TrilioVault appliance root password
                 
 * How to run tests:
 

@@ -178,13 +178,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         elif(self.workload_status == "error"):
                             result_json[k]['workload_error_msg'] = self.workload_details
                             result_json[k]['result']['Create_Workload'] = \
-                                tvaultconf.FAIL + "\nERROR " + \
+                                tvaultconf.FAIL + "\nERROR 1" + \
                                 result_json[k]['workload_error_msg']
 
                     except Exception as e:
                         result_json[k]['workload_error_msg'] = str(e)
                         result_json[k]['result']['Create_Workload'] = \
-                                tvaultconf.FAIL + "\nERROR " + \
+                                tvaultconf.FAIL + "\nERROR 2" + \
                                 result_json[k]['workload_error_msg']
                         continue
 

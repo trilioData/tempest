@@ -669,6 +669,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             finally:
                 reporting.test_case_to_write()
 
+
     # Test case automation for #OS-2029 : Shared Security_Group_Restore
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2029
     @decorators.attr(type="workloadmgr_api")
