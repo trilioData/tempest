@@ -4156,7 +4156,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 disk_names = ["vda", "vdb", "vdc"]
                 for i in range(vol_count):
                     volume_id = self.create_volume(
-                        volume_type_id=CONF.volume.volume_types['tripleo'])
+                        volume_type_id=volume_type_id)
                     volumes.append(volume_id)
                     self.attach_volume(volume_id, vm_id)
                 LOG.debug(f"Volumes attached: {volumes}")
@@ -4205,8 +4205,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     raise Exception("Create full snapshot")
 
-                vol_snap_name = "TrilioVaultSnapshot"
-
+                vol_snap_name = tvaultconf.triliovault_vol_snapshot_name
+                
                 restore_id = ""
                 if (restore_test[1] == "selective"):
                     trilio_vol_snapshots_before = self.get_trilio_volume_snapshot(vol_snap_name)
