@@ -17,6 +17,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @classmethod
     def setup_clients(cls):
+        api_version.COMPUTE_MICROVERSION = '2.60'
         super(WorkloadsTest, cls).setup_clients()
 
     def _set_frm_user(self):
