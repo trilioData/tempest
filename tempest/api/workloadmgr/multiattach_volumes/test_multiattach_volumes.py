@@ -71,7 +71,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "Snapshot mount of " + snapshot_type + " snapshot", tvaultconf.PASS)
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip, self.frm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh,
-                                                       file_name=file).decode('UTF-8').split('\n')
+                                                       file_name=file,disk_dir="/opt").decode('UTF-8').split('\n')
             ssh.close()
             flag = {'opt': 0, 'vdb1': 0, 'vdb2': 0}
             for i in output_list:
