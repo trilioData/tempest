@@ -72,7 +72,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "Snapshot mount of " + snapshot_type + " snapshot", tvaultconf.PASS)
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip, self.frm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh,
-                                                       file_name=file).decode('UTF-8').split('\n')
+                                                       file_name=file,disk_dir="/opt").decode('UTF-8').split('\n')
             ssh.close()
             flag = {'opt': 0, 'vdb1': 0, 'vdb2': 0}
             for i in output_list:
@@ -387,13 +387,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password)
+                self.mount_path = self.get_mountpoint_path()
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id)
+                    self.mount_path,self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
@@ -416,13 +412,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password)
+                self.mount_path = self.get_mountpoint_path()
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id2)
+                    self.mount_path,self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)

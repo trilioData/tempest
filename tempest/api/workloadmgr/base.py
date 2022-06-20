@@ -2877,13 +2877,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self,
             ssh,
             file_path_to_search="/mnt/tvault-mounts/mounts/",
-            file_name="File_1"):
+            file_name="File_1",
+            disk_dir=""):
         try:
             time.sleep(20)
             cmd = "sudo su - root -c 'df -h'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("df -h output: %s", stdout.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*/opt'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*" + disk_dir + "'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
