@@ -4024,6 +4024,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
 
+    '''
+    This method will add get restored security groups for provided name
+    '''
     def get_restored_security_group_id_by_name(self, security_group_name):
         security_group_id = ""
         security_groups_list = self.security_groups_client.list_security_groups()[
@@ -4039,16 +4042,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("security group id is NOT present/restored")
             return None
 
+    '''
+    This method will create new project as required for the test
+    '''
     def create_project(self, project_cleanup=True):
         project_name = data_utils.rand_name(name=self.__class__.__name__)
         project = self.projects_client.create_project(
             project_name,
             domain_id=CONF.identity.domain_id)['project']
+        LOG.debug("Created project details: {}".format(project))
         project_id = project['id']
-        project_details = {project_id: project_name}
+        project_details = {"id": project_id, "name": project_name}
+        LOG.debug("Created project details: {}".format(project_details))
         if (tvaultconf.cleanup and project_cleanup):
             self.addCleanup(self.projects_client.delete_project, project['id'])
         return project_details
+
+    '''
+    This method will get the list of triliovault created snapshots
+    '''
+    def get_trilio_volume_snapshot(self, vol_snap_name):
+        trilio_vol_snapshots = []
+        vol_snapshots = self.snapshots_extensions_client.list_snapshots()
+        LOG.debug("List snapshots: {}".format(vol_snapshots))
+        for each in vol_snapshots['snapshots']:
+            if (vol_snap_name in each['displayName']):
+                trilio_vol_snapshots.append(each)
+        LOG.debug("Trilio vault generated cinder snapshots: {}".format(trilio_vol_snapshots))
+        return trilio_vol_snapshots
 
     '''
     Method to list available key pairs
