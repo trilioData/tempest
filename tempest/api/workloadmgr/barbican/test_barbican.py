@@ -4084,6 +4084,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     raise Exception("Getting secret key from secret order")
 
                 vm_id = self.create_vm(vm_cleanup=True)
+                mount_path = self.get_mountpoint_path()
                 # Get the details of luks-ceph (encrypted ceph) volumes from setup
                 volume_type_id = ""
                 for vol in CONF.volume.volume_types:
@@ -4132,12 +4133,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
                 if (snapshot_status == "available"):
                     reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                    mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                     snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, mount_path,
+                        mount_path,
                         wid, snapshot_id)
                     LOG.debug(f"snapshot_found: {snapshot_found}")
                     if snapshot_found:
