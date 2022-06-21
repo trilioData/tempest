@@ -8,6 +8,7 @@ from tempest import tvaultconf
 from tempest import reporting
 from tempest import command_argument_string
 from tempest.util import cli_parser
+from tempest.lib.services.compute import base_compute_client as api_version
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -18,6 +19,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     @classmethod
     def setup_clients(cls):
+        api_version.COMPUTE_MICROVERSION = '2.60'
         super(WorkloadsTest, cls).setup_clients()
 
     def _set_frm_user(self):
