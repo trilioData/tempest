@@ -919,8 +919,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 self.restored_vms = self.get_restored_vm_list(restore_id)
                 self.restored_volumes = self.get_restored_volume_list(
                     restore_id)
-                self.restored_secgrps = self.getRestoredSecGroupPolicies(
-                        self.restored_vms)
+                self.restored_secgrps = self.getRestoredSecGroupPolicies(self.restored_vms)
                 self.addCleanup(self.restore_delete,
                                 workload_id, snapshot_id, restore_id)
                 if sec_group_cleanup:
@@ -1774,8 +1773,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''create_security_group in same/another project'''
 
-    def create_security_group(self, name, description, 
-            tenant_id=CONF.identity.tenant_id, secgrp_cleanup=True):
+    def create_security_group(self, name, description, tenant_id=CONF.identity.tenant_id, secgrp_cleanup=True):
         self.security_group_id = self.security_groups_client.create_security_group(
             name=name, description=description, tenant_id=tenant_id)['security_group']['id']
         if (tvaultconf.cleanup and secgrp_cleanup):
@@ -4042,16 +4040,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method to list available key pairs
-    '''
-
-    def list_key_pairs(self):
-        key_pairs_list_response = self.keypairs_client.list_keypairs()
-        key_pair_list = key_pairs_list_response['keypairs']
-        return key_pair_list
-
-    '''
-    Method to get security group id for given security group name
+    This method will add get restored security groups for provided name
     '''
     def get_restored_security_group_id_by_name(self, security_group_name):
         security_group_id = ""
@@ -4059,30 +4048,49 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             'security_groups']
         LOG.debug("Security groups list" + str(security_groups_list))
         for security_group in security_groups_list:
-            if security_group['name'] == security_group_name and \
-                    "Restored from original security group" in \
-                    security_group['description']:
+            if security_group['name'] == security_group_name and "Restored from original security group" in security_group['description']:
                 security_group_id = security_group['id']
         if security_group_id != "":
-            LOG.debug("security group id for security group {}".format(
-                security_group_id))
+            LOG.debug("security group id for security group {}".format(security_group_id))
             return security_group_id
         else:
             LOG.debug("security group id is NOT present/restored")
             return None
 
     '''
-    Method to create project
+    This method will create new project as required for the test
     '''
     def create_project(self, project_cleanup=True):
         project_name = data_utils.rand_name(name=self.__class__.__name__)
         project = self.projects_client.create_project(
             project_name,
             domain_id=CONF.identity.domain_id)['project']
+        LOG.debug("Created project details: {}".format(project))
         project_id = project['id']
-        project_details = {project_id: project_name}
+        project_details = {"id": project_id, "name": project_name}
+        LOG.debug("Created project details: {}".format(project_details))
         if (tvaultconf.cleanup and project_cleanup):
             self.addCleanup(self.projects_client.delete_project, project['id'])
         return project_details
 
+    '''
+    This method will get the list of triliovault created snapshots
+    '''
+    def get_trilio_volume_snapshot(self, vol_snap_name):
+        trilio_vol_snapshots = []
+        vol_snapshots = self.snapshots_extensions_client.list_snapshots()
+        LOG.debug("List snapshots: {}".format(vol_snapshots))
+        for each in vol_snapshots['snapshots']:
+            if (vol_snap_name in each['displayName']):
+                trilio_vol_snapshots.append(each)
+        LOG.debug("Trilio vault generated cinder snapshots: {}".format(trilio_vol_snapshots))
+        return trilio_vol_snapshots
 
+    '''
+    Method to list available key pairs
+    '''
+
+    def list_key_pairs(self):
+        key_pairs_list_response = self.keypairs_client.list_keypairs()
+        key_pair_list = key_pairs_list_response['keypairs']
+        return key_pair_list

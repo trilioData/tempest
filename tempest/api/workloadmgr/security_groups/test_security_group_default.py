@@ -97,19 +97,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.security_group_restore_name, snapshot_id
             )
             LOG.debug("Snapshot restore status: " + str(wc))
-            if str(wc) == "available":
-                reporting.add_test_step(
-                    "Security group restore command verification",
-                    tvaultconf.PASS,
-                )
-                break
-            else:
-                reporting.add_test_step(
-                    "security group restore command verification",
-                    tvaultconf.FAIL,
-                )
-                reporting.set_test_script_status(tvaultconf.FAIL)
-                break
+        if str(wc) == "available":
+            reporting.add_test_step(
+                "Security group restore command verification",
+                tvaultconf.PASS,
+            )
+        else:
+            reporting.add_test_step(
+                "security group restore command verification",
+                tvaultconf.FAIL,
+            )
+            reporting.set_test_script_status(tvaultconf.FAIL)
 
     # Generate security groups and rules data
     def _generate_data_for_secgrp(self, security_group_count, rules_count):
@@ -439,8 +437,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         tenant_id = CONF.identity.tenant_id
         tenant_id_1 = CONF.identity.tenant_id_1
 
-        try:
-            for test in tests:
+        for test in tests:
+            try:
                 reporting.add_test_script(test[0])
                 security_group_count = test[1]
                 rules_count = test[2]
@@ -663,13 +661,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             self._delete_vms_secgroups(restored_vms, restored_secgroup_ids)
                             reporting.test_case_to_write()
 
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.add_test_step(str(e), tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
+            except Exception as e:
+                LOG.error("Exception: " + str(e))
+                reporting.add_test_step(str(e), tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
-        finally:
-            reporting.test_case_to_write()
+            finally:
+                reporting.test_case_to_write()
+
 
     # Test case automation for #OS-2029 : Shared Security_Group_Restore
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2029
@@ -687,6 +686,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             LOG.debug("Creating third project for the test")
             project_details = self.create_project(project_cleanup=True)
+            LOG.debug("Created project {}".format(project_details["name"]))
             tenant_id_2 = project_details["id"]
             proj_name_2 = project_details["name"]
 
