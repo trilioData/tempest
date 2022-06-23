@@ -2064,29 +2064,34 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             #File search
             reporting.add_test_script(tests[4][0])
-            filecount_in_snapshots = {
-                self.snapshot_id: 0,
-                self.snapshot_id2: 1}
-            filesearch_id = self.filepath_search(
-                self.vm_id, "/opt/File_5")
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, "/opt/File_5")
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
+            try:
+                filecount_in_snapshots = {
+                    self.snapshot_id: 0,
+                    self.snapshot_id2: 1}
+                filesearch_id = self.filepath_search(
+                    self.vm_id, "/opt/File_5")
+                snapshot_wise_filecount = self.verifyFilepath_Search(
+                    filesearch_id, "/opt/File_5")
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
 
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
+                if filesearch_status:
+                    LOG.debug("Filepath_Search default_parameters successful")
+                    reporting.add_test_step(
+                        "Verification of Filesearch with default parameters",
+                        tvaultconf.PASS)
+                else:
+                    LOG.debug("Filepath Search default_parameters unsuccessful")
+                    reporting.add_test_step(
+                            "Verification of Filesearch with default parameters",
+                            tvaultconf.FAIL)
+            except Exception as e:
                 reporting.add_test_step(
                     "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.FAIL)
+                    tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -2705,7 +2710,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("final snapshot list is " + str(snapshots_list))
 
             # get snapshot count and snapshot_details
-            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
+            snapshot_list_of_workload = self.getSnapshotListWithNoError(self.workload_id)
             LOG.debug("snapshot list of workload retrieved using API is : " +
                       str(snapshot_list_of_workload))
 
@@ -3258,6 +3263,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("pre req completed")
 
             # Create workload with scheduler disabled using CLI
+            time.sleep(10)
             workload_create = \
                     command_argument_string.workload_create_with_encryption +\
                 " --instance instance-id=" + \
@@ -3278,17 +3284,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
-            if(self.wid is not None):
-                self.wait_for_workload_tobe_available(self.wid)
-                if(self.getWorkloadStatus(self.wid) == "available"):
-                    reporting.add_test_step(
-                        "Create workload with scheduler disable", tvaultconf.PASS)
-                else:
-                    reporting.add_test_step(
-                        "Create workload with scheduler disable", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                raise Exception("Create workload with scheduler disabled")
+            timer = 0
+            while (self.wid is None):
+                time.sleep(10)
+                self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+                timer = timer + 1
+                if(self.wid is not None):
+                    self.wait_for_workload_tobe_available(self.wid)
+                    if(self.getWorkloadStatus(self.wid) == "available"):
+                        reporting.add_test_step(
+                            "Create workload with scheduler disable", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step(
+                            "Create workload with scheduler disable", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                elif(timer >= 12):
+                    raise Exception("Create workload with scheduler disabled")
 
             #Execute scheduler-trust-validate CLI command
             self._execute_scheduler_trust_validate_cli()
