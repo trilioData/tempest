@@ -17,7 +17,7 @@ from tempest.lib.common import api_version_utils
 from tempest.lib.common import rest_client
 from tempest.lib import exceptions
 
-COMPUTE_MICROVERSION = '2.70'
+COMPUTE_MICROVERSION = None
 
 
 class BaseComputeClient(rest_client.RestClient):

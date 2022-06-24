@@ -1362,19 +1362,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh,
             ipAddress,
             volumes,
-            mount_points):
+            mount_points,
+            partition=1,
+            size=""):
         self.channel = ssh.invoke_shell()
         commands = []
         for volume in volumes:
             commands.extend(["sudo fdisk {}".format(volume),
                              "n",
                              "p",
-                             "1",
-                             "\n",
-                             "\n",
+                             "",
+                             "",
+                             str(size),
                              "w",
-                             "sudo fdisk -l {}1".format(volume)])
-                             #"yes | sudo mkfs -t ext3 {}1".format(volume)])
+                             "sudo fdisk -l {0}{1}".format(volume, partition)])
+            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing fdisk: " + str(command))
@@ -1387,7 +1389,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(str(output))
         time.sleep(10)
         for volume in volumes:
-            cmd = "sudo mkfs -t ext3 {}1".format(volume)
+            cmd = "sudo mkfs -t ext3 {0}{1}".format(volume, partition)
             LOG.debug("Executing mkfs : " + str(cmd))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             time.sleep(5)
@@ -1405,7 +1407,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             ssh,
             ipAddress,
             volumes,
-            mount_points):
+            mount_points, partition=1):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
         self.channel = ssh.invoke_shell()
@@ -1414,8 +1416,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             commands = [
                 "sudo mkdir " +
                 mount_points[i],
-                "sudo mount {0}1 {1}".format(
-                    volumes[i],
+                "sudo mount {0}{1} {2}".format(
+                    volumes[i],partition,
                     mount_points[i]),
                 "sudo df -h",
                 "pwd"]
@@ -2869,13 +2871,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self,
             ssh,
             file_path_to_search="/mnt/tvault-mounts/mounts/",
-            file_name="File_1"):
+            file_name="File_1",
+            disk_dir=""):
         try:
             time.sleep(20)
             cmd = "sudo su - root -c 'df -h'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("df -h output: %s", stdout.read())
-            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*'"
+            cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vda*" + disk_dir + "'"
             stdin, stdout, stderr = ssh.exec_command(cmd, timeout=120)
             LOG.debug("In VDA List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             cmd = "sudo su - root -c 'ls -la " + file_path_to_search + "/Test_*/vdb*'"
@@ -4022,6 +4025,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error("Exception in add_security_group_to_instance: {}".format(e))
             return False
 
+    '''
+    This method will add get restored security groups for provided name
+    '''
     def get_restored_security_group_id_by_name(self, security_group_name):
         security_group_id = ""
         security_groups_list = self.security_groups_client.list_security_groups()[
@@ -4037,16 +4043,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("security group id is NOT present/restored")
             return None
 
+    '''
+    This method will create new project as required for the test
+    '''
     def create_project(self, project_cleanup=True):
         project_name = data_utils.rand_name(name=self.__class__.__name__)
         project = self.projects_client.create_project(
             project_name,
             domain_id=CONF.identity.domain_id)['project']
+        LOG.debug("Created project details: {}".format(project))
         project_id = project['id']
-        project_details = {project_id: project_name}
+        project_details = {"id": project_id, "name": project_name}
+        LOG.debug("Created project details: {}".format(project_details))
         if (tvaultconf.cleanup and project_cleanup):
             self.addCleanup(self.projects_client.delete_project, project['id'])
         return project_details
+
+    '''
+    This method will get the list of triliovault created snapshots
+    '''
+    def get_trilio_volume_snapshot(self, vol_snap_name):
+        trilio_vol_snapshots = []
+        vol_snapshots = self.snapshots_extensions_client.list_snapshots()
+        LOG.debug("List snapshots: {}".format(vol_snapshots))
+        for each in vol_snapshots['snapshots']:
+            if (vol_snap_name in each['displayName']):
+                trilio_vol_snapshots.append(each)
+        LOG.debug("Trilio vault generated cinder snapshots: {}".format(trilio_vol_snapshots))
+        return trilio_vol_snapshots
 
     '''
     Method to list available key pairs
