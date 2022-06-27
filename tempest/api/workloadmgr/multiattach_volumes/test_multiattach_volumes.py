@@ -356,7 +356,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
-                image_id=list(CONF.compute.fvm_image_ref.values())[0], vm_cleanup=True)
+                image_id=list(CONF.compute.fvm_image_ref.values())[0])
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[6], self.frm_id)
@@ -368,7 +368,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
-                                                tvaultconf.workload_type_id, workload_cleanup=True)
+                                                tvaultconf.workload_type_id)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
@@ -386,7 +386,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create workload with image booted vm")
 
             reporting.add_test_script(tests[1][0])
-            self.snapshot_id = self.workload_snapshot(self.wid, True, snapshot_cleanup=True)
+            self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
@@ -411,13 +411,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(
                 f"md5sums_before_incr: {md5sums_before_incr}")
 
-            self.snapshot_id2 = self.workload_snapshot(self.wid, False, snapshot_cleanup=True)
+            self.snapshot_id2 = self.workload_snapshot(self.wid, False)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path()
                 self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
                     self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
@@ -581,18 +580,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.vm_id = self.create_vm(
                 key_pair=self.kp,
                 image_id="",
-                block_mapping_data=self.block_mapping_details,
-                vm_cleanup=True)
+                block_mapping_data=self.block_mapping_details)
 
             # Now create volume with derived volume type id...
             self.volume_id = self.create_volume(
-                volume_type_id=vol_type_id, size=6, volume_cleanup=True)
+                volume_type_id=vol_type_id, size=6)
 
             LOG.debug("Volume ID: " + str(self.volume_id))
 
             self.volumes.append(self.volume_id)
             # Attach volume to vm...
-            self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=True)
+            self.attach_volume(self.volume_id, self.vm_id)
             LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id))
             api_version.COMPUTE_MICROVERSION = None
 
@@ -659,9 +657,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path()
                 self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
-                    self.wid, self.snapshot_id)
+                    self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
