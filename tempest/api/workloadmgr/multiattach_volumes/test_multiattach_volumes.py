@@ -10,12 +10,12 @@ from tempest.lib.services.compute import base_compute_client as api_version
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
+
 class WorkloadsTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
 
     @classmethod
     def setup_clients(cls):
-        api_version.COMPUTE_MICROVERSION = '2.60'
         super(WorkloadsTest, cls).setup_clients()
 
     def _set_frm_user(self):
@@ -29,6 +29,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _add_data_on_instance_and_volume(self, ip_list, full=True):
         md5sums_list = []
         file_count = 5
+        if len(ip_list) > 1:
+            partition_size = "+3GB"
+        else:
+            partition_size = ""
         i = 1
         for ip in ip_list:
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
@@ -36,7 +40,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if full:
                 self.install_qemu(ssh)
                 self.execute_command_disk_create(ssh, str(ip),
-                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], i, "+3GB")
+                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], i,
+                                                 partition_size)
                 self.execute_command_disk_mount(ssh, str(ip),
                                                 [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], i)
                 file_count = 3
@@ -71,7 +76,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "Snapshot mount of " + snapshot_type + " snapshot", tvaultconf.PASS)
             ssh = self.SshRemoteMachineConnectionWithRSAKey(ip, self.frm_ssh_user)
             output_list = self.validate_snapshot_mount(ssh,
-                                                       file_name=file,disk_dir="/opt").decode('UTF-8').split('\n')
+                                                       file_name=file, disk_dir="/opt").decode('UTF-8').split('\n')
             ssh.close()
             flag = {'opt': 0, 'vdb1': 0, 'vdb2': 0}
             for i in output_list:
@@ -91,20 +96,24 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     flag['vdb1'] = 1
                     if file in i:
                         reporting.add_test_step(
-                            "Verification of multiattach volume on vm1 file's existance on mounted snapshot", tvaultconf.PASS)
+                            "Verification of multiattach volume on vm1 file's existance on mounted snapshot",
+                            tvaultconf.PASS)
                     else:
                         reporting.add_test_step(
-                            "Verification of multiattach volume on vm1 file's existance on mounted snapshot", tvaultconf.FAIL)
+                            "Verification of multiattach volume on vm1 file's existance on mounted snapshot",
+                            tvaultconf.FAIL)
                 if 'vdb2.mnt' in i:
                     reporting.add_test_step(
                         "Verify that multiattach volume on vm2 mounted is shown on FVM instance", tvaultconf.PASS)
                     flag['vdb2'] = 1
                     if file in i:
                         reporting.add_test_step(
-                            "Verification of multiattach volume on vm2 file's existance on mounted snapshot", tvaultconf.PASS)
+                            "Verification of multiattach volume on vm2 file's existance on mounted snapshot",
+                            tvaultconf.PASS)
                     else:
                         reporting.add_test_step(
-                            "Verification of multiattach volume on vm2 file's existance on mounted snapshot", tvaultconf.FAIL)
+                            "Verification of multiattach volume on vm2 file's existance on mounted snapshot",
+                            tvaultconf.FAIL)
             for k, v in flag.items():
                 if v == 0:
                     reporting.add_test_step("Verify that mountpoint mounted is shown on FVM instance",
@@ -134,74 +143,67 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "Snapshot unmount of " + snapshot_type + " snapshot", tvaultconf.FAIL)
 
     def _check_data_after_restore(self, ip_list, md5sums_list, restore_type):
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[0])
-        self.execute_command_disk_mount(ssh, ip_list[0],
-                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], 1)
-        md5sums_after_vm1 = {}
-        md5sums_after_vm1['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-        md5sums_after_vm1[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh,
-                                                                                   tvaultconf.mount_points[0])
-        LOG.debug(
-            f"md5sums_after_vm1_{restore_type}: {md5sums_after_vm1}")
-        ssh.close()
+        md5sums_after_list = []
+        i = 1
+        for ip in ip_list:
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(ip)
+            self.execute_command_disk_mount(ssh, ip,
+                                            [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], i)
+            md5sums_after_vm = {}
+            md5sums_after_vm['opt'] = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_vm[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh,
+                                                                                      tvaultconf.mount_points[0])
+            LOG.debug(
+                f"md5sums_after_vm{i}_{restore_type}: {md5sums_after_vm}")
+            ssh.close()
+            md5sums_after_list.append(md5sums_after_vm)
+            i = i + 1
 
-        ssh = self.SshRemoteMachineConnectionWithRSAKey(ip_list[1])
-        self.execute_command_disk_mount(ssh, ip_list[1],
-                                        [tvaultconf.volumes_parts[0]], [tvaultconf.mount_points[0]], 2)
-        md5sums_after_vm2 = {}
-        md5sums_after_vm2['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-        md5sums_after_vm2[tvaultconf.mount_points[0]] = self.calculatemmd5checksum(ssh,
-                                                                                   tvaultconf.mount_points[0])
-        LOG.debug(
-            f"md5sums_after_vm2_{restore_type}: {md5sums_after_vm2}")
-        ssh.close()
-        md5sums_after_list = [md5sums_after_vm1, md5sums_after_vm2]
         if restore_type == 'selective':
-            tempopt_vm1 = md5sums_after_vm1['opt']
-            tempopt_vm2 = md5sums_after_vm2['opt']
-            tempmp_vm1 = md5sums_after_vm1[tvaultconf.mount_points[0]]
-            tempmp_vm2 = md5sums_after_vm2[tvaultconf.mount_points[0]]
-            if md5sums_list[0]['opt'] != md5sums_after_vm1['opt'] \
-                    and md5sums_list[0]['opt'] == md5sums_after_vm2['opt']:
-                md5sums_after_vm1['opt'] = tempopt_vm2
-                md5sums_after_vm2['opt'] = tempopt_vm1
-            if md5sums_list[0][tvaultconf.mount_points[0]] != md5sums_after_vm1[tvaultconf.mount_points[0]] \
-                    and md5sums_list[0][tvaultconf.mount_points[0]] == md5sums_after_vm2[tvaultconf.mount_points[0]]:
-                md5sums_after_vm1[tvaultconf.mount_points[0]] = tempmp_vm2
-                md5sums_after_vm2[tvaultconf.mount_points[0]] = tempmp_vm1
-            md5sums_after_list = [md5sums_after_vm1, md5sums_after_vm2]
+            tempopt_vm1 = md5sums_after_list[0]['opt']
+            tempmp_vm1 = md5sums_after_list[0][tvaultconf.mount_points[0]]
+            if len(ip_list) > 1:
+                tempopt_vm2 = md5sums_after_list[1]['opt']
+                tempmp_vm2 = md5sums_after_list[1][tvaultconf.mount_points[0]]
+                if md5sums_list[0]['opt'] != md5sums_after_list[0]['opt'] \
+                        and md5sums_list[0]['opt'] == md5sums_after_list[1]['opt']:
+                    md5sums_after_list[0]['opt'] = tempopt_vm2
+                    md5sums_after_list[1]['opt'] = tempopt_vm1
+                if md5sums_list[0][tvaultconf.mount_points[0]] != md5sums_after_list[0][tvaultconf.mount_points[0]] \
+                        and md5sums_list[0][tvaultconf.mount_points[0]] == md5sums_after_list[1][
+                    tvaultconf.mount_points[0]]:
+                    md5sums_after_list[0][tvaultconf.mount_points[0]] = tempmp_vm2
+                    md5sums_after_list[1][tvaultconf.mount_points[0]] = tempmp_vm1
 
-        check_vm1 = (md5sums_list[0] == md5sums_after_vm1)
-        check_vm2 = (md5sums_list[1] == md5sums_after_vm2)
         LOG.debug("***MDSUMS*** expected: " + str(md5sums_list) + " actual: " + str(
             md5sums_after_list))
 
-        if check_vm1:
-            LOG.debug("***MDSUMS MATCH***")
-            reporting.add_test_step(
-                "Md5 Verification for VM1", tvaultconf.PASS)
-        else:
-            LOG.debug("***MDSUMS DON'T MATCH***")
-            reporting.add_test_step(
-                "Md5 Verification for VM1", tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-
-        if check_vm2:
-            LOG.debug("***MDSUMS MATCH***")
-            reporting.add_test_step(
-                "Md5 Verification for VM2", tvaultconf.PASS)
-        else:
-            LOG.debug("***MDSUMS DON'T MATCH***")
-            reporting.add_test_step(
-                "Md5 Verification for VM2", tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
+        i = 0
+        for each in md5sums_list:
+            check_vm = (each == md5sums_after_list[i])
+            if check_vm:
+                LOG.debug("***MDSUMS MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for VM" + str(i + 1), tvaultconf.PASS)
+            else:
+                LOG.debug("***MDSUMS DON'T MATCH***")
+                reporting.add_test_step(
+                    "Md5 Verification for VM" + str(i + 1), tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            i = i + 1
 
     def _delete_restored_vms(self, restore_id):
-        vm_list = self.get_restored_vm_list(restore_id)
-        LOG.debug(f"vm_list: {vm_list}, self.vm_id_1: {self.vm_id_1}, self.vm_id_2: {self.vm_id_2}")
-        for vm_id in vm_list:
-            self.delete_vm(vm_id)
-        time.sleep(5)
+        restored_vms = self.get_restored_vm_list(restore_id)
+        LOG.debug("Restored vm list : " + str(restored_vms))
+        restored_volumes = self.get_restored_volume_list(restore_id)
+        LOG.debug("Restored volumes list: {}".format(restored_volumes))
+        time.sleep(60)
+        # Verify restored instance and volumes are deleted properly.
+        try:
+            self.delete_restored_vms(restored_vms, restored_volumes)
+            LOG.debug("Deleted restored vms and volumes")
+        except Exception as e:
+            raise Exception(str(e))
 
     def _selective_restore(self, payload, ip_list, md5sums_list, full=True):
         if full:
@@ -224,10 +226,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             vm_list = self.get_restored_vm_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
             time.sleep(60)
-            self.set_floating_ip(ip_list[0], vm_list[1])
-            self.set_floating_ip(ip_list[1], vm_list[0])
+            i = 0
+            for ip in ip_list:
+                self.set_floating_ip(ip, vm_list[i])
+                i = i + 1
             LOG.debug("Floating ip assigned to selective restored vm -> " + \
-                      f"{ip_list[0]} and {ip_list[1]}")
+                      f"{ip_list}")
             self._check_data_after_restore(ip_list, md5sums_list, 'selective')
 
             self._delete_restored_vms(restore_id)
@@ -253,7 +257,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.PASS)
             self._check_data_after_restore(ip_list, md5sums_list, 'inplace')
 
-            # self._delete_restored_vms(restore_id)
+            restored_volumes = self.get_restored_volume_list(restore_id)
+            self.delete_volumes(restored_volumes)
         else:
             reporting.add_test_step("Inplace restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
@@ -282,6 +287,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
             reporting.add_test_step("Oneclick restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
+
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
@@ -320,13 +326,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.volumes = []
             self.volumes.append(self.volume_id)
             # Attach volume to vm...
+            api_version.COMPUTE_MICROVERSION = '2.60'
             self.attach_volume(self.volume_id, self.vm_id_1, attach_cleanup=False)
             self.attach_volume(self.volume_id, self.vm_id_2, attach_cleanup=False)
             LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1) + " and " + str(self.vm_id_2))
+            api_version.COMPUTE_MICROVERSION = None
 
             vol_vm_1 = self.get_attached_volumes(self.vm_id_1)
             vol_vm_2 = self.get_attached_volumes(self.vm_id_2)
-            LOG.debug("Voulme on VM 1: " + str(vol_vm_1) + " on VM 2:" + str(vol_vm_2))
+            LOG.debug("Voulme o VM 1: " + str(vol_vm_1) + " on VM 2:" + str(vol_vm_2))
             if vol_vm_1 == vol_vm_2:
                 reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.PASS)
                 reporting.set_test_script_status(tvaultconf.PASS)
@@ -382,11 +390,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
+            self.mount_path = self.get_mountpoint_path(
+                tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                tvaultconf.tvault_password)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
                     tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
                     tvaultconf.tvault_password, self.mount_path,
@@ -413,9 +421,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
                     tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
                     tvaultconf.tvault_password, self.mount_path,
@@ -438,7 +443,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self._mount_unmount_snapshot(fip[6])
 
             # Mount incremental snapshot
-            self._mount_unmount_snapshot(fip[6],False)
+            self._mount_unmount_snapshot(fip[6], False)
 
             reporting.test_case_to_write()
             tests[3][1] = 1
@@ -514,6 +519,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id_1)
             self.delete_vm(self.vm_id_2)
+            self.delete_volumes(self.volumes)
             time.sleep(10)
 
             # Trigger oneclick restore of full snapshot
@@ -524,10 +530,209 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
             tests[7][1] = 1
 
+        except Exception as e:
+            LOG.error(f"Exception: {e}")
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.add_test_script(test[0])
+                    reporting.test_case_to_write()
+
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_02_multiattach_volumes(self):
+        try:
+            test_var = "tempest.api.workloadmgr.multiattach_volumes.test_multiattach_volume_booted_"
+            tests = [[test_var + "workload_api", 0],
+                     [test_var + "full_snapshot_api", 0],
+                     [test_var + "incremental_snapshot_api", 0],
+                     [test_var + "selectiverestore_api", 0],
+                     [test_var + "inplacerestore_api", 0],
+                     [test_var + "oneclickrestore_api", 0]]
+            reporting.add_test_script(tests[0][0])
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            # find volume_type = multiattach. So that existing multiattach volume type can be used.
+            # Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("multiattach") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+                    vol_type_name = vol
+
+            if (vol_type_id == -1):
+                raise Exception("No multiattach volume found to create multiattach volume. Test cannot be continued")
+
+            # Now create volume with derived volume type id...
+            self.boot_volume_id = self.create_volume(
+                volume_type_id=vol_type_id, size=tvaultconf.bootfromvol_vol_size,
+                image_id=CONF.compute.image_ref, volume_cleanup=False)
+            LOG.debug("Bootable Volume ID: " + str(self.boot_volume_id))
+            api_version.COMPUTE_MICROVERSION = '2.60'
+
+            self.volumes = []
+            self.volumes.append(self.boot_volume_id)
+
+            self.disk_names = ["vda"]
+            self.block_mapping_details = [{"source_type": "volume",
+                                           "delete_on_termination": "false",
+                                           "boot_index": 0,
+                                           "uuid": self.boot_volume_id,
+                                           "destination_type": "volume"}]
+            self.vm_id = self.create_vm(
+                key_pair=self.kp,
+                image_id="",
+                block_mapping_data=self.block_mapping_details)
+
+            # Now create volume with derived volume type id...
+            self.volume_id = self.create_volume(
+                volume_type_id=vol_type_id, size=6)
+
+            LOG.debug("Volume ID: " + str(self.volume_id))
+
+            self.volumes.append(self.volume_id)
+            # Attach volume to vm...
+            self.attach_volume(self.volume_id, self.vm_id)
+            LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id))
+            api_version.COMPUTE_MICROVERSION = None
+
+            fip = self.get_floating_ips()
+            LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
+
+            if len(fip) < 3:
+                raise Exception("Floating ips unavailable")
+            self.set_floating_ip(fip[0], self.vm_id)
+
+            md5sums_before_full = self._add_data_on_instance_and_volume([fip[0]])
+            LOG.debug(
+                f"md5sums_before_full: {md5sums_before_full}")
+
+            # Create workload with API
             try:
-                self.detach_volume(self.vm_id_1, self.volume_id)
-            except:
-                pass
+                self.wid = self.workload_create([self.vm_id],
+                                                tvaultconf.workload_type_id)
+                LOG.debug("Workload ID: " + str(self.wid))
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Create workload with volume booted vm")
+            if (self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                self.workload_status = self.getWorkloadStatus(self.wid)
+                if (self.workload_status == "available"):
+                    reporting.add_test_step("Create workload with volume booted vm", tvaultconf.PASS)
+                    tests[0][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Create workload with volume booted vm")
+            else:
+                raise Exception("Create workload with volume booted vm")
+
+            reporting.add_test_script(tests[1][0])
+            self.snapshot_id = self.workload_snapshot(self.wid, True)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id)
+            self.mount_path = self.get_mountpoint_path(tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                                                       tvaultconf.tvault_password)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
+                    self.wid, self.snapshot_id)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
+
+                    tests[1][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create full snapshot")
+
+            reporting.add_test_script(tests[2][0])
+            md5sums_before_incr = self._add_data_on_instance_and_volume([fip[0]], False)
+            LOG.debug(
+                f"md5sums_before_incr: {md5sums_before_incr}")
+
+            self.snapshot_id2 = self.workload_snapshot(self.wid, False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id2)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
+                    self.wid, self.snapshot_id2)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
+
+                    tests[2][1] = 1
+                    reporting.test_case_to_write()
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create incremental snapshot")
+
+            # Selective restore
+            reporting.add_test_script(tests[3][0])
+            rest_details = {}
+            rest_details['rest_type'] = 'selective'
+            rest_details['volume_type'] = vol_type_name
+            rest_details['network_id'] = CONF.network.internal_network_id
+            rest_details['subnet_id'] = self.get_subnet_id(
+                CONF.network.internal_network_id)
+            rest_details['instances'] = {self.vm_id: self.volumes}
+
+            payload = self.create_restore_json(rest_details)
+            # Trigger selective restore of full snapshot
+            self._selective_restore(payload, [fip[1]], md5sums_before_full)
+
+            # Trigger selective restore of incremental snapshot
+            self._selective_restore(payload, [fip[2]], md5sums_before_incr,
+                                    False)
+            reporting.test_case_to_write()
+            tests[3][1] = 1
+
+            # Inplace restore
+            reporting.add_test_script(tests[4][0])
+            rest_details = {}
+            rest_details['rest_type'] = 'inplace'
+            rest_details['volume_type'] = vol_type_name
+            rest_details['instances'] = {self.vm_id: self.volumes}
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger inplace restore of full snapshot
+            self._inplace_restore(payload, [fip[0]], md5sums_before_full)
+
+            # Trigger inplace restore of incremental snapshot
+            self._inplace_restore(payload, [fip[0]], md5sums_before_incr,
+                                  False)
+
+            reporting.test_case_to_write()
+            tests[4][1] = 1
+
+            # Oneclick restore
+            reporting.add_test_script(tests[5][0])
+            self.delete_vm(self.vm_id)
+            self.delete_volumes(self.volumes)
+            time.sleep(10)
+
+            # Trigger oneclick restore of full snapshot
+            self._one_click_restore([fip[0]], md5sums_before_full)
+
+            # Trigger oneclick restore of incremental snapshot
+            self._one_click_restore([fip[0]], md5sums_before_incr, False)
+            reporting.test_case_to_write()
+            tests[5][1] = 1
+
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -535,9 +740,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
-            self.delete_volume(self.volume_id)
             for test in tests:
                 if test[1] != 1:
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
+
