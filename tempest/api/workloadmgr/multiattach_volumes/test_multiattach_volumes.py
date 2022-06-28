@@ -390,10 +390,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
-            self.mount_path = self.get_mountpoint_path()
+            self.mount_path = self.get_mountpoint_path(
+                tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                tvaultconf.tvault_password)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
                     self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
@@ -417,7 +421,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
                     self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
@@ -630,10 +636,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
-            self.mount_path = self.get_mountpoint_path()
+            self.mount_path = self.get_mountpoint_path(tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                                                       tvaultconf.tvault_password)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
                     self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
@@ -657,7 +666,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                           self.snapshot_id2)
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                    tvaultconf.tvault_password, self.mount_path,
                     self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
