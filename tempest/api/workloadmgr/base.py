@@ -1221,6 +1221,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return snapshot_list
 
     '''
+    Method returns the snapshot list information with "no error" status
+    '''
+
+    def getSnapshotListWithNoError(self, workload_id=None):
+        if (workload_id is not None):
+            resp, body = self.wlm_client.client.get(
+                "/snapshots?workload_id=" + workload_id)
+        else:
+            resp, body = self.wlm_client.client.get("/snapshots")
+        snapshot_list = []
+        for i in range(0, len(body['snapshots'])):
+            if(body['snapshots'][i]['status'] == "available"):
+                snapshot_list.append(body['snapshots'][i]['id'])
+        LOG.debug("Response:" + str(resp.content))
+        if (resp.status_code != 200):
+            resp.raise_for_status()
+        return snapshot_list
+
+    '''
     Method returns the snapshot information . It return array with create time,name and type information for given snapshot
     '''
 

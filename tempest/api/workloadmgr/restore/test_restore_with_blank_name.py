@@ -249,7 +249,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                        "oneclickrestore": False,
                        "openstack": {"instances": instance_details,
                                      "networks_mapping": {"networks": []},
-                                     "restore_topology": True},
+                                     "restore_topology": False},
                        "restore_type": "selective"}
 
 
