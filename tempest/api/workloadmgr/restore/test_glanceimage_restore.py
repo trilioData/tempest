@@ -230,7 +230,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_2_glanceimage_volume_booted_instance(self):
         try:
-            test_var = "tempest.api.workloadmgr.barbican.test_volume_booted_"
+            test_var = "tempest.api.workloadmgr.restore.test_volume_booted_"
             self.tests = [[test_var+"selective_restore_api", 0],
                     [test_var+"oneclickrestore_api", 0]]
             reporting.add_test_script(self.tests[0][0])
