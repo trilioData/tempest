@@ -6,6 +6,7 @@ from oslo_log import log as logging
 from tempest.common import waiters
 from tempest import tvaultconf
 from tempest import reporting
+from tempest.lib.services.compute import base_compute_client as api_version
 
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
@@ -146,6 +147,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 result_json[k]['result'] = {}
                 vol = k.split('_')[-1]
                 vol_type_id = CONF.volume.volume_types[vol]
+                if (vol.lower().find("multiattach") != -1):
+                    api_version.COMPUTE_MICROVERSION = '2.60'
                 if(k.lower().find("attach") != -1):
                     if self._attached_volume_prerequisite(vol_type_id):
                         result_json[k]['Prerequisite'] = tvaultconf.PASS
@@ -156,7 +159,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         result_json[k]['Prerequisite'] = tvaultconf.PASS
                     else:
                         result_json[k]['Prerequisite'] = tvaultconf.FAIL
-
+                if (vol.lower().find("multiattach") != -1):
+                    api_version.COMPUTE_MICROVERSION = None
                 if(result_json[k]['Prerequisite'] == tvaultconf.PASS):
                     result_json[k]['instances'] = self.vm_id
                     result_json[k]['volumes'] = self.volume_id
