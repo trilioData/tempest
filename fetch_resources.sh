@@ -367,13 +367,22 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    env | grep OS_
-    conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+    if [ $OPENSTACK_DISTRO == 'mosk' ]
+    then
+        wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
+        conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
+        mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
+        datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
+        command_prefix="kubectl -n triliovault exec $datamover_pod -- "
+    else
+        conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+    fi
+
     echo "sql_connection: "$conn_str
     dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
     mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
-    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
+    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
@@ -628,6 +637,11 @@ function configure_tempest
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
+    if [ $OPENSTACK_DISTRO == 'mosk' ]
+    then
+        echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+    fi
+    sed -i 's/\r//g' $TEMPEST_TVAULTCONF
 
 }
 
