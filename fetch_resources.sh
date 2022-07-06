@@ -573,23 +573,6 @@ function configure_tempest
     sed -i '/password/c \  password: '\'$TEST_PASSWORD\' $TEMPEST_ACCOUNTS
     sed -i '/domain_name/c \  domain_name: '\'$TEST_DOMAIN_NAME\' $TEMPEST_ACCOUNTS
 
-    TEMP_IP=${TVAULT_IP}
-    IP=""
-    cnt=0
-    IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
-    TVAULT_IP="["
-    for i in "${IP[@]}"; do
-       if [ $cnt -eq 0 ]
-       then
-          TVAULT_IP+="\""$i"\""
-       else
-          TVAULT_IP+=", \""$i"\""
-       fi
-       cnt=`expr $cnt + 1`
-    done
-    TVAULT_IP+="]"
-
-
     #check for user name in TEST_IMAGE_NAME
     #keep TEST_USER_NAME value as "ubuntu" for the default case.
     #convert test image name to lower case for comparison...
@@ -624,8 +607,6 @@ function configure_tempest
 
 
     # tvaultconf.py
-    sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
-    echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'${TEST_USER_NAME,,}'"' $TEMPEST_TVAULTCONF

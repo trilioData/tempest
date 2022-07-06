@@ -2298,6 +2298,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
@@ -2338,6 +2340,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def revert_changes_policyyaml(self, rule):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
@@ -2866,6 +2870,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def restart_wlm_api_service(self):
+        if len(tvaultconf.tvault_ip) == 0:
+            raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
