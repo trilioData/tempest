@@ -1780,13 +1780,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def delete_port(self, server_id):
         ports = []
-        internal_network_name = str((list(self.get_vm_details(
-            server_id)['server']['addresses'].keys())[0]))
-        fixed_ip = str((self.get_vm_details(server_id)[
-            'server']['addresses'][internal_network_name][0]['addr']))
-        ports.append(self.get_port_id(fixed_ip))
-        LOG.debug("Port deletion for " + str(ports) + " started.")
-        self.delete_ports(ports)
+        vm_details = self.get_vm_details(server_id)
+        if vm_details['server']['status'] != 'ERROR':
+            int_net_name = \
+                    str((list(vm_details['server']['addresses'].keys())[0]))
+            fixed_ip = \
+                str(vm_details['server']['addresses'][int_net_name][0]['addr'])
+            ports.append(self.get_port_id(fixed_ip))
+            LOG.debug("Port deletion for " + str(ports) + " started.")
+            self.delete_ports(ports)
 
     '''create_security_group in same/another project'''
 
