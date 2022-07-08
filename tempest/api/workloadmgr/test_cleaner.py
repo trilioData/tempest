@@ -60,6 +60,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.delete_vm(server)
             except BaseException:
                 pass
+        servers = self.servers_client.list_servers()['servers']
+        LOG.debug(f"vms list at end of delete_servers: {servers}")
 
     def delete_volumes(self):
         volumes = self.volumes_client.list_volumes()['volumes']
