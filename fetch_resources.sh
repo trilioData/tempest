@@ -369,6 +369,9 @@ function configure_tempest
 
     if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
     then
+	cd /root
+        eval "$(<env.sh)"
+        cd -
         wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
         conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
@@ -623,6 +626,7 @@ function configure_tempest
         echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     fi
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
+    sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 
 }
 
