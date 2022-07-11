@@ -2919,17 +2919,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
         self.routers_client.add_router_interface(routers['Router-2'], subnet_id=subnets['PS-4'])
         portid1 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.4'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.14'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-2'], port_id=portid1)
         portid2 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.5'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.15'}]})['port']['id']
         portid3 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.6'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.16'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-4'], port_id=portid2)
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid3)
         self.routers_client.add_router_interface(routers['Router-4'], subnet_id=subnets['PS-5'])
         portid4 = self.ports_client.create_port(
-            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.3'}]})['port']['id']
+            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.13'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid4)
 
         for router_name, router_id in list(routers.items()):
