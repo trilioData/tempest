@@ -2808,7 +2808,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         router_id_list = [x['id']
                           for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
         for router in router_id_list:
-            self.delete_router_interfaces(router)
+            self.delete_router_interfaces(CONF.identity.tenant_id)
         self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
@@ -2818,12 +2818,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete router interface
     '''
 
-    def delete_router_interfaces(self, router_id):
-        interfaces = self.ports_client.list_ports(device_owner='network:router_interface')['ports']
+    def delete_router_interfaces(self, tenant_id=CONF.identity.tenant_id):
+        interfaces = self.ports_client.list_ports()['ports']
+        LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            for i in interface['fixed_ips']:
-                self.routers_client.remove_router_interface(
-                                    interface['device_id'], subnet_id=i['subnet_id'])
+            if interface['tenant_id'] == tenant_id and \
+                interface['device_owner'] in \
+                    ('network:router_interface', \
+                     'network:ha_router_replicated_interface'):
+                for i in interface['fixed_ips']:
+                    self.routers_client.remove_router_interface(
+                        interface['device_id'], subnet_id=i['subnet_id'])
 
     '''
     Method returns the auditlog information
