@@ -338,7 +338,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.delete_port(server_id)
             body = self.servers_client.show_server(server_id)['server']
             self.servers_client.delete_server(server_id)
-            waiters.wait_for_server_termination(self.servers_client, server_id)
+            waiters.wait_for_server_termination(self.servers_client, server_id,
+                    ignore_error=True)
         except lib_exc.NotFound:
             return
 
@@ -1782,13 +1783,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def delete_port(self, server_id):
         ports = []
-        internal_network_name = str((list(self.get_vm_details(
-            server_id)['server']['addresses'].keys())[0]))
-        fixed_ip = str((self.get_vm_details(server_id)[
-            'server']['addresses'][internal_network_name][0]['addr']))
-        ports.append(self.get_port_id(fixed_ip))
-        LOG.debug("Port deletion for " + str(ports) + " started.")
-        self.delete_ports(ports)
+        vm_details = self.get_vm_details(server_id)
+        if vm_details['server']['status'] != 'ERROR':
+            int_net_name = \
+                    str(list(vm_details['server']['addresses'].keys())[0])
+            fixed_ip = \
+                str(vm_details['server']['addresses'][int_net_name][0]['addr'])
+            ports.append(self.get_port_id(fixed_ip))
+            LOG.debug("Port deletion for " + str(ports) + " started.")
+            self.delete_ports(ports)
 
     '''create_security_group in same/another project'''
 
