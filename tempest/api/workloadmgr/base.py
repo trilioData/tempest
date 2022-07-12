@@ -2808,7 +2808,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         router_id_list = [x['id']
                           for x in routers if x['tenant_id'] == CONF.identity.tenant_id]
         for router in router_id_list:
-            self.delete_router_interfaces(router)
+            self.delete_router_interfaces(CONF.identity.tenant_id)
         self.delete_routers(router_id_list)
         ports_list = self.get_port_list_by_network_id(network_id)
         self.delete_ports(ports_list)
@@ -2818,12 +2818,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to delete router interface
     '''
 
-    def delete_router_interfaces(self, router_id):
-        interfaces = self.ports_client.list_ports(device_owner='network:router_interface')['ports']
+    def delete_router_interfaces(self, tenant_id=CONF.identity.tenant_id):
+        interfaces = self.ports_client.list_ports()['ports']
+        LOG.debug(f"interfaces returned: {interfaces}")
         for interface in interfaces:
-            for i in interface['fixed_ips']:
-                self.routers_client.remove_router_interface(
-                                    interface['device_id'], subnet_id=i['subnet_id'])
+            if interface['tenant_id'] == tenant_id and \
+                interface['device_owner'] in \
+                    ('network:router_interface', \
+                     'network:ha_router_replicated_interface'):
+                for i in interface['fixed_ips']:
+                    self.routers_client.remove_router_interface(
+                        interface['device_id'], subnet_id=i['subnet_id'])
 
     '''
     Method returns the auditlog information
@@ -2914,17 +2919,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
         self.routers_client.add_router_interface(routers['Router-2'], subnet_id=subnets['PS-4'])
         portid1 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.4'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.14'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-2'], port_id=portid1)
         portid2 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.5'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.15'}]})['port']['id']
         portid3 = self.ports_client.create_port(
-            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.6'}]})['port']['id']
+            **{'network_id': nets['Private-2'], 'fixed_ips': [{'ip_address': '10.10.2.16'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-4'], port_id=portid2)
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid3)
         self.routers_client.add_router_interface(routers['Router-4'], subnet_id=subnets['PS-5'])
         portid4 = self.ports_client.create_port(
-            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.3'}]})['port']['id']
+            **{'network_id': nets['Private-5'], 'fixed_ips': [{'ip_address': '10.10.5.13'}]})['port']['id']
         self.routers_client.add_router_interface(routers['Router-5'], port_id=portid4)
 
         for router_name, router_id in list(routers.items()):
