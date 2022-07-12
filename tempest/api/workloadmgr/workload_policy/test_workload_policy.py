@@ -318,7 +318,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(workload_id))
             if(workload_id != ""):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -446,7 +446,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             time.sleep(10)
-            workload_id = query_data.get_workload_id(tvaultconf.workload_name)
+            workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(workload_id))
             if(workload_id != ""):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -573,7 +573,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     # Workload policy with scheduler and retension parameter
     @decorators.attr(type='workloadmgr_cli')
     def test_7_policywith_scheduler_retension(self):
-        reporting.add_test_script(str(__name__) + "with_scheduler_retention")
+        reporting.add_test_script(str(__name__) + "_with_scheduler_retention")
         try:
             global vm_id
             global volume_id
@@ -597,7 +597,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
-            self.workload_id = query_data.get_workload_id(
+            self.workload_id = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(self.workload_id))
             if self.workload_id is not None:
@@ -666,7 +666,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command workload create executed correctly")
 
             time.sleep(10)
-            self.workload_id2 = query_data.get_workload_id(
+            self.workload_id2 = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Workload2 ID: " + str(self.workload_id2))
             if(self.workload_id2 is not None):
@@ -967,41 +967,46 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Retension meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
-            for i in range(0, int(retention_policy_value_w1)):
+            try:
+                for i in range(0, int(retention_policy_value_w1)):
+                    snapshot_id = self.workload_snapshot(
+                        self.workload_id,
+                        True,
+                        snapshot_name=tvaultconf.snapshot_name +
+                        str(i),
+                        snapshot_cleanup=False)
+                    snapshots_list.append(snapshot_id)
+                LOG.debug("snapshot id list is : " + str(snapshots_list))
+
+                # Create one more snapshot
                 snapshot_id = self.workload_snapshot(
                     self.workload_id,
                     True,
                     snapshot_name=tvaultconf.snapshot_name +
-                    str(i),
+                    "_final",
                     snapshot_cleanup=False)
+                LOG.debug("Last snapshot id is : " + str(snapshot_id))
+
+                self.wait_for_snapshot_tobe_available(
+                    self.workload_id, snapshot_id)
+                LOG.debug("wait for snapshot available state")
+
                 snapshots_list.append(snapshot_id)
-            LOG.debug("snapshot id list is : " + str(snapshots_list))
+                LOG.debug("final snapshot list is " + str(snapshots_list))
 
-            # Create one more snapshot
-            snapshot_id = self.workload_snapshot(
-                self.workload_id,
-                True,
-                snapshot_name=tvaultconf.snapshot_name +
-                "_final",
-                snapshot_cleanup=False)
-            LOG.debug("Last snapshot id is : " + str(snapshot_id))
+                # get snapshot count and snapshot_details
+                snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
+                LOG.debug("snapshot list of workload retrieved using API is : " +
+                          str(snapshot_list_of_workload))
 
-            self.wait_for_snapshot_tobe_available(
-                self.workload_id, snapshot_id)
-            LOG.debug("wait for snapshot available state")
+                # verify that numbers of snapshot created persist
+                # retention_policy_value
+                LOG.debug("number of snapshots created : %d " %
+                          len(snapshot_list_of_workload))
+            except Exception as e:
+                raise Exception(
+                    "Error observed during snapshot creation")
 
-            snapshots_list.append(snapshot_id)
-            LOG.debug("final snapshot list is " + str(snapshots_list))
-
-            # get snapshot count and snapshot_details
-            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
-            LOG.debug("snapshot list of workload retrieved using API is : " +
-                      str(snapshot_list_of_workload))
-
-            # verify that numbers of snapshot created persist
-            # retention_policy_value
-            LOG.debug("number of snapshots created : %d " %
-                      len(snapshot_list_of_workload))
             if int(retention_policy_value_w1) == len(
                 snapshot_list_of_workload):
                 reporting.add_test_step(
