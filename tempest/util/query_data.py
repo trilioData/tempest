@@ -39,6 +39,22 @@ def get_workload_id(workload_name):
         conn.close()
 
 
+def get_workload_id_in_creation(workload_name):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_id = ("select id from workloads where display_name='" +
+                           workload_name + "' and status <> 'deleted' order by created_at desc limit 1")
+        cursor.execute(get_workload_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
 def get_deleted_workload(workload_id):
     try:
         conn = db_handler.dbHandler()
@@ -333,11 +349,30 @@ def get_snapshot_restore_id(snapshot_id):
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
         get_snapshot_restore_id = ("select id from restores where snapshot_id='" +
-                                   snapshot_id + "' order by deleted_at asc limit 1")
+                                   snapshot_id + "' order by created_at desc limit 1")
         cursor.execute(get_snapshot_restore_id)
         rows = cursor.fetchall()
         for row in rows:
             return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_restored_vmids(restore_id):
+    try:
+        vm_ids = []
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_restored_vmid = (
+            "select vm_id from restored_vms where restore_id='" + restore_id + "'")
+        cursor.execute(get_restored_vmid)
+        rows = cursor.fetchall()
+        for row in rows:
+            vm_ids.append(row[0])
+        return vm_ids
     except Exception as e:
         print(str(e))
     finally:
