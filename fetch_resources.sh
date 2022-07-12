@@ -367,8 +367,11 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    if [ $OPENSTACK_DISTRO == 'mosk' ]
+    if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
     then
+	cd /root
+        eval "$(<env.sh)"
+        cd -
         wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
         conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
@@ -618,11 +621,12 @@ function configure_tempest
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
-    if [ $OPENSTACK_DISTRO == 'mosk' ]
+    if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
     then
         echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     fi
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
+    sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 
 }
 
