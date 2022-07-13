@@ -27,6 +27,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     vm_id = None
     volume_id = None
     exception = ""
+    trust_name = ""
+    trust_list_db = []
 
     @classmethod
     def setup_clients(cls):
@@ -46,9 +48,125 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
             raise Exception("Execute scheduler-trust-validate CLI")
 
+    @decorators.attr(type='workloadmgr_cli')
+    def test_1_trust_create(self):
+        reporting.add_test_script(
+                "tempest.api.workloadmgr.trust.test_trust_create")
+        global trust_name
+        global trust_list_db
+        cmd = command_argument_string.trust_create + tvaultconf.test_role
+        try:
+            resp = eval(cli_parser.cli_output(cmd))
+            LOG.debug(f"Response for trust-create: {resp}")
+            reporting.add_test_step("Execute trust-create CLI",
+                    tvaultconf.PASS)
+            trust_name = resp['name']
+            trust_list_db = query_data.get_trust_list(
+                    CONF.identity.tenant_id, CONF.identity.user_id)
+            LOG.debug(f"trust_list returned from DB: {trust_list_db}")
+            if trust_name in trust_list_db:
+                reporting.add_test_step("Verify trust created in DB",
+                        tvaultconf.PASS)
+            else:
+                raise Exception("Verify trust created in DB")
+        except Exception as e:
+            LOG.error(f"Exception in test_1_trust_create: {e}")
+            reporting.add_test_step(f"{e}", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_2_trust_list(self):
+        reporting.add_test_script(
+                "tempest.api.workloadmgr.trust.test_trust_list")
+        cmd = command_argument_string.trust_list
+        global trust_list_db
+        try:
+            resp = eval(cli_parser.cli_output(cmd))
+            LOG.debug(f"Response for trust-list: {resp}")
+            reporting.add_test_step("Execute trust-list CLI",
+                    tvaultconf.PASS)
+            trust_list_cli = [tr['TrustID'] for tr in resp]
+
+            LOG.debug(f"trust_list returned from CLI:{trust_list_cli}")
+            LOG.debug(f"trust_list returned from DB:{trust_list_db}")
+            if sorted(trust_list_cli) == sorted(trust_list_db):
+                reporting.add_test_step("Verify trust list in DB and CLI",
+                        tvaultconf.PASS)
+            else:
+                raise Exception("Verify trust list in DB and CLI")
+        except Exception as e:
+            LOG.error(f"Exception in test_2_trust_list: {e}")
+            reporting.add_test_step(f"{e}", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_3_trust_show(self):
+        reporting.add_test_script(
+                "tempest.api.workloadmgr.trust.test_trust_show")
+        global trust_name
+        cmd = command_argument_string.trust_show + trust_name
+        try:
+            resp = json.loads(cli_parser.cli_output(cmd))
+            LOG.debug(f"Response for trust-show: {resp}")
+            reporting.add_test_step("Execute trust-show CLI",
+                    tvaultconf.PASS)
+            trust_details_cli = []
+            vars = ['version', 'user_id', 'project_id', 'name', 'value',
+                    'description', 'status']
+            for key in vars:
+                trust_details_cli.append(resp[key])
+            trust_details_cli.append(resp['metadata'][0]['value'])
+            LOG.debug(f"trust details returned from CLI: {trust_details_cli}")
+            trust_details_db = list(query_data.get_trust_details(trust_name))
+            trust_details_db.append(tvaultconf.test_role)
+            LOG.debug(f"trust details returned from DB: {trust_details_db}")
+            if trust_details_db == trust_details_cli:
+                reporting.add_test_step("Verify trust details in DB and CLI",
+                        tvaultconf.PASS)
+            else:
+                raise Exception("Verify trust show in DB and CLI")
+        except Exception as e:
+            LOG.error(f"Exception in test_3_trust_show: {e}")
+            reporting.add_test_step(f"{e}", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_4_trust_delete(self):
+        reporting.add_test_script(
+                "tempest.api.workloadmgr.trust.test_trust_delete")
+        global trust_name
+        cmd = command_argument_string.trust_delete + trust_name
+        try:
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                raise Exception("Execute trust-delete CLI")
+            else:
+                reporting.add_test_step("Execute trust-delete CLI",
+                        tvaultconf.PASS)
+            trust_list_db = query_data.get_trust_list(
+                    CONF.identity.tenant_id, CONF.identity.user_id)
+            LOG.debug(f"trust_list returned from DB: {trust_list_db}")
+            if trust_name in trust_list_db:
+                raise Exception("Trust still exists in DB")
+            else:
+                reporting.add_test_step("Verify trust deleted in DB",
+                        tvaultconf.PASS)
+        except Exception as e:
+            LOG.error(f"Exception in test_4_trust_delete: {e}")
+            reporting.add_test_step(f"{e}", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
     @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
-    def test_1_trust(self):
+    def test_5_trust(self):
         try:
             reporting.add_test_script(str(__name__) + \
                     "_validate_scheduler_trust_with_scheduler_enabled")
@@ -148,7 +266,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_2_trust(self):
+    def test_6_trust(self):
         try:
             reporting.add_test_script(str(__name__) + \
                     "_validate_scheduler_trust_with_scheduler_disabled")
@@ -239,7 +357,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_3_cleanup(self):
+    def test_7_cleanup(self):
         try:
             global vm_id
             global volume_id
@@ -247,6 +365,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_volume(volume_id)
         except Exception as e:
             LOG.error(f"Exception in test_3_cleanup: {e}")
-
-
 

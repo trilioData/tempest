@@ -16,8 +16,13 @@ workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' 
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
 workload_import = "workloadmgr workload-importworkloads"
-workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
 
+#Trust commands
+workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
+trust_create = "workloadmgr trust-create -f json --is_cloud_trust False "
+trust_list = "workloadmgr trust-list -f json"
+trust_show = "workloadmgr trust-show -f json "
+trust_delete = "workloadmgr trust-delete "
 
 get_storage_usage = "workloadmgr workload-get-storage-usage" 
 get_import_workloads_list = "workloadmgr workload-get-importworkloads-list" 
@@ -25,7 +30,6 @@ workload_disable_global_job_scheduler = "workloadmgr disable-global-job-schedule
 workload_enable_global_job_scheduler = "workloadmgr enable-global-job-scheduler"
 get_nodes  = "workloadmgr workload-get-nodes" 
 get_auditlog = "workloadmgr workload-get-auditlog"
-
 
 #Snapshot commands
 snapshot_list = "workloadmgr snapshot-list | grep available | wc -l"
@@ -52,7 +56,6 @@ selective_restore_with_blank_name = "workloadmgr --insecure snapshot-selective-r
 
 #openstack secret commands
 openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json "
-
 
 #Nova commands
 delete_vm = "nova delete "

@@ -55,6 +55,7 @@ wlm_dbhost = "192.168.6.17"
 smtp_password = "sample-password"
 smtp_password_pwdless = "sample-password"
 trustee_role = "_member_"
+test_role = "backup"
 
 no_of_compute_nodes = 1
 
