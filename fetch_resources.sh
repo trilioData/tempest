@@ -161,6 +161,7 @@ function configure_tempest
     then
         git checkout tempest/command_argument_string.py
         sed -i 's/workloadmgr /workloadmgr --insecure /g' tempest/command_argument_string.py
+        sed -i 's/openstack /openstack --insecure /g' tempest/command_argument_string.py
         iniset $TEMPEST_CONFIG wlm insecure True
     fi
     
@@ -196,7 +197,7 @@ function configure_tempest
 
     cnt=0
     for name in ${FVM_IMAGE_NAMES[@]}; do
-        id=$($OPENSTACK_CMD image list | grep -i $name | awk '$2 && $2 != "ID" {print $2}')
+        id=$($OPENSTACK_CMD image list | grep -i "$name " | awk '$2 && $2 != "ID" {print $2}')
         if [ $cnt -eq 0 ]
         then
             frm_data=$name':'$id
@@ -212,7 +213,7 @@ function configure_tempest
         if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
             $OPENSTACK_CMD flavor create --ram 64 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
         else
-            $OPENSTACK_CMD flavor create --ram 4096 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
+            $OPENSTACK_CMD flavor create --ram 2048 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
     fi
     if [[ ! ( $available_flavors =~ $FVM_IMAGE_NAMES ) ]] && [[ "$frm_data" ]]; then
@@ -373,6 +374,85 @@ function configure_tempest
     sed -i "2i export OS_PROJECT_NAME=$TEST_PROJECT_NAME" run_tempest.sh
 
     # network
+    ASSIGN_SUBNET () {
+      subnet_id=`($OPENSTACK_CMD subnet list --network $1 | awk '$2 && $2 != "ID" {print $2}')`
+      echo "subnet_id: "$subnet_id
+      if [[ $subnet_id == "" ]]; then
+         echo "Internal subnet not available, creating new subnet"
+         $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 18.18.1.0/24 --dhcp --ip-version 4 --network $1 test_internal_subnet
+      else
+         echo "Internal subnet available"
+      fi
+    }
+
+    ASSIGN_ROUTER () {
+      subnet_id=`($OPENSTACK_CMD subnet list | grep $1 | awk '$2 && $2 != "ID" {print $2}')`
+
+      # router
+      ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | head -1)`
+      if [ -z "$ext_network_id" ]; then
+          echo "External network not available"
+      fi
+
+      while read -r ROUTER_UUID; do
+              router_id="$ROUTER_UUID"
+          routers+=($ROUTER_UUID)
+      done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
+
+      case "${#routers[*]}" in
+          0)
+              echo "Found no routers to use! Creating new router\n"
+              $OPENSTACK_CMD router create --enable --project $test_project_id test_router
+              router_id=`($OPENSTACK_CMD router list --project $test_project_id | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
+              $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+              $OPENSTACK_CMD router add subnet $router_id $subnet_id
+              ;;
+          *)
+              echo "Found router to use!\n"
+              if [ -z "$router_id" ]; then
+                  router_id=${routers[0]}
+              fi
+              gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+              interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+
+              if [[ "$gateway_info" == *"None"* ]] | [ "$gateway_info" == "null" ]
+              then
+                  echo "External gateway not set"
+                  output=$($OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id 2>&1)
+                  echo $output
+                  if [[ $output =~ .*"No more IP addresses available".* ]]
+                  then
+                    echo "Relaesing Floating Ips and retry gateway creation"
+                    floating_ip_cnt1=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
+                    if [ $floating_ip_cnt1 -le 1 ]
+                    then
+                      echo "ERROR Floating Ips insufficient"
+                    else
+                      floating_ip=`($OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | tail -1)`
+                      $OPENSTACK_CMD floating ip delete ${floating_ip}
+                      $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
+                    fi
+                  elif [[ $output == *"Error"* ]]
+                  then
+                    echo "Gateway creation Failed with ERROR : " + $output
+                  fi
+
+              else
+                  echo "External gateway already set"
+              fi
+
+              if [[ "$interface_info" == *"$subnet_id"* ]]
+              then
+                  echo "Internal interface already added to router"
+              else
+                  echo "Internal interface not added to router"
+                  $OPENSTACK_CMD router add subnet $router_id $subnet_id
+              fi
+              ;;
+      esac
+    }
+
+
     echo "Fetch network information\n"
     while read -r NETWORK_TYPE NETWORK_UUID; do
         if [ "$NETWORK_TYPE" = "Internal" ]; then
@@ -380,70 +460,35 @@ function configure_tempest
             network_id_alt="$NETWORK_UUID"
         fi
         networks+=($NETWORK_UUID)
-    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    done < <($OPENSTACK_CMD network list --long -c ID -c "Router Type" --project $test_project_id --internal | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+
 
     case "${#networks[*]}" in
         0)
             echo "Found no internal networks to use! Creating new internal network\n"
             $OPENSTACK_CMD network create --internal --enable --project $test_project_id test_internal_network
-            network_id=`($OPENSTACK_CMD network list | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
+            network_id=`($OPENSTACK_CMD network list --project $test_project_id | grep test_internal_network | awk '$2 && $2 != "ID" {print $2}')`
             network_id_alt=$network_id
-            $OPENSTACK_CMD subnet create --project $test_project_id --subnet-range 16.16.1.0/24 --dhcp --ip-version 4 --network $network_id test_internal_subnet
-;;
+	    ASSIGN_SUBNET $network_id
+            ASSIGN_ROUTER $network_id
+            ;;
         1)
+            echo "Found single internal network to use!\n"
             if [ -z "$network_id" ]; then
                 network_id=${networks[0]}
                 network_id_alt=${networks[0]}
             fi
+	    ASSIGN_SUBNET $network_id
+            ASSIGN_ROUTER $network_id
             ;;
         *)
-            if [ -z "$network_id" ]; then
-                network_id=${networks[0]}
-                network_id_alt=${networks[1]}
-            fi
-            ;;
-    esac
-    subnet_id=`($OPENSTACK_CMD subnet list | grep $network_id | awk '$2 && $2 != "ID" {print $2}')`
-
-    # router
-    ext_network_id=`($OPENSTACK_CMD network list --external --long -c ID -c "Router Type" | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | head -1)`
-    if [ -z "$ext_network_id" ]; then
-        echo "External network not available"
-    fi
-
-    while read -r ROUTER_UUID; do
-            router_id="$ROUTER_UUID"
-        routers+=($ROUTER_UUID)
-    done < <($OPENSTACK_CMD router list --long -c ID --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')
- 
-    case "${#routers[*]}" in
-        0)
-            echo "Found no routers to use! Creating new router\n"
-            $OPENSTACK_CMD router create --enable --project $test_project_id test_router
-            router_id=`($OPENSTACK_CMD router list | grep test_router | awk '$2 && $2 != "ID" {print $2}')`
-            $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
-            $OPENSTACK_CMD router add subnet $router_id $subnet_id
-            ;;
-        *)
-            if [ -z "$router_id" ]; then
-                router_id=${routers[0]}
-            fi
-            gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
-            interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
-            if [[ $gateway_info == *"None"* ]]
-            then
-                echo "External gateway not set"
-                $OPENSTACK_CMD router set --external-gateway $ext_network_id $router_id
-            else
-                echo "External gateway already set"
-            fi
-            if [[ "$subnet_id" == *"$interface_info"* ]]
-            then
-                echo "Internal interface already added to router"
-            else
-                echo "Internal interface not added to router"
-                $OPENSTACK_CMD router add subnet $router_id $subnet_id
-            fi
+            echo "Found multiple internal networks to use!\n"
+            network_id=${networks[*]:0:1}
+            network_id_alt=${networks[*]:1:1}
+	    ASSIGN_SUBNET $network_id
+	    ASSIGN_SUBNET $network_id_alt
+            ASSIGN_ROUTER $network_id
+            ASSIGN_ROUTER $network_id_alt
             ;;
     esac
    
@@ -494,10 +539,11 @@ function configure_tempest
     IP=""
     cnt=0
     IFS=' ' read -ra IP <<< "${TVAULT_IP[@]}"
+    TVAULT_IP="["
     for i in "${IP[@]}"; do
        if [ $cnt -eq 0 ]
        then
-          TVAULT_IP="[""\""$i"\""
+          TVAULT_IP+="\""$i"\""
        else
           TVAULT_IP+=", \""$i"\""
        fi
@@ -505,12 +551,47 @@ function configure_tempest
     done
     TVAULT_IP+="]"
 
+
+    #check for user name in TEST_IMAGE_NAME
+    #keep TEST_USER_NAME value as "ubuntu" for the default case.
+    #convert test image name to lower case for comparison...
+    IMAGE_NAME=${TEST_IMAGE_NAME,,}
+    case $IMAGE_NAME in
+        *"ubuntu"*)
+                search_pattern="ubuntu"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=10
+                ;;
+        *"centos"*)
+                search_pattern="centos"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=10
+                ;;
+        *"cirros"*)
+                search_pattern="cirros"
+                res=${IMAGE_NAME#*$search_pattern}
+                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
+                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+		BOOTVOL_SIZE=4
+                ;;
+        *)
+                TEST_USER_NAME="ubuntu"
+		BOOTVOL_SIZE=10
+                ;;
+    esac
+
+
     # tvaultconf.py
     sed -i '/tvault_ip/d' $TEMPEST_TVAULTCONF
     echo 'tvault_ip='$TVAULT_IP'' >> $TEMPEST_TVAULTCONF
     sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
-    sed -i '/instance_username = /c instance_username = "'$TEST_IMAGE_NAME'"' $TEMPEST_TVAULTCONF
+    sed -i '/instance_username = /c instance_username = "'${TEST_USER_NAME,,}'"' $TEMPEST_TVAULTCONF
+    sed -i '/bootfromvol_vol_size = /c bootfromvol_vol_size = '$BOOTVOL_SIZE'' $TEMPEST_TVAULTCONF
     sed -i '/tvault_dbname = /c tvault_dbname = "'$dbname'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbusername = /c wlm_dbusername = "'$dbusername'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
