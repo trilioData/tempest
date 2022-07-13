@@ -546,7 +546,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 
     @decorators.attr(type='workloadmgr_api')
-    def test_03_multiattach_volumes(self):
+    def test_02_multiattach_volumes(self):
         try:
             test_var = "tempest.api.workloadmgr.multiattach_volumes.test_multiattach_volume_booted_"
             tests = [[test_var + "workload_api", 0],
@@ -750,7 +750,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
     # Workload with scheduler and retention parameter
     @decorators.attr(type='workloadmgr_cli')
-    def test_02_multiattach(self):
+    def test_03_multiattach(self):
         reporting.add_test_script(str(__name__) + "_retention_with_multiattach_volume")
         try:
             retention = 3
@@ -835,6 +835,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshots1 = [x for x in snapshots if self.getSnapshotStatus(
                 self.wid, x) == 'available']
             diff_list = []
+            LOG.debug("Scheduler list " + str(snapshots1))
             if len(snapshots1) == retention:
                 LOG.debug("Retention passed")
                 reporting.add_test_step("Retention", tvaultconf.PASS)
@@ -844,9 +845,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "/snapshots/" + snapshot)[1]['snapshot']['created_at'])
                     snaptimes.append(datetime.strptime(
                         t1, '%Y-%m-%dT%H:%M:%S.%f'))
-
-                    if info[2] == "full" and self.getSnapshotStatus(
-                            self.wid, snapshot) == 'available':
+                    status_snap = self.getSnapshotStatus(
+                        self.wid, snapshot)
+                    LOG.debug("Snapshot " + str(snapshot) + " status " + str(status_snap))
+                    if info[2] == "full":
                         pass
                     else:
                         raise Exception(
@@ -858,8 +860,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
             reporting.add_test_script(str(__name__) + "_scheduler_with_multiattach_volume")
+            LOG.debug("Scheduler time " + str(snaptimes))
             for x, y in zip(snaptimes[0::], snaptimes[1::]):
+                LOG.debug("Scheduler time x " + str(x) + " y " + str(y))
                 diff_list.append(y - x)
+            LOG.debug("Scheduler list " + str(set(diff_list)))
+            LOG.debug("Scheduler list len " + str(len(set(diff_list))))
             if len(set(diff_list)) == 1:
                 LOG.debug("Scheduler is working correctly")
                 reporting.add_test_step("Scheduler", tvaultconf.PASS)
