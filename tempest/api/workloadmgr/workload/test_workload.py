@@ -326,7 +326,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 max_retries = 20
                 retry_count = 0
-                while (str(wc) != "deleted"):
+                while (str(wc) != "deleted" or str(wc) != "None" or str(wc) != "error"):
                     time.sleep(30)
                     wc = query_data.get_deleted_workload(self.wid)
                     LOG.debug("Workload status: " + str(wc))
@@ -336,9 +336,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         LOG.debug("Workload successfully deleted")
                         self.deleted = True
                         break
+                    elif (str(wc) == "None") or (str(wc) == "error"):
+                        LOG.debug("Failed to delete Workload")
+                        self.deleted = False
+                        break
                     else:
                         if retry_count >= max_retries:
                             LOG.error("Max retries to get workload delete status is over. Failed to delete workload.")
+                            self.deleted = False
                             break
                         else:
                             LOG.debug("Retrying to delete workload again - retry count = "+ str(retry_count))

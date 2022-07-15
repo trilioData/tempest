@@ -70,7 +70,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("Workload snapshot status: " + str(wc))
             max_retries = 20
             retry_count = 0
-            while (str(wc) != "available" or str(wc) != "error"):
+            while (str(wc) != "available" or str(wc) != "error" or str(wc) != "None"):
                 time.sleep(30)
                 wc = query_data.get_workload_snapshot_status(
                     tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, self.snapshot_id)
@@ -79,16 +79,18 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Workload snapshot successfully completed")
                     self.created = True
                     break
+                elif (str(wc) == "None") or (str(wc) == "error"):
+                    LOG.debug("Failed to create workload snapshot")
+                    self.created = False
+                    break
                 else:
-                    if (str(wc) == "error"):
+                    if retry_count >= max_retries:
+                        LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
+                        self.created = False
                         break
                     else:
-                        if retry_count >= max_retries:
-                            LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
-                            break
-                        else:
-                            LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
-                            retry_count += 1
+                        LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
+                        retry_count += 1
             #end of while loop.
 
             if (self.created == False):
