@@ -799,7 +799,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                           ).strftime("%I:%M %p")
             self.schedule = {
                 "fullbackup_interval": "0",
-                "retention_policy_type": "Number of Snapshots to Keep",
+                "retention_policy_type": tvaultconf.retention_policy_type,
                 "interval": tvaultconf.interval,
                 "enabled": True,
                 "start_date": start_date,
