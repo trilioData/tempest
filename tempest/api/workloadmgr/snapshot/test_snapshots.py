@@ -228,6 +228,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if(str(wc) == "1"):
                 reporting.add_test_step("Verification", tvaultconf.PASS)
                 LOG.debug("Workload snapshot successfully deleted")
+            elif(str(wc) == "None"):
+                reporting.add_test_step("Verification", tvaultconf.PASS)
+                LOG.debug("Snapshot is already deleted. Returned return value as None.")
             else:
                 LOG.debug("Timeout Waiting for snapshot deletion for the workload.")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
