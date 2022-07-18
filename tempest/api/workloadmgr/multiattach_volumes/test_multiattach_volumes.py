@@ -827,16 +827,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create workload failed")
 
+            # Sleep for 4 hours to generate 4 snapshots to check retention.
             LOG.debug("Sleeping till snapshots get completed")
             time.sleep((int(tvaultconf.interval.split(' ')[
                                 0]) * int((retention + 1)) * 3600) + 600)
+
             self.wait_for_workload_tobe_available(self.wid)
             snapshots = self.getSnapshotList(workload_id=self.wid)
             snaptimes = []
             snapshots1 = [x for x in snapshots if self.getSnapshotStatus(
                 self.wid, x) == 'available']
             diff_list = []
-            LOG.debug("Scheduler list " + str(snapshots1))
+
             if len(snapshots1) == retention:
                 LOG.debug("Retention passed")
                 reporting.add_test_step("Retention of snapshots for multiattach volume VM", tvaultconf.PASS)
@@ -869,8 +871,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if duration_in_s >= 3598:
                     duration_in_s = 3600
                 diff_list.append(duration_in_s)
-            LOG.debug("Scheduler list " + str(set(diff_list)))
-            LOG.debug("Scheduler list len " + str(len(set(diff_list))))
+
             if len(set(diff_list)) == 1:
                 LOG.debug("Scheduler is working correctly")
                 reporting.add_test_step("Scheduler for creating snapshot  for multiattach volume VM", tvaultconf.PASS)
