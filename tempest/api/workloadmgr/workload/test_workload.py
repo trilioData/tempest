@@ -330,14 +330,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     time.sleep(30)
                     wc = query_data.get_deleted_workload(self.wid)
                     LOG.debug("Workload status: " + str(wc))
-                    if (str(wc) == "deleted"):
+                    if (str(wc) == "None"):
                         reporting.add_test_step(
                             "Verification with DB", tvaultconf.PASS)
-                        LOG.debug("Workload successfully deleted")
+                        LOG.debug("Workload successfully deleted already. Returned None.")
                         self.deleted = True
                         break
-                    elif (str(wc) == "None") or (str(wc) == "error"):
-                        LOG.debug("Failed to delete Workload")
+                    elif (str(wc) == "deleted"):
+                        LOG.debug("Returned value deleted for workload deletion status. Not Expected return value.")
+                        self.deleted = False
+                        break
+                    elif (str(wc) == "error"):
+                        LOG.debug("Returned value error for workload deletion status. Failed to delete Workload")
                         self.deleted = False
                         break
                     else:

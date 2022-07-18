@@ -132,9 +132,13 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             wc = query_data.get_snapshot_restore_delete_status(
                 tvaultconf.restore_name, tvaultconf.restore_type)
+            LOG.debug("Snapshot delete status: " + str(wc))
             if (str(wc) == "1"):
                 reporting.add_test_step("Verification", tvaultconf.PASS)
                 LOG.debug("Snapshot restore successfully deleted")
+            if (str(wc) == "None"):
+                reporting.add_test_step("Verification", tvaultconf.PASS)
+                LOG.debug("Snapshot deleted already. Returned return value as None.")
             else:
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Restore did not get deleted")

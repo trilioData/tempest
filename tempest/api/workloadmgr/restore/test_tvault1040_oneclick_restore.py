@@ -94,7 +94,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot restore status: " + str(wc))
             max_retries = 20
             retry_count = 0
-            while (str(wc) != "available" or str(wc) != "error" or str(wc) != "None"):
+            while (str(wc) != "available" or str(wc) != "error"):
                 time.sleep(30)
                 wc = query_data.get_snapshot_restore_status(
                     tvaultconf.restore_name, self.snapshot_id)
@@ -105,7 +105,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                         "Snapshot one-click restore verification with DB", tvaultconf.PASS)
                     self.created = True
                     break
-                elif (str(wc) == "None") or (str(wc) == "error"):
+                elif (str(wc) == "error"):
                     LOG.debug("Failed to restore snapshot")
                     self.created = False
                     break
