@@ -92,10 +92,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_snapshot_restore_status(
                 tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
-            max_retries = 20
             retry_count = 0
             while (str(wc) != "available" or str(wc) != "error"):
-                time.sleep(30)
+                time.sleep(15)
                 wc = query_data.get_snapshot_restore_status(
                     tvaultconf.restore_name, self.snapshot_id)
                 LOG.debug("Snapshot restore status: " + str(wc))
@@ -106,11 +105,11 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     self.created = True
                     break
                 elif (str(wc) == "error"):
-                    LOG.debug("Failed to restore snapshot")
+                    LOG.error("Failed to restore snapshot")
                     self.created = False
                     break
                 else:
-                    if retry_count >= max_retries:
+                    if retry_count >= tvaultconf.max_retries:
                         LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
                         self.created = False
                         break
