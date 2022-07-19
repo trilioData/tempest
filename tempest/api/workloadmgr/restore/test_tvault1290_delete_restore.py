@@ -68,8 +68,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_workload_snapshot_status(
                 tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, self.snapshot_id)
             LOG.debug("Workload snapshot status: " + str(wc))
-            while (str(wc) != "available" or str(wc) != "error"):
-                time.sleep(5)
+            retry_count = 0
+            while (str(wc) != "available" or str(wc) != "error" or str(wc) != "None"):
+                time.sleep(15)
                 wc = query_data.get_workload_snapshot_status(
                     tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, self.snapshot_id)
                 LOG.debug("Workload snapshot status: " + str(wc))
@@ -77,9 +78,20 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Workload snapshot successfully completed")
                     self.created = True
                     break
+                elif (str(wc) == "None") or (str(wc) == "error"):
+                    LOG.debug("Failed to create workload snapshot")
+                    self.created = False
+                    break
                 else:
-                    if (str(wc) == "error"):
+                    if retry_count >= tvaultconf.max_retries:
+                        LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
+                        self.created = False
                         break
+                    else:
+                        LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
+                        retry_count += 1
+            #end of while loop.
+
             if (self.created == False):
                 raise Exception("Workload snapshot did not get created")
 
@@ -119,11 +131,17 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             wc = query_data.get_snapshot_restore_delete_status(
                 tvaultconf.restore_name, tvaultconf.restore_type)
-            if (str(wc) == "1"):
+            LOG.debug("Snapshot delete status: " + str(wc))
+            if (str(wc) == "None"):
                 reporting.add_test_step("Verification", tvaultconf.PASS)
-                LOG.debug("Snapshot restore successfully deleted")
+                LOG.debug("Snapshot deleted already. Returned return value as None.")
+            if (str(wc) == "1"):
+                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                LOG.error("Unexpected return value as 1 while checking snapshot delete status")
+                raise Exception("Restore did not get deleted")
             else:
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
+                LOG.error("Unexpected return value received while checking snapshot delete status")
                 raise Exception("Restore did not get deleted")
 
             # Cleanup

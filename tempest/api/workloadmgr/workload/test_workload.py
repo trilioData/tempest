@@ -324,16 +324,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload successfully deleted")
                 self.deleted = True
             else:
-                while (str(wc) != "deleted"):
-                    time.sleep(5)
+                retry_count = 0
+                while (str(wc) != "deleted" or str(wc) != "None" or str(wc) != "error"):
+                    time.sleep(15)
                     wc = query_data.get_deleted_workload(self.wid)
                     LOG.debug("Workload status: " + str(wc))
-                    if (str(wc) == "deleted"):
+                    if (str(wc) == "None"):
                         reporting.add_test_step(
                             "Verification with DB", tvaultconf.PASS)
-                        LOG.debug("Workload successfully deleted")
+                        LOG.debug("Workload successfully deleted already. Returned None.")
                         self.deleted = True
                         break
+                    elif (str(wc) == "deleted"):
+                        LOG.error("Returned value deleted for workload deletion status. Not Expected return value.")
+                        self.deleted = False
+                        break
+                    elif (str(wc) == "error"):
+                        LOG.error("Returned value error for workload deletion status. Failed to delete Workload")
+                        self.deleted = False
+                        break
+                    else:
+                        if retry_count >= tvaultconf.max_retries:
+                            LOG.error("Max retries to get workload delete status is over. Failed to delete workload.")
+                            self.deleted = False
+                            break
+                        else:
+                            LOG.debug("Retrying to delete workload again - retry count = "+ str(retry_count))
+                            retry_count += 1
+                #end of while loop.
+
             if (self.deleted == False):
                 reporting.add_test_step(
                     "Verification with DB", tvaultconf.FAIL)
