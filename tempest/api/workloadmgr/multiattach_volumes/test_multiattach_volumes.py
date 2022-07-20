@@ -765,11 +765,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     vol_type_name = vol
 
             if (vol_type_id == -1):
-                raise Exception("No multiattach volume found to create multiattach volume. Test cannot be continued")
+                raise Exception(
+                    "No multiattach volume found to create multiattach volume. Test cannot be continued")
 
             # Now create volume with derived volume type id...
             self.volume_id = self.create_volume(
-                volume_type_id=vol_type_id, size=6, volume_cleanup=False)
+                volume_type_id=vol_type_id, size=2, volume_cleanup=False)
 
             LOG.debug("Volume ID: " + str(self.volume_id))
 
@@ -827,35 +828,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create workload failed")
 
-            # Sleep for 4 hours to generate 4 snapshots to check retention.
-            LOG.debug("Sleeping till snapshots get completed")
-            time.sleep((int(tvaultconf.interval.split(' ')[
-                                0]) * int((retention + 1)) * 3600) + 600)
+            for num in range(retention):
+                snapshot_name = 'Tempest-retention-snapshot' + str(num + 1)
+                self.snapshot_id = self.workload_snapshot(self.wid, True, snapshot_name=snapshot_name)
+                self.wait_for_workload_tobe_available(self.wid)
 
-            self.wait_for_workload_tobe_available(self.wid)
             snapshots = self.getSnapshotList(workload_id=self.wid)
-            snaptimes = []
             snapshots1 = [x for x in snapshots if self.getSnapshotStatus(
                 self.wid, x) == 'available']
-            diff_list = []
+            snapshot1 = [x1 for x1 in snapshots1 if self.getSnapshotInfo(
+                snapshot_id=x1)[1] == 'Tempest-retention-snapshot1']
 
-            if len(snapshots1) == retention:
+            if len(snapshots1) == retention and len(snapshot1) == 0:
                 LOG.debug("Retention passed")
                 reporting.add_test_step("Retention of snapshots for multiattach volume VM", tvaultconf.PASS)
-                for snapshot in snapshots:
-                    info = self.getSnapshotInfo(snapshot_id=snapshot)
-                    t1 = str(self.wlm_client.client.get(
-                        "/snapshots/" + snapshot)[1]['snapshot']['created_at'])
-                    snaptimes.append(datetime.strptime(
-                        t1, '%Y-%m-%dT%H:%M:%S.%f'))
-                    status_snap = self.getSnapshotStatus(
-                        self.wid, snapshot)
-                    LOG.debug("Snapshot " + str(snapshot) + " status " + str(status_snap))
-                    if info[2] == "full":
-                        pass
-                    else:
-                        raise Exception(
-                            "Incremental snapshots instead of full")
             else:
                 LOG.debug("Retention failed")
                 reporting.add_test_step("Retention of snapshots for multiattach volume VM", tvaultconf.FAIL)
@@ -863,22 +849,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
             reporting.add_test_script(str(__name__) + "_scheduler_with_multiattach_volume")
-            LOG.debug("Scheduler time " + str(snaptimes))
-            for x, y in zip(snaptimes[0::], snaptimes[1::]):
-                LOG.debug("Scheduler time x " + str(x) + " y " + str(y))
-                duration = y - x
-                duration_in_s = duration.total_seconds()
-                if duration_in_s >= 3598:
-                    duration_in_s = 3600
-                diff_list.append(duration_in_s)
-
-            if len(set(diff_list)) == 1:
-                LOG.debug("Scheduler is working correctly")
-                reporting.add_test_step("Scheduler for creating snapshot  for multiattach volume VM", tvaultconf.PASS)
+            # Verify workload created with scheduler enable
+            status = self.getSchedulerStatus(self.wid)
+            if status:
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.PASS)
+                LOG.debug("Workload created with scheduler enabled successfully")
             else:
-                LOG.debug("Scheduler isn't working correctly")
-                reporting.add_test_step("Scheduler for creating snapshot  for multiattach volume VM", tvaultconf.FAIL)
-
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Workload has not been created with scheduler enabled")
             reporting.test_case_to_write()
 
         except Exception as e:
