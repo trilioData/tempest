@@ -139,3 +139,5 @@ enable_cinder_volume_exclusion = {"exclude_from_backup": "True"}
 enable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "True"}
 disable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "False"}
 
+#max retry count
+max_retries = 20
