@@ -586,3 +586,40 @@ def get_available_quotas_count(project_id):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_trust_list(project_id, user_id):
+    try:
+        trusts = []
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select name from settings where category='identity' and " +\
+                "project_id='" + project_id + "' and user_id='" + user_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        for row in rows:
+            trusts.append(row[0])
+        return trusts
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_trust_details(trust_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        cmd = "select version, user_id, project_id, name, value, description"+\
+                ", status from settings where category='identity' and " +\
+                "name='" + trust_id + "'"
+        cursor.execute(cmd)
+        rows = cursor.fetchall()
+        return rows[0]
+    except Exception as e:
+        LOG.error(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+

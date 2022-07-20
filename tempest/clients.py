@@ -319,22 +319,15 @@ class Manager(clients.ServiceClients):
         self.object_client = self.object_storage.ObjectClient()
 
     def _set_workloadmgr_clients(self):
-        if CONF.identity.auth_version == 'v2':
-            authurl = CONF.identity.uri
-            endpoint = CONF.identity.v2_public_endpoint_type
-        elif CONF.identity.auth_version == 'v3':
-            authurl = CONF.identity.uri_v3
-            endpoint = CONF.identity.v3_endpoint_type
         self.wlm_client = client.Client(1,
-                                        CONF.identity.username,
-                                        CONF.identity.password,
-                                        CONF.identity.project_name,
-                                        authurl,
-                                        CONF.identity.domain_name,
+                                        username=CONF.identity.username,
+                                        password=CONF.identity.password,
+                                        project_name=CONF.identity.project_name,
+                                        auth_url=CONF.identity.uri_v3,
+                                        domain_name=CONF.identity.domain_name,
                                         insecure=CONF.wlm.insecure,
                                         region_name=CONF.identity.region,
-                                        tenant_id=CONF.wlm.os_tenant_id,
-                                        endpoint_type=endpoint,
+                                        endpoint_type=CONF.identity.v3_endpoint_type,
                                         service_type=CONF.wlm.service_type,
                                         service_name=CONF.wlm.service_name,
                                         retries=CONF.wlm.retries,

@@ -18,7 +18,7 @@ Repo for automation build, test etc.
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
-      git clone -b stable/4.2 https://github.com/trilioData/tempest.git
+      git clone -b stable/5.0 https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       
@@ -56,7 +56,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-5-0/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -77,7 +77,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-4-2/ /
+           deb [trusted=yes] https://apt.fury.io/triliodata-5-0/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -120,7 +120,7 @@ Repo for automation build, test etc.
     - To run a single test:
         - Execute run_tempest.sh file with required script as argument
           ```
-          ./run_tempest.sh tempest.api.workloadmgr.workload.test_tvault1033_create_workload
+          ./run_tempest.sh tempest.api.workloadmgr.workload.test_workload
           ```
         - Log file "tempest.log" would be available
     - To run sanity tests, run below:

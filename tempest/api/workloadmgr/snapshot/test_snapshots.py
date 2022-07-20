@@ -225,11 +225,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
                 LOG.debug("Snapshot Delete status: " + str(wc))
                 time.sleep(5)
-            if(str(wc) == "1"):
+            if(str(wc) == "None"):
+                LOG.debug("Snapshot is already deleted. Returned return value as None.")
                 reporting.add_test_step("Verification", tvaultconf.PASS)
-                LOG.debug("Workload snapshot successfully deleted")
+            elif(str(wc) == "1"):
+                LOG.error("Unexpected return value as 1 while checking snapshot delete status")
+                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                raise Exception("Snapshot did not get deleted")
             else:
-                LOG.debug("Timeout Waiting for snapshot deletion for the workload.")
+                LOG.error("Timeout Waiting for snapshot deletion for the workload.")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Snapshot did not get deleted")
 
