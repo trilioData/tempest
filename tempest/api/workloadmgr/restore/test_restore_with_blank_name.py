@@ -243,12 +243,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             'vdisk':volumeslist}
 
             instance_details.append(rest_details)
+            snapshot_network={'id': CONF.network.internal_network_id,
+                    'subnet': {'id': self.get_subnet_id(
+                CONF.network.internal_network_id)}}
 
             #payload to pass - selective restore cli command.
             payload = {"type": "openstack",
                        "oneclickrestore": False,
                        "openstack": {"instances": instance_details,
-                                     "networks_mapping": {"networks": []},
+                                     "networks_mapping": {
+                                         "networks": [
+                                             {'snapshot_network':
+                                                 snapshot_network,
+                                              'target_network':
+                                                 snapshot_network}]},
                                      "restore_topology": False},
                        "restore_type": "selective"}
 
