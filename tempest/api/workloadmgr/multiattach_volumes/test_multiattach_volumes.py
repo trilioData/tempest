@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest.lib import decorators
@@ -746,3 +747,123 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
 
+    # Workload with scheduler and retention parameter
+    @decorators.attr(type='workloadmgr_cli')
+    def test_03_multiattach(self):
+        reporting.add_test_script(str(__name__) + "_retention_with_multiattach_volume")
+        try:
+            self.vm_id_1 = self.create_vm()
+            self.vm_id_2 = self.create_vm()
+
+            # find volume_type = multiattach. So that existing multiattach volume type can be used.
+            # Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("multiattach") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+                    vol_type_name = vol
+
+            if (vol_type_id == -1):
+                raise Exception(
+                    "No multiattach volume found to create multiattach volume. Test cannot be continued")
+
+            # Now create volume with derived volume type id...
+            self.volume_id = self.create_volume(
+                volume_type_id=vol_type_id, size=2, volume_cleanup=False)
+
+            LOG.debug("Volume ID: " + str(self.volume_id))
+
+            self.volumes = []
+            self.volumes.append(self.volume_id)
+            # Attach volume to vm...
+            api_version.COMPUTE_MICROVERSION = '2.60'
+            self.attach_volume(self.volume_id, self.vm_id_1, attach_cleanup=False)
+            self.attach_volume(self.volume_id, self.vm_id_2, attach_cleanup=False)
+            LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1) + " and " + str(self.vm_id_2))
+            api_version.COMPUTE_MICROVERSION = None
+
+            vol_vm_1 = self.get_attached_volumes(self.vm_id_1)
+            vol_vm_2 = self.get_attached_volumes(self.vm_id_2)
+            LOG.debug("Voulme o VM 1: " + str(vol_vm_1) + " on VM 2:" + str(vol_vm_2))
+            if vol_vm_1 == vol_vm_2:
+                reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Multiattach volume failed to attach existing instance")
+
+            retention = int(tvaultconf.retention_policy_value)
+            start_date = time.strftime("%m/%d/%Y")
+            start_time = (datetime.now() + timedelta(minutes=5)
+                          ).strftime("%I:%M %p")
+            self.schedule = {
+                "fullbackup_interval": "0",
+                "retention_policy_type": tvaultconf.retention_policy_type,
+                "interval": tvaultconf.interval,
+                "enabled": True,
+                "start_date": start_date,
+                "start_time": start_time,
+                "retention_policy_value": retention}
+
+            # Create workload with API
+            try:
+                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
+                                                workload_type=tvaultconf.parallel,
+                                                jobschedule=self.schedule,
+                                                workload_name='Workload-1',
+                                                description='New Test')
+                LOG.debug("Workload ID: " + str(self.wid))
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Create workload with image booted vm")
+            if (self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                self.workload_status = self.getWorkloadStatus(self.wid)
+                if (self.workload_status == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload failed")
+            else:
+                raise Exception("Create workload failed")
+
+            for num in range(retention):
+                snapshot_name = 'Tempest-retention-snapshot' + str(num + 1)
+                self.snapshot_id = self.workload_snapshot(self.wid, True, snapshot_name=snapshot_name)
+                self.wait_for_workload_tobe_available(self.wid)
+
+            snapshots = self.getSnapshotList(workload_id=self.wid)
+            snapshots1 = [x for x in snapshots if self.getSnapshotStatus(
+                self.wid, x) == 'available']
+            snapshot1 = [x1 for x1 in snapshots1 if self.getSnapshotInfo(
+                snapshot_id=x1)[1] == 'Tempest-retention-snapshot1']
+
+            if len(snapshots1) == retention and len(snapshot1) == 0:
+                LOG.debug("Retention passed")
+                reporting.add_test_step("Retention of snapshots for multiattach volume VM", tvaultconf.PASS)
+            else:
+                LOG.debug("Retention failed")
+                reporting.add_test_step("Retention of snapshots for multiattach volume VM", tvaultconf.FAIL)
+                raise Exception("Retention failed")
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(str(__name__) + "_scheduler_with_multiattach_volume")
+            # Verify workload created with scheduler enable
+            status = self.getSchedulerStatus(self.wid)
+            if status:
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.PASS)
+                LOG.debug("Workload created with scheduler enabled successfully")
+            else:
+                reporting.add_test_step(
+                    "Verify workload created with scheduler enabled",
+                    tvaultconf.FAIL)
+                raise Exception(
+                    "Workload has not been created with scheduler enabled")
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
