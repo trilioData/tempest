@@ -52,6 +52,8 @@ selective_restore_with_blank_name = "workloadmgr --insecure snapshot-selective-r
 
 #openstack secret commands
 openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json "
+openstack_create_secret_with_payload = "openstack --insecure secret store -p test_payload -f json"
+openstack_create_secret_container_with_uuid = "openstack --insecure secret container create -n secret-container -s "
 
 
 #Nova commands
