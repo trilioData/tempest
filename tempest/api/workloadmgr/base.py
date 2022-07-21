@@ -73,6 +73,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.container_client = cls.os_primary.barbican_container_client
         cls.order_client = cls.os_primary.order_client
         cls.projects_client = cls.os_primary.projects_client
 
@@ -3618,6 +3619,36 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for secgrp in secgrp_ids:
             self.delete_security_group(secgrp)
             LOG.debug("Deleted security groups: {}".format(secgrp))
+
+
+    '''
+    This method creates a secret container using secret uuid.
+    '''
+     def create_secret_container(self, secret_uuid):
+        try:
+            #get the secret ref using secret_uuid
+            response = self.secret_client.get_secret_metadata(secret_uuid)
+            secret_data = [
+                    {
+                        'name' : 'test secret',
+                        'secret_ref' : response['secret_ref'] if response else []
+                        }
+                    ]
+            resp = self.container_client.create_container(
+                                    type = "generic",
+                                    name = "secret-container",
+                                    secret_refs = secret_data
+                                    )
+
+            if resp['container_ref']:
+                return True
+            else:
+                return False
+
+        except Exception as e:
+            LOG.error(f"Exception occurred: {e}")
+            return False
+
 
     '''
     This method creates a secret for workloads
