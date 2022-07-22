@@ -73,6 +73,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.container_client = cls.os_primary.barbican_container_client
         cls.order_client = cls.os_primary.order_client
         cls.projects_client = cls.os_primary.projects_client
 
@@ -3618,6 +3619,55 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         for secgrp in secgrp_ids:
             self.delete_security_group(secgrp)
             LOG.debug("Deleted security groups: {}".format(secgrp))
+
+
+    '''
+    This method creates a secret container using secret uuid.
+    '''
+    def create_secret_container(self, secret_uuid, secret_container_cleanup=True):
+        try:
+            container_ref = ""
+            #get the secret ref using secret_uuid
+            response = self.secret_client.get_secret_metadata(secret_uuid)
+            secret_data = [
+                    {
+                        'name' : 'test secret',
+                        'secret_ref' : response['secret_ref'] if response else []
+                        }
+                    ]
+            resp = self.container_client.create_container(
+                                    type = "generic",
+                                    name = "secret-container",
+                                    secret_refs = secret_data
+                                    )
+
+            #get the container ref
+            container_ref = resp['container_ref']
+
+            if (tvaultconf.cleanup and secret_container_cleanup):
+                self.addCleanup(self.delete_secret_container, container_ref)
+
+        except Exception as e:
+            LOG.error(f"Exception occurred during creation: {e}")
+        finally:
+            #return the container ref URL
+            return container_ref
+
+    
+    '''
+    This method deletes a secrete container created
+    '''
+    def delete_secret_container(self, container_ref):
+        try:
+            container_uuid = container_ref.split('/')[-1]
+            #pass the container uuid to delete the container
+            resp = self.container_client.delete_container(container_uuid)
+            LOG.debug(f"delete secret container response = {resp}")
+
+        except Exception as e:
+            LOG.error(f"Exception occurred during deletion: {e}")
+            return False
+
 
     '''
     This method creates a secret for workloads
