@@ -3624,8 +3624,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     This method creates a secret container using secret uuid.
     '''
-     def create_secret_container(self, secret_uuid):
+    def create_secret_container(self, secret_uuid):
         try:
+            container_ref = ""
             #get the secret ref using secret_uuid
             response = self.secret_client.get_secret_metadata(secret_uuid)
             secret_data = [
@@ -3640,13 +3641,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     secret_refs = secret_data
                                     )
 
-            if resp['container_ref']:
-                return True
-            else:
-                return False
+            #get the container ref
+            container_ref = resp['container_ref']
 
         except Exception as e:
-            LOG.error(f"Exception occurred: {e}")
+            LOG.error(f"Exception occurred during creation: {e}")
+        finally:
+            #return the container ref URL
+            return container_ref
+
+    
+    '''
+    This method deletes a secrete container created
+    '''
+    def delete_secret_container(self, container_ref):
+        try:
+            container_uuid = container_ref.split('/')[-1]
+            #pass the container uuid to delete the container
+            resp = self.container_client.delete_container(container_uuid)
+            LOG.debug(f"delete secret container response = {resp}")
+
+        except Exception as e:
+            LOG.error(f"Exception occurred during deletion: {e}")
             return False
 
 

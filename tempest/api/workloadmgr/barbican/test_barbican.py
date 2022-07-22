@@ -4746,9 +4746,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.secret_uuid = self.create_secret()
 
             #create secret container with secret_uuid.
-            response_code = self.create_secret_container(self.secret_uuid)
+            self.container_ref = self.create_secret_container(self.secret_uuid)
 
-            if response_code:
+            if self.container_ref:
                 reporting.add_test_step(
                     "Create secret container with an secret_href payload.",
                     tvaultconf.PASS)
@@ -4955,6 +4955,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
+            #delete secret container created.
+            self.delete_secret_container(self.container_ref)
+ 
             for test in tests:
                 if test[1] != 1:
                     reporting.set_test_script_status(tvaultconf.FAIL)
