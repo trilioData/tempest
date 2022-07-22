@@ -84,7 +84,8 @@ def add_test_step(teststep, status):
         color = "red"
         global test_script_status
         test_script_status = "FAIL"
-    LOG.debug("TEST_STEP : " + str(teststep) + ": TEST_STATUS : " + str(test_script_status))
+    LOG.debug(f"TEST_STEP: {teststep} TEST_STEP_STATUS: {status} "\
+            f"TEST_SCRIPT_STATUS: {test_script_status}")
     global test_step_to_write
     global steps_count
     steps_count += 1

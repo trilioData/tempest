@@ -29,7 +29,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     exception = ""
     trust_name = ""
     trust_list_db = []
-    role_id = ""
+    role_id = []
 
     @classmethod
     def setup_clients(cls):
@@ -377,7 +377,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_vm(vm_id)
             self.delete_volume(volume_id)
             self.remove_role_from_user_project(CONF.identity.tenant_id,
-                    CONF.identity.user_id, role_id)
+                    CONF.identity.user_id, role_id[0])
         except Exception as e:
             LOG.error(f"Exception in test_7_cleanup: {e}")
 
