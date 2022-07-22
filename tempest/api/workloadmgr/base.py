@@ -3624,7 +3624,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     This method creates a secret container using secret uuid.
     '''
-    def create_secret_container(self, secret_uuid):
+    def create_secret_container(self, secret_uuid, secret_container_cleanup=True):
         try:
             container_ref = ""
             #get the secret ref using secret_uuid
@@ -3643,6 +3643,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
             #get the container ref
             container_ref = resp['container_ref']
+
+            if (tvaultconf.cleanup and secret_container_cleanup):
+                self.addCleanup(self.delete_secret_container, container_ref)
 
         except Exception as e:
             LOG.error(f"Exception occurred during creation: {e}")

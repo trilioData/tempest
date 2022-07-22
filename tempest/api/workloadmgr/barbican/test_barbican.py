@@ -4955,9 +4955,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
 
         finally:
-            #delete secret container created.
-            self.delete_secret_container(self.container_ref)
- 
             for test in tests:
                 if test[1] != 1:
                     reporting.set_test_script_status(tvaultconf.FAIL)
