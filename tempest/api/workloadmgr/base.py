@@ -3834,7 +3834,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     attributes = ['links', 'OS-EXT-SRV-ATTR:host',
                                   'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
                                   'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                                  'created', 'id', 'OS-SRV-USG:launched_at']
+                                  'created', 'id', 'OS-SRV-USG:launched_at',
+                                  'OS-EXT-SRV-ATTR:reservation_id', 'OS-EXT-SRV-ATTR:hostname']
                     for attr in attributes:
                         vm_details_bf[vm][attr] = ''
                         vm_details_af[vm][attr] = ''
