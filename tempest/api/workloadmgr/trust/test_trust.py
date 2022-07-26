@@ -29,6 +29,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     exception = ""
     trust_name = ""
     trust_list_db = []
+    role_id = []
 
     @classmethod
     def setup_clients(cls):
@@ -54,8 +55,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 "tempest.api.workloadmgr.trust.test_trust_create")
         global trust_name
         global trust_list_db
-        cmd = command_argument_string.trust_create + tvaultconf.test_role
+        global role_id
         try:
+            role_name = tvaultconf.test_role
+            role_id = self.get_role_id(role_name)
+            if len(role_id) != 1:
+                raise Exception("Role ID not returned")
+            if self.assign_role_to_user_project(CONF.identity.tenant_id,
+                    CONF.identity.user_id, role_id[0], False):
+                LOG.debug("Role assigned to user and project")
+            else:
+                raise Exception("Role assignment to user and project failed")
+
+            cmd = command_argument_string.trust_create + role_name
             resp = eval(cli_parser.cli_output(cmd))
             LOG.debug(f"Response for trust-create: {resp}")
             reporting.add_test_step("Execute trust-create CLI",
@@ -361,8 +373,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global vm_id
             global volume_id
+            global role_id
             self.delete_vm(vm_id)
             self.delete_volume(volume_id)
+            self.remove_role_from_user_project(CONF.identity.tenant_id,
+                    CONF.identity.user_id, role_id[0])
         except Exception as e:
-            LOG.error(f"Exception in test_3_cleanup: {e}")
+            LOG.error(f"Exception in test_7_cleanup: {e}")
 

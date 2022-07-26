@@ -28,8 +28,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         super(RestoreTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault1037_list_restore(self):
         try:
@@ -81,7 +79,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_snapshot_restore_status(
                 tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
-            retry_count = 0
             while (str(wc) != "available" or str(wc) != "error"):
                 time.sleep(15)
                 wc = query_data.get_snapshot_restore_status(
@@ -91,19 +88,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Snapshot Restore successfully completed")
                     self.created = True
                     break
-                elif (str(wc) == "error"):
-                    LOG.error("Failed to restore snapshot.")
-                    self.created = False
-                    break
                 else:
-                    if retry_count >= tvaultconf.max_retries:
-                        LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
-                        self.created = False
+                    if (str(wc) == "error"):
                         break
-                    else:
-                        LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
-                        retry_count += 1
-            #end of while loop.
 
             if (self.created == False):
                 reporting.add_test_step("One click Restore", tvaultconf.FAIL)
@@ -133,9 +120,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     "Verification with DB", tvaultconf.FAIL)
                 raise Exception(
                     "Restore list command did not list available restores correctly")
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
