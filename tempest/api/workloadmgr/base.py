@@ -3145,16 +3145,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                                                     'provider:segmentation_id')} for x in networkslist]
         networks = {}
         for each_network in nt:
-            if "HA network tenant" not in each_network['name'] and "lb-mgmt-net" not in each_network['name']:
-                networks[each_network['name']] = each_network
+            networks[each_network['name']] = each_network
 
         sbnt = self.subnets_client.list_subnets()['subnets']
         sbnts = [{str(i): str(j) for i, j in list(x.items()) if i not in (
             'network_id', 'created_at', 'updated_at', 'id', 'revision_number')} for x in sbnt]
         subnets = {}
         for each_subnet in sbnts:
-            if "HA subnet tenant" not in each_subnet['name'] and "lb-mgmt-subnet" not in each_subnet['name']:
-                subnets[each_subnet['name']] = each_subnet
+            subnets[each_subnet['name']] = each_subnet
 
         rs = self.routers_client.list_routers()['routers']
         rts = [{str(i): str(j) for i,
