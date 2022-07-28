@@ -28,8 +28,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         super(RestoreTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault1040_oneclick_restore(self):
         try:
@@ -92,7 +90,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             wc = query_data.get_snapshot_restore_status(
                 tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
-            retry_count = 0
             while (str(wc) != "available" or str(wc) != "error"):
                 time.sleep(15)
                 wc = query_data.get_snapshot_restore_status(
@@ -104,19 +101,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                         "Snapshot one-click restore verification with DB", tvaultconf.PASS)
                     self.created = True
                     break
-                elif (str(wc) == "error"):
-                    LOG.error("Failed to restore snapshot")
-                    self.created = False
-                    break
                 else:
-                    if retry_count >= tvaultconf.max_retries:
-                        LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
-                        self.created = False
+                    if (str(wc) == "error"):
                         break
-                    else:
-                        LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
-                        retry_count += 1
-            #end of while loop.
 
             if (self.created == False):
                 reporting.add_test_step(
@@ -129,19 +116,10 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("Restore ID: " + str(self.restore_id))
 
             # Cleanup
-            #self.volume_snapshots = self.get_available_volume_snapshots()
-            # self.delete_volume_snapshots(self.volume_snapshots)
-
-            # Delete restore for snapshot
             self.restore_delete(self.wid, self.snapshot_id, self.restore_id)
             LOG.debug("Snapshot Restore deleted successfully")
-
-            # Delete restored VM instance and volume
-            # self.delete_restored_vms(self.restore_id)
-            #LOG.debug("Restored VM and volume deleted successfully")
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()

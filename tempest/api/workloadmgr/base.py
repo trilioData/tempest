@@ -73,8 +73,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.volume_types_client = cls.os_primary.volume_types_client_latest
         cls.volumes_client.service = 'volumev3'
         cls.secret_client = cls.os_primary.secret_client
+        cls.container_client = cls.os_primary.barbican_container_client
         cls.order_client = cls.os_primary.order_client
         cls.projects_client = cls.os_primary.projects_client
+        cls.roles_client = cls.os_primary.roles_v3_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -3619,6 +3621,55 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self.delete_security_group(secgrp)
             LOG.debug("Deleted security groups: {}".format(secgrp))
 
+
+    '''
+    This method creates a secret container using secret uuid.
+    '''
+    def create_secret_container(self, secret_uuid, secret_container_cleanup=True):
+        try:
+            container_ref = ""
+            #get the secret ref using secret_uuid
+            response = self.secret_client.get_secret_metadata(secret_uuid)
+            secret_data = [
+                    {
+                        'name' : 'test secret',
+                        'secret_ref' : response['secret_ref'] if response else []
+                        }
+                    ]
+            resp = self.container_client.create_container(
+                                    type = "generic",
+                                    name = "secret-container",
+                                    secret_refs = secret_data
+                                    )
+
+            #get the container ref
+            container_ref = resp['container_ref']
+
+            if (tvaultconf.cleanup and secret_container_cleanup):
+                self.addCleanup(self.delete_secret_container, container_ref)
+
+        except Exception as e:
+            LOG.error(f"Exception occurred during creation: {e}")
+        finally:
+            #return the container ref URL
+            return container_ref
+
+    
+    '''
+    This method deletes a secrete container created
+    '''
+    def delete_secret_container(self, container_ref):
+        try:
+            container_uuid = container_ref.split('/')[-1]
+            #pass the container uuid to delete the container
+            resp = self.container_client.delete_container(container_uuid)
+            LOG.debug(f"delete secret container response = {resp}")
+
+        except Exception as e:
+            LOG.error(f"Exception occurred during deletion: {e}")
+            return False
+
+
     '''
     This method creates a secret for workloads
     '''
@@ -4115,3 +4166,48 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pair_list = key_pairs_list_response['keypairs']
         return key_pair_list
+
+    '''
+    Method to get role id for given role name
+    '''
+
+    def get_role_id(self, role_name=tvaultconf.test_role):
+        role_list = self.roles_client.list_roles()['roles']
+        role_id = [role['id'] for role in role_list if role['name'] == \
+                role_name]
+        LOG.debug(f"Role ID: {role_id}")
+        return role_id
+
+    '''
+    Method to assign role to given user and project combination
+    '''
+
+    def assign_role_to_user_project(self, project_id, user_id, role_id,
+            role_cleanup=True):
+        try:
+            resp = self.roles_client.create_user_role_on_project(
+                project_id, user_id, role_id)
+            LOG.debug(f"response: {resp}")
+            if (tvaultconf.cleanup and role_cleanup):
+                self.addCleanup(self.remove_role_from_user_project, project_id,
+                        user_id, role_id)
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in assign_role_to_user_project: {e}")
+            return False
+
+    '''
+    Method to remove role from given user and project combination
+    '''
+
+    def remove_role_from_user_project(self, project_id, user_id, role_id):
+        try:
+            resp = self.roles_client.delete_role_from_user_on_project(
+                project_id, user_id, role_id)
+            LOG.debug(f"response: {resp}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in remove_role_from_user_project: {e}")
+            return False
+
+
