@@ -59,8 +59,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         return self.snapshot_id
 
     def _verify_post_restore(self, images_list_bf, images_list_af,
-            key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af,
-            test_id):
+            key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af):
         tmp_fail = False
         if images_list_bf == images_list_af:
             reporting.add_test_step(
@@ -87,10 +86,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         
         if tmp_fail:
             reporting.set_test_script_status(tvaultconf.FAIL)
-        else:
-            if test_id != "":
-                self.tests[test_id][1] = 1
-        reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
     def test_1_glanceimage_restore(self):
@@ -228,12 +223,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_2_glanceimage_volume_booted_instance(self):
+    def test_2_glanceimage(self):
         try:
-            test_var = "tempest.api.workloadmgr.restore.test_volume_booted_"
-            self.tests = [[test_var+"selective_restore_api", 0],
-                    [test_var+"oneclickrestore_api", 0]]
-            reporting.add_test_script(self.tests[0][0])
+            test_var = "tempest.api.workloadmgr.restore.test_glanceimage_volboot" 
+            tests = [test_var+ "_selective_restore", 
+                    test_var+"_oneclick_restore"]
+            reporting.add_test_script(tests[0])
             self.image_name = "tempest_test_image"
             self.image_id = self.create_image(image_name=self.image_name,
                                     image_cleanup=False)
@@ -357,7 +352,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                 self._verify_post_restore(self, images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_full,
-                        md5sums_after_full_selective, test_id="")
+                        md5sums_after_full_selective)
             else:
                 reporting.add_test_step("Selective restore of full snapshot",
                         tvaultconf.FAIL)
@@ -404,14 +399,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                 self._verify_post_restore(self, images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
-                        md5sums_after_incr_selective, test_id=0)
+                        md5sums_after_incr_selective)
             else:
-                reporting.add_test_step("Selective restore of incremental snapshot",
+                reporting.add_test_step("
+                        Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-                reporting.test_case_to_write()
+            reporting.test_case_to_write()
 
-            reporting.add_test_script(self.tests[1][0])
+            reporting.add_test_script(tests[1])
             #Delete restored image, keypair and flavor
             if restored_image_id:
                 self.delete_image(restored_image_id)
@@ -445,7 +441,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                 self._verify_post_restore(self, images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_full,
-                        md5sums_after_full_oneclick, test_id="")
+                        md5sums_after_full_oneclick)
             else:
                 reporting.add_test_step("Oneclick restore of full snapshot",
                         tvaultconf.FAIL)
@@ -484,20 +480,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                 self._verify_post_restore(self, images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
-                        md5sums_after_incr_oneclick, test_id=1)
+                        md5sums_after_incr_oneclick)
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-                reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            for test in self.tests:
-                if test[1] != 1:
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.add_test_script(test[0])
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+
+
