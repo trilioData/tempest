@@ -342,21 +342,43 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     del vm_details_bf_2[vm_name]['tenant_id']
                     del vm_details_bf_2[vm_name]['security_groups']
 
+            nt_af_name = ""
             for nt in nt_af:
-                if nt_af[nt]["project_id"] == tenant_id_1 and nt_bf[nt]["project_id"] == tenant_id \
+                if tenant_id_1 in nt:
+                    nt_af_name = nt
+                elif nt_af[nt]["project_id"] == tenant_id_1 and nt_bf[nt]["project_id"] == tenant_id \
                         and nt_af[nt]["tenant_id"] == tenant_id_1 and nt_bf[nt]["tenant_id"] == tenant_id:
                     del nt_af[nt]['project_id']
                     del nt_af[nt]['tenant_id']
                     del nt_bf[nt]['project_id']
                     del nt_bf[nt]['tenant_id']
+            if nt_af_name != "" :
+                nt_af.pop(nt_af_name)
+            nt_bf_name = ""
+            for nt in nt_bf:
+                if tenant_id in nt:
+                    nt_bf_name = nt
+            if nt_bf_name != "" :
+                nt_bf.pop(nt_bf_name)
 
+            sbnt_af_name = ""
             for sbnt in sbnt_af:
-                if sbnt_af[sbnt]["project_id"] == tenant_id_1 and sbnt_bf[sbnt]["project_id"] == tenant_id \
+                if tenant_id_1 in sbnt:
+                    sbnt_af_name = sbnt
+                elif sbnt_af[sbnt]["project_id"] == tenant_id_1 and sbnt_bf[sbnt]["project_id"] == tenant_id \
                         and sbnt_af[sbnt]["tenant_id"] == tenant_id_1 and sbnt_bf[sbnt]["tenant_id"] == tenant_id:
                     del sbnt_af[sbnt]['project_id']
                     del sbnt_af[sbnt]['tenant_id']
                     del sbnt_bf[sbnt]['project_id']
                     del sbnt_bf[sbnt]['tenant_id']
+            if sbnt_af_name != "" :
+                sbnt_af.pop(sbnt_af_name)
+            sbnt_bf_name = ""
+            for sbnt in sbnt_bf:
+                if tenant_id in sbnt:
+                    sbnt_bf_name = sbnt
+            if sbnt_bf_name != "":
+                sbnt_bf.pop(sbnt_bf_name)
 
             for rt in rt_af:
                 if rt_af[rt]["project_id"] == tenant_id_1 and rt_bf[rt]["project_id"] == tenant_id \
