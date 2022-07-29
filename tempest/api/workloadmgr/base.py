@@ -685,15 +685,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def workload_reset(self, workload_id):
-        self.wait_for_workload_tobe_available(workload_id)
-        resp, body = self.wlm_client.client.post(
-            "/workloads/" + workload_id + "/reset")
-        LOG.debug("#### workloadid: %s, operation: workload-reset " %
-                  workload_id)
-        LOG.debug("Response:" + str(resp.content))
-        LOG.debug("Response code:" + str(resp.status_code))
-        if (resp.status_code != 202):
-            resp.raise_for_status()
+        try:
+            self.wait_for_workload_tobe_available(workload_id)
+            resp, body = self.wlm_client.client.post(
+                "/workloads/" + workload_id + "/reset")
+            LOG.debug("#### workloadid: %s, operation: workload-reset " %
+                      workload_id)
+            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("Response code:" + str(resp.status_code))
+            if (resp.status_code != 202):
+                resp.raise_for_status()
+            return True
+        except Exception as e:
+            LOG.error("Exception in workload_reassign: " + str(e))
+            return False
 
     '''
     Method to do workload reassign
@@ -1314,25 +1319,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def execute_command_disk_create(
-        self,
-        ssh,
-        ipAddress,
-        volumes,
-        mount_points):
+            self,
+            ssh,
+            ipAddress,
+            volumes,
+            mount_points,
+            partition=1,
+            size=""):
         self.channel = ssh.invoke_shell()
         commands = []
         for volume in volumes:
             commands.extend(["sudo fdisk {}".format(volume),
                              "n",
                              "p",
-                             "1",
-                             "\n",
-                             "\n",
+                             "",
+                             "",
+                             str(size),
                              "w",
-                             "yes | sudo mkfs -t ext3 {}1".format(volume)])
+                             "sudo fdisk -l {0}{1}".format(volume, partition)])
+            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
 
         for command in commands:
-            LOG.debug("Executing: " + str(command))
+            LOG.debug("Executing fdisk: " + str(command))
             self.channel.send(command + "\n")
             time.sleep(5)
             while not self.channel.recv_ready():
@@ -1340,17 +1348,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
             output = self.channel.recv(9999)
             LOG.debug(str(output))
+        time.sleep(10)
+        for volume in volumes:
+            cmd = "sudo mkfs -t ext3 {0}{1}".format(volume, partition)
+            LOG.debug("Executing mkfs : " + str(cmd))
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            time.sleep(5)
+            while not stdout.channel.exit_status_ready():
+                time.sleep(3)
+            LOG.debug("mkfs output:  " + str(stdout.readlines()))
+            LOG.debug("mkfs error:  " + str(stderr.readlines()))
 
     '''
     disks mounting
     '''
 
     def execute_command_disk_mount(
-        self,
-        ssh,
-        ipAddress,
-        volumes,
-        mount_points):
+            self,
+            ssh,
+            ipAddress,
+            volumes,
+            mount_points, partition=1):
         LOG.debug("Execute command disk mount connecting to " + str(ipAddress))
 
         self.channel = ssh.invoke_shell()
@@ -1359,21 +1377,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             commands = [
                 "sudo mkdir " +
                 mount_points[i],
-                "sudo mount {0}1 {1}".format(
-                    volumes[i],
+                "sudo mount {0}{1} {2}".format(
+                    volumes[i],partition,
                     mount_points[i]),
-                "sudo df -h"]
+                "sudo df -h",
+                "pwd"]
 
             for command in commands:
-                LOG.debug("Executing: " + str(command))
-                self.channel.send(command + "\n")
-                time.sleep(3)
-                while not self.channel.recv_ready():
-                    time.sleep(2)
-
-                output = self.channel.recv(9999)
-                LOG.debug(str(output))
+                LOG.debug("Executing disk mount: " + str(command))
+                stdin, stdout, stderr = ssh.exec_command(command)
+                time.sleep(5)
+                while not stdout.channel.exit_status_ready():
+                    time.sleep(3)
+                LOG.debug("disk mount command output:  " + str(stdout.readlines()))
+                LOG.debug("disk mount command error:  " + str(stderr.readlines()))
                 time.sleep(2)
+
     '''
     add custom sied files on linux
     '''
@@ -1389,7 +1408,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 time.sleep(20)
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.error("Exception in addCustomSizedfilesOnLinux: " + str(e))
 
     '''
     add custom sied files on linux using dd command
@@ -1423,10 +1442,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     LOG.debug(str(dirPath) + "/File_" + str(count + 1 ) + " created of size " + str(line.split("['")[0].split("\t")[0]) + "KB")
             time.sleep(10)
         except Exception as e:
+            LOG.error("Exception in addCustomfilesOnLinuxVM: " + str(e))
             raise Exception(
                 "addCustomfilesOnLinuxVM Failed")
-            LOG.debug("Exception : " + str(e))
-    
+
     '''
     calculate md5 checksum
     '''
@@ -1742,8 +1761,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if security_group['name'] == security_group_name:
                 security_group_id = security_group['id']
         if security_group_id != "":
+            LOG.debug("security group id for security group {}".format(security_group_id))
             return security_group_id
         else:
+            LOG.debug("security group id is NOT present/restored")
             return None
 
     '''create_flavor'''
@@ -2743,12 +2764,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("In VDC List files output: %s ; list files error: %s", stdout.read(), stderr.read())
             buildCommand = "sudo su - root -c 'find "  + file_path_to_search + " -name " + file_name + "'"
             LOG.debug("build command to search file is :" + str(buildCommand))
-            stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=120)
+            stdin, stdout, stderr = ssh.exec_command(buildCommand, timeout=300)
             output = stdout.read()
             LOG.debug(output)
             return(bytes(output))
         except Exception as e:
-            LOG.debug("Exception: " + str(e))
+            LOG.debug("Exception in validate_snapshot_mount: " + str(e))
 
     '''
     Method to fetch the list of network ports by network_id
