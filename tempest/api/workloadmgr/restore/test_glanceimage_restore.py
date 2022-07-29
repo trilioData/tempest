@@ -401,8 +401,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
                         md5sums_after_incr_selective)
             else:
-                reporting.add_test_step("
-                        Selective restore of incremental snapshot",
+                reporting.add_test_step(
+                        "Selective restore of incremental snapshot",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
