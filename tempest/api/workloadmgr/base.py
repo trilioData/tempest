@@ -1837,6 +1837,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             swap=0,
             ephemeral=0,
             flavor_cleanup=True):
+        flavor_list = self.flavors_client.list_flavors()['flavors']
+        LOG.debug("Flavor list: " + str(flavor_list))
+        fl_id = None
+        for fl in flavor_list:
+            if fl['name'] == name:
+                fl_id = fl['id']
+                break
+        if fl_id:
+            LOG.debug("flavor already exists with same name")
+            self.delete_flavor(fl_id)
+        else:
+            LOG.debug("flavor does not exist with same name")
+
         if (ephemeral == 0):
             flavor_id = self.flavors_client.create_flavor(
                 name=name, disk=disk, vcpus=vcpus, ram=ram, swap=swap)['flavor']['id']
