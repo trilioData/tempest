@@ -94,6 +94,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                         "Verification of Filesearch with default parameters",
                         tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_barbican(self):
