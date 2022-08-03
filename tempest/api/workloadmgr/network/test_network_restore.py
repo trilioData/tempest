@@ -342,78 +342,54 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     del vm_details_bf_2[vm_name]['tenant_id']
                     del vm_details_bf_2[vm_name]['security_groups']
 
-            klist = sorted([*nt_bf])
-            nt_bf_sorted = {}
-
-            for nt in klist:
-                if tenant_id in nt:
-                    new_bf = nt.replace(tenant_id, '')
-                    nt_bf[nt]['name'] = \
-                            nt_bf[nt]['name'].replace(tenant_id, '')
-                    nt_bf_sorted[new_bf] = nt_bf[nt]
-                if nt_bf[nt]['project_id'] == tenant_id and \
-                        nt_bf[nt]['tenant_id'] == tenant_id:
-                    del nt_bf[nt]['project_id']
-                    del nt_bf[nt]['tenant_id']
-                    nt_bf_sorted[nt] = nt_bf[nt]
-    
-            klist = sorted([*nt_af])
-            nt_af_sorted = {}
-            for nt in klist:
+            nt_af_name = ""
+            for nt in nt_af:
                 if tenant_id_1 in nt:
-                    new_af = nt.replace(tenant_id_1, '')
-                    nt_af[nt]['name'] = \
-                            nt_af[nt]['name'].replace(tenant_id_1, '')
-                    nt_af_sorted[new_af] = nt_af[nt]
-                if nt_af[nt]['project_id'] == tenant_id_1 and \
-                        nt_af[nt]['tenant_id'] == tenant_id_1:
+                    nt_af_name = nt
+                elif nt_af[nt]["project_id"] == tenant_id_1 and nt_bf[nt]["project_id"] == tenant_id \
+                        and nt_af[nt]["tenant_id"] == tenant_id_1 and nt_bf[nt]["tenant_id"] == tenant_id:
                     del nt_af[nt]['project_id']
                     del nt_af[nt]['tenant_id']
-                    nt_af_sorted[nt] = nt_af[nt]
+                    del nt_bf[nt]['project_id']
+                    del nt_bf[nt]['tenant_id']
+            if nt_af_name != "" :
+                nt_af.pop(nt_af_name)
+            nt_bf_name = ""
+            for nt in nt_bf:
+                if tenant_id in nt:
+                    nt_bf_name = nt
+            if nt_bf_name != "" :
+                nt_bf.pop(nt_bf_name)
 
-            klist = sorted([*sbnt_bf])
-            sbnt_bf_sorted = {}
-
-            for sbnt in klist:
-                if tenant_id in sbnt:
-                    new_bf = sbnt.replace(tenant_id, '')
-                    sbnt_bf[sbnt]['name'] = \
-                            sbnt_bf[sbnt]['name'].replace(tenant_id, '')
-                    sbnt_bf_sorted[new_bf] = sbnt_bf[sbnt]
-                if sbnt_bf[sbnt]['project_id'] == tenant_id and \
-                        sbnt_bf[sbnt]['tenant_id'] == tenant_id:
-                    del sbnt_bf[sbnt]['project_id']
-                    del sbnt_bf[sbnt]['tenant_id']
-                    sbnt_bf_sorted[sbnt] = sbnt_bf[sbnt]
-
-            klist = sorted([*sbnt_af])
-            sbnt_af_sorted = {}
-            for sbnt in klist:
+            sbnt_af_name = ""
+            for sbnt in sbnt_af:
                 if tenant_id_1 in sbnt:
-                    new_af = sbnt.replace(tenant_id_1, '')
-                    sbnt_af[sbnt]['name'] = \
-                            sbnt_af[sbnt]['name'].replace(tenant_id_1, '')
-                    sbnt_af_sorted[new_af] = sbnt_af[sbnt]
-                if sbnt_af[sbnt]['project_id'] == tenant_id_1 and \
-                        sbnt_af[sbnt]['tenant_id'] == tenant_id_1:
+                    sbnt_af_name = sbnt
+                elif sbnt_af[sbnt]["project_id"] == tenant_id_1 and sbnt_bf[sbnt]["project_id"] == tenant_id \
+                        and sbnt_af[sbnt]["tenant_id"] == tenant_id_1 and sbnt_bf[sbnt]["tenant_id"] == tenant_id:
                     del sbnt_af[sbnt]['project_id']
                     del sbnt_af[sbnt]['tenant_id']
-                    sbnt_af_sorted[sbnt] = sbnt_af[sbnt]
+                    del sbnt_bf[sbnt]['project_id']
+                    del sbnt_bf[sbnt]['tenant_id']
+            if sbnt_af_name != "" :
+                sbnt_af.pop(sbnt_af_name)
+            sbnt_bf_name = ""
+            for sbnt in sbnt_bf:
+                if tenant_id in sbnt:
+                    sbnt_bf_name = sbnt
+            if sbnt_bf_name != "":
+                sbnt_bf.pop(sbnt_bf_name)
 
             for rt in rt_af:
-                if rt_af[rt]["project_id"] == tenant_id_1 and \
-                        rt_bf[rt]["project_id"] == tenant_id and \
-                        rt_af[rt]["tenant_id"] == tenant_id_1 and \
-                        rt_bf[rt]["tenant_id"] == tenant_id:
+                if rt_af[rt]["project_id"] == tenant_id_1 and rt_bf[rt]["project_id"] == tenant_id \
+                        and rt_af[rt]["tenant_id"] == tenant_id_1 and rt_bf[rt]["tenant_id"] == tenant_id:
                     del rt_af[rt]['project_id']
                     del rt_af[rt]['tenant_id']
                     del rt_bf[rt]['project_id']
                     del rt_bf[rt]['tenant_id']
 
-            self.verify_network_restore(nt_bf_sorted, nt_af_sorted, 
-                    sbnt_bf_sorted, sbnt_af_sorted, rt_bf, rt_af, 
-                    vm_details_bf_2, vm_details_af, test_type='API')
-
+            self.verify_network_restore(nt_bf, nt_af, sbnt_bf, sbnt_af, rt_bf,
+                                        rt_af, vm_details_bf_2, vm_details_af, test_type='API')
             for rvm in restored_vms:
                 self.delete_vm(rvm)
 

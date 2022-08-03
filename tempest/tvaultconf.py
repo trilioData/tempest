@@ -55,6 +55,7 @@ wlm_dbhost = "192.168.6.17"
 smtp_password = "sample-password"
 smtp_password_pwdless = "sample-password"
 trustee_role = "_member_"
+test_role = "backup"
 
 no_of_compute_nodes = 1
 
@@ -138,3 +139,5 @@ enable_cinder_volume_exclusion = {"exclude_from_backup": "True"}
 enable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "True"}
 disable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "False"}
 
+#max retry count
+max_retries = 20

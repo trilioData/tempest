@@ -28,8 +28,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
         super(RestoreTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault1037_list_restore(self):
         try:
@@ -82,7 +80,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
             while (str(wc) != "available" or str(wc) != "error"):
-                time.sleep(5)
+                time.sleep(15)
                 wc = query_data.get_snapshot_restore_status(
                     tvaultconf.restore_name, self.snapshot_id)
                 LOG.debug("Snapshot restore status: " + str(wc))
@@ -122,9 +120,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     "Verification with DB", tvaultconf.FAIL)
                 raise Exception(
                     "Restore list command did not list available restores correctly")
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()

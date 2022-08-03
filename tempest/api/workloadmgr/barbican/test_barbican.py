@@ -41,9 +41,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         encrypted = False
         for disk_name in disk_names:
             snapshot_encrypted = self.check_snapshot_encryption_on_backend(
-                            tvaultconf.tvault_ip[0],
-                            tvaultconf.tvault_username,
-                            tvaultconf.tvault_password,
                             mount_path, wid, snapshot_id,
                             vm_id, disk_name)
             LOG.debug(f"snapshot_encrypted: {snapshot_encrypted}")
@@ -111,6 +108,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
+            self.mount_path = self.get_mountpoint_path()
             self.secret_uuid = self.create_secret()
 
             # Create workload with API
@@ -145,13 +143,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id)
+                        self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -179,13 +172,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id2)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id2)
+                        self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -639,6 +627,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 md5sums_before_full[mp] = self.calculatemmd5checksum(ssh, mp)
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
+            self.mount_path = self.get_mountpoint_path()
 
             # Create workload with API
             try:
@@ -673,13 +662,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id)
+                        self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -711,13 +695,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id2)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id2)
+                        self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -1255,6 +1234,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
+            self.mount_path = self.get_mountpoint_path()
             self.secret_uuid = self.create_secret()
 
             # Create workload with API
@@ -1289,13 +1269,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id)
+                        self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -1323,13 +1298,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id2)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id2)
+                        self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -1800,6 +1770,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 md5sums_before_full[mp] = self.calculatemmd5checksum(ssh, mp)
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
+            self.mount_path = self.get_mountpoint_path()
 
             # Create workload with API
             try:
@@ -1834,13 +1805,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id)
+                        self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -1872,13 +1838,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id2)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id2)
+                        self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -2607,6 +2568,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             status = self.assign_unassign_workload_policy(
                 str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
             LOG.debug("Policy is assigned")
+            self.mount_path = self.get_mountpoint_path()
 
             # Create workload with policy by CLI command
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
@@ -2751,18 +2713,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Check first snapshot is deleted from backup target when retention
             # value exceed
-            mount_path = self.get_mountpoint_path(
-                ipaddress=tvaultconf.tvault_ip[0],
-                username=tvaultconf.tvault_username,
-                password=tvaultconf.tvault_password)
-            LOG.debug("Backup target mount_path is : " + mount_path)
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
-                tvaultconf.tvault_ip[0],
-                tvaultconf.tvault_username,
-                tvaultconf.tvault_password,
-                mount_path,
-                self.workload_id,
-                deleted_snapshot_id)
+                self.mount_path, self.workload_id, deleted_snapshot_id)
             LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
             if not is_snapshot_exist:
                 LOG.debug("First snapshot is deleted from backup target")
@@ -2888,7 +2840,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):
@@ -3037,7 +2989,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):
@@ -3469,7 +3421,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):
@@ -3651,6 +3603,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
+            self.mount_path = self.get_mountpoint_path()
 
             # Create workload with API
             try:
@@ -3684,13 +3637,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id)
+                        self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -3718,13 +3666,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.snapshot_id2)
             if(self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
-                self.mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, self.mount_path,
-                        self.wid, self.snapshot_id2)
+                        self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on "\
@@ -4171,6 +4114,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     volumes.append(volume_id)
                     self.attach_volume(volume_id, vm_id)
                 LOG.debug(f"Volumes attached: {volumes}")
+                self.mount_path = self.get_mountpoint_path()
 
                 # Create workload with API
                 wid = []
@@ -4198,19 +4142,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
                 if (snapshot_status == "available"):
                     reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                    mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                     snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, mount_path,
-                        wid, snapshot_id)
+                        self.mount_path, wid, snapshot_id)
                     LOG.debug(f"snapshot_found: {snapshot_found}")
                     if snapshot_found:
                         reporting.add_test_step("Verify snapshot existence on " \
                                                 "target backend", tvaultconf.PASS)
                         self._check_encryption_on_backend(wid, snapshot_id,
-                                                          vm_id, disk_names, mount_path)
+                                                          vm_id, disk_names, self.mount_path)
                     else:
                         raise Exception("Verify snapshot existence on target backend")
                 else:
@@ -4465,6 +4404,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 except Exception as e:
                     LOG.error(f"Exception: {e}")
                     raise Exception("prerequisite of instance with encrypted bootable ceph/rbd volume failed")
+                self.mount_path = self.get_mountpoint_path()
 
                 # Create workload with API
                 wid = []
@@ -4492,19 +4432,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
                 if (snapshot_status == "available"):
                     reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                    mount_path = self.get_mountpoint_path(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password)
                     snapshot_found = self.check_snapshot_exist_on_backend(
-                        tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                        tvaultconf.tvault_password, mount_path,
-                        wid, snapshot_id)
+                        self.mount_path, wid, snapshot_id)
                     LOG.debug(f"snapshot_found: {snapshot_found}")
                     if snapshot_found:
                         reporting.add_test_step("Verify snapshot existence on " \
                                                 "target backend", tvaultconf.PASS)
                         self._check_encryption_on_backend(wid, snapshot_id,
-                                                          vm_id, disk_names, mount_path)
+                                                          vm_id, disk_names, self.mount_path)
                     else:
                         raise Exception("Verify snapshot existence on target backend")
                 else:
@@ -4700,3 +4635,268 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(str(e), tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 reporting.test_case_to_write()
+
+
+    # OS-2026
+    # Test case automated #AUTO-53 for verification of secret key added to secret container. 
+    # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2026
+    @decorators.attr(type='workloadmgr_api')
+    def test_19_barbican(self):
+
+        try:
+            test_var = "tempest.api.workloadmgr.barbican.test_"
+            tests = [[test_var + "create_secret_on_secret_container", 0],
+                    [test_var  + "create_full_snapshot", 0],
+                    [test_var  + "selective_restore", 0],
+                    [test_var  + "inplace_restore", 0],
+                    [test_var  + "oneclick_restore", 0]]
+
+
+            reporting.add_test_script(tests[0][0])
+
+            # create key pair...
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+
+            # create vm...
+            self.vm_id = self.create_vm(key_pair=self.kp)
+
+            # get floating ips
+            fip = self.get_floating_ips()
+            LOG.debug(f"Available floating ips are : {fip}")
+
+            if len(fip) < 2:
+                raise Exception("Floating ips unavailable")
+
+            #assign ip and add data on it.
+            self.set_floating_ip(fip[0], self.vm_id)
+
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.install_qemu(ssh)
+            self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
+            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
+            LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
+            ssh.close()
+
+            #create secret
+            self.secret_uuid = self.create_secret()
+
+            #create secret container with secret_uuid.
+            self.container_ref = self.create_secret_container(self.secret_uuid)
+
+            if self.container_ref:
+                reporting.add_test_step(
+                    "Create secret container with an secret_href payload.",
+                    tvaultconf.PASS)
+                tests[0][1] = 1
+            else:
+                LOG.error("Create secret container with secret_href failed.")
+                raise Exception("Create secret container with secret_href.")
+
+            reporting.test_case_to_write()
+ 
+            reporting.add_test_script(tests[1][0])
+            # Create workload with CLI to pass secret uuid.
+            workload_create_cmd = command_argument_string.workload_create_with_encryption + \
+                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " --secret-uuid " + str(self.secret_uuid)
+
+            error = cli_parser.cli_error(workload_create_cmd)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.error("Create workload Error: " + str(error))
+                raise Exception("Create workload using secret uuid")
+            else:
+                LOG.debug("workload created successfully")
+
+
+            time.sleep(10)
+            # workload created successfully, we need to delete it. Get the workload id...
+            self.wid = query_data.get_workload_id_in_creation(
+                tvaultconf.workload_name)
+
+            if(self.wid is not None):
+                LOG.debug("Workload ID: " + str(self.wid))
+                self.wait_for_workload_tobe_available(self.wid)
+                self.workload_status = self.getWorkloadStatus(self.wid)
+                if(self.workload_status == "available"):
+                    LOG.debug("create workload with secret uuid passed.")
+                    reporting.add_test_step("Create workload "\
+                            "with secret uuid", tvaultconf.PASS)
+                else:
+                    LOG.error("create workload with secret uuid failed. Status is not available.")
+                    raise Exception("Create workload with secret uuid")
+            else:
+                LOG.error("create workload with secret uuid failed. wid is not available.")
+                raise Exception("Create workload with secret uuid")
+
+
+            #create full snapshot...
+            self.snapshot_id = self.workload_snapshot(self.wid, True)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                    self.snapshot_id)
+            if(self.snapshot_status == "available"):
+                LOG.debug("Full snapshot created.")
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+                tests[1][1] = 1
+            else:
+                LOG.error("Full snapshot creation failed.")
+                raise Exception("Create full snapshot")
+
+
+            reporting.test_case_to_write()
+
+            #selective restore
+            reporting.add_test_script(tests[2][0])
+            rest_details = {}
+            self.volumes = []
+            rest_details['rest_type'] = 'selective'
+            rest_details['network_id'] = CONF.network.internal_network_id
+            rest_details['subnet_id'] = self.get_subnet_id(
+                CONF.network.internal_network_id)
+            rest_details['instances'] = {self.vm_id: self.volumes}
+
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger selective restore of full snapshot
+            restore_id_1 = self.snapshot_selective_restore(
+                self.wid, self.snapshot_id,
+                restore_name="selective_restore_full_snap",
+                instance_details=payload['instance_details'],
+                network_details=payload['network_details'])
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+
+            if(self.getRestoreStatus(self.wid, self.snapshot_id,
+                    restore_id_1) == "available"):
+
+                reporting.add_test_step("Selective restore of full snapshot",
+                        tvaultconf.PASS)
+
+                vm_list = self.get_restored_vm_list(restore_id_1)
+                LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+
+                time.sleep(60)
+
+                self.set_floating_ip(fip[1], vm_list[0])
+                LOG.debug("Floating ip assigned to selective restored vm -> " +\
+                        f"{fip[1]}")
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
+                md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
+                LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
+                ssh.close()
+
+                if md5sums_before_full == \
+                        md5sums_after_full_selective:
+                    LOG.debug("***MDSUMS MATCH***")
+                    reporting.add_test_step(
+                        "File present on selective restored instance", tvaultconf.PASS)
+                    tests[2][1] = 1
+                else:
+                    LOG.error("***MDSUMS DON'T MATCH***")
+                    raise Exception("Selective restore of full snapshot - checksum failed.")
+            else:
+                LOG.error("Selective restore of full snapshot failed. Status not available.")
+                raise Exception("Selective restore of full snapshot")
+
+
+            reporting.test_case_to_write()
+
+            #Inplace restore for full snapshot
+            reporting.add_test_script(tests[3][0])
+            rest_details = {}
+            self.volumes = []
+            rest_details['rest_type'] = 'inplace'
+            rest_details['instances'] = {self.vm_id: self.volumes}
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger inplace restore of full snapshot
+            restore_id_2 = self.snapshot_inplace_restore(
+                self.wid, self.snapshot_id, payload)
+
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+
+            if(self.getRestoreStatus(self.wid, self.snapshot_id,
+                    restore_id_2) == "available"):
+
+                reporting.add_test_step("Inplace restore of full snapshot",
+                        tvaultconf.PASS)
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                time.sleep(5)
+                md5sums_after_full_inplace = {}
+                md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
+                ssh.close()
+
+                if md5sums_before_full == \
+                        md5sums_after_full_inplace:
+                    LOG.debug("***MDSUMS MATCH***")
+                    reporting.add_test_step(
+                        "File present on inplace restored instance", tvaultconf.PASS)
+                    tests[3][1] = 1
+                else:
+                    LOG.error("***MDSUMS DON'T MATCH***")
+                    raise Exception("Inplace restore of full snapshot - checksum failed.")
+            else:
+                LOG.error("Inplace restore of full snapshot failed. Status not available.")
+                raise Exception("Inplace restore of full snapshot")
+
+
+            reporting.test_case_to_write()
+
+
+            #oneclick restore
+            reporting.add_test_script(tests[4][0])
+
+            #delete original instance of vm.
+            self.delete_vm(self.vm_id)
+
+            time.sleep(10)
+            rest_details = {}
+            rest_details['rest_type'] = 'oneclick'
+            payload = self.create_restore_json(rest_details)
+            # Trigger oneclick restore of full snapshot
+            restore_id_3 = self.snapshot_inplace_restore(
+                self.wid, self.snapshot_id, payload)
+            self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
+            if(self.getRestoreStatus(self.wid, self.snapshot_id,
+                    restore_id_3) == "available"):
+
+                reporting.add_test_step("Oneclick restore of full snapshot",
+                        tvaultconf.PASS)
+
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+                md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
+                ssh.close()
+
+                if md5sums_before_full == \
+                        md5sums_after_full_oneclick:
+                    LOG.debug("***MDSUMS MATCH***")
+                    reporting.add_test_step(
+                        "File present on oneclick restored instance", tvaultconf.PASS)
+                    tests[4][1] = 1
+                else:
+                    LOG.error("***MDSUMS DON'T MATCH***")
+                    raise Exception("Oneclick restore of full snapshot - checksum failed")
+            else:
+                LOG.error("Oneclick restore of full snapshot failed. Status not available.")
+                raise Exception("Oneclick restore of full snapshot")
+
+
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.add_test_script(test[0])
+                    reporting.test_case_to_write()
+
+    # End of test case OS-2026
+
+
+
