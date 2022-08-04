@@ -816,7 +816,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create workload failed")
 
-            for num in range(retention):
+            for num in range(retention+1):
                 snapshot_name = 'Tempest-retention-snapshot' + str(num + 1)
                 self.snapshot_id = self.workload_snapshot(self.wid, True, snapshot_name=snapshot_name)
                 self.wait_for_workload_tobe_available(self.wid)
@@ -850,6 +850,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Workload has not been created with scheduler enabled")
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(str(__name__) + "_workload_reset_with_multiattach_volume")
+            workload_reset_status = self.workload_reset(self.wid)
+            if workload_reset_status:
+                reporting.add_test_step("Workload reset request raised", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reset request failed")
+                reporting.add_test_step("Workload reset request failed", tvaultconf.FAIL)
+                raise Exception("Workload reset request failed")
+
+            start_time = time.time()
+            time.sleep(10)
+            volsnaps_after = self.get_volume_snapshots(self.volume_id)
+            while (len(volsnaps_after) != 0 and (time.time() - start_time < 600)):
+                volsnaps_after = self.get_volume_snapshots(self.volume_id)
+                time.sleep(5)
+            if len(volsnaps_after) == 0:
+                reporting.add_test_step("Temp Volume snapshot is deleted after workload reset", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Temp Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
+                raise Exception("Workload reset failed as temp volume snapshot is not deleted")
             reporting.test_case_to_write()
 
         except Exception as e:
