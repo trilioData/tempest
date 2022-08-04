@@ -68,6 +68,33 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error(f"Exception in scheduler-trust-validate CLI: {e}")
             raise Exception("Execute scheduler-trust-validate CLI")
 
+    def _filesearch(self, vm_id, filecount_in_snapshots, search_path):
+        filesearch_id = self.filepath_search(vm_id, search_path)
+        filesearch_status = self.getSearchStatus(filesearch_id)
+        if filesearch_status == 'error':
+            reporting.add_test_step("File search failed", tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        else:
+            snapshot_wise_filecount = self.verifyFilepath_Search(
+                filesearch_id, search_path)
+
+            for snapshot_id in filecount_in_snapshots.keys():
+                if snapshot_wise_filecount[snapshot_id] == \
+                        filecount_in_snapshots[snapshot_id]:
+                    filesearch_status = True
+                else:
+                    filesearch_status = False
+            if filesearch_status:
+                LOG.debug("Filepath_Search default_parameters successful")
+                reporting.add_test_step(
+                    "Verification of Filesearch with default parameters",
+                    tvaultconf.PASS)
+            else:
+                LOG.debug("Filepath Search default_parameters unsuccessful")
+                reporting.add_test_step(
+                        "Verification of Filesearch with default parameters",
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_barbican(self):
@@ -315,26 +342,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id = self.filepath_search(
-                self.vm_id, "/opt/File_4")
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, "/opt/File_4")
-
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.FAIL)
+            search_path = "/opt/File_4"
+            self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -885,26 +894,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id = self.filepath_search(
-                self.vm_id, "/opt/File_5")
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, "/opt/File_5")
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.FAIL)
+            search_path = "/opt/File_5"
+            self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -1441,26 +1432,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id = self.filepath_search(
-                self.vm_id, "/opt/File_4")
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, "/opt/File_4")
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.FAIL)
+            search_path = "/opt/File_4"
+            self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -2025,34 +1998,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             #File search
             reporting.add_test_script(tests[4][0])
-            try:
-                filecount_in_snapshots = {
+            filecount_in_snapshots = {
                     self.snapshot_id: 0,
                     self.snapshot_id2: 1}
-                filesearch_id = self.filepath_search(
-                    self.vm_id, "/opt/File_5")
-                snapshot_wise_filecount = self.verifyFilepath_Search(
-                    filesearch_id, "/opt/File_5")
-                for snapshot_id in filecount_in_snapshots.keys():
-                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                        filesearch_status = True
-                    else:
-                        filesearch_status = False
-
-                if filesearch_status:
-                    LOG.debug("Filepath_Search default_parameters successful")
-                    reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.PASS)
-                else:
-                    LOG.debug("Filepath Search default_parameters unsuccessful")
-                    reporting.add_test_step(
-                            "Verification of Filesearch with default parameters",
-                            tvaultconf.FAIL)
-            except Exception as e:
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.FAIL)
+            search_path = "/opt/File_5"
+            self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -3809,31 +3759,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id = self.filepath_search(
-                self.vm_id, "/opt/File_4")
-            snapshot_wise_filecount = self.verifyFilepath_Search(
-                filesearch_id, "/opt/File_4")
-            if(snapshot_wise_filecount == None):
-                reporting.add_test_step(
-                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                for snapshot_id in filecount_in_snapshots.keys():
-                    if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                        filesearch_status = True
-                    else:
-                        filesearch_status = False
-
-                if filesearch_status:
-                    LOG.debug("Filepath_Search default_parameters successful")
-                    reporting.add_test_step(
-                        "Verification of Filesearch with default parameters",
-                        tvaultconf.PASS)
-                else:
-                    LOG.debug("Filepath Search default_parameters unsuccessful")
-                    reporting.add_test_step(
-                            "Verification of Filesearch with default parameters",
-                            tvaultconf.FAIL)
+            search_path = "/opt/File_4"
+            self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[5][1] = 1
 
