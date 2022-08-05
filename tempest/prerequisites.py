@@ -326,7 +326,8 @@ def bootfrom_image_with_floating_ips(self):
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip))
             for mount_point in mount_points:
                 self.addCustomfilesOnLinuxVM(ssh, mount_point, 3)
-                ssh.close()
+            ssh.close()
+
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
             self.workload_instances, tvaultconf.parallel)
