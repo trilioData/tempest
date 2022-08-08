@@ -3593,19 +3593,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 vmdetails = self.get_vm_details(vm)
                 LOG.debug("\nRestored VM details: {}".format(vmdetails))
                 server_vm = vmdetails["server"]
-                LOG.debug(
-                    "\nRestored VM details - server : {}".format(vmdetails["server"])
-                )
-                restored_secgrps.extend(server_vm["security_groups"])
-                LOG.debug(
-                    "List of restored security group policies: {}".format(
-                        restored_secgrps
-                    )
-                )
-            return restored_secgrps
+                LOG.debug(f"Restored VM details-server: {vmdetails['server']}")
+                if 'security_groups' in server_vm.keys():
+                    restored_secgrps.extend(server_vm["security_groups"])
+            LOG.debug(f"List of restored security groups: {restored_secgrps}")
         except Exception as e:
-            LOG.error("Restored instance do not have attached security group \n")
+            LOG.error("Restored instance do not have attached security group")
             LOG.error(f"Exception in getRestoredSecGroupPolicies: {e}")
+        finally:
+            return restored_secgrps
 
     def list_security_groups(self):
         body = self.security_groups_client.list_security_groups()

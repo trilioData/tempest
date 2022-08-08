@@ -336,9 +336,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             # Verification of cyclic security group restore with same rules
             LOG.debug("\nStarted test execution: ")
-            test_var = "tempest.api.workloadmgr.security_groups.test_security_group_remotesg_cyclic." \
-                       "test_with_samerule"
-            reporting.add_test_script(test_var + "_create_snapshot")
+            test_var = "tempest.api.workloadmgr.security_groups.test_" +\
+                    "remotesg_cyclic_with_samerule"
+            reporting.add_test_script(test_var+ "_prerequisite")
 
             security_group_names_list = [
                 "test_secgroups-PQR" + str(random.randint(0, 10000)),
