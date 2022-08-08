@@ -4028,6 +4028,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                 vol.lower().find("rbd") != -1):
                             volume_type_id = CONF.volume.volume_types[vol]
                             LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
+                        elif (vol.lower() == "luks"):
+                            volume_type_id = CONF.volume.volume_types[vol]
+                            LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
 
                 if not volume_type_id:
                     raise Exception("Exiting the test as encrypted ceph/rbd volume type is not found")
