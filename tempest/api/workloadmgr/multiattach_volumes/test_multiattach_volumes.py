@@ -349,6 +349,34 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
             reporting.add_test_step("Number of multiattach volume attached to VM is not equal to 1",
                                     tvaultconf.FAIL)
+=======
+    def _filesearch(self, vms_list, filecount_in_snapshots, search_path):
+        for i in range(len(vms_list)):
+            filesearch_id = self.filepath_search(vms_list[i], search_path)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                reporting.add_test_step(f"File search-{i+1} failed", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                snapshot_wise_filecount = self.verifyFilepath_Search(vms_list[i], search_path)
+
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount[snapshot_id] == \
+                            filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
+                if filesearch_status:
+                    reporting.add_test_step(
+                        f"Verification of Filesearch-{i+1} with default parameters",
+                        tvaultconf.PASS)
+                else:
+                    LOG.error(f"Filepath Search-{i+1} default_parameters unsuccessful")
+                    reporting.add_test_step(
+                            f"Verification of Filesearch-{i+1} with default parameters",
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
@@ -510,27 +538,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id_1 = self.filepath_search(self.vm_id_1, "/opt/File_4")
-            filesearch_id_2 = self.filepath_search(self.vm_id_2, "/opt/File_4")
-            snapshot_wise_filecount_1 = self.verifyFilepath_Search(filesearch_id_1, "/opt/File_4")
-            snapshot_wise_filecount_2 = self.verifyFilepath_Search(filesearch_id_2, "/opt/File_4")
-
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount_1[snapshot_id] == filecount_in_snapshots[snapshot_id] \
-                        and snapshot_wise_filecount_2[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.FAIL)
+            search_path = "/opt/File_4"
+            vms_list = [self.vm_id_1, self.vm_id_2]
+            self._filesearch(vms_list, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -1052,7 +1062,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create multiple full snapshots on multiple workloads")
 
             reporting.test_case_to_write()
-
 
         except Exception as e:
             LOG.error("Exception: " + str(e))

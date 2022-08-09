@@ -38,26 +38,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def install_qemu_ga(self, flo_ip):
         LOG.debug("Installing qemu guest agent on remote server")
-        #ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
-        commands = [
-            "sudo sed -i '1i nameserver 8.8.8.8' /etc/resolv.conf",
-            "sudo apt-get update",
-            "sudo apt-get install qemu-guest-agent"]
-        for x in range(len(commands)):
-            if x != 1:
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
-                LOG.debug("\nExecuting: {}\n".format(str(commands[x])))
-                stdin, stdout, stderr = ssh.exec_command(
-                    commands[x], timeout=180)
-                time.sleep(25)
-                ssh.close()
-            else:
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
-                LOG.debug("\nExecuting: {}\n".format(str(commands[x])))
-                stdin, stdout, stderr = ssh.exec_command(
-                    commands[x], timeout=180)
-                time.sleep(120)
-                ssh.close()
+        ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
+        self.install_qemu(ssh)
+        ssh.close()
 
     def data_ops(self, flo_ip, mount_point, file_count):
         global volumes
@@ -164,8 +147,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Sleeping for 40 sec")
             time.sleep(40)
 
-            if CONF.validation.ssh_user == 'ubuntu':
-                self.install_qemu_ga(floating_ip_1)
+            self.install_qemu_ga(floating_ip_1)
 
             # Adding data and calculating md5sums
             self.data_ops(floating_ip_1, mount_points[0], 3)
