@@ -76,6 +76,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.container_client = cls.os_primary.barbican_container_client
         cls.order_client = cls.os_primary.order_client
         cls.projects_client = cls.os_primary.projects_client
+        cls.roles_client = cls.os_primary.roles_v3_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
@@ -1840,6 +1841,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             swap=0,
             ephemeral=0,
             flavor_cleanup=True):
+        flavor_list = self.flavors_client.list_flavors()['flavors']
+        LOG.debug("Flavor list: " + str(flavor_list))
+        fl_id = None
+        for fl in flavor_list:
+            if fl['name'] == name:
+                fl_id = fl['id']
+                break
+        if fl_id:
+            LOG.debug("flavor already exists with same name")
+            self.delete_flavor(fl_id)
+        else:
+            LOG.debug("flavor does not exist with same name")
+
         if (ephemeral == 0):
             flavor_id = self.flavors_client.create_flavor(
                 name=name, disk=disk, vcpus=vcpus, ram=ram, swap=swap)['flavor']['id']
@@ -3834,7 +3848,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     attributes = ['links', 'OS-EXT-SRV-ATTR:host',
                                   'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
                                   'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                                  'created', 'id', 'OS-SRV-USG:launched_at']
+                                  'created', 'id', 'OS-SRV-USG:launched_at',
+                                  'OS-EXT-SRV-ATTR:reservation_id', 'OS-EXT-SRV-ATTR:hostname']
                     for attr in attributes:
                         vm_details_bf[vm][attr] = ''
                         vm_details_af[vm][attr] = ''
@@ -4164,3 +4179,48 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pair_list = key_pairs_list_response['keypairs']
         return key_pair_list
+
+    '''
+    Method to get role id for given role name
+    '''
+
+    def get_role_id(self, role_name=tvaultconf.test_role):
+        role_list = self.roles_client.list_roles()['roles']
+        role_id = [role['id'] for role in role_list if role['name'] == \
+                role_name]
+        LOG.debug(f"Role ID: {role_id}")
+        return role_id
+
+    '''
+    Method to assign role to given user and project combination
+    '''
+
+    def assign_role_to_user_project(self, project_id, user_id, role_id,
+            role_cleanup=True):
+        try:
+            resp = self.roles_client.create_user_role_on_project(
+                project_id, user_id, role_id)
+            LOG.debug(f"response: {resp}")
+            if (tvaultconf.cleanup and role_cleanup):
+                self.addCleanup(self.remove_role_from_user_project, project_id,
+                        user_id, role_id)
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in assign_role_to_user_project: {e}")
+            return False
+
+    '''
+    Method to remove role from given user and project combination
+    '''
+
+    def remove_role_from_user_project(self, project_id, user_id, role_id):
+        try:
+            resp = self.roles_client.delete_role_from_user_on_project(
+                project_id, user_id, role_id)
+            LOG.debug(f"response: {resp}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in remove_role_from_user_project: {e}")
+            return False
+
+

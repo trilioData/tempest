@@ -289,6 +289,32 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Oneclick restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
 
+    def _filesearch(self, vms_list, filecount_in_snapshots, search_path):
+        for i in range(len(vms_list)):
+            filesearch_id = self.filepath_search(vms_list[i], search_path)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                reporting.add_test_step(f"File search-{i+1} failed", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                snapshot_wise_filecount = self.verifyFilepath_Search(vms_list[i], search_path)
+
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount[snapshot_id] == \
+                            filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
+                if filesearch_status:
+                    reporting.add_test_step(
+                        f"Verification of Filesearch-{i+1} with default parameters",
+                        tvaultconf.PASS)
+                else:
+                    LOG.error(f"Filepath Search-{i+1} default_parameters unsuccessful")
+                    reporting.add_test_step(
+                            f"Verification of Filesearch-{i+1} with default parameters",
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
@@ -391,15 +417,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
-            self.mount_path = self.get_mountpoint_path(
-                tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                tvaultconf.tvault_password)
+            self.mount_path = self.get_mountpoint_path()
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id)
+                    self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
@@ -423,9 +445,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id2)
+                    self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
@@ -454,27 +474,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             filecount_in_snapshots = {
                 self.snapshot_id: 0,
                 self.snapshot_id2: 1}
-            filesearch_id_1 = self.filepath_search(self.vm_id_1, "/opt/File_4")
-            filesearch_id_2 = self.filepath_search(self.vm_id_2, "/opt/File_4")
-            snapshot_wise_filecount_1 = self.verifyFilepath_Search(filesearch_id_1, "/opt/File_4")
-            snapshot_wise_filecount_2 = self.verifyFilepath_Search(filesearch_id_2, "/opt/File_4")
-
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount_1[snapshot_id] == filecount_in_snapshots[snapshot_id] \
-                        and snapshot_wise_filecount_2[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
-            else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.FAIL)
+            search_path = "/opt/File_4"
+            vms_list = [self.vm_id_1, self.vm_id_2]
+            self._filesearch(vms_list, filecount_in_snapshots, search_path)
             reporting.test_case_to_write()
             tests[4][1] = 1
 
@@ -637,14 +639,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
-            self.mount_path = self.get_mountpoint_path(tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                                                       tvaultconf.tvault_password)
+            self.mount_path = self.get_mountpoint_path()
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id)
+                    self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
@@ -668,9 +667,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
-                    tvaultconf.tvault_password, self.mount_path,
-                    self.wid, self.snapshot_id2)
+                    self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
@@ -827,7 +824,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create workload failed")
 
-            for num in range(retention):
+            for num in range(retention+1):
                 snapshot_name = 'Tempest-retention-snapshot' + str(num + 1)
                 self.snapshot_id = self.workload_snapshot(self.wid, True, snapshot_name=snapshot_name)
                 self.wait_for_workload_tobe_available(self.wid)
@@ -861,6 +858,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Workload has not been created with scheduler enabled")
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(str(__name__) + "_workload_reset_with_multiattach_volume")
+            workload_reset_status = self.workload_reset(self.wid)
+            if workload_reset_status:
+                reporting.add_test_step("Workload reset request raised", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reset request failed")
+                reporting.add_test_step("Workload reset request failed", tvaultconf.FAIL)
+                raise Exception("Workload reset request failed")
+
+            start_time = time.time()
+            time.sleep(10)
+            volsnaps_after = self.get_volume_snapshots(self.volume_id)
+            while (len(volsnaps_after) != 0 and (time.time() - start_time < 600)):
+                volsnaps_after = self.get_volume_snapshots(self.volume_id)
+                time.sleep(5)
+            if len(volsnaps_after) == 0:
+                reporting.add_test_step("Temp Volume snapshot is deleted after workload reset", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Temp Volume snapshot not deleted after workload reset", tvaultconf.FAIL)
+                raise Exception("Workload reset failed as temp volume snapshot is not deleted")
             reporting.test_case_to_write()
 
         except Exception as e:

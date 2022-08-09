@@ -77,6 +77,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids[3]: 1}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
@@ -100,6 +103,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -136,6 +140,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids[3]: 1}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search, snapshot_ids_tosearch)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in snapshot_wise_filecount.keys():
@@ -158,6 +165,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -185,6 +193,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids_tosearch,
                 start_snapshot,
                 end_snapshot)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in snapshot_wise_filecount.keys():
@@ -209,6 +220,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -236,6 +248,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids_tosearch,
                 start_snapshot,
                 end_snapshot)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in snapshot_wise_filecount.keys():
@@ -260,6 +275,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -291,6 +307,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 end_snapshot,
                 date_from,
                 date_to)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in snapshot_wise_filecount.keys():
@@ -313,6 +332,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -332,6 +352,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids[3]: 2}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
@@ -355,6 +378,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
@@ -377,6 +401,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 snapshot_ids[3]: 2}
             filesearch_id = self.filepath_search(
                 vmid_to_search, filepath_to_search)
+            filesearch_status = self.getSearchStatus(filesearch_id)
+            if filesearch_status == 'error':
+                raise Exception("File search failed")
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
@@ -425,5 +452,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
