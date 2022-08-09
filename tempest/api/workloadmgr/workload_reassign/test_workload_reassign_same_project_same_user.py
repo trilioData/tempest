@@ -58,7 +58,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_workload_reassign_same_project_same_user(self):
         try:
 
-            tests = [['tempest.api.workloadmgr.workload_reassignment.create_workload',
+            tests = [['tempest.api.workloadmgr.workload_reassignment.create_workload_and_snapshot',
                       0],
                      ['tempest.api.workloadmgr.workload_reassignment.assign_tenant1_and_user1',
                       0],
@@ -91,7 +91,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
-                    tests[0][1] = 1
                 else:
                     LOG.error("Failed to get workload status as available for workload ID: " + str(workload_id))
                     raise Exception("Create workload")
@@ -108,6 +107,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (snapshot_status == "available"):
                 LOG.debug("Full snapshot created.")
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+                tests[0][1] = 1
             else:
                 LOG.error("Full snapshot creation failed.")
                 raise Exception("Create full snapshot")
@@ -118,7 +118,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[1][0])
             LOG.debug("Assign tenant and user to workload ID: " + str(workload_id))
 
-            ### copy project1 and user1
+            ### copy tenant1 and user1
             tenant_id = CONF.identity.tenant_id
             user_id = CONF.identity.user_id
 
