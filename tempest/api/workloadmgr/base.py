@@ -1269,6 +1269,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return snapshot_info
 
     '''
+    Method returns the snapshot information . It return array with create time,name and type information for given snapshot
+    '''
+
+    def getSnapshotVmVolumeInfo(self, snapshot_id='none'):
+        resp, body = self.wlm_client.client.get("/snapshots/" + snapshot_id)
+        snapshot_info = {}
+        volumes = []
+        for instance in body['snapshot']['instances']:
+            for volume in instance['vdisks']:
+                if "volume_id" in volume.keys():
+                    volumes.append(volume['volume_id'])
+            snapshot_info[instance['id']] = volumes
+        LOG.debug("Response:" + str(resp.content))
+        if (resp.status_code != 200):
+            resp.raise_for_status()
+        return snapshot_info
+
+    '''
     Method to connect to remote linux machine
     '''
 
