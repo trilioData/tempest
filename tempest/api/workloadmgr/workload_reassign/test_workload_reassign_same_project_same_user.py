@@ -63,6 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
 
+            reporting.test_case_to_write()
             reporting.add_test_script(tests[1][0])
             LOG.debug("Assign project and user")
             ### create project1 and user1 
@@ -71,16 +72,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"tenant_id {tenant_id} and user_id {user_id}")
             rc = self.workload_reassign(tenant_id, workload_id, user_id)
             if rc == 0:
-                LOG.debug("Workload reassign from tenant 1 to tenant 1 passed")
+                LOG.debug("Workload reassign from tenant to tenant 1 passed")
                 reporting.add_test_step(
-                    "Workload reassign from tenant 1 to 1", tvaultconf.PASS)
+                    "Workload reassign from tenant to tenant 1", tvaultconf.PASS)
                 tests[1][1] = 1
             else:
-                LOG.error("Workload reassign from tenant 1 to 1 failed")
+                LOG.error("Workload reassign from tenant to tenant 1 failed")
                 reporting.add_test_step(
-                    "Workload reassign from tenant 1 to 1", tvaultconf.FAIL)
+                    "Workload reassign from tenant to tenant 1", tvaultconf.FAIL)
 
 
+            reporting.test_case_to_write()
             reporting.add_test_script(tests[2][0])
             LOG.debug("Assign project and user again")
             #reassign the same user and project to the workload.     
@@ -88,12 +90,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 1 to tenant 1 passed")
                 reporting.add_test_step(
-                    "Workload reassign from tenant 1 to 1", tvaultconf.PASS)
+                    "Workload reassign from tenant 1 to tenant 1", tvaultconf.PASS)
                 tests[2][1] = 1
             else:
-                LOG.error("Workload reassign from tenant 1 to 1 failed")
+                LOG.error("Workload reassign from tenant 1 to tenant 1 failed")
                 reporting.add_test_step(
-                    "Workload reassign from tenant 1 to 1", tvaultconf.FAIL)
+                    "Workload reassign from tenant 1 to tenant 1", tvaultconf.FAIL)
 
 
             reporting.test_case_to_write()
@@ -103,4 +105,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
+        finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.add_test_script(test[0])
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.test_case_to_write()
 
