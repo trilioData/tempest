@@ -1275,8 +1275,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getSnapshotVmVolumeInfo(self, snapshot_id='none'):
         resp, body = self.wlm_client.client.get("/snapshots/" + snapshot_id)
         snapshot_info = {}
-        volumes = []
         for instance in body['snapshot']['instances']:
+            volumes = []
             for volume in instance['vdisks']:
                 if "volume_id" in volume.keys():
                     volumes.append(volume['volume_id'])
