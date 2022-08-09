@@ -19,47 +19,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
 
-    def _setup_multiattach_volume(self):
-        self.vm_id_1 = self.create_vm()
-        self.vm_id_2 = self.create_vm()
-
-        # find volume_type = multiattach. So that existing multiattach volume type can be used.
-        # Get the volume_type_id
-        vol_type_id = -1
-        for vol in CONF.volume.volume_types:
-            if (vol.lower().find("multiattach") != -1):
-                vol_type_id = CONF.volume.volume_types[vol]
-
-        if (vol_type_id == -1):
-            raise Exception(
-                "No multiattach volume found to create multiattach volume. Test cannot be continued")
-
-        # Now create volume with derived volume type id...
-        self.volume_id = self.create_volume(
-            volume_type_id=vol_type_id, size=2, volume_cleanup=False)
-
-        LOG.debug("Volume ID: " + str(self.volume_id))
-
-        self.volumes = []
-        self.volumes.append(self.volume_id)
-        # Attach volume to vm...
-        api_version.COMPUTE_MICROVERSION = '2.60'
-        self.attach_volume(self.volume_id, self.vm_id_1, attach_cleanup=False)
-        self.attach_volume(self.volume_id, self.vm_id_2, attach_cleanup=False)
-        LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1) + " and " + str(self.vm_id_2))
-        api_version.COMPUTE_MICROVERSION = None
-
-        vol_vm_1 = self.get_attached_volumes(self.vm_id_1)
-        vol_vm_2 = self.get_attached_volumes(self.vm_id_2)
-        LOG.debug("Voulme o VM 1: " + str(vol_vm_1) + " on VM 2:" + str(vol_vm_2))
-        if vol_vm_1 == vol_vm_2:
-            reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.PASS)
-            reporting.set_test_script_status(tvaultconf.PASS)
-        else:
-            reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-            raise Exception("Multiattach volume failed to attach existing instance")
-
     def _set_frm_user(self):
         self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
         self.frm_ssh_user = ""
@@ -349,7 +308,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         else:
             reporting.add_test_step("Number of multiattach volume attached to VM is not equal to 1",
                                     tvaultconf.FAIL)
-=======
+
     def _filesearch(self, vms_list, filecount_in_snapshots, search_path):
         for i in range(len(vms_list)):
             filesearch_id = self.filepath_search(vms_list[i], search_path)
