@@ -453,7 +453,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # 10. Verify the security group assigned to the restored instance
                 LOG.debug("Comparing security group & rules assigned to the restored instances.")
                 assigned_secgrps = self.getRestoredSecGroupPolicies(restored_vms)
-                if assigned_secgrps is None:
+                if len(assigned_secgrps) == 0:
                     reporting.add_test_step(
                         "Security group is not attached to restored vm".format(assigned_secgrps),
                         tvaultconf.FAIL,
