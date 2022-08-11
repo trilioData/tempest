@@ -57,14 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_workload_reassign_same_project_same_user(self):
         try:
 
-            tests = [['tempest.api.workloadmgr.workload_reassignment.create_full_snapshot',
-                      0],
-                     ['tempest.api.workloadmgr.workload_reassignment.assign_tenant1_and_user1',
-                      0],
-                     ['tempest.api.workloadmgr.workload_reassignment.reassign_same_tenant1_and_user1',
-                      0]]
-
-            reporting.add_test_script(tests[0][0])
+            reporting.add_test_script(str(__name__))
 
             ### Create vm and workload ###
             LOG.debug("Create VM")
@@ -72,14 +65,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.created = False
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
-
-            #Create the trust
-            trust_id = self.create_trust(tvaultconf.trustee_role)
-            if trust_id:
-                reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
-            else:
-                LOG.error("Create user trust on project failed.")
-                raise Exception("Create user trust on project")
 
             LOG.debug("Create workload")
             workload_id = self.workload_create(
@@ -106,64 +91,29 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if (snapshot_status == "available"):
                 LOG.debug("Full snapshot created.")
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                tests[0][1] = 1
             else:
                 LOG.error("Full snapshot creation failed.")
                 raise Exception("Create full snapshot")
 
 
-            #assign tenant1 and user1 to workload created.
-            reporting.test_case_to_write()
-            reporting.add_test_script(tests[1][0])
-            LOG.debug("Assign tenant and user to workload ID: " + str(workload_id))
-
-            ### copy tenant1 and user1
-            tenant_id_1 = CONF.identity.tenant_id_1
-            user_id_1 = CONF.identity.user_id_1
-
-            LOG.debug(f"tenant_id {tenant_id_1} and user_id {user_id_1}")
-
-            rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
+            #workload reassignment of same user and same tenant.
+            rc = self.workload_reassign(CONF.identity.tenant_id, workload_id, CONF.identity.user_id)
             if rc == 0:
-                LOG.debug("Workload reassign to tenant 1 passed")
+                LOG.debug("Workload reassign to same user and same tenant is passed")
                 reporting.add_test_step(
-                    "Workload reassign to tenant 1", tvaultconf.PASS)
-                tests[1][1] = 1
+                    "Workload reassign to same user and same tenant", tvaultconf.PASS)
             else:
-                LOG.error("Workload reassign to tenant 1 failed")
-                raise Exception("Workload reassign to tenant 1")
+                LOG.error("Workload reassign to same user and same tenant is failed")
+                raise Exception("Workload reassign to same user and same tenant")
 
-
-            #assign tenant1 and user1 to the same workload again.
-            reporting.test_case_to_write()
-            reporting.add_test_script(tests[2][0])
-            LOG.debug("Reassign tenant-1 and user-1 to workload ID: " + str(workload_id))
-
-            #reassign the same user and project to the workload.
-            rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
-            if rc == 0:
-                LOG.debug("Workload reassign from tenant 1 to tenant 1 passed")
-                reporting.add_test_step(
-                    "Workload reassign from tenant 1 to tenant 1", tvaultconf.PASS)
-                tests[2][1] = 1
-            else:
-                LOG.error("Workload reassign from tenant 1 to tenant 1 failed")
-                raise Exception("Workload reassign from tenant 1 to tenant 1")
-
-
-            reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
 
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.add_test_script(test[0])
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.test_case_to_write()
+            reporting.test_case_to_write()
+
 
 
 
