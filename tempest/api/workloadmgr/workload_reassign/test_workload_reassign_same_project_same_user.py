@@ -22,7 +22,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        reporting.add_test_script(str(__name__))
 
     def create_snapshot(self, workload_id, is_full=True):
         if is_full:
@@ -58,7 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_workload_reassign_same_project_same_user(self):
         try:
 
-            tests = [['tempest.api.workloadmgr.workload_reassignment.create_workload_and_snapshot',
+            tests = [['tempest.api.workloadmgr.workload_reassignment.full_snapshot',
                       0],
                      ['tempest.api.workloadmgr.workload_reassignment.assign_tenant1_and_user1',
                       0],
@@ -119,12 +118,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Assign tenant and user to workload ID: " + str(workload_id))
 
             ### copy tenant1 and user1
-            tenant_id = CONF.identity.tenant_id
-            user_id = CONF.identity.user_id
+            tenant_id_1 = CONF.identity.tenant_id_1
+            user_id_1 = CONF.identity.user_id_1
 
-            LOG.debug(f"tenant_id {tenant_id} and user_id {user_id}")
+            LOG.debug(f"tenant_id {tenant_id_1} and user_id {user_id_1}")
 
-            rc = self.workload_reassign(tenant_id, workload_id, user_id)
+            rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
             if rc == 0:
                 LOG.debug("Workload reassign to tenant 1 passed")
                 reporting.add_test_step(
@@ -141,7 +140,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Reassign tenant-1 and user-1 to workload ID: " + str(workload_id))
 
             #reassign the same user and project to the workload.
-            rc = self.workload_reassign(tenant_id, workload_id, user_id)
+            rc = self.workload_reassign(tenant_id_1, workload_id, user_id_1)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 1 to tenant 1 passed")
                 reporting.add_test_step(
