@@ -57,7 +57,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_workload_reassign_same_project_same_user(self):
         try:
 
-            tests = [['tempest.api.workloadmgr.workload_reassignment.full_snapshot',
+            tests = [['tempest.api.workloadmgr.workload_reassignment.create_full_snapshot',
                       0],
                      ['tempest.api.workloadmgr.workload_reassignment.assign_tenant1_and_user1',
                       0],
