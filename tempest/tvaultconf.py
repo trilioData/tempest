@@ -61,7 +61,7 @@ no_of_compute_nodes = 1
 
 # Scheduler parameter
 
-interval="1 hrs"
+interval="1 hr"
 interval_update = "7 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
