@@ -26,7 +26,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        reporting.add_test_script(str(__name__))
 
     def _create_workload(self, vms):
         LOG.debug("\nvms : {}\n".format(vms))
@@ -41,13 +40,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(workload_id)
             if self.getWorkloadStatus(workload_id) == "available":
                 reporting.add_test_step(
-                    "Create workload", tvaultconf.PASS
-                )
+                    "Create workload", tvaultconf.PASS)
         else:
             reporting.add_test_step(
-                "Create workload", tvaultconf.FAIL
-            )
-            reporting.set_test_script_status(tvaultconf.FAIL)
+                "Create workload", tvaultconf.FAIL)
             raise Exception("Workload creation failed")
         return workload_id
 
@@ -57,32 +53,26 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         self.wait_for_workload_tobe_available(workload_id)
         if self.getSnapshotStatus(workload_id, snapshot_id) == "available":
             reporting.add_test_step(
-                "Create full snapshot", tvaultconf.PASS
-            )
+                "Create full snapshot", tvaultconf.PASS)
             LOG.debug("Full snapshot available!!")
         else:
             reporting.add_test_step(
-                "Create full snapshot", tvaultconf.FAIL
-            )
-            reporting.set_test_script_status(tvaultconf.FAIL)
+                "Create full snapshot", tvaultconf.FAIL)
             raise Exception("Snapshot creation failed")
         LOG.debug("\nFull snapshot ids : {}\n".format(snapshot_id))
         return snapshot_id
 
     def _restore_through_wlm_cli(self, snapshot_id):
-        restore_command = (
-                command_argument_string.restore_security_groups + " " + snapshot_id
-        )
+        restore_command = command_argument_string.restore_security_groups +\
+                " " + snapshot_id
         rc = cli_parser.cli_returncode(restore_command)
         if rc != 0:
             reporting.add_test_step(
-                "Execute restore security groups command", tvaultconf.FAIL
-            )
+                "Execute restore security groups command", tvaultconf.FAIL)
             raise Exception("Command did not execute correctly")
         else:
             reporting.add_test_step(
-                "Execute restore security groups command", tvaultconf.PASS
-            )
+                "Execute restore security groups command", tvaultconf.PASS)
             LOG.debug("Command executed correctly")
 
         time.sleep(10)
@@ -91,22 +81,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             tvaultconf.security_group_restore_name, snapshot_id
         )
         LOG.debug("Security group restore status: " + str(wc))
-        while str(wc) != "available" or str(wc) != "error":
+        while str(wc) != "available" and str(wc) != "error":
             time.sleep(5)
             wc = query_data.get_snapshot_restore_status(
-                tvaultconf.security_group_restore_name, snapshot_id
-            )
+                tvaultconf.security_group_restore_name, snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
         if str(wc) == "available":
             reporting.add_test_step(
                 "Security group restore command verification",
-                tvaultconf.PASS,
-            )
+                tvaultconf.PASS)
         else:
             reporting.add_test_step(
                 "security group restore command verification",
-                tvaultconf.FAIL,
-            )
+                tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
 
     # Generate security groups and rules data
@@ -146,45 +133,32 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Delete default security group rules
             self.delete_default_rules(sgid)
         for t in range(0, len(created_security_groups)):
-            LOG.debug(
-                "Creating rule with other details "
-            )
+            LOG.debug("Creating rule with other details")
             secgrp = created_security_groups[t]
             for each in data_sec_group_and_rules[t]:
                 self.add_security_group_rule(
                     parent_grp_id=secgrp,
                     ip_proto=each["protocol"],
                     from_prt=each["port_range_min"],
-                    to_prt=each["port_range_max"],
-                )
+                    to_prt=each["port_range_max"])
         return created_security_groups
 
     def _security_group_verification_post_restore(self, restored_secgrps):
         for restored_secgrp in restored_secgrps:
-            LOG.debug(
-                "Print names of restored security groups : {}".format(
-                    restored_secgrp["name"]
-                )
-            )
+            LOG.debug("Print names of restored security groups : {}".format(
+                    restored_secgrp["name"]))
             if self.verifySecurityGroupsByname(restored_secgrp["name"]):
                 reporting.add_test_step(
                     "Security group verification successful for restored vm {}".format(
-                        restored_secgrp["name"]
-                    ),
-                    tvaultconf.PASS,
-                )
+                        restored_secgrp["name"]), tvaultconf.PASS)
             else:
                 reporting.add_test_step(
                     "Security group verification failed for restored vm {}".format(
-                        restored_secgrp["name"]
-                    ),
-                    tvaultconf.FAIL,
-                )
+                        restored_secgrp["name"]), tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-    def _security_group_and_rules_verification(
-            self, security_group_names, data_sec_group_and_rules, rules_count
-    ):
+    def _security_group_and_rules_verification(self, security_group_names, 
+            data_sec_group_and_rules, rules_count):
         restored_secgroup_ids = []
         for t in range(0, len(data_sec_group_and_rules)):
             restored_security_group = security_group_names + str(t + 1)
@@ -204,26 +178,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     result = self.verifySecurityGroupRules(rule["id"], sgid, each)
                     if result == True:
                         count += 1
-                LOG.debug(
-                    "Here is the count: {} for restored rules per security group {}".format(
-                        count, each
-                    )
-                )
+                LOG.debug("Here is the count: {} for restored rules per "\
+                        + "security group {}".format(count, each))
 
             if count == rules_count * 2:
                 reporting.add_test_step(
-                    "Security group rules verification successful for restored secgroup {}".format(
-                        restored_security_group
-                    ),
-                    tvaultconf.PASS,
-                )
+                    "Security group rules verification successful for "\
+                            "restored secgroup {}".format(
+                                restored_security_group), tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Security group rules verification failed for restored secgroup {}".format(
-                        restored_security_group
-                    ),
-                    tvaultconf.FAIL,
-                )
+                    "Security group rules verification failed for "\
+                        "restored secgroup {}".format(restored_security_group),
+                        tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
         return restored_secgroup_ids
 
@@ -243,13 +210,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             restore_name=tvaultconf.selective_restore_name,
             restore_cleanup=True,
             instance_details=payload["instance_details"],
-            network_details=payload["network_details"],
+            network_details=payload["network_details"]
         )
 
         if self.getRestoreStatus(workload_id, snapshot_id, restore_id) == "available":
             reporting.add_test_step(
-                "Selective restore completed successfully", tvaultconf.PASS
-            )
+                "Selective restore completed successfully", tvaultconf.PASS)
             LOG.debug("selective restore passed")
         else:
             reporting.add_test_step("Selective restore failed", tvaultconf.FAIL)
@@ -262,10 +228,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_id, snapshot_id, restore_cleanup=True
         )
         self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
-        if (
-                self.getRestoreStatus(workload_id, snapshot_id, restore_id)
-                == "available"
-        ):
+        if self.getRestoreStatus(workload_id, snapshot_id, restore_id) == \
+                "available":
             reporting.add_test_step(
                 "Oneclick restore completed successfully", tvaultconf.PASS
             )
