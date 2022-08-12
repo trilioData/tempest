@@ -336,9 +336,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             # Verification of cyclic security group restore with same rules
             LOG.debug("\nStarted test execution: ")
-            test_var = "tempest.api.workloadmgr.security_groups.test_security_group_remotesg_cyclic." \
-                       "test_with_samerule"
-            reporting.add_test_script(test_var + "_create_snapshot")
+            test_var = "tempest.api.workloadmgr.security_groups.test_" +\
+                    "remotesg_cyclic_with_samerule"
+            reporting.add_test_script(test_var+ "_prerequisite")
 
             security_group_names_list = [
                 "test_secgroups-PQR" + str(random.randint(0, 10000)),
@@ -453,7 +453,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # 10. Verify the security group assigned to the restored instance
                 LOG.debug("Comparing security group & rules assigned to the restored instances.")
                 assigned_secgrps = self.getRestoredSecGroupPolicies(restored_vms)
-                if assigned_secgrps is None:
+                if len(assigned_secgrps) == 0:
                     reporting.add_test_step(
                         "Security group is not attached to restored vm".format(assigned_secgrps),
                         tvaultconf.FAIL,

@@ -75,19 +75,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         if workload_id is not None:
             self.wait_for_workload_tobe_available(workload_id)
             if self.getWorkloadStatus(workload_id) == "available":
-                reporting.add_test_step(
-                    "Create workload-{}".format(workload_id), tvaultconf.PASS
-                )
+                reporting.add_test_step("Create workload", tvaultconf.PASS)
             else:
-                reporting.add_test_step(
-                    "Create workload-{}".format(workload_id), tvaultconf.FAIL
-                )
+                reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
         else:
-            reporting.add_test_step(
-                "Create workload-{}".format(workload_id), tvaultconf.FAIL
-            )
-            reporting.set_test_script_status(tvaultconf.FAIL)
             raise Exception("Workload creation failed")
         return workload_id
 
@@ -213,15 +205,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(5)
             self.wait_for_workload_tobe_available(workload_id)
             if self.getSnapshotStatus(workload_id, snapshot_id) == "available":
-                reporting.add_test_step(
-                    "Create full snapshot-{}".format(snapshot_id), tvaultconf.PASS
-                )
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
                 LOG.debug("Full snapshot available!!")
             else:
-                reporting.add_test_step(
-                    "Create full snapshot-{}".format(snapshot_id), tvaultconf.FAIL
-                )
-                raise Exception("Snapshot creation failed")
+                raise Exception("Create full snapshot failed")
             LOG.debug("\nFull snapshot ids : {}\n".format(snapshot_id))
 
             # Get the sec groups and rules list for verification post restore
