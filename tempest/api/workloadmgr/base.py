@@ -1837,6 +1837,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             swap=0,
             ephemeral=0,
             flavor_cleanup=True):
+        flavor_list = self.flavors_client.list_flavors()['flavors']
+        LOG.debug("Flavor list: " + str(flavor_list))
+        fl_id = None
+        for fl in flavor_list:
+            if fl['name'] == name:
+                fl_id = fl['id']
+                break
+        if fl_id:
+            LOG.debug("flavor already exists with same name")
+            self.delete_flavor(fl_id)
+        else:
+            LOG.debug("flavor does not exist with same name")
+
         if (ephemeral == 0):
             flavor_id = self.flavors_client.create_flavor(
                 name=name, disk=disk, vcpus=vcpus, ram=ram, swap=swap)['flavor']['id']
@@ -3576,29 +3589,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 vmdetails = self.get_vm_details(vm)
                 LOG.debug("\nRestored VM details: {}".format(vmdetails))
                 server_vm = vmdetails["server"]
-                LOG.debug(
-                    "\nRestored VM details - server : {}".format(vmdetails["server"])
-                )
+                LOG.debug(f"Restored VM details-server:{vmdetails['server']}")
                 restored_secgrps.extend(server_vm["security_groups"])
-                LOG.debug(
-                    "List of restored security group policies: {}".format(
-                        restored_secgrps
-                    )
-                )
-            return restored_secgrps
+                LOG.debug(f"List of restored security group policies:{restored_secgrps}")
         except Exception as e:
-            LOG.error("Restored instance do not have attached security group \n")
+            LOG.error("Restored instance do not have attached security group")
             LOG.error(f"Exception in getRestoredSecGroupPolicies: {e}")
+        finally:
+            return restored_secgrps
 
-    def list_security_groups(self):
-        body = self.security_groups_client.list_security_groups()
+
+    def list_security_groups(self, tenant_id=CONF.identity.tenant_id):
+        body = self.security_groups_client.list_security_groups(
+                tenant_id=tenant_id)
         security_groups = body["security_groups"]
         LOG.debug("No. of security groups: {}".format(len(security_groups)))
         LOG.debug("List of security groups: {}".format(security_groups))
         return security_groups
 
-    def list_security_group_rules(self):
-        body = self.security_group_rules_client.list_security_group_rules()
+    def list_security_group_rules(self, tenant_id=CONF.identity.tenant_id):
+        body = self.security_group_rules_client.list_security_group_rules(
+                tenant_id=tenant_id)
         rules_list = body["security_group_rules"]
         LOG.debug("No. of security group rules: {}".format(len(rules_list)))
         return rules_list
@@ -3782,7 +3793,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     attributes = ['links', 'OS-EXT-SRV-ATTR:host',
                                   'OS-EXT-SRV-ATTR:hypervisor_hostname', 'hostId',
                                   'OS-EXT-SRV-ATTR:instance_name', 'updated',
-                                  'created', 'id', 'OS-SRV-USG:launched_at']
+                                  'created', 'id', 'OS-SRV-USG:launched_at',
+                                  'OS-EXT-SRV-ATTR:reservation_id', 'OS-EXT-SRV-ATTR:hostname']
                     for attr in attributes:
                         vm_details_bf[vm][attr] = ''
                         vm_details_af[vm][attr] = ''

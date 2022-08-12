@@ -2888,7 +2888,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):
@@ -3037,7 +3037,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):
@@ -3469,7 +3469,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for vol in CONF.volume.volume_types:
                 if (vol.lower().find("luks") != -1):
                     encrypted_vol_type = CONF.volume.volume_types[vol]
-                else:
+                elif (vol.lower().find("multiattach") == -1):
                     unencrypted_vol_type = CONF.volume.volume_types[vol]
 
             if (encrypted_vol_type == -1):

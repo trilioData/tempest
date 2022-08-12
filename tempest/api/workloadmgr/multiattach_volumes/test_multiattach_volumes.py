@@ -745,4 +745,3 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
-
