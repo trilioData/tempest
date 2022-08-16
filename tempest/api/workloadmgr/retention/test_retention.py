@@ -56,11 +56,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
 
+            snapshot_ids = []
             for i in range(0, (rpv + 1)):
                 snapshot_id = self.workload_snapshot(
                     workload_id, True, snapshot_cleanup=False)
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
+                    snapshot_ids.append(snapshot_id)
                     reporting.add_test_step(
                         "Create full snapshot-{}".format(i + 1), tvaultconf.PASS)
                     LOG.debug("Full snapshot available!!")
@@ -76,6 +78,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Retention", tvaultconf.FAIL)
                 LOG.debug("Retention didn't work!!")
+                raise Exception("Retention failed")
+
+            snapshot_id1 = snapshot_ids[0]
+            self.mount_path = self.get_mountpoint_path()
+            self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path, workload_id, snapshot_id1)
+            LOG.debug(f"snapshot_found: {self.snapshot_found}")
+            if not self.snapshot_found:
+                reporting.add_test_step("Retention verified on backup target, snapshot is deleted",
+                                        tvaultconf.PASS)
+            else:
+                LOG.debug("Retention failed")
+                reporting.add_test_step("Retention falied on backup target, snapshot is not deleted",
+                                        tvaultconf.FAIL)
                 raise Exception("Retention failed")
             if (tvaultconf.cleanup):
                 for snapshot in snapshotlist:
