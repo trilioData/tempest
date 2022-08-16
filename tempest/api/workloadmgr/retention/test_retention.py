@@ -85,11 +85,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path, workload_id, snapshot_id1)
             LOG.debug(f"snapshot_found: {self.snapshot_found}")
             if not self.snapshot_found:
-                reporting.add_test_step("Retention verified on backend, snapshot is deleted",
+                reporting.add_test_step("Retention verified on backup target, snapshot is deleted",
                                         tvaultconf.PASS)
             else:
                 LOG.debug("Retention failed")
-                reporting.add_test_step("Retention falied on backend, snapshot is not deleted",
+                reporting.add_test_step("Retention falied on backup target, snapshot is not deleted",
                                         tvaultconf.FAIL)
                 raise Exception("Retention failed")
             if (tvaultconf.cleanup):
