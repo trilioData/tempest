@@ -47,8 +47,10 @@ Repo for automation build, test etc.
            python3 tools/install_venv.py
             ```
     - Ubuntu 18.04
-         - Install required packages
+         - Install required packages including openstack client version (min 4.0.2 is required).
            ```
+           add-apt-repository cloud-archive:ussuri
+           apt install python3-openstackclient           
            apt-get install gcc python3-venv python3-pip -y
            pip3 install apscheduler
            ```
