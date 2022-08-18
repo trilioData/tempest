@@ -403,7 +403,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         for test in tests:
             try:
-                reporting.add_test_script(test[0])
+                restore_tests = [[test[0] + "_selectiverestore_api", "selective"],
+                                 [test[0] + "_oneclickrestore_api", "oneclick"]]
+                reporting.add_test_script(restore_tests[0][0])
                 security_group_count = test[1]
                 rules_count = test[2]
 
@@ -546,9 +548,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     raise Exception("Deletion of vms/security group/Shared security group failed")
 
                 # Perform restores - selective, oneclick
-                restore_tests = [[test[0] + "_selectiverestore_api", "selective"],
-                                 [test[0] + "_oneclickrestore_api", "oneclick"]]
-
                 restore_id = ""
                 for restore_test in restore_tests:
                     restored_secgroup_ids = []
@@ -556,7 +555,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         LOG.debug(
                             "Oneclick restore test can only be executed when instance is deleted, hence skipping.")
                     else:
-                        reporting.add_test_script(restore_test[0])
+                        if "_oneclickrestore_api" in restore_test[0]:
+                            reporting.add_test_script(restore_test[0])
                         restore = restore_test[1]
                         LOG.debug("Perform {} restore".format(restore))
 
@@ -623,14 +623,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         if test != tests[-1]:
                             LOG.debug("deleting restored vm and restored security groups and rules")
                             self._delete_vms_secgroups(restored_vms, restored_secgroup_ids)
-                            reporting.test_case_to_write()
+                        reporting.test_case_to_write()
 
             except Exception as e:
                 LOG.error("Exception: " + str(e))
                 reporting.add_test_step(str(e), tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
-            finally:
                 reporting.test_case_to_write()
 
     # Test case automation for #OS-2029 : Shared Security_Group_Restore
@@ -642,7 +640,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         tenant_id = CONF.identity.tenant_id
         tenant_id_1 = CONF.identity.tenant_id_1
 
-        reporting.add_test_script(test_var)
+        restore_tests = [[test_var + "_selectiverestore_api", "selective"],
+                         [test_var + "_oneclickrestore_api", "oneclick"]]
+        reporting.add_test_script(restore_tests[0][0])
         security_group_count = 1
         rules_count = 3
         restored_secgroup_ids = []
@@ -830,13 +830,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Deletion of vms/security group/Shared security group failed")
 
             # Perform restores - selective, oneclick
-            restore_tests = [[test_var + "._selectiverestore_api", "selective"],
-                             [test_var + "._oneclickrestore_api", "oneclick"]]
 
             restore_id = ""
             for restore_test in restore_tests:
                 # restored_secgroup_ids = []
-                reporting.add_test_script(restore_test[0])
+                if "_oneclickrestore_api" in restore_test[0]:
+                    reporting.add_test_script(restore_test[0])
                 restore = restore_test[1]
                 LOG.debug("Perform {} restore".format(restore))
 
