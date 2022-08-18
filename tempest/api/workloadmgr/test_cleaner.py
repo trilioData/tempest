@@ -104,8 +104,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     pass
 
     def _delete_securitygroups(self):
-        sgs = self.security_groups_client.list_security_groups()[
-            'security_groups']
+        sgs = self.list_security_groups()
         sgs = [sg['id'] for sg in sgs if sg['name'] != 'default']
         for sg in sgs:
             try:
