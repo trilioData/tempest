@@ -3598,18 +3598,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         finally:
             return restored_secgrps
 
-
-    def list_security_groups(self, tenant_id=CONF.identity.tenant_id):
-        body = self.security_groups_client.list_security_groups(
-                tenant_id=tenant_id)
+    def list_security_groups(self):
+        body = self.security_groups_client.list_security_groups()
         security_groups = body["security_groups"]
         LOG.debug("No. of security groups: {}".format(len(security_groups)))
         LOG.debug("List of security groups: {}".format(security_groups))
         return security_groups
 
-    def list_security_group_rules(self, tenant_id=CONF.identity.tenant_id):
-        body = self.security_group_rules_client.list_security_group_rules(
-                tenant_id=tenant_id)
+    def list_security_group_rules(self):
+        body = self.security_group_rules_client.list_security_group_rules()
         rules_list = body["security_group_rules"]
         LOG.debug("No. of security group rules: {}".format(len(rules_list)))
         return rules_list
