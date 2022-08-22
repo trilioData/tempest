@@ -41,10 +41,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_tvault1063_bootfromvol_restore(self):
         try:
 
-            # DB validations for workload and snapshots before cleanup
-            #workload_validations_before = self.db_cleanup_workload_validations()
-            snapshot_validations_before = self.db_cleanup_snapshot_validations()
-            
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(self.workload_id, True)
             self.wait_for_workload_tobe_available(self.workload_id)
