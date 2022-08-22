@@ -4001,12 +4001,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2031
     @decorators.attr(type='workloadmgr_api')
     def test_17_barbican(self):
-        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup_.attach_ceph_volume_"
+        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup.attach_ceph_volume_"
         restore_tests = [[test_var + "selectiverestore_api", "selective"], [test_var + "inplacerestore_api", "inplace"], [test_var + "oneclickrestore_api", "oneclick"]]
 
         for restore_test in restore_tests:
             try:
                 reporting.add_test_script(restore_test[0])
+                # DB validations for workload, snpshot and restore before 
+                workload_validations_before = self.db_cleanup_workload_validations()
+                snapshot_validations_before = self.db_cleanup_snapshot_validations()
+                restore_validations_before = self.db_cleanup_restore_validations()
 
                 try:
                     order_uuid = self.create_secret_order("sec_order1")
@@ -4096,6 +4100,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     rest_details['network_id'] = CONF.network.internal_network_id
                     rest_details['subnet_id'] = self.get_subnet_id(
                         CONF.network.internal_network_id)
+                    rest_details['volume_type'] = volume_type_id
                     rest_details['instances'] = {vm_id: volumes}
                     payload = self.create_restore_json(rest_details)
 
@@ -4123,6 +4128,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         self.delete_restored_vms(restored_vms, restored_volumes)
                         self.restore_delete(wid, snapshot_id, restore_id)
                         reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
+                        
+                        # DB validations for selective restore after restore deletion
+                        restore_validations_after_deletion = self.db_cleanup_restore_validations()
+                        if (restore_validations_after_deletion == restore_validations_before):
+                            reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                        else:
+                            reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                            reporting.set_test_script_status(tvaultconf.FAIL)
                     except Exception as e:
                         raise Exception(str(e))
 
@@ -4133,7 +4146,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
                     else:
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
-
+                    
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                        reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
@@ -4144,7 +4165,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                 tvaultconf.PASS)
                     else:
                         raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
-
+                    
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
+                    if (workload_validations_after_deletion == workload_validations_before):
+                        reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
                 elif (restore_test[1] == "inplace"):
                     # Inplace restore for full snapshot
@@ -4154,6 +4182,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         trilio_vol_snapshots_before_restore))
                     rest_details = {}
                     rest_details['rest_type'] = 'inplace'
+                    rest_details['volume_type'] = volume_type_id
                     rest_details['instances'] = {vm_id: volumes}
                     payload = self.create_restore_json(rest_details)
 
@@ -4178,6 +4207,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     time.sleep(60)
 
                     self.restore_delete(wid, snapshot_id, restore_id)
+                    # DB validations for in-place restore after restore cleanup
+                    restore_validations_after_deletion = self.db_cleanup_restore_validations()
+                    if (restore_validations_after_deletion == restore_validations_before):
+                        reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
                     # Delete workload snapshots and verify
                     self.snapshot_delete(wid, snapshot_id)
@@ -4188,10 +4224,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         raise Exception(
                             "triliovault created snapshots for in_place restore are deleted after deleting workload snapshots")
-
+                    
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                        reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                        
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
+                    if (workload_validations_after_deletion == workload_validations_before):
+                        reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
                     LOG.debug("Inplace restore - trilio_vol_snapshots_before : {}".format(trilio_vol_snapshots_before))
                     LOG.debug("Inplace restore - trilio_vol_snapshots_after : {}".format(trilio_vol_snapshots_after))
@@ -4222,6 +4274,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     time.sleep(10)
                     rest_details = {}
                     rest_details['rest_type'] = 'oneclick'
+                    rest_details['volume_type'] = volume_type_id
                     payload = self.create_restore_json(rest_details)
 
                     # Trigger oneclick restore of full snapshot
@@ -4250,9 +4303,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
 
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                        reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
+                    if (workload_validations_after_deletion == workload_validations_before):
+                        reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
                     if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
                         LOG.debug("triliovault created snapshots are still present")

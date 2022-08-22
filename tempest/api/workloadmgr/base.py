@@ -4240,3 +4240,58 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
 
+    '''
+    Method to get db data for workload validations - DB cleanup
+    '''
+    def db_cleanup_workload_validations(self):
+        workload_validations = {}
+        LOG.debug("Getting list for db cleanup workload validations.")
+
+        workload_tables = ["workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
+        for each in workload_tables:
+            count = query_data.get_db_rows_count(each)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            #workload_dict = { each: count }
+            workload_validations[each] = count
+
+        LOG.debug("DB counts for workload validations: {}".format(workload_validations))
+        return workload_validations
+
+    '''
+    Method to get db data for snapshot validations - DB cleanup
+    '''
+    def db_cleanup_snapshot_validations(self):
+        snapshot_validations = {}
+        LOG.debug("Getting list for db cleanup snapshot validations.")
+
+        snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources",
+                           "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps",
+                           "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata",
+                           "snap_network_resources", "snap_network_resource_metadata"]
+        for each in snapshot_tables:
+            count = query_data.get_db_rows_count(each)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            #snap_dict = { each: count }
+            #snapshot_validations.append(snap_dict)
+            snapshot_validations[each] = count
+
+        LOG.debug("DB counts for snapshot validations: {}".format(snapshot_validations))
+        return snapshot_validations
+
+    '''
+    Method to get db data for restore validations - DB cleanup
+    '''
+    def db_cleanup_restore_validations(self):
+        restore_validations = {}
+        LOG.debug("Getting list for db cleanup restore validations.")
+
+        restore_tables = ["restore_metadata", "restored_vm_metadata", "restored_vm_resource_metadata", "restored_vm_resources", "restored_vms", "restores"]
+        for each in restore_tables:
+            count = query_data.get_db_rows_count(each)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            #restore_dict = { each: count }
+            restore_validations[each] = count
+
+        LOG.debug("DB counts for restore validations: {}".format(restore_validations))
+        return restore_validations
+        

@@ -106,6 +106,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.volume_id = self.create_volume()
             self.attach_volume(self.volume_id, self.vm_id)
 
+            # DB validations for workload before 
+            workload_validations_before = self.db_cleanup_workload_validations()
+            
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.vm_id)
@@ -132,10 +135,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
+            
+            self.db_cleanup_workload_validations()
             # Cleanup
             # Delete workload
             self.workload_delete(self.wid)
+            time.sleep(10)
+            
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations()
+            if (workload_validations_after_deletion == workload_validations_before):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
@@ -623,7 +637,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.vm_id = self.create_vm()
             self.volume_id = self.create_volume()
             self.attach_volume(self.volume_id, self.vm_id)
-
+            
+            # DB validations for workload before 
+            workload_validations_before = self.db_cleanup_workload_validations()
+            
             # Create scheduled workload
             self.start_date = time.strftime("%m/%d/%Y")
             self.start_time = time.strftime("%I:%M %p")
@@ -652,12 +669,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.schedule = self.getSchedulerStatus(self.wid)
             LOG.debug("Workload schedule: " + str(self.schedule))
             if(self.schedule):
-                reporting.add_test_step("Verification", tvaultconf.PASS)
+                reporting.add_test_step("Verification for workload schedule", tvaultconf.PASS)
                 LOG.debug("Workload schedule enabled")
             else:
-                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                reporting.add_test_step("Verification for workload schedule", tvaultconf.FAIL)
                 LOG.error("Workload schedule not enabled")
+        
+            # Delete workload
+            self.workload_delete(self.wid)
+            time.sleep(10)
 
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations()
+            if (workload_validations_after_deletion == workload_validations_before):
+                reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+        
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)

@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import time
 from oslo_log import log as logging
 
 from tempest import config
@@ -40,6 +41,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_bootfromvol_fullsnapshot(self):
         try:
+            # DB validations for snapshots before 
+            snapshot_validations_before = self.db_cleanup_snapshot_validations()
+            
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(
                 self.workload_id, True, snapshot_cleanup=False)
@@ -62,18 +66,35 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.volume_snapshots = self.get_available_volume_snapshots()
             self.delete_volume_snapshots(self.volume_snapshots)
 
+            # DB validations for snapshots after snapshot cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+            if (snapshot_validations_after_deletion == snapshot_validations_before):
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
             # Delete workload
             self.workload_delete(self.workload_id)
-
+            time.sleep(10)
+            
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations()
+            if (workload_validations_after_deletion == self.workload_validations_before):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
             # Delete vm
             self.delete_vm(self.vm_id)
 
             # Delete volume
             self.delete_volume(self.volume_id)
 
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            
+        finally:
             reporting.test_case_to_write()

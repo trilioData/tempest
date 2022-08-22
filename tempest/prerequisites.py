@@ -642,6 +642,9 @@ def bootfromvol_workload(self):
         self.workload_instances = []
         self.workload_volumes = []
 
+        # DB validations for workload before 
+        self.workload_validations_before = self.db_cleanup_workload_validations()
+        
         for vm in range(0, self.vms_per_workload):
             self.volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,

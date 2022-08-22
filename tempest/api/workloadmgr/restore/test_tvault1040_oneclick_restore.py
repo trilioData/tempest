@@ -34,7 +34,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             # Prerequisites
             self.created = False
             self.workload_instances = []
-
+            
             # Launch instance
             self.vm_id = self.create_vm(vm_cleanup=False)
             LOG.debug("VM ID: " + str(self.vm_id))
@@ -47,7 +47,10 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id,
                                attach_cleanup=False)
             LOG.debug("Volume attached")
-
+            
+            # DB validations for restore before 
+            restore_validations_before = self.db_cleanup_restore_validations()
+            
             # Create workload
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
@@ -114,12 +117,22 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.restore_id = query_data.get_snapshot_restore_id(
                 self.snapshot_id)
             LOG.debug("Restore ID: " + str(self.restore_id))
-
+            
             # Cleanup
             self.restore_delete(self.wid, self.snapshot_id, self.restore_id)
             LOG.debug("Snapshot Restore deleted successfully")
+            
+            # DB validations for restore after restore cleanup
+            restore_validations_after_deletion = self.db_cleanup_restore_validations()
+            if (restore_validations_after_deletion == restore_validations_before):
+                reporting.add_test_step("db cleanup validations for oneclick restore", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for oneclick restore", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+        
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        
         finally:
             reporting.test_case_to_write()
