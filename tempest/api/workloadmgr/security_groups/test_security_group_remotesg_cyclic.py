@@ -715,7 +715,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
 
                 # Compare the security group & rules assigned to the restored instance after restore
-                LOG.debug("Verify restored security group & rules for {} after {} restore".format(delete_secgrp, restore))
+                LOG.debug("Verify restored security group & rules for {} after {} restore".format(restored_secgrps, restore))
                 for restored_secgrp in restored_secgrps:
                     if self.verifySecurityGroupsByname(restored_secgrp["name"]):
                         reporting.add_test_step(
@@ -727,7 +727,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                             tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
                 # Check for deleted security group
-                secgrp_val = [val['id'] for val in restored_secgrps if val['name'] in delete_secgrp]
+                secgrp_val = [val['name'] for val in restored_secgrps if val['name'] in delete_secgrp]
                 if secgrp_val:
                     reporting.add_test_step(
                         "Deleted Security group/s: {} are restored after {} restore".format(delete_secgrp, restore),
