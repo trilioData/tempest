@@ -107,7 +107,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # DB validations for workload before 
-            workload_validations_before = self.db_cleanup_workload_validations()
+            #workload_validations_before = self.db_cleanup_workload_validations()
             
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
@@ -135,16 +135,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            
-            self.db_cleanup_workload_validations()
-            # Cleanup
+
+            # DB validations for workload before
+            workload_validations_before = self.db_cleanup_workload_validations(self.wid)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+
             # Delete workload
             self.workload_delete(self.wid)
             time.sleep(10)
-            
+
             # DB validations for workload after workload cleanup
-            workload_validations_after_deletion = self.db_cleanup_workload_validations()
-            if (workload_validations_after_deletion == workload_validations_before):
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.wid)
+            # if (workload_validations_after_deletion == workload_validations_before):
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
@@ -639,7 +642,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
             
             # DB validations for workload before 
-            workload_validations_before = self.db_cleanup_workload_validations()
+            #workload_validations_before = self.db_cleanup_workload_validations()
             
             # Create scheduled workload
             self.start_date = time.strftime("%m/%d/%Y")
@@ -655,7 +658,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                      self.retention_policy_type,
                                                  "retention_policy_value":
                                                      self.retention_policy_value,
-                                                 "enabled": "True"})
+                                                 "enabled": "True",
+                                                 "workload_cleanup": "False"})
             LOG.debug("Workload ID: " + str(self.wid))
             self.wait_for_workload_tobe_available(self.wid)
             if(self.getWorkloadStatus(self.wid) == "available"):
@@ -674,14 +678,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("Verification for workload schedule", tvaultconf.FAIL)
                 LOG.error("Workload schedule not enabled")
-        
+
+            # DB validations for workload before
+            workload_validations_before = self.db_cleanup_workload_validations(self.wid)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+
             # Delete workload
             self.workload_delete(self.wid)
             time.sleep(10)
 
             # DB validations for workload after workload cleanup
-            workload_validations_after_deletion = self.db_cleanup_workload_validations()
-            if (workload_validations_after_deletion == workload_validations_before):
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.wid)
+            #if (workload_validations_after_deletion == workload_validations_before):
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
                 reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.FAIL)

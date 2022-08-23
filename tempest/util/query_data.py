@@ -624,12 +624,44 @@ def get_trust_details(trust_id):
         conn.close()
 
 
-def get_db_rows_count(table_name):
+def get_db_rows_count1(table_name):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
         get_count = ("select count(*) from " + table_name )
         cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_db_rows_count(table_name, column_name, column_value):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = ("select count(*) from " + table_name + " where " + column_name + "='" + column_value + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_ids(id_field, table_name, column_name, column_value):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_vmids = ("select " + id_field + " from " + table_name + " where " + column_name + "='" + column_value + "'")
+        cursor.execute(get_vmids)
         rows = cursor.fetchall()
         for row in rows:
             return row[0]

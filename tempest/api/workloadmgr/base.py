@@ -4243,15 +4243,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to get db data for workload validations - DB cleanup
     '''
-    def db_cleanup_workload_validations(self):
+    def db_cleanup_workload_validations(self, workload_id):
         workload_validations = {}
         LOG.debug("Getting list for db cleanup workload validations.")
 
-        workload_tables = ["workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
-        for each in workload_tables:
-            count = query_data.get_db_rows_count(each)
+        #workload_tables = ["workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
+        # Below code will fetch wl_vm_ids from workload_vms table and then metadata count from db
+        workload_vm_ids = query_data.get_ids("id", "workload_vms", "workload_id", workload_id)
+        #workload_validations["workload_vm_ids"] = workload_vm_ids
+        LOG.debug("VM ids from db table - workload_vmids: {} ".format(workload_vm_ids))
+        if(workload_vm_ids != 0):
+            for workload_vm_id in workload_vm_ids:
+                count = query_data.get_db_rows_count("workload_vm_metadata", "workload_vm_id", workload_vm_id)
+                workload_validations[workload_vm_id] = count
+            workload_tables.remove("workload_vm_metadata")
+
+        for each in tvaultconf.workload_tables:
+            count = query_data.get_db_rows_count(each, "workload_id", workload_id)
             LOG.debug("Count for {} is: {}".format(each, count))
-            #workload_dict = { each: count }
             workload_validations[each] = count
 
         LOG.debug("DB counts for workload validations: {}".format(workload_validations))
@@ -4264,15 +4273,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_validations = {}
         LOG.debug("Getting list for db cleanup snapshot validations.")
 
-        snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources",
-                           "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps",
-                           "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata",
-                           "snap_network_resources", "snap_network_resource_metadata"]
-        for each in snapshot_tables:
+        #snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources",
+        #                   "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps",
+        #                   "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata",
+        #                   "snap_network_resources", "snap_network_resource_metadata"]
+        for each in tvaultconf.snapshot_tables:
             count = query_data.get_db_rows_count(each)
             LOG.debug("Count for {} is: {}".format(each, count))
-            #snap_dict = { each: count }
-            #snapshot_validations.append(snap_dict)
             snapshot_validations[each] = count
 
         LOG.debug("DB counts for snapshot validations: {}".format(snapshot_validations))
@@ -4285,11 +4292,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         restore_validations = {}
         LOG.debug("Getting list for db cleanup restore validations.")
 
-        restore_tables = ["restore_metadata", "restored_vm_metadata", "restored_vm_resource_metadata", "restored_vm_resources", "restored_vms", "restores"]
-        for each in restore_tables:
+        #restore_tables = ["restore_metadata", "restored_vm_metadata", "restored_vm_resource_metadata", "restored_vm_resources", "restored_vms", "restores"]
+        for each in tvaultconf.restore_tables:
             count = query_data.get_db_rows_count(each)
             LOG.debug("Count for {} is: {}".format(each, count))
-            #restore_dict = { each: count }
             restore_validations[each] = count
 
         LOG.debug("DB counts for restore validations: {}".format(restore_validations))

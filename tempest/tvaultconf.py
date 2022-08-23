@@ -141,3 +141,11 @@ disable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "False"}
 
 #max retry count
 max_retries = 20
+
+#db cleanup validations tables
+workload_tables = ["workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
+snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources",
+                   "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps",
+                   "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata",
+                   "snap_network_resources", "snap_network_resource_metadata"]
+restore_tables = ["restore_metadata", "restored_vm_metadata", "restored_vm_resource_metadata", "restored_vm_resources", "restored_vms", "restores"]
