@@ -4008,9 +4008,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             try:
                 reporting.add_test_script(restore_test[0])
                 # DB validations for workload, snpshot and restore before 
-                workload_validations_before = self.db_cleanup_workload_validations()
-                snapshot_validations_before = self.db_cleanup_snapshot_validations()
-                restore_validations_before = self.db_cleanup_restore_validations()
+                #workload_validations_before = self.db_cleanup_workload_validations()
+                #snapshot_validations_before = self.db_cleanup_snapshot_validations()
+                #restore_validations_before = self.db_cleanup_restore_validations()
 
                 try:
                     order_uuid = self.create_secret_order("sec_order1")
@@ -4130,8 +4130,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
                         
                         # DB validations for selective restore after restore deletion
-                        restore_validations_after_deletion = self.db_cleanup_restore_validations()
-                        if (restore_validations_after_deletion == restore_validations_before):
+                        restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                        if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                        #if (restore_validations_after_deletion == restore_validations_before):
                             reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.PASS)
                         else:
                             reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.FAIL)
@@ -4148,8 +4149,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
                     
                     # DB validations for snapshots after deletion
-                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
-                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                    #if (snapshot_validations_after_deletion == snapshot_validations_before):
                         reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.FAIL)
@@ -4167,8 +4169,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
                     
                     # DB validations for workload after workload deletion
-                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
-                    if (workload_validations_after_deletion == workload_validations_before):
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                    #if (workload_validations_after_deletion == workload_validations_before):
                         reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.FAIL)
@@ -4208,8 +4211,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                     self.restore_delete(wid, snapshot_id, restore_id)
                     # DB validations for in-place restore after restore cleanup
-                    restore_validations_after_deletion = self.db_cleanup_restore_validations()
-                    if (restore_validations_after_deletion == restore_validations_before):
+                    restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                    if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                    #if (restore_validations_after_deletion == restore_validations_before):
                         reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.FAIL)
@@ -4226,8 +4230,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             "triliovault created snapshots for in_place restore are deleted after deleting workload snapshots")
                     
                     # DB validations for snapshots after deletion
-                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
-                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                    #if (snapshot_validations_after_deletion == snapshot_validations_before):
                         reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.FAIL)
@@ -4237,8 +4242,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.workload_delete(wid)
                     time.sleep(30)
                     # DB validations for workload after workload deletion
-                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
-                    if (workload_validations_after_deletion == workload_validations_before):
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                    #if (workload_validations_after_deletion == workload_validations_before):
                         reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.FAIL)
@@ -4295,6 +4301,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Restored volumes list: {}".format(restored_volumes))
                     time.sleep(60)
 
+                    self.restore_delete(wid, snapshot_id, restore_id)
+                    # DB validations for oneclick restore after restore cleanup
+                    restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                    if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                    #if (restore_validations_after_deletion == restore_validations_before):
+                        reporting.add_test_step("oneclick: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     # Delete workload snapshots and verify
                     self.snapshot_delete(wid, snapshot_id)
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
@@ -4304,8 +4320,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
 
                     # DB validations for snapshots after deletion
-                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
-                    if (snapshot_validations_after_deletion == snapshot_validations_before):
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                    #if (snapshot_validations_after_deletion == snapshot_validations_before):
                         reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.FAIL)
@@ -4315,8 +4332,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     self.workload_delete(wid)
                     time.sleep(30)
                     # DB validations for workload after workload deletion
-                    workload_validations_after_deletion = self.db_cleanup_workload_validations()
-                    if (workload_validations_after_deletion == workload_validations_before):
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                    #if (workload_validations_after_deletion == workload_validations_before):
                         reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.PASS)
                     else:
                         reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.FAIL)

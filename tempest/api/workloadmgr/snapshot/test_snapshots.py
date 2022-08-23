@@ -60,7 +60,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("volume id: " + str(volume_id))
             
             # DB validations for incr snapshots before 
-            full_snapshot_validations_before = self.db_cleanup_snapshot_validations()
+            #full_snapshot_validations_before = self.db_cleanup_snapshot_validations()
             
             self.created = False
 
@@ -96,6 +96,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Full snapshot", tvaultconf.FAIL)
                 raise Exception("Workload snapshot did not get created")
 
+            # DB validations for incr snapshots before
+            #full_snapshot_validations_before = self.db_cleanup_snapshot_validations(snapshot_id)
             reporting.test_case_to_write()
 
         except Exception as e:
@@ -116,7 +118,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("workload is:" + str(workload_id))
             
             # DB validations for incr snapshots before 
-            snapshot_validations_before = self.db_cleanup_snapshot_validations()
+            #snapshot_validations_before = self.db_cleanup_snapshot_validations()
             
             # Create incremental snapshot using CLI command
             create_snapshot = command_argument_string.incr_snapshot_create + workload_id
@@ -155,17 +157,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Incremental Snapshot deleted successfully")
             
             # DB validations for snapshots after cleanup
-            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.incr_snapshot_id)
             
             # For full snapshot, new entry is added in table "vm_recent_snapshot". For incr, same entry is updated. 
             # However, when we delete incr snapshot, this entry is removed.
             # vm_recent_snapshot table has FK with Snapshot having ondelete="CASCADE" effect,
             # so whenever the snapshot is deleted it's respective entry from this table would get removed. 
             # Below code change would prevent test failure, as it is expected behavior.
-            snapshot_validations_after_deletion['vm_recent_snapshot'] += 1
+            #snapshot_validations_after_deletion['vm_recent_snapshot'] += 1
             LOG.debug("Print values for {}".format(snapshot_validations_after_deletion))
-            
-            if (snapshot_validations_after_deletion == snapshot_validations_before):
+
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+            #if (snapshot_validations_after_deletion == snapshot_validations_before):
                 reporting.add_test_step("db cleanup validations for incr snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for incr snapshot", tvaultconf.FAIL)
@@ -262,9 +265,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             time.sleep(10)
             # DB validations for snapshots after cleanup
-            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
             #snapshot_validations_after_deletion["vm_recent_snapshot"] -= 1
-            if (snapshot_validations_after_deletion == full_snapshot_validations_before):
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+            #if (snapshot_validations_after_deletion == full_snapshot_validations_before):
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
@@ -277,6 +281,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             
             # Delete workload
             self.workload_delete(workload_id)
+            time.sleep(10)
+
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(workload_id)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                # if (workload_validations_after_deletion == self.workload_validations_before):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete vm
             self.delete_vm(vm_id)

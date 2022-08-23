@@ -4239,27 +4239,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in remove_role_from_user_project: {e}")
             return False
 
-
     '''
     Method to get db data for workload validations - DB cleanup
     '''
     def db_cleanup_workload_validations(self, workload_id):
         workload_validations = {}
-        LOG.debug("Getting list for db cleanup workload validations.")
+        LOG.debug("Getting list for db cleanup workload validations: {}".format(workload_id))
 
-        #workload_tables = ["workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
-        # Below code will fetch wl_vm_ids from workload_vms table and then metadata count from db
-        workload_vm_ids = query_data.get_ids("id", "workload_vms", "workload_id", workload_id)
-        #workload_validations["workload_vm_ids"] = workload_vm_ids
-        LOG.debug("VM ids from db table - workload_vmids: {} ".format(workload_vm_ids))
-        if(workload_vm_ids != 0):
-            for workload_vm_id in workload_vm_ids:
-                count = query_data.get_db_rows_count("workload_vm_metadata", "workload_vm_id", workload_vm_id)
-                workload_validations[workload_vm_id] = count
-            workload_tables.remove("workload_vm_metadata")
-
-        for each in tvaultconf.workload_tables:
-            count = query_data.get_db_rows_count(each, "workload_id", workload_id)
+        workload_tables = tvaultconf.workload_tables
+        LOG.debug("Print workload_tables: {}".format(workload_tables))
+        for each in workload_tables:
+            if (each == "workload_vm_metadata"):
+                # Below code will fetch count from workload_vms_metadata table based on join query
+                count = query_data.get_workload_vm_data(workload_id)
+            elif (each == "workloads"):
+                count = query_data.get_db_rows_count(each, "id", workload_id)
+            else:
+                count = query_data.get_db_rows_count(each, "workload_id", workload_id)
             LOG.debug("Count for {} is: {}".format(each, count))
             workload_validations[each] = count
 
@@ -4269,16 +4265,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to get db data for snapshot validations - DB cleanup
     '''
-    def db_cleanup_snapshot_validations(self):
+    def db_cleanup_snapshot_validations(self, snapshot_id):
         snapshot_validations = {}
         LOG.debug("Getting list for db cleanup snapshot validations.")
 
-        #snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources",
-        #                   "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps",
-        #                   "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata",
-        #                   "snap_network_resources", "snap_network_resource_metadata"]
-        for each in tvaultconf.snapshot_tables:
-            count = query_data.get_db_rows_count(each)
+        snapshot_tables = tvaultconf.snapshot_tables
+        LOG.debug("Print snapshot_tables: {}".format(snapshot_tables))
+        for each in snapshot_tables:
+            if (each == "snapshots"):
+                count = query_data.get_db_rows_count(each, "id", snapshot_id)
+            elif (each == "snapshot_vm_metadata"):
+                count = query_data.get_snapshot_vm_data(snapshot_id)
+            elif (each == "vm_disk_resource_snaps"):
+                count = query_data.get_vm_disk_resource_snaps(snapshot_id)
+            elif (each == "vm_disk_resource_snap_metadata"):
+                count = query_data.get_vm_disk_resource_snaps_metadata(snapshot_id)
+            elif (each == "vm_network_resource_snaps"):
+                count = query_data.get_vm_network_resource_snaps(snapshot_id)
+            elif (each == "vm_network_resource_snap_metadata"):
+                count = query_data.get_vm_network_resource_snaps_metadata(snapshot_id)
+            elif (each == "snap_network_resource_metadata"):
+                count = query_data.get_snap_network_resource_metadata(snapshot_id)
+            else:
+                count = query_data.get_db_rows_count(each, "snapshot_id", snapshot_id)
             LOG.debug("Count for {} is: {}".format(each, count))
             snapshot_validations[each] = count
 
@@ -4288,13 +4297,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Method to get db data for restore validations - DB cleanup
     '''
-    def db_cleanup_restore_validations(self):
+    def db_cleanup_restore_validations(self, restore_id):
         restore_validations = {}
         LOG.debug("Getting list for db cleanup restore validations.")
 
-        #restore_tables = ["restore_metadata", "restored_vm_metadata", "restored_vm_resource_metadata", "restored_vm_resources", "restored_vms", "restores"]
-        for each in tvaultconf.restore_tables:
-            count = query_data.get_db_rows_count(each)
+        restore_tables = tvaultconf.restore_tables
+        LOG.debug("Print restore_tables: {}".format(restore_tables))
+        for each in restore_tables:
+            if (each == "restores"):
+                count = query_data.get_db_rows_count(each, "id", restore_id)
+            elif (each == "restored_vm_metadata"):
+                count = query_data.get_restored_vm_metadata(restore_id)
+            elif (each == "restored_vm_resource_metadata"):
+                count = query_data.get_restored_vm_resource_metadata(restore_id)
+            else:
+                count = query_data.get_db_rows_count(each, "restore_id", restore_id)
             LOG.debug("Count for {} is: {}".format(each, count))
             restore_validations[each] = count
 

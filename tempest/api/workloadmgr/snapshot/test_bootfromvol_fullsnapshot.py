@@ -42,7 +42,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_bootfromvol_fullsnapshot(self):
         try:
             # DB validations for snapshots before 
-            snapshot_validations_before = self.db_cleanup_snapshot_validations()
+            #snapshot_validations_before = self.db_cleanup_snapshot_validations()
             
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(
@@ -58,6 +58,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
+            # DB validations for workload and snapshots before
+            workload_validations_before = self.db_cleanup_workload_validations(self.workload_id)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+            snapshot_validations_before = self.db_cleanup_snapshot_validations(self.snapshot_id)
+            LOG.debug("snapshot table values before deletion: {}".format(snapshot_validations_before))
+
             # Cleanup
             # Delete Snapshot
             self.snapshot_delete(self.workload_id, self.snapshot_id)
@@ -67,8 +73,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.delete_volume_snapshots(self.volume_snapshots)
 
             # DB validations for snapshots after snapshot cleanup
-            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations()
-            if (snapshot_validations_after_deletion == snapshot_validations_before):
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.snapshot_id)
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+            #if (snapshot_validations_after_deletion == snapshot_validations_before):
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
@@ -79,8 +86,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             
             # DB validations for workload after workload cleanup
-            workload_validations_after_deletion = self.db_cleanup_workload_validations()
-            if (workload_validations_after_deletion == self.workload_validations_before):
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.workload_id)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+            #if (workload_validations_after_deletion == self.workload_validations_before):
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
