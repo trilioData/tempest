@@ -92,6 +92,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
+
+            #check if actually tenant id is changed for the workload or not. 
+            workload_instance_info = self.get_workload_details(workload_id)
+            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={tenant_id_1}")
+            if tenant_id_1 == workload_instance_info['project_id']:
+                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+                reporting.add_test_step(
+                    "tenant_id_1 workload reassign", tvaultconf.PASS)
+            else:
+                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                raise Exception("tenant_id_1 workload reassign")
+
+
             rc = self.workload_reassign(tenant_id, workload_id, user_id)
             if rc == 0:
                 LOG.debug("Workload reassign from tenant 2 to tenant 1 passed")
@@ -101,13 +114,26 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.error("Workload reassign from tenant 2 to 1 failed")
                 reporting.add_test_step(
                     "Workload reassign from tenant 2 to 1", tvaultconf.FAIL)
-            reporting.test_case_to_write()
+
+            #check if actually tenant id is changed for the workload or not. 
+            workload_instance_info = self.get_workload_details(workload_id)
+            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={tenant_id}")
+            if tenant_id == workload_instance_info['project_id']:
+                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+                reporting.add_test_step(
+                    "tenant_id workload reassign", tvaultconf.PASS)
+            else:
+                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                raise Exception("tenant_id workload reassign")
+
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
+        finally:
+            reporting.test_case_to_write()
 
     '''
     OS-2058 - workload reassign with same user and same project.
@@ -170,9 +196,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={CONF.identity.tenant_id}")
             if CONF.identity.tenant_id == workload_instance_info['project_id']:
                 LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+                reporting.add_test_step(
+                    "Same tenant workload reassign", tvaultconf.PASS)
             else:
                 LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
-                raise Exception("Workload reassign shows incorrect tenant id")
+                raise Exception("Same tenant workload reassign")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -245,9 +273,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={CONF.identity.tenant_id_1}")
             if CONF.identity.tenant_id_1 == workload_instance_info['project_id']:
                 LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+                reporting.add_test_step(
+                    "Different tenant workload reassign", tvaultconf.PASS)
             else:
                 LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
-                raise Exception("Workload reassign shows incorrect tenant id")
+                raise Exception("Different tenant workload reassign")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
