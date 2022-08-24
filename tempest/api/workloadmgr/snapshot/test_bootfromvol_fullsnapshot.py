@@ -41,9 +41,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_bootfromvol_fullsnapshot(self):
         try:
-            # DB validations for snapshots before 
-            #snapshot_validations_before = self.db_cleanup_snapshot_validations()
-            
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(
                 self.workload_id, True, snapshot_cleanup=False)
@@ -75,7 +72,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # DB validations for snapshots after snapshot cleanup
             snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.snapshot_id)
             if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
-            #if (snapshot_validations_after_deletion == snapshot_validations_before):
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
@@ -88,7 +84,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # DB validations for workload after workload cleanup
             workload_validations_after_deletion = self.db_cleanup_workload_validations(self.workload_id)
             if (all(value == 0 for value in workload_validations_after_deletion.values())):
-            #if (workload_validations_after_deletion == self.workload_validations_before):
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)

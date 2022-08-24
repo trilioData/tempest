@@ -47,10 +47,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id,
                                attach_cleanup=False)
             LOG.debug("Volume attached")
-            
-            # DB validations for restore before 
-            #restore_validations_before = self.db_cleanup_restore_validations()
-            
+
             # Create workload
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
@@ -118,6 +115,9 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 self.snapshot_id)
             LOG.debug("Restore ID: " + str(self.restore_id))
             
+            # DB validations for restore before
+            self.db_cleanup_restore_validations(self.restore_id)
+
             # Cleanup
             self.restore_delete(self.wid, self.snapshot_id, self.restore_id)
             LOG.debug("Snapshot Restore deleted successfully")
@@ -125,7 +125,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             # DB validations for restore after restore cleanup
             restore_validations_after_deletion = self.db_cleanup_restore_validations(self.restore_id)
             if (all(value == 0 for value in restore_validations_after_deletion.values())):
-            #if (restore_validations_after_deletion == restore_validations_before):
                 reporting.add_test_step("db cleanup validations for oneclick restore", tvaultconf.PASS)
             else:
                 reporting.add_test_step("db cleanup validations for oneclick restore", tvaultconf.FAIL)
