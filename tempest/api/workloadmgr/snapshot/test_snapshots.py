@@ -49,7 +49,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volume_id
             global workload_id
             global snapshot_id
-            global full_snapshot_validations_before
 
             workload_id = self.wid
             vm_id = self.vm_id
