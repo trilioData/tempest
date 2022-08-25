@@ -258,6 +258,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             raise Exception("Deletion of vms and security group/s failed")
         time.sleep(60)
 
+    def _concat_lists(self, list1, list2, list3=None):
+        for sec_grp2 in list2:
+            if 'name' in sec_grp2.keys() and sec_grp2['name'] == "default":
+                list2.remove(sec_grp2)
+            if 'remote_group_id' in sec_grp2.keys() and sec_grp2['remote_group_id'] == "None":
+                list2.remove(sec_grp2)
+        list1 = list1 + list2
+        if list3 != None:
+            for sec_grp3 in list3:
+                if 'name' in sec_grp3.keys() and sec_grp3['name'] == "default":
+                    list3.remove(sec_grp3)
+                if 'remote_group_id' in sec_grp3.keys() and sec_grp3['remote_group_id'] == "None":
+                    list3.remove(sec_grp3)
+            list1 = list1 + list3
+        return list1
+
+
     # Test case automation for #OS-1892 : Security_Group_Restore_using_CLI_for_single_group
     # Test case automation for #OS-1893 : Security_Group_Restore_using_CLI_for_multiple_groups
     @decorators.attr(type="workloadmgr_cli")
@@ -506,8 +523,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 snapshot_id = self._take_full_snapshot(workload_id)
 
                 # Get the sec groups and rules list for verification post restore
-                secgroups_before = self.list_security_groups()
-                rules_before = self.list_security_group_rules()
+                secgroups_before1 = self.list_security_groups()
+                secgroups_before2 = self.list_security_groups(tenant_id_1)
+                rules_before1 = self.list_security_group_rules()
+                rules_before2 = self.list_security_group_rules(tenant_id_1)
+
+                secgroups_before = self._concat_lists(secgroups_before1,secgroups_before2)
+                rules_before = self._concat_lists(rules_before1, rules_before2)
+                LOG.debug("Security groups before : {}".format(secgroups_before))
+                LOG.debug("Security group rules before : {}".format(rules_before))
 
                 # Delete security group assigned to instance as per the test steps
                 delete_secgrp_ids = []
@@ -797,8 +821,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             snapshot_id = self._take_full_snapshot(workload_id)
 
             # Get the sec groups and rules list for verification post restore
-            secgroups_before = self.list_security_groups()
-            rules_before = self.list_security_group_rules()
+            secgroups_before1 = self.list_security_groups()
+            secgroups_before2 = self.list_security_groups(tenant_id_1)
+            secgroups_before3 = self.list_security_groups(tenant_id_2)
+            rules_before1 = self.list_security_group_rules()
+            rules_before2 = self.list_security_group_rules(tenant_id_1)
+            rules_before3 = self.list_security_group_rules(tenant_id_2)
+
+            secgroups_before = self._concat_lists(secgroups_before1, secgroups_before2, secgroups_before3)
+            rules_before = self._concat_lists(rules_before1, rules_before2, rules_before3)
+            LOG.debug("Security groups before : {}".format(secgroups_before))
+            LOG.debug("Security group rules before : {}".format(rules_before))
 
             # Delete vm, volumes, security groups as per the test step
             try:
