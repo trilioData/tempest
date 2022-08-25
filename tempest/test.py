@@ -60,10 +60,6 @@ def pre_req(arg1):
                 prerequisites.basic_workload(args[0])
             elif (arg1['type'] == 'bootfromvol_workload') and (tvaultconf.pre_req==True):
                 prerequisites.bootfromvol_workload(args[0])
-            elif (arg1['type'] == 'config_backup') and (tvaultconf.pre_req==True):
-                prerequisites.config_backup(args[0])
-            elif (arg1['type'] == 'config_workload') and (tvaultconf.pre_req==True):
-                prerequisites.config_workload(args[0])
             elif (arg1['type'] == 'bootfromvol_workload_medium') and (tvaultconf.pre_req==True):
                 prerequisites.bootfromvol_workload_medium(args[0])
             elif (arg1['type'] == 'bootfrom_image_with_floating_ips') and (tvaultconf.pre_req==True):
