@@ -130,7 +130,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
 
         finally:
             reporting.test_case_to_write()
@@ -146,13 +145,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__) + "_same_user_same_tenant")
 
             ### Create vm and workload ###
-            LOG.debug("Create VM")
 
             self.created = False
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
-            LOG.debug("Create workload")
             workload_id = self.workload_create(
                 [vm_id], tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
@@ -222,13 +219,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__) + "_same_user_different_tenant")
 
             ### Create vm and workload ###
-            LOG.debug("Create VM")
 
             self.created = False
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
-            LOG.debug("Create workload")
             workload_id = self.workload_create(
                 [vm_id], tvaultconf.parallel, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
