@@ -743,7 +743,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # Delete restored vms and security groups created during earlier restore
                 if test != tests[-1]:
                     LOG.debug("deleting restored vm and restored security groups and rules")
-                    self._delete_vms_secgroups(restored_vms, secgrp_val)
+                    self._delete_vms_secgroups(restored_vms, self.restored_secgroup_ids)
                     reporting.test_case_to_write()
 
         except Exception as e:
