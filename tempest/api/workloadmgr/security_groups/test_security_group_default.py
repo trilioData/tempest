@@ -262,14 +262,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for sec_grp2 in list2:
             if 'name' in sec_grp2.keys() and sec_grp2['name'] == "default":
                 list2.remove(sec_grp2)
-            if 'remote_group_id' in sec_grp2.keys() and sec_grp2['remote_group_id'] == "None":
-                list2.remove(sec_grp2)
         list1 = list1 + list2
         if list3 != None:
             for sec_grp3 in list3:
                 if 'name' in sec_grp3.keys() and sec_grp3['name'] == "default":
-                    list3.remove(sec_grp3)
-                if 'remote_group_id' in sec_grp3.keys() and sec_grp3['remote_group_id'] == "None":
                     list3.remove(sec_grp3)
             list1 = list1 + list3
         return list1
@@ -525,11 +521,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # Get the sec groups and rules list for verification post restore
                 secgroups_before1 = self.list_security_groups()
                 secgroups_before2 = self.list_security_groups(tenant_id_1)
-                rules_before1 = self.list_security_group_rules()
-                rules_before2 = self.list_security_group_rules(tenant_id_1)
+                rules_before = self.list_security_group_rules()
 
                 secgroups_before = self._concat_lists(secgroups_before1,secgroups_before2)
-                rules_before = self._concat_lists(rules_before1, rules_before2)
                 LOG.debug("Security groups before : {}".format(secgroups_before))
                 LOG.debug("Security group rules before : {}".format(rules_before))
 
@@ -574,7 +568,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 # Perform restores - selective, oneclick
                 restore_id = ""
                 for restore_test in restore_tests:
-                    restored_secgroup_ids = []
                     if (test[3] == "no_delete" and restore_test[1] == "oneclick"):
                         LOG.debug(
                             "Oneclick restore test can only be executed when instance is deleted, hence skipping.")
@@ -595,7 +588,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
                         # Security group and rules verification post restore
                         LOG.debug("Compare the security groups before and after restore")
-                        secgroups_after = self.list_security_groups()
+                        secgroups_after1 = self.list_security_groups()
+                        if restore == "selective" and test[3] != "delete_vm_secgrp_shared" :
+                            secgroups_after2 = self.list_security_groups(tenant_id_1)
+                            secgroups_after = self._concat_lists(secgroups_after1,secgroups_after2)
+                        else:
+                            secgroups_after = secgroups_after1
                         if len(secgroups_after) == len(secgroups_before):
                             reporting.add_test_step(
                                 "Security group verification pre and post restore",
@@ -669,7 +667,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(restore_tests[0][0])
         security_group_count = 1
         rules_count = 3
-        restored_secgroup_ids = []
         try:
             LOG.debug("Creating third project for the test")
             project_details = self.create_project(project_cleanup=True)
@@ -824,12 +821,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             secgroups_before1 = self.list_security_groups()
             secgroups_before2 = self.list_security_groups(tenant_id_1)
             secgroups_before3 = self.list_security_groups(tenant_id_2)
-            rules_before1 = self.list_security_group_rules()
-            rules_before2 = self.list_security_group_rules(tenant_id_1)
-            rules_before3 = self.list_security_group_rules(tenant_id_2)
+            rules_before = self.list_security_group_rules()
 
             secgroups_before = self._concat_lists(secgroups_before1, secgroups_before2, secgroups_before3)
-            rules_before = self._concat_lists(rules_before1, rules_before2, rules_before3)
             LOG.debug("Security groups before : {}".format(secgroups_before))
             LOG.debug("Security group rules before : {}".format(rules_before))
 
