@@ -92,6 +92,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Full snapshot", tvaultconf.FAIL)
                 raise Exception("Workload snapshot did not get created")
 
+            # DB validations for full snapshots before
+            full_snapshot_validations = self.db_cleanup_snapshot_validations(snapshot_id)
+            LOG.debug("db entries after triggering full snapshot: {}".format(full_snapshot_validations))
             reporting.test_case_to_write()
 
         except Exception as e:
@@ -143,11 +146,29 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Workload incremental snapshot did not get created")
 
-            # Cleanup
-            # Delete snapshot
+            # DB validations for incr snapshots before
+            incr_snapshot_validations_before = self.db_cleanup_snapshot_validations(self.incr_snapshot_id)
+            LOG.debug("db entries after triggering incr snapshot: {}".format(incr_snapshot_validations_before))
+
+            # Cleanup : # Delete snapshot
             self.snapshot_delete(workload_id, self.incr_snapshot_id)
             LOG.debug("Incremental Snapshot deleted successfully")
+            
+            # DB validations for snapshots after cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.incr_snapshot_id)
+            
+            # For full snapshot, new entry is added in table "vm_recent_snapshot". For incr, same entry is updated. 
+            # However, when we delete incr snapshot, this entry is removed.
+            # vm_recent_snapshot table has FK with Snapshot having ondelete="CASCADE" effect,
+            # so whenever the snapshot is deleted it's respective entry from this table would get removed. 
+            LOG.debug("Print values for {}".format(snapshot_validations_after_deletion))
 
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for incr snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for incr snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
             reporting.test_case_to_write()
 
         except Exception as e:
@@ -236,21 +257,40 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.error("Timeout Waiting for snapshot deletion for the workload.")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Snapshot did not get deleted")
+            
+            time.sleep(10)
 
+            # DB validations for snapshots after cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
             # Cleanup
             # Delete volume
             self.volume_snapshots = self.get_available_volume_snapshots()
             self.delete_volume_snapshots(self.volume_snapshots)
-
+            
             # Delete workload
             self.workload_delete(workload_id)
+            time.sleep(10)
+
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(workload_id)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete vm
             self.delete_vm(vm_id)
 
             # Delete volume
             self.delete_volume(volume_id)
-
+    
             reporting.test_case_to_write()
 
         except Exception as e:

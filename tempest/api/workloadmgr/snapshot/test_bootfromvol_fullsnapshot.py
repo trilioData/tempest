@@ -12,6 +12,7 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import time
 from oslo_log import log as logging
 
 from tempest import config
@@ -54,6 +55,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception("Snapshot creation failed")
 
+            # DB validations for workload and snapshots before
+            workload_validations_before = self.db_cleanup_workload_validations(self.workload_id)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+            snapshot_validations_before = self.db_cleanup_snapshot_validations(self.snapshot_id)
+            LOG.debug("snapshot table values before deletion: {}".format(snapshot_validations_before))
+
             # Cleanup
             # Delete Snapshot
             self.snapshot_delete(self.workload_id, self.snapshot_id)
@@ -62,18 +69,35 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.volume_snapshots = self.get_available_volume_snapshots()
             self.delete_volume_snapshots(self.volume_snapshots)
 
+            # DB validations for snapshots after snapshot cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.snapshot_id)
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
             # Delete workload
             self.workload_delete(self.workload_id)
-
+            time.sleep(10)
+            
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.workload_id)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
             # Delete vm
             self.delete_vm(self.vm_id)
 
             # Delete volume
             self.delete_volume(self.volume_id)
 
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            
+        finally:
             reporting.test_case_to_write()
