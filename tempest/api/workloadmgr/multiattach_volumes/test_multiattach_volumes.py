@@ -206,13 +206,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             raise Exception(str(e))
 
-    def _selective_restore(self, payload, ip_list, md5sums_list, full=True):
+    def _selective_restore(self, rest_details, ip_list, md5sums_list, full=True):
         if full:
             snapshot_id = self.snapshot_id
             snapshot_type = 'full'
         else:
             snapshot_id = self.snapshot_id2
             snapshot_type = 'incremental'
+        payload = self.create_restore_json(rest_details)
         # Trigger selective restore of snapshot
         restore_id = self.snapshot_selective_restore(
             self.wid, snapshot_id,
@@ -225,7 +226,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             vm_list = self.get_restored_vm_list(restore_id)
+            volume_info_list = self.get_restored_volume_info_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+            LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
+            volume_flag = True
+            for volume_info in volume_info_list:
+                if volume_info['volume_type'] != rest_details['volume_type']:
+                    volume_flag = False
+            if volume_flag:
+                reporting.add_test_step("Attached volume after Selective restore is " + rest_details['volume_type'],
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Attached volume after Selective restore is not " + rest_details['volume_type'],
+                    tvaultconf.FAIL)
             time.sleep(60)
             i = 0
             for ip in ip_list:
@@ -347,6 +361,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "snapshot_mount_api", 0],
                      [test_var + "filesearch_api", 0],
                      [test_var + "selectiverestore_api", 0],
+                     [test_var + "selective_restore_with_different_volume_type_mapping", 0],
                      [test_var + "inplacerestore_api", 0],
                      [test_var + "oneclickrestore_api", 0]]
             reporting.add_test_script(tests[0][0])
@@ -515,16 +530,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
-            self._selective_restore(payload, [fip[2], fip[3]], md5sums_before_full)
+            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
 
             # Trigger selective restore of incremental snapshot
-            self._selective_restore(payload, [fip[4], fip[5]], md5sums_before_incr,
+            self._selective_restore(rest_details, [fip[4], fip[5]], md5sums_before_incr,
                                     False)
             reporting.test_case_to_write()
             tests[5][1] = 1
 
-            # Inplace restore
+            # Selective restore with different volume mapping
             reporting.add_test_script(tests[6][0])
+            rest_details['volume_type'] = CONF.volume.volume_type
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger selective restore of full snapshot
+            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
+
+            # Inplace restore
+            reporting.add_test_script(tests[7][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
             rest_details['volume_type'] = vol_type_name
@@ -539,10 +564,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                   False)
 
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            tests[7][1] = 1
 
             # Oneclick restore
-            reporting.add_test_script(tests[7][0])
+            reporting.add_test_script(tests[8][0])
             self.delete_vm(self.vm_id_1)
             self.delete_vm(self.vm_id_2)
             self.delete_volumes(self.volumes)
@@ -554,7 +579,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Trigger oneclick restore of incremental snapshot
             self._one_click_restore([fip[0], fip[1]], md5sums_before_incr, False)
             reporting.test_case_to_write()
-            tests[7][1] = 1
+            tests[8][1] = 1
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
