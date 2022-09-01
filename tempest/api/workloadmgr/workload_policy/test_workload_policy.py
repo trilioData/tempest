@@ -211,6 +211,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Assigned workload policy not updated by admin user")
 
+            # DB validations for workload policy before
+            workload_policy_validations_before = self.db_cleanup_workload_policy_validations(policy_id)
+            LOG.debug("Workload policy table values before deletion: {}".format(workload_policy_validations_before))
+
             # Verify workload policy which has assigned to tenant is updated with parameters
             # Below function returns list as [policy_name, {field_values},
             # policy_id, description, [list_of_project_assigned]]
@@ -562,6 +566,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verify policy deleted", tvaultconf.PASS)
                     LOG.debug("Policy deleted passed")
+
+            # DB validations for workload policy after workload cleanup
+            workload_policy_fields_data = query_data.get_workload_policy_fields()
+            if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
+                LOG.debug ("workload policy fields data is correct")
+            else:
+                reporting.add_test_step("workload policy fields data is in-correct", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(policy_id)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
             if failed:
                 reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
