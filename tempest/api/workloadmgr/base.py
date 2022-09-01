@@ -3612,6 +3612,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 tenant_id=tenant_id)
         rules_list = body["security_group_rules"]
         LOG.debug("No. of security group rules: {}".format(len(rules_list)))
+        LOG.debug("List of security group rules: {}".format(rules_list))
         return rules_list
 
     # Delete vms, volumes, security groups
