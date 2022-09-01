@@ -982,11 +982,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the list of restored volumes id an type
     '''
 
-    def get_restored_volume_info_list(self, restore_vm_list):
+    def get_restored_volume_info_list(self, restore_id):
+        instances = self.get_restored_vm_list(restore_id)
         volume_info_list = []
-        for instance in restore_vm_list:
-            LOG.debug("instance:" + instance['id'])
-            if len(self.get_attached_volumes(instance['id'])) > 0:
+        for instance in instances:
+            LOG.debug("instance:" + instance)
+            if len(self.get_attached_volumes(instance)) > 0:
                 for volume in self.get_attached_volumes(instance['id']):
                     volume_info_list.append(self.get_attached_volumes_info(volume))
         LOG.debug("restored volume info list:" + str(volume_info_list))
