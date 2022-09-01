@@ -226,7 +226,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             vm_list = self.get_restored_vm_list(restore_id)
-            volume_info_list = self.get_restored_volume_info_list(restore_id)
+            volume_info_list = self.get_restored_volume_info_list(vm_list)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
             LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
             volume_flag = True
