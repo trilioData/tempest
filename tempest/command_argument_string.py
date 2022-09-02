@@ -10,6 +10,7 @@ workload_create_with_encryption = "workloadmgr workload-create --workload-type-i
                   " --encryption True" + \
                   " --source-platform "+tvaultconf.source_platform
 workload_delete = "workloadmgr workload-delete "
+workload_delete_db = "workloadmgr workload-delete --database_only "
 workload_modify = "workloadmgr workload-modify "
 workload_unlock = "workloadmgr workload-unlock "
 workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"

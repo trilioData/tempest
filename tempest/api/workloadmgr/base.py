@@ -4336,3 +4336,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         LOG.debug("DB counts for workload validations: {}".format(workload_policy_validations))
         return workload_policy_validations
+       
+    '''
+    Method returns True if workload dir exists on backup target media
+    '''
+
+    def check_workload_exist_on_backend(self, mount_path, workload_id):
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() +\
+                "/workload_" + str(workload_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return False
+        else:
+            return True
