@@ -489,6 +489,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return volume_list
 
     '''
+    Method returns the list of attached volumes to a given VM instance
+    '''
+
+    def get_attached_volumes_info(self, volume_id):
+        volume = self.volumes_client.show_volume(volume_id)['volume']['volume_type']
+        LOG.debug("Attached volumes: " + str(volume))
+        return volume
+
+    '''
     Method deletes the given volumes list
     '''
 
@@ -968,6 +977,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     restored_volumes.append(volume)
         LOG.debug("restored volume list:" + str(restored_volumes))
         return restored_volumes
+
+    '''
+    Method returns the list of restored volumes id an type
+    '''
+
+    def get_restored_volume_info_list(self, restore_id):
+        instances = self.get_restored_vm_list(restore_id)
+        volume_info_list = []
+        for instance in instances:
+            LOG.debug("instance:" + instance)
+            if len(self.get_attached_volumes(instance)) > 0:
+                for volume in self.get_attached_volumes(instance['id']):
+                    volume_info_list.append(self.get_attached_volumes_info(volume))
+        LOG.debug("restored volume info list:" + str(volume_info_list))
+        return volume_info_list
 
     '''
     Method deletes the given restored VMs and volumes
