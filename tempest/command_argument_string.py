@@ -39,6 +39,12 @@ snapshot_delete = "workloadmgr snapshot-delete "
 incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tvaultconf.snapshot_name + " "
 snapshot_cancel = "workloadmgr snapshot-cancel "
 
+#Snapshot mount commands
+snapshot_mount = "workloadmgr snapshot-mount "
+snapshot_dismount = "workloadmgr snapshot-dismount "
+snapshot_mounted_list = "workloadmgr snapshot-mounted-list "
+snapshot_show = "workloadmgr --insecure snapshot-show --output metadata "
+
 #Restore commands
 restore_list = "workloadmgr restore-list | grep available | wc -l"
 restore_delete = "workloadmgr restore-delete "
