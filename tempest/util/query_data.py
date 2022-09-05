@@ -758,3 +758,21 @@ def get_restored_vm_resource_metadata(restore_id):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_workload_policy_fields():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_policy_fields = ("select field_name from workload_policy_fields")
+        cursor.execute(get_workload_policy_fields)
+        rows = cursor.fetchall()
+        field_list = []
+        for row in rows:
+            field_list.append(row[0])
+        return field_list
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()

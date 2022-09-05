@@ -4340,6 +4340,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         LOG.debug("DB counts for restore validations: {}".format(restore_validations))
         return restore_validations
+
+    '''
+    Method to get db data for workload policy validations - DB cleanup
+    '''
+    def db_cleanup_workload_policy_validations(self, workload_policy_id):
+        workload_policy_validations = {}
+        LOG.debug("Getting list for db cleanup workload validations: {}".format(workload_policy_id))
+
+        workload_policy_tables = tvaultconf.workload_policy_tables
+        LOG.debug("Print workload_policy_tables: {}".format(workload_policy_tables))
+        for each in workload_policy_tables:
+            if (each == "workload_policy"):
+                count = query_data.get_db_rows_count(each, "id", workload_policy_id)
+            else:
+                count = query_data.get_db_rows_count(each, "policy_id", workload_policy_id)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            workload_policy_validations[each] = count
+
+        LOG.debug("DB counts for workload validations: {}".format(workload_policy_validations))
+        return workload_policy_validations
        
     '''
     Method returns True if workload dir exists on backup target media
@@ -4356,5 +4376,3 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
         else:
             return True
-
-
