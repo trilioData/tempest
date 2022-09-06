@@ -38,6 +38,8 @@ compute_license_filename = "test_licenses/tvault_license_10compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"
 triliovault_vol_snapshot_name = "TrilioVaultSnapshot"
+workload_setting_name = "wl_setting_name"
+workload_setting_value = "wl_setting_value"
 
 workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
