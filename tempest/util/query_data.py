@@ -1,6 +1,7 @@
 from tempest.util import db_handler
 from oslo_log import log as logging
 from tempest import config
+import json
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
@@ -782,15 +783,12 @@ def get_created_workload_setting(setting_name):
     try:
         conn = db_handler.dbHandler()
         cursor = conn.cursor()
-        #get_workload_setting = ("select name, value from settings where name='" +
-        #                   setting_name + "' order by created_at desc limit 1")
-        get_workload_setting = ("select name from settings where name='" +
-                                setting_name + "' order by created_at desc limit 1")
+        get_workload_setting = ("select name,value,description,category,type from settings where name='" +
+                           setting_name + "' order by created_at desc limit 1")
         cursor.execute(get_workload_setting)
         rows = cursor.fetchall()
-        #print(f"json: {json.dumps(rows)}")
         for row in rows:
-            return row[0]
+            return row
     except Exception as e:
         print(str(e))
     finally:
