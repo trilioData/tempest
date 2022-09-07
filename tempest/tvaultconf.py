@@ -38,6 +38,8 @@ compute_license_filename = "test_licenses/tvault_license_10compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"
 triliovault_vol_snapshot_name = "TrilioVaultSnapshot"
+workload_setting_name = "wl_setting_name"
+workload_setting_value = "wl_setting_value"
 
 workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
@@ -148,3 +150,7 @@ snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snap
 restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
 workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
 workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
+
+#error strings
+wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '
+
