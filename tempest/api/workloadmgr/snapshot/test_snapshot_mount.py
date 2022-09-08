@@ -342,15 +342,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             test_var = "tempest.api.workloadmgr.snapshot.test_image_booted_fvm_"
             tests = [[test_var + "snapshot_mount_invalid_cli", 0],
                      [test_var + "snapshot_mount_valid_cli", 0]]
-                     # [test_var + "snapshot_mounted_list_invalid_values_cli", 0],
-                     # [test_var + "snapshot_mounted_list_valid_values_cli", 0],
-                     # [test_var + "snapshot_dismount_cli", 0],
-                     # [test_var + "snapshot_mounted_list_invalid_snapshot_id_cli", 0],
-                     # [test_var + "snapshot_mounted_list_unmounted_snapshot_cli", 0]]
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
-            self.volumes = []
             self.disk_names = ["vda"]
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
@@ -386,13 +380,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
-                raise Exception("Create  workload " \
+                raise Exception("Create workload " \
                                 "with image booted vm")
             if (self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
                 self.workload_status = self.getWorkloadStatus(self.wid)
                 if (self.workload_status == "available"):
-                    reporting.add_test_step("Create  workload " \
+                    reporting.add_test_step("Create workload " \
                                             "with image booted vm", tvaultconf.PASS)
                 else:
                     raise Exception("Create workload " \
@@ -405,11 +399,35 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
                                                           self.snapshot_id)
-            self.mount_path = self.get_mountpoint_path()
             if (self.snapshot_status == "available"):
                 reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
-                self.snapshot_found = self.check_snapshot_exist_on_backend(
-                    self.mount_path, self.wid, self.snapshot_id)
+                self.mount_path = self.get_mountpoint_path()
+                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                                                                           self.wid, self.snapshot_id)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on " \
+                                            "target backend", tvaultconf.PASS)
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create full snapshot")
+
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
+            self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
+            md5sums_before_incr = self.calculatemmd5checksum(ssh, "/opt")
+            LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
+            ssh.close()
+
+            self.snapshot_id2 = self.workload_snapshot(self.wid, False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id2)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
+                self.mount_path = self.get_mountpoint_path()
+                self.snapshot_found = self.check_snapshot_exist_on_backend(self.mount_path,
+                                                                           self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on " \
@@ -418,11 +436,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
-                raise Exception("Create full snapshot")
+                raise Exception("Create incremental snapshot")
 
             # Snapshot mount CLI with invalid options
             snapshot_mount_invalid = command_argument_string.snapshot_mount + \
-                                               str(self.snapshot_id) + " " + str(self.wid)
+                                     str(self.snapshot_id) + " invalid"
             error = cli_parser.cli_error(snapshot_mount_invalid)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("Snapshot mount cli with invalid option returned correct error " + str(error))
@@ -435,16 +453,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Snapshot mount cli with invalid option returned correct error",
                                         tvaultconf.FAIL)
 
-
             reporting.add_test_script(tests[1][0])
             # Mount full snapshot
             snapshot_mount = command_argument_string.snapshot_mount + \
-                str(self.snapshot_id) + " " + str(self.frm_id)
+                             str(self.snapshot_id) + " " + str(self.frm_id)
             mount_status = cli_parser.cli_output(snapshot_mount)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
 
             snapshot_mounted = self.wait_for_snapshot_tobe_mounted(
-                self.wid,self.snapshot_id)
+                self.wid, self.snapshot_id)
 
             # Show snapshot details using CLI command
             rc = cli_parser.cli_returncode(
