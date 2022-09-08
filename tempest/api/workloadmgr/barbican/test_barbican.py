@@ -96,6 +96,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
+    def _get_md5sum(self, ssh, paths):
+        md5sums = {}
+        for pth in paths:
+            if pth != 'volumes':
+                md5sums[pth] = self.calculatemmd5checksum(ssh, pth)
+            else:
+                md5sums[pth] = []
+                for mp in tvaultconf.mount_points:
+                    md5sums[pth].append(self.calculatemmd5checksum(ssh, mp))
+                md5sums[pth].sort()
+        LOG.debug(f"_get_md5sum data: {md5sums}")
+        return md5sums
+
     @decorators.attr(type='workloadmgr_api')
     def test_01_barbican(self):
         try:
@@ -132,7 +145,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
+
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
             self.mount_path = self.get_mountpoint_path()
@@ -189,7 +203,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
-            md5sums_before_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
             ssh.close()
 
@@ -218,7 +232,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -276,7 +290,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -349,7 +363,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
 
@@ -381,7 +395,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[2]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -417,7 +431,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[3]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
-                md5sums_after_incr_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
                 ssh.close()
 
@@ -452,7 +466,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -479,7 +493,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
                 ssh.close()
 
@@ -514,7 +528,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -548,7 +562,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
                 ssh.close()
 
@@ -630,10 +644,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for mp in tvaultconf.mount_points:
                 self.addCustomfilesOnLinuxVM(ssh, mp, 4)
 
-            md5sums_before_full = {}
-            md5sums_before_full['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-            for mp in tvaultconf.mount_points:
-                md5sums_before_full[mp] = self.calculatemmd5checksum(ssh, mp)
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
             self.mount_path = self.get_mountpoint_path()
@@ -690,12 +701,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            md5sums_before_incr = {}
-            md5sums_before_incr['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-            for mp in tvaultconf.mount_points:
-                self.addCustomfilesOnLinuxVM(ssh, mp, 6)
-                md5sums_before_incr[mp] = self.calculatemmd5checksum(ssh, mp)
-            LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
+            md5sums_before_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             ssh.close()
 
             self.snapshot_id2 = self.workload_snapshot(self.wid, False)
@@ -723,7 +729,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -805,7 +811,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -901,11 +907,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 7)
-            md5sums_after_incr = {}
-            md5sums_after_incr['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-            for mp in tvaultconf.mount_points:
-                self.addCustomfilesOnLinuxVM(ssh, mp, 7)
-                md5sums_after_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            md5sums_after_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
 
@@ -937,13 +939,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[2]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective = {}
                 self.execute_command_disk_mount(ssh, fip[2],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -978,14 +977,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.set_floating_ip(fip[3], vm_list[0])
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[3]}")
-                md5sums_after_incr_selective = {}
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
                 self.execute_command_disk_mount(ssh, fip[3],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_selective = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
                 ssh.close()
 
@@ -1024,10 +1020,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_inplace = {}
-                md5sums_after_full_inplace['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_inplace[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -1057,10 +1050,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_inplace = {}
-                md5sums_after_incr_inplace['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_inplace[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_inplace = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
                 ssh.close()
 
@@ -1098,10 +1088,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_oneclick = {}
-                md5sums_after_full_oneclick['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_oneclick[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"]) 
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -1138,10 +1125,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_oneclick = {}
-                md5sums_after_incr_oneclick['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_oneclick[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
                 ssh.close()
 
@@ -1222,7 +1206,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
             self.mount_path = self.get_mountpoint_path()
@@ -1279,7 +1263,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
-            md5sums_before_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
             ssh.close()
 
@@ -1308,7 +1292,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -1367,7 +1351,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -1439,7 +1423,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
 
@@ -1471,7 +1455,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[2]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -1507,7 +1491,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[3]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
-                md5sums_after_incr_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
                 ssh.close()
 
@@ -1543,7 +1527,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -1570,7 +1554,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
                 ssh.close()
 
@@ -1605,7 +1589,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -1639,7 +1623,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
                 ssh.close()
 
@@ -1737,10 +1721,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             for mp in tvaultconf.mount_points:
                 self.addCustomfilesOnLinuxVM(ssh, mp, 4)
 
-            md5sums_before_full = {}
-            md5sums_before_full['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-            for mp in tvaultconf.mount_points:
-                md5sums_before_full[mp] = self.calculatemmd5checksum(ssh, mp)
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
             self.mount_path = self.get_mountpoint_path()
@@ -1797,11 +1778,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            md5sums_before_incr = {}
-            md5sums_before_incr['opt'] = self.calculatemmd5checksum(ssh, "/opt")
             for mp in tvaultconf.mount_points:
                 self.addCustomfilesOnLinuxVM(ssh, mp, 6)
-                md5sums_before_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            md5sums_before_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
             ssh.close()
 
@@ -1830,7 +1809,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -1912,7 +1891,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -2008,11 +1987,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 7)
-            md5sums_after_incr = {}
-            md5sums_after_incr['opt'] = self.calculatemmd5checksum(ssh, "/opt")
             for mp in tvaultconf.mount_points:
                 self.addCustomfilesOnLinuxVM(ssh, mp, 7)
-                md5sums_after_incr[mp] = self.calculatemmd5checksum(ssh, mp)
+            md5sums_after_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
 
@@ -2044,13 +2021,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[2]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective = {}
                 self.execute_command_disk_mount(ssh, fip[2],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -2085,14 +2059,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.set_floating_ip(fip[3], vm_list[0])
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[3]}")
-                md5sums_after_incr_selective = {}
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
                 self.execute_command_disk_mount(ssh, fip[3],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_selective['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_selective[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_selective = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
                 ssh.close()
 
@@ -2130,10 +2101,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_inplace = {}
-                md5sums_after_full_inplace['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_inplace[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -2163,10 +2131,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_inplace = {}
-                md5sums_after_incr_inplace['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_inplace[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_inplace = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
                 ssh.close()
 
@@ -2204,10 +2169,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_oneclick = {}
-                md5sums_after_full_oneclick['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_full_oneclick[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -2244,10 +2206,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_incr_oneclick = {}
-                md5sums_after_incr_oneclick['opt'] = self.calculatemmd5checksum(ssh, "/opt")
-                for mp in tvaultconf.mount_points:
-                    md5sums_after_incr_oneclick[mp] = self.calculatemmd5checksum(ssh, mp)
+                md5sums_after_incr_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
                 ssh.close()
 
@@ -3550,7 +3509,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
             self.mount_path = self.get_mountpoint_path()
@@ -3606,7 +3565,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[3][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 5)
-            md5sums_before_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_incr: {md5sums_before_incr}")
             ssh.close()
 
@@ -3635,7 +3594,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[4][0])
             # Mount full snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id, self.frm_id)
+                self.wid, self.snapshot_id, self.frm_id, mount_cleanup=False)
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
             if mount_status:
                 reporting.add_test_step(
@@ -3693,7 +3652,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Mount incremental snapshot
             mount_status = self.mount_snapshot(
-                self.wid, self.snapshot_id2, self.frm_id)
+                self.wid, self.snapshot_id2, self.frm_id, mount_cleanup=False)
             if mount_status:
                 reporting.add_test_step(
                     "Snapshot mount of incremental snapshot", tvaultconf.PASS)
@@ -3766,7 +3725,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
-            md5sums_after_incr = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_after_incr = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
 
@@ -3798,7 +3757,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[2]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
-                md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -3834,7 +3793,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[3]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[3])
-                md5sums_after_incr_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_selective: {md5sums_after_incr_selective}")
                 ssh.close()
 
@@ -3869,7 +3828,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -3896,7 +3855,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Inplace restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_inplace: {md5sums_after_incr_inplace}")
                 ssh.close()
 
@@ -3931,7 +3890,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of full snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -3965,7 +3924,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_incr_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_incr_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_incr_oneclick: {md5sums_after_incr_oneclick}")
                 ssh.close()
 
@@ -4001,7 +3960,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2031
     @decorators.attr(type='workloadmgr_api')
     def test_17_barbican(self):
-        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup_.attach_ceph_volume_"
+        test_var = "tempest.api.workloadmgr.barbican.rbd_device_cleanup.attach_ceph_volume_"
         restore_tests = [[test_var + "selectiverestore_api", "selective"], [test_var + "inplacerestore_api", "inplace"], [test_var + "oneclickrestore_api", "oneclick"]]
 
         for restore_test in restore_tests:
@@ -4086,7 +4045,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     raise Exception("Create full snapshot")
 
                 vol_snap_name = tvaultconf.triliovault_vol_snapshot_name
-                
+
+                # DB validations for workload, snapshot before
+                workload_validations_before = self.db_cleanup_workload_validations(wid)
+                snapshot_validations_before = self.db_cleanup_snapshot_validations(snapshot_id)
+
                 restore_id = ""
                 if (restore_test[1] == "selective"):
                     trilio_vol_snapshots_before = self.get_trilio_volume_snapshot(vol_snap_name)
@@ -4096,6 +4059,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     rest_details['network_id'] = CONF.network.internal_network_id
                     rest_details['subnet_id'] = self.get_subnet_id(
                         CONF.network.internal_network_id)
+                    rest_details['volume_type'] = volume_type_id
                     rest_details['instances'] = {vm_id: volumes}
                     payload = self.create_restore_json(rest_details)
 
@@ -4118,11 +4082,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Restored volumes list: {}".format(restored_volumes))
                     time.sleep(60)
 
+                    # DB validations for restore before
+                    restore_validations_before = self.db_cleanup_restore_validations(restore_id)
+                    LOG.debug("db entries before deleting selective restore job: {}".format(restore_validations_before))
+
                     # Verify restored instance and volumes are deleted properly.
                     try:
                         self.delete_restored_vms(restored_vms, restored_volumes)
                         self.restore_delete(wid, snapshot_id, restore_id)
                         reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
+                        
+                        # DB validations for selective restore after restore deletion
+                        restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                        if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                            reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                        else:
+                            reporting.add_test_step("selective: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                            reporting.set_test_script_status(tvaultconf.FAIL)
                     except Exception as e:
                         raise Exception(str(e))
 
@@ -4133,7 +4109,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
                     else:
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
-
+                    
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                        reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
@@ -4144,7 +4128,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                 tvaultconf.PASS)
                     else:
                         raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
-
+                    
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                        reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("selective: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
                 elif (restore_test[1] == "inplace"):
                     # Inplace restore for full snapshot
@@ -4154,6 +4145,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         trilio_vol_snapshots_before_restore))
                     rest_details = {}
                     rest_details['rest_type'] = 'inplace'
+                    rest_details['volume_type'] = volume_type_id
                     rest_details['instances'] = {vm_id: volumes}
                     payload = self.create_restore_json(rest_details)
 
@@ -4177,7 +4169,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Restored volumes list: {}".format(restored_volumes))
                     time.sleep(60)
 
+                    # DB validations for restore before
+                    restore_validations_before = self.db_cleanup_restore_validations(restore_id)
+                    LOG.debug("db entries before deleting inplace restore job: {}".format(restore_validations_before))
+
                     self.restore_delete(wid, snapshot_id, restore_id)
+                    # DB validations for in-place restore after restore cleanup
+                    restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                    if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                        reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
                     # Delete workload snapshots and verify
                     self.snapshot_delete(wid, snapshot_id)
@@ -4188,10 +4191,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         raise Exception(
                             "triliovault created snapshots for in_place restore are deleted after deleting workload snapshots")
-
+                    
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                        reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                        
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                        reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
                     LOG.debug("Inplace restore - trilio_vol_snapshots_before : {}".format(trilio_vol_snapshots_before))
                     LOG.debug("Inplace restore - trilio_vol_snapshots_after : {}".format(trilio_vol_snapshots_after))
@@ -4222,6 +4241,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     time.sleep(10)
                     rest_details = {}
                     rest_details['rest_type'] = 'oneclick'
+                    rest_details['volume_type'] = volume_type_id
                     payload = self.create_restore_json(rest_details)
 
                     # Trigger oneclick restore of full snapshot
@@ -4242,6 +4262,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Restored volumes list: {}".format(restored_volumes))
                     time.sleep(60)
 
+                    # DB validations for restore before
+                    restore_validations_before = self.db_cleanup_restore_validations(restore_id)
+                    LOG.debug("db entries before deleting oneclick restore job: {}".format(restore_validations_before))
+
+                    self.restore_delete(wid, snapshot_id, restore_id)
+                    # DB validations for oneclick restore after restore cleanup
+                    restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
+                    if (all(value == 0 for value in restore_validations_after_deletion.values())):
+                        reporting.add_test_step("oneclick: db cleanup validations post deleting restore job", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations post deleting restore job", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+
                     # Delete workload snapshots and verify
                     self.snapshot_delete(wid, snapshot_id)
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
@@ -4250,9 +4283,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
 
+                    # DB validations for snapshots after deletion
+                    snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+                    if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                        reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
+                    # DB validations for workload after workload deletion
+                    workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
+                    if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                        reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
+                    
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
                     if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
                         LOG.debug("triliovault created snapshots are still present")
@@ -4296,6 +4345,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         if (vol.lower().find("luks") != -1):
                             if (vol.lower().find("ceph") != -1) or (vol.lower().find("tripleo") != -1) or (
                                     vol.lower().find("rbd") != -1):
+                                volume_type_id = CONF.volume.volume_types[vol]
+                                LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
+                            elif (vol.lower() == "luks"):
                                 volume_type_id = CONF.volume.volume_types[vol]
                                 LOG.debug("Encrypted volume for ceph/rbd found : {}".format(volume_type_id))
 
@@ -4603,7 +4655,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 3)
-            md5sums_before_full = self.calculatemmd5checksum(ssh, "/opt")
+            md5sums_before_full = self._get_md5sum(ssh, ["/opt"])
             LOG.debug(f"md5sums_before_full: {md5sums_before_full}")
             ssh.close()
 
@@ -4710,7 +4762,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Floating ip assigned to selective restored vm -> " +\
                         f"{fip[1]}")
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
-                md5sums_after_full_selective = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_selective = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_selective: {md5sums_after_full_selective}")
                 ssh.close()
 
@@ -4751,8 +4803,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
                 time.sleep(5)
-                md5sums_after_full_inplace = {}
-                md5sums_after_full_inplace = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_inplace = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_inplace: {md5sums_after_full_inplace}")
                 ssh.close()
 
@@ -4794,7 +4845,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.PASS)
 
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
-                md5sums_after_full_oneclick = self.calculatemmd5checksum(ssh, "/opt")
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 

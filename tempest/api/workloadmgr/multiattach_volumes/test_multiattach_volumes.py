@@ -206,13 +206,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             raise Exception(str(e))
 
-    def _selective_restore(self, payload, ip_list, md5sums_list, full=True):
+    def _selective_restore(self, rest_details, ip_list, md5sums_list, full=True):
         if full:
             snapshot_id = self.snapshot_id
             snapshot_type = 'full'
         else:
             snapshot_id = self.snapshot_id2
             snapshot_type = 'incremental'
+        payload = self.create_restore_json(rest_details)
         # Trigger selective restore of snapshot
         restore_id = self.snapshot_selective_restore(
             self.wid, snapshot_id,
@@ -225,7 +226,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             vm_list = self.get_restored_vm_list(restore_id)
+            volume_info_list = self.get_restored_volume_info_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
+            LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
+            volume_flag = True
+            for volume_info in volume_info_list:
+                if volume_info['volume_type'] != rest_details['volume_type']:
+                    volume_flag = False
+            if volume_flag:
+                reporting.add_test_step("Attached volume after Selective restore is " + rest_details['volume_type'],
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Attached volume after Selective restore is not " + rest_details['volume_type'],
+                    tvaultconf.FAIL)
             time.sleep(60)
             i = 0
             for ip in ip_list:
@@ -289,6 +303,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Oneclick restore of " + snapshot_type + " snapshot",
                                     tvaultconf.FAIL)
 
+    def _check_snapshot_info(self, snapshot_id, num_vms):
+        snapshot_info = self.getSnapshotVmVolumeInfo(snapshot_id=snapshot_id)
+        if len(snapshot_info.keys()) == num_vms:
+            reporting.add_test_step("Number of disk snapshots for multiattach volume VMs is equal to number of Vms",
+                                    tvaultconf.PASS)
+        else:
+            reporting.add_test_step(
+                "Number of disk snapshots for multiattach volume VMs is not equal to number of Vms",
+                tvaultconf.FAIL)
+
+        vol_flag = True
+        for vm in snapshot_info.keys():
+            if len(snapshot_info[vm]) != 2:
+                vol_flag = False
+        if vol_flag:
+            reporting.add_test_step("Number of multiattach volume attached to VM is equal to 1", tvaultconf.PASS)
+        else:
+            reporting.add_test_step("Number of multiattach volume attached to VM is not equal to 1",
+                                    tvaultconf.FAIL)
+
     def _filesearch(self, vms_list, filecount_in_snapshots, search_path):
         for i in range(len(vms_list)):
             filesearch_id = self.filepath_search(vms_list[i], search_path)
@@ -316,6 +350,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
 
+
     @decorators.attr(type='workloadmgr_api')
     def test_01_multiattach_volumes(self):
         try:
@@ -326,6 +361,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "snapshot_mount_api", 0],
                      [test_var + "filesearch_api", 0],
                      [test_var + "selectiverestore_api", 0],
+                     [test_var + "selective_restore_with_different_volume_type_mapping", 0],
                      [test_var + "inplacerestore_api", 0],
                      [test_var + "oneclickrestore_api", 0]]
             reporting.add_test_script(tests[0][0])
@@ -423,6 +459,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
                     self.mount_path, self.wid, self.snapshot_id)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                self._check_snapshot_info(self.snapshot_id,2)
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
 
@@ -447,6 +484,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.snapshot_found = self.check_snapshot_exist_on_backend(
                     self.mount_path, self.wid, self.snapshot_id2)
                 LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                self._check_snapshot_info(self.snapshot_id2,2)
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
 
@@ -492,16 +530,26 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
-            self._selective_restore(payload, [fip[2], fip[3]], md5sums_before_full)
+            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
 
             # Trigger selective restore of incremental snapshot
-            self._selective_restore(payload, [fip[4], fip[5]], md5sums_before_incr,
+            self._selective_restore(rest_details, [fip[4], fip[5]], md5sums_before_incr,
                                     False)
             reporting.test_case_to_write()
             tests[5][1] = 1
 
-            # Inplace restore
+            # Selective restore with different volume mapping
             reporting.add_test_script(tests[6][0])
+            rest_details['volume_type'] = CONF.volume.volume_type
+            payload = self.create_restore_json(rest_details)
+
+            # Trigger selective restore of full snapshot
+            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
+            reporting.test_case_to_write()
+            tests[6][1] = 1
+
+            # Inplace restore
+            reporting.add_test_script(tests[7][0])
             rest_details = {}
             rest_details['rest_type'] = 'inplace'
             rest_details['volume_type'] = vol_type_name
@@ -516,10 +564,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                   False)
 
             reporting.test_case_to_write()
-            tests[6][1] = 1
+            tests[7][1] = 1
 
             # Oneclick restore
-            reporting.add_test_script(tests[7][0])
+            reporting.add_test_script(tests[8][0])
             self.delete_vm(self.vm_id_1)
             self.delete_vm(self.vm_id_2)
             self.delete_volumes(self.volumes)
@@ -531,7 +579,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Trigger oneclick restore of incremental snapshot
             self._one_click_restore([fip[0], fip[1]], md5sums_before_incr, False)
             reporting.test_case_to_write()
-            tests[7][1] = 1
+            tests[8][1] = 1
 
         except Exception as e:
             LOG.error(f"Exception: {e}")
@@ -886,3 +934,237 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_04_multiattach(self):
+        reporting.add_test_script(str(__name__) + "_snapshot_multiattach_volume_with_multiple_workloads")
+        try:
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+            self.vm_id_1 = self.create_vm(key_pair=self.kp)
+            self.vm_id_2 = self.create_vm(key_pair=self.kp)
+
+            # find volume_type = multiattach. So that existing multiattach volume type can be used.
+            # Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("multiattach") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+                    vol_type_name = vol
+
+            if (vol_type_id == -1):
+                raise Exception("No multiattach volume found to create multiattach volume. Test cannot be continued")
+
+            # Now create volume with derived volume type id...
+            self.volume_id = self.create_volume(
+                volume_type_id=vol_type_id, size=6, volume_cleanup=False)
+
+            LOG.debug("Volume ID: " + str(self.volume_id))
+
+            self.volumes = []
+            self.volumes.append(self.volume_id)
+            # Attach volume to vm...
+            api_version.COMPUTE_MICROVERSION = '2.60'
+            self.attach_volume(self.volume_id, self.vm_id_1, attach_cleanup=False)
+            self.attach_volume(self.volume_id, self.vm_id_2, attach_cleanup=False)
+            LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1) + " and " + str(self.vm_id_2))
+            api_version.COMPUTE_MICROVERSION = None
+
+            vol_vm_1 = self.get_attached_volumes(self.vm_id_1)
+            vol_vm_2 = self.get_attached_volumes(self.vm_id_2)
+            LOG.debug("Voulme o VM 1: " + str(vol_vm_1) + " on VM 2:" + str(vol_vm_2))
+            if vol_vm_1 == vol_vm_2:
+                reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.PASS)
+                reporting.set_test_script_status(tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Attached Multiattach volume to both Instances", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Multiattach volume failed to attach existing instance")
+            fip = self.get_floating_ips()
+            LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
+
+            if len(fip) < 2:
+                raise Exception("Floating ips unavailable")
+            self.set_floating_ip(fip[0], self.vm_id_1)
+            self.set_floating_ip(fip[1], self.vm_id_2)
+
+
+            md5sums_before_full = self._add_data_on_instance_and_volume([fip[0], fip[1]])
+            LOG.debug(
+                f"md5sums_before_full: {md5sums_before_full}")
+
+            # Create workload with API
+            try:
+                wid1 = self.workload_create([self.vm_id_1],
+                                                tvaultconf.workload_type_id)
+                LOG.debug("Workload ID1 : " + str(wid1))
+                wid2 = self.workload_create([self.vm_id_2],
+                                            tvaultconf.workload_type_id)
+                LOG.debug("Workload ID2 : " + str(wid2))
+
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Create multiple workloads with image booted vm")
+
+            if (wid1 is not None and wid2 is not None):
+                self.wait_for_workload_tobe_available(wid1)
+                self.wait_for_workload_tobe_available(wid2)
+
+                workload_status1 = self.getWorkloadStatus(wid1)
+                workload_status2 = self.getWorkloadStatus(wid2)
+
+                if (workload_status1 == "available" and workload_status2 == "available"):
+                    reporting.add_test_step("Create multi[ple workloads with image booted vm", tvaultconf.PASS)
+                else:
+                    raise Exception("Create multiple workloads with image booted vm")
+            else:
+                raise Exception("Create multiple workloads with image booted vm")
+
+            snapshot_id1 = self.workload_snapshot(wid1, True)
+            snapshot_id2 = self.workload_snapshot(wid2, True)
+
+            self.wait_for_workload_tobe_available(wid1)
+            self.wait_for_workload_tobe_available(wid2)
+
+            snapshot_status1 = self.getSnapshotStatus(wid1,snapshot_id1)
+            snapshot_status2 = self.getSnapshotStatus(wid2,snapshot_id2)
+            mount_path = self.get_mountpoint_path()
+
+            if (snapshot_status1 == "available" and snapshot_status2 == "available"):
+                reporting.add_test_step("Create multiple full snapshots on multiple workloads", tvaultconf.PASS)
+                snapshot_found1 = self.check_snapshot_exist_on_backend(mount_path, wid1, snapshot_id1)
+                LOG.debug(f"snapshot_found1: {snapshot_found1}")
+                self._check_snapshot_info(snapshot_id1,1)
+                snapshot_found2 = self.check_snapshot_exist_on_backend(mount_path, wid2, snapshot_id2)
+                LOG.debug(f"snapshot_found2: {snapshot_found2}")
+                self._check_snapshot_info(snapshot_id2,1)
+
+                if snapshot_found1 and snapshot_found2:
+                    reporting.add_test_step("Verify multiple snapshots existence on target backend", tvaultconf.PASS)
+                else:
+                    raise Exception("Verify multiple snapshots existence on target backend")
+            else:
+                raise Exception("Create multiple full snapshots on multiple workloads")
+
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_05_multiattach(self):
+        reporting.add_test_script(str(__name__) + "_snapshot_with_multiple_volume_types")
+        try:
+            self.kp = self.create_key_pair(tvaultconf.key_pair_name)
+            self.vm_id_1 = self.create_vm(key_pair=self.kp)
+            self.vm_id_2 = self.create_vm(key_pair=self.kp)
+
+            # find volume_type = multiattach. So that existing multiattach volume type can be used.
+            # Get the volume_type_id
+            vol_type_id = -1
+            for vol in CONF.volume.volume_types:
+                if (vol.lower().find("multiattach") != -1):
+                    vol_type_id = CONF.volume.volume_types[vol]
+
+            if (vol_type_id == -1):
+                raise Exception("No multiattach volume found to create multiattach volume. Test cannot be continued")
+
+            # Now create volume with derived volume type id...
+            self.volume_id1 = self.create_volume(
+                volume_type_id=vol_type_id)
+
+            LOG.debug("Multiattach Volume ID: " + str(self.volume_id1))
+
+            self.volume_id2 = self.create_volume()
+
+            LOG.debug("Volume ID: " + str(self.volume_id2))
+
+            self.volumes = []
+            self.volumes.append(self.volume_id1)
+            self.volumes.append(self.volume_id2)
+            # Attach volume to vm...
+            api_version.COMPUTE_MICROVERSION = '2.60'
+            self.attach_volume(self.volume_id1, self.vm_id_1)
+            self.attach_volume(self.volume_id2, self.vm_id_2)
+            LOG.debug("Multiattach Volume attached to vm: " + str(self.vm_id_1))
+            LOG.debug("Volume attached to vm: " + str(self.vm_id_2))
+            api_version.COMPUTE_MICROVERSION = None
+
+            fip = self.get_floating_ips()
+            LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
+
+            if len(fip) < 2:
+                raise Exception("Floating ips unavailable")
+            self.set_floating_ip(fip[0], self.vm_id_1)
+            self.set_floating_ip(fip[1], self.vm_id_2)
+
+
+            md5sums_before_full = self._add_data_on_instance_and_volume([fip[0], fip[1]])
+            LOG.debug(
+                f"md5sums_before_full: {md5sums_before_full}")
+
+            # Create workload with API
+            try:
+                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
+                                                tvaultconf.workload_type_id)
+                LOG.debug("Workload ID: " + str(self.wid))
+            except Exception as e:
+                LOG.error(f"Exception: {e}")
+                raise Exception("Create workload with image booted vm")
+            if (self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                self.workload_status = self.getWorkloadStatus(self.wid)
+                if (self.workload_status == "available"):
+                    reporting.add_test_step("Create workload with image booted vm", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload with image booted vm")
+            else:
+                raise Exception("Create workload with image booted vm")
+
+            self.snapshot_id = self.workload_snapshot(self.wid, True)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id)
+            self.mount_path = self.get_mountpoint_path()
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    self.mount_path, self.wid, self.snapshot_id)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                self._check_snapshot_info(self.snapshot_id, 2)
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create full snapshot")
+
+            md5sums_before_incr = self._add_data_on_instance_and_volume([fip[0], fip[1]], False)
+            LOG.debug(
+                f"md5sums_before_incr: {md5sums_before_incr}")
+
+            self.snapshot_id2 = self.workload_snapshot(self.wid, False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id2)
+            if (self.snapshot_status == "available"):
+                reporting.add_test_step("Create incremental snapshot", tvaultconf.PASS)
+                self.snapshot_found = self.check_snapshot_exist_on_backend(
+                    self.mount_path, self.wid, self.snapshot_id2)
+                LOG.debug(f"snapshot_found: {self.snapshot_found}")
+                self._check_snapshot_info(self.snapshot_id2, 2)
+                if self.snapshot_found:
+                    reporting.add_test_step("Verify snapshot existence on target backend", tvaultconf.PASS)
+                else:
+                    raise Exception("Verify snapshot existence on target backend")
+            else:
+                raise Exception("Create incremental snapshot")
+
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+

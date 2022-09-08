@@ -1,6 +1,7 @@
 from tempest.util import db_handler
 from oslo_log import log as logging
 from tempest import config
+import json
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
@@ -484,39 +485,6 @@ def get_workload_vmids(workload_id):
         conn.close()
 
 
-def get_config_backup_id():
-    try:
-        conn = db_handler.dbHandler()
-        cursor = conn.cursor()
-        get_config_backup_id = (
-            "select id from config_backups order by created_at desc limit 1")
-        cursor.execute(get_config_backup_id)
-        rows = cursor.fetchall()
-        for row in rows:
-            return row[0]
-    except Exception as e:
-        print(str(e))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def get_config_workload_id():
-    try:
-        conn = db_handler.dbHandler()
-        cursor = conn.cursor()
-        get_config_backup_id = ("select id from config_workloads;")
-        cursor.execute(get_config_backup_id)
-        rows = cursor.fetchall()
-        for row in rows:
-            return row[0]
-    except Exception as e:
-        print(str(e))
-    finally:
-        cursor.close()
-        conn.close()
-
-
 def get_available_project_quota_types():
     try:
         conn = db_handler.dbHandler()
@@ -623,3 +591,206 @@ def get_trust_details(trust_id):
         cursor.close()
         conn.close()
 
+
+def get_db_rows_count(table_name, column_name, column_value):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = ("select count(*) from " + table_name + " where " + column_name + "='" + column_value + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_workload_vm_data(workload_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from workload_vm_metadata inner join workload_vms on workload_vm_metadata.workload_vm_id=workload_vms.id where workload_vms.workload_id='" + workload_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_snapshot_vm_data(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from snapshot_vm_metadata inner join snapshot_vms on snapshot_vm_metadata.snapshot_vm_id=snapshot_vms.id where snapshot_vms.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_vm_disk_resource_snaps(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from vm_disk_resource_snaps inner join snapshot_vm_resources on vm_disk_resource_snaps.snapshot_vm_resource_id=snapshot_vm_resources.id where snapshot_vm_resources.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_vm_disk_resource_snaps_metadata(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from vm_disk_resource_snap_metadata inner join vm_disk_resource_snaps on vm_disk_resource_snap_metadata.vm_disk_resource_snap_id=vm_disk_resource_snaps.id inner join  snapshot_vm_resources on vm_disk_resource_snaps.snapshot_vm_resource_id=snapshot_vm_resources.id where snapshot_vm_resources.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_vm_network_resource_snaps(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from vm_network_resource_snaps inner join snapshot_vm_resources on vm_network_resource_snaps.vm_network_resource_snap_id=snapshot_vm_resources.id where snapshot_vm_resources.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_vm_network_resource_snaps_metadata(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from vm_network_resource_snap_metadata inner join vm_network_resource_snaps on vm_network_resource_snap_metadata.vm_network_resource_snap_id=vm_network_resource_snaps.vm_network_resource_snap_id inner join snapshot_vm_resources on vm_network_resource_snaps.vm_network_resource_snap_id=snapshot_vm_resources.id where snapshot_vm_resources.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_snap_network_resource_metadata(snapshot_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from snap_network_resource_metadata inner join snap_network_resources on snap_network_resource_metadata.snap_network_resource_id=snap_network_resources.id where snap_network_resources.snapshot_id='" + snapshot_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_restored_vm_metadata(restore_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from restored_vm_metadata inner join restored_vms on restored_vm_metadata.restored_vm_id=restored_vms.id where restored_vms.restore_id='" + restore_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_restored_vm_resource_metadata(restore_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_count = (
+                    "select count(*) from restored_vm_resource_metadata inner join restored_vm_resources on restored_vm_resource_metadata.restored_vm_resource_id=restored_vm_resources.id where restored_vm_resources.restore_id='" + restore_id + "'")
+        cursor.execute(get_count)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_workload_policy_fields():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_policy_fields = ("select field_name from workload_policy_fields")
+        cursor.execute(get_workload_policy_fields)
+        rows = cursor.fetchall()
+        field_list = []
+        for row in rows:
+            field_list.append(row[0])
+        return field_list
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_created_workload_setting(setting_name):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_setting = ("select name,value,description,category,type from settings where name='" +
+                           setting_name + "' order by created_at desc limit 1")
+        cursor.execute(get_workload_setting)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()

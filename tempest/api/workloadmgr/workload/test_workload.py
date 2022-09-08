@@ -21,13 +21,15 @@ CONF = config.CONF
 class WorkloadTest(base.BaseWorkloadmgrTest):
 
     credentials = ['primary']
+    vm_id = None
+    vol_id = None
 
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_1_list_workloadtype(self):
+    def test_01_list_workloadtype(self):
         reporting.add_test_script(str(__name__) + "_list_workloadtype_cli")
         try:
             rc = cli_parser.cli_returncode(
@@ -61,7 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_2_show_workloadtype(self):
+    def test_02_show_workloadtype(self):
         reporting.add_test_script(str(__name__) + "_show_workloadtype_cli")
         try:
             rc = cli_parser.cli_returncode(
@@ -98,7 +100,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_3_create_workload(self):
+    def test_03_create_workload(self):
         reporting.add_test_script(str(__name__) + "_create_workload_cli")
         try:
             self.created = False
@@ -133,9 +135,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
-            # Cleanup
+            # DB validations for workload before
+            workload_validations_before = self.db_cleanup_workload_validations(self.wid)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+
             # Delete workload
             self.workload_delete(self.wid)
+            time.sleep(10)
+
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.wid)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
@@ -143,7 +158,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')
-    def test_4_create_workload(self):
+    def test_04_create_workload(self):
         reporting.add_test_script(str(__name__) + "_create_workload_api")
         try:
             # Prerequisites
@@ -171,7 +186,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_5_create_scheduled_workload(self):
+    def test_05_create_scheduled_workload(self):
         reporting.add_test_script(str(__name__) + "_create_scheduled_workload_cli")
         try:
             # Prerequisites
@@ -234,7 +249,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_6_list_workload(self):
+    def test_06_list_workload(self):
         reporting.add_test_script(str(__name__) + "_list_workload_cli")
         try:
             # Prerequisites
@@ -284,7 +299,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_7_delete_workload(self):
+    def test_07_delete_workload(self):
         reporting.add_test_script(str(__name__) + "_delete_workload_cli")
         try:
             # Prerequisites
@@ -364,7 +379,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_8_show_workload(self):
+    def test_08_show_workload(self):
         reporting.add_test_script(str(__name__) + "_show_workload_cli")
         try:
             # Prerequisites
@@ -437,7 +452,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_9_unlock_workload(self):
+    def test_09_unlock_workload(self):
         reporting.add_test_script(str(__name__) + "_unlock_workload_cli")
         try:
             # Prerequisites
@@ -638,7 +653,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                      self.retention_policy_type,
                                                  "retention_policy_value":
                                                      self.retention_policy_value,
-                                                 "enabled": "True"})
+                                                 "enabled": "True",
+                                                 "workload_cleanup": "False"})
             LOG.debug("Workload ID: " + str(self.wid))
             self.wait_for_workload_tobe_available(self.wid)
             if(self.getWorkloadStatus(self.wid) == "available"):
@@ -652,14 +668,177 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.schedule = self.getSchedulerStatus(self.wid)
             LOG.debug("Workload schedule: " + str(self.schedule))
             if(self.schedule):
-                reporting.add_test_step("Verification", tvaultconf.PASS)
+                reporting.add_test_step("Verification for workload schedule", tvaultconf.PASS)
                 LOG.debug("Workload schedule enabled")
             else:
-                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                reporting.add_test_step("Verification for workload schedule", tvaultconf.FAIL)
                 LOG.error("Workload schedule not enabled")
+
+            # DB validations for workload before
+            workload_validations_before = self.db_cleanup_workload_validations(self.wid)
+            LOG.debug("Workload table values before deletion: {}".format(workload_validations_before))
+
+            # Delete workload
+            self.workload_delete(self.wid)
+            time.sleep(10)
+
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(self.wid)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for scheduled workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_13_delete_workload(self):
+        try:
+            reporting.add_test_script(str(__name__) +\
+                    "_delete_workload_db-only-true_cli")
+            global vm_id
+            global vol_id
+            # Prerequisites
+            self.vm_id = self.create_vm(vm_cleanup=False)
+            self.volume_id = self.create_volume(volume_cleanup=False)
+            self.attach_volume(self.volume_id, self.vm_id,
+                    attach_cleanup=False)
+            vm_id = self.vm_id
+            vol_id = self.volume_id
+
+            # Create workload
+            self.wid = self.workload_create(
+                [self.vm_id], workload_cleanup=False)
+            LOG.debug("Workload ID: " + str(self.wid))
+            time.sleep(5)
+
+            self.snapshot_id = self.workload_snapshot(self.wid, True,
+                    snapshot_cleanup=False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                    self.snapshot_id)
+            if(self.snapshot_status == "available"):
+                LOG.debug("Create full snapshot successful")
+            else:
+                raise Exception("Create full snapshot")
+
+            self.mount_path = self.get_mountpoint_path()
+            self.snapshot_found = self.check_snapshot_exist_on_backend(
+                        self.mount_path, self.wid, self.snapshot_id)
+            LOG.debug(f"snapshot_found: {self.snapshot_found}")
+            if self.snapshot_found:
+                reporting.add_test_step("Workload & snapshot exists"\
+                        " on target backend", tvaultconf.PASS)
+            else:
+                raise Exception("Workload & snapshot does not exist"\
+                        " on target backend")
+
+            # Delete workload from CLI command
+            cmd = command_argument_string.workload_delete_db + "True " +\
+                    str(self.wid)
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                raise Exception(
+                    "Execute workload-delete command with database_only True")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-delete command with database_only True",
+                    tvaultconf.PASS)
+
+            time.sleep(5)
+            wc = query_data.get_deleted_workload(self.wid)
+            LOG.debug("Workload status: " + str(wc))
+            if wc:
+                raise Exception("Workload not deleted from DB")
+            else:
+                reporting.add_test_step(
+                    "Workload deleted from DB", tvaultconf.PASS)
+
+            self.snapshot_found = self.check_snapshot_exist_on_backend(
+                        self.mount_path, self.wid, self.snapshot_id)
+            LOG.debug(f"snapshot_found: {self.snapshot_found}")
+            if self.snapshot_found:
+                reporting.add_test_step("Workload & snapshot exists"\
+                        " on target backend", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Workload & snapshot does not exist"\
+                        " on target backend", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_14_delete_workload(self):
+        try:
+            reporting.add_test_script(str(__name__) +\
+                    "_delete_workload_db-only-false_cli")
+            global vm_id
+            global vol_id
+            self.vm_id = vm_id
+            self.volume_id = vol_id
+
+            # Create workload
+            self.wid = self.workload_create(
+                [self.vm_id], workload_cleanup=False)
+            LOG.debug("Workload ID: " + str(self.wid))
+            time.sleep(5)
+
+            self.mount_path = self.get_mountpoint_path()
+            self.workload_found = self.check_workload_exist_on_backend(
+                        self.mount_path, self.wid)
+            LOG.debug(f"workload_found: {self.workload_found}")
+            if self.workload_found:
+                reporting.add_test_step("Workload exists"\
+                        " on target backend", tvaultconf.PASS)
+            else:
+                raise Exception("Workload does not exist on target backend")
+
+            # Delete workload from CLI command
+            cmd = command_argument_string.workload_delete_db + "False " +\
+                    str(self.wid)
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                raise Exception(
+                    "Execute workload-delete command with database_only False")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-delete command with database_only False",
+                    tvaultconf.PASS)
+
+            time.sleep(5)
+            wc = query_data.get_deleted_workload(self.wid)
+            LOG.debug("Workload status: " + str(wc))
+            if wc:
+                raise Exception("Workload not deleted from DB")
+            else:
+                reporting.add_test_step(
+                    "Workload deleted from DB", tvaultconf.PASS)
+
+            self.workload_found = self.check_workload_exist_on_backend(
+                        self.mount_path, self.wid)
+            LOG.debug(f"workload_found: {self.workload_found}")
+            if self.workload_found:
+                reporting.add_test_step("Workload exists"\
+                        " on target backend", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step("Workload does not exist"\
+                        " on target backend", tvaultconf.PASS)
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+            #Cleanup instance and volume
+            self.delete_vm(self.vm_id)
+            self.delete_volume(self.volume_id)

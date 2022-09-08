@@ -489,6 +489,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return volume_list
 
     '''
+    Method returns the list of attached volumes to a given VM instance
+    '''
+
+    def get_attached_volumes_info(self, volume_id):
+        volume = self.volumes_client.show_volume(volume_id)['volume']['volume_type']
+        LOG.debug("Attached volumes: " + str(volume))
+        return volume
+
+    '''
     Method deletes the given volumes list
     '''
 
@@ -970,6 +979,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return restored_volumes
 
     '''
+    Method returns the list of restored volumes id an type
+    '''
+
+    def get_restored_volume_info_list(self, restore_id):
+        instances = self.get_restored_vm_list(restore_id)
+        volume_info_list = []
+        for instance in instances:
+            LOG.debug("instance:" + instance)
+            if len(self.get_attached_volumes(instance)) > 0:
+                for volume in self.get_attached_volumes(instance['id']):
+                    volume_info_list.append(self.get_attached_volumes_info(volume))
+        LOG.debug("restored volume info list:" + str(volume_info_list))
+        return volume_info_list
+
+    '''
     Method deletes the given restored VMs and volumes
     '''
 
@@ -1263,6 +1287,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         snapshot_error_msg = body['snapshot']['error_msg']
         snapshot_info.append(snapshot_error_msg)
         LOG.debug('snapshot error msg is : %s' % snapshot_info[3])
+        LOG.debug("Response:" + str(resp.content))
+        if (resp.status_code != 200):
+            resp.raise_for_status()
+        return snapshot_info
+
+    '''
+    Method returns the snapshot information . It return array with create time,name and type information for given snapshot
+    '''
+
+    def getSnapshotVmVolumeInfo(self, snapshot_id='none'):
+        resp, body = self.wlm_client.client.get("/snapshots/" + snapshot_id)
+        snapshot_info = {}
+        for instance in body['snapshot']['instances']:
+            volumes = []
+            for volume in instance['vdisks']:
+                if "volume_id" in volume.keys():
+                    volumes.append(volume['volume_id'])
+            snapshot_info[instance['id']] = volumes
         LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 200):
             resp.raise_for_status()
@@ -3593,31 +3635,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 vmdetails = self.get_vm_details(vm)
                 LOG.debug("\nRestored VM details: {}".format(vmdetails))
                 server_vm = vmdetails["server"]
-                LOG.debug(
-                    "\nRestored VM details - server : {}".format(vmdetails["server"])
-                )
-                restored_secgrps.extend(server_vm["security_groups"])
-                LOG.debug(
-                    "List of restored security group policies: {}".format(
-                        restored_secgrps
-                    )
-                )
-            return restored_secgrps
+                LOG.debug(f"Restored VM details-server: {vmdetails['server']}")
+                if 'security_groups' in server_vm.keys():
+                    restored_secgrps.extend(server_vm["security_groups"])
+            LOG.debug(f"List of restored security groups: {restored_secgrps}")
         except Exception as e:
-            LOG.error("Restored instance do not have attached security group \n")
+            LOG.error("Restored instance do not have attached security group")
             LOG.error(f"Exception in getRestoredSecGroupPolicies: {e}")
+        finally:
+            return restored_secgrps
 
-    def list_security_groups(self):
-        body = self.security_groups_client.list_security_groups()
+    def list_security_groups(self, tenant_id=CONF.identity.tenant_id):
+        body = self.security_groups_client.list_security_groups(tenant_id=tenant_id)
         security_groups = body["security_groups"]
         LOG.debug("No. of security groups: {}".format(len(security_groups)))
         LOG.debug("List of security groups: {}".format(security_groups))
         return security_groups
 
-    def list_security_group_rules(self):
-        body = self.security_group_rules_client.list_security_group_rules()
+    def list_security_group_rules(self, tenant_id=CONF.identity.tenant_id):
+        body = self.security_group_rules_client.list_security_group_rules(tenant_id=tenant_id)
         rules_list = body["security_group_rules"]
         LOG.debug("No. of security group rules: {}".format(len(rules_list)))
+        LOG.debug("List of security group rules: {}".format(rules_list))
         return rules_list
 
     # Delete vms, volumes, security groups
@@ -4223,4 +4262,117 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in remove_role_from_user_project: {e}")
             return False
 
+    '''
+    Method to get db data for workload validations - DB cleanup
+    '''
+    def db_cleanup_workload_validations(self, workload_id):
+        workload_validations = {}
+        LOG.debug("Getting list for db cleanup workload validations: {}".format(workload_id))
 
+        workload_tables = tvaultconf.workload_tables
+        LOG.debug("Print workload_tables: {}".format(workload_tables))
+        for each in workload_tables:
+            if (each == "workload_vm_metadata"):
+                # Below code will fetch count from workload_vms_metadata table based on join query
+                count = query_data.get_workload_vm_data(workload_id)
+            elif (each == "workloads"):
+                count = query_data.get_db_rows_count(each, "id", workload_id)
+            else:
+                count = query_data.get_db_rows_count(each, "workload_id", workload_id)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            workload_validations[each] = count
+
+        LOG.debug("DB counts for workload validations: {}".format(workload_validations))
+        return workload_validations
+
+    '''
+    Method to get db data for snapshot validations - DB cleanup
+    '''
+    def db_cleanup_snapshot_validations(self, snapshot_id):
+        snapshot_validations = {}
+        LOG.debug("Getting list for db cleanup snapshot validations.")
+
+        snapshot_tables = tvaultconf.snapshot_tables
+        LOG.debug("Print snapshot_tables: {}".format(snapshot_tables))
+        for each in snapshot_tables:
+            if (each == "snapshots"):
+                count = query_data.get_db_rows_count(each, "id", snapshot_id)
+            elif (each == "snapshot_vm_metadata"):
+                count = query_data.get_snapshot_vm_data(snapshot_id)
+            elif (each == "vm_disk_resource_snaps"):
+                count = query_data.get_vm_disk_resource_snaps(snapshot_id)
+            elif (each == "vm_disk_resource_snap_metadata"):
+                count = query_data.get_vm_disk_resource_snaps_metadata(snapshot_id)
+            elif (each == "vm_network_resource_snaps"):
+                count = query_data.get_vm_network_resource_snaps(snapshot_id)
+            elif (each == "vm_network_resource_snap_metadata"):
+                count = query_data.get_vm_network_resource_snaps_metadata(snapshot_id)
+            elif (each == "snap_network_resource_metadata"):
+                count = query_data.get_snap_network_resource_metadata(snapshot_id)
+            else:
+                count = query_data.get_db_rows_count(each, "snapshot_id", snapshot_id)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            snapshot_validations[each] = count
+
+        LOG.debug("DB counts for snapshot validations: {}".format(snapshot_validations))
+        return snapshot_validations
+
+    '''
+    Method to get db data for restore validations - DB cleanup
+    '''
+    def db_cleanup_restore_validations(self, restore_id):
+        restore_validations = {}
+        LOG.debug("Getting list for db cleanup restore validations.")
+
+        restore_tables = tvaultconf.restore_tables
+        LOG.debug("Print restore_tables: {}".format(restore_tables))
+        for each in restore_tables:
+            if (each == "restores"):
+                count = query_data.get_db_rows_count(each, "id", restore_id)
+            elif (each == "restored_vm_metadata"):
+                count = query_data.get_restored_vm_metadata(restore_id)
+            elif (each == "restored_vm_resource_metadata"):
+                count = query_data.get_restored_vm_resource_metadata(restore_id)
+            else:
+                count = query_data.get_db_rows_count(each, "restore_id", restore_id)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            restore_validations[each] = count
+
+        LOG.debug("DB counts for restore validations: {}".format(restore_validations))
+        return restore_validations
+
+    '''
+    Method to get db data for workload policy validations - DB cleanup
+    '''
+    def db_cleanup_workload_policy_validations(self, workload_policy_id):
+        workload_policy_validations = {}
+        LOG.debug("Getting list for db cleanup workload validations: {}".format(workload_policy_id))
+
+        workload_policy_tables = tvaultconf.workload_policy_tables
+        LOG.debug("Print workload_policy_tables: {}".format(workload_policy_tables))
+        for each in workload_policy_tables:
+            if (each == "workload_policy"):
+                count = query_data.get_db_rows_count(each, "id", workload_policy_id)
+            else:
+                count = query_data.get_db_rows_count(each, "policy_id", workload_policy_id)
+            LOG.debug("Count for {} is: {}".format(each, count))
+            workload_policy_validations[each] = count
+
+        LOG.debug("DB counts for workload validations: {}".format(workload_policy_validations))
+        return workload_policy_validations
+       
+    '''
+    Method returns True if workload dir exists on backup target media
+    '''
+
+    def check_workload_exist_on_backend(self, mount_path, workload_id):
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() +\
+                "/workload_" + str(workload_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return False
+        else:
+            return True

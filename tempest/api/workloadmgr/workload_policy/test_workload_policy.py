@@ -142,7 +142,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.retention_policy_value_update + "' --policy-fields fullbackup_interval='" + tvaultconf.fullbackup_interval_update + \
                 "' --display-name 'policy_update' " + str(policy_id)
             error = cli_parser.cli_error(policy_update_command)
-            if error and (str(error.strip('\n')).find(policy_update_error_str) != -1): 
+            if error and (str(error.strip('\n')).find(policy_update_error_str) != -1):
                 reporting.add_test_step(
                     "Can not update workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -210,6 +210,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Assigned workload policy not updated by admin user")
+
+            # DB validations for workload policy before
+            workload_policy_validations_before = self.db_cleanup_workload_policy_validations(policy_id)
+            LOG.debug("Workload policy table values before deletion: {}".format(workload_policy_validations_before))
 
             # Verify workload policy which has assigned to tenant is updated with parameters
             # Below function returns list as [policy_name, {field_values},
@@ -562,6 +566,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verify policy deleted", tvaultconf.PASS)
                     LOG.debug("Policy deleted passed")
+
+            # DB validations for workload policy after workload cleanup
+            workload_policy_fields_data = query_data.get_workload_policy_fields()
+            LOG.debug("Get workload policy fields data: {}".format(workload_policy_fields_data))
+
+            if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
+                LOG.debug ("workload policy fields data is correct")
+            else:
+                reporting.add_test_step("workload policy fields data is in-correct", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(policy_id)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
             if failed:
                 reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
@@ -596,7 +618,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("Command workload create executed correctly")
 
-            time.sleep(10)
+            time.sleep(20)
             self.workload_id = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(self.workload_id))
@@ -755,13 +777,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w1 == retention_policy_type_wid and retention_policy_value_w1 == retention_policy_value_wid and Full_Backup_Interval_Value_w1\
                 == Full_Backup_Interval_Value_wid:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler enabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler enabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler enabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler enabled Retension param's not preserved")
@@ -769,13 +791,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w2 == retention_policy_type_wid2 and retention_policy_value_w2 == retention_policy_value_wid2 and Full_Backup_Interval_Value_w2\
                 == Full_Backup_Interval_Value_wid2:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler disabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler disabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler disabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler disabled Retension param's not preserved")
@@ -1160,12 +1182,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Policy assigned workload scheduler enabled unsuccessfully")
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.add_test_step(str(e), tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-        finally:
-            reporting.test_case_to_write()
+
             # Cleanup
             # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
@@ -1181,6 +1198,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_policy_delete(self.policy_id)
             self.workload_policy_delete(self.policy_id2)
 
+            # DB validations for workload policy after workload cleanup
+            workload_policy_fields_data = query_data.get_workload_policy_fields()
+            if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
+                LOG.debug("workload policy fields data is correct")
+            else:
+                reporting.add_test_step("workload policy fields data is in-correct", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(self.policy_id)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy-1", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy-1", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(self.policy_id2)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy-2", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy-2", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
             # Delete vm
             self.delete_vm(vm_id)
             LOG.debug("vm deleted succesfully")

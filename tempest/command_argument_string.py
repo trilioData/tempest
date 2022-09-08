@@ -10,12 +10,16 @@ workload_create_with_encryption = "workloadmgr workload-create --workload-type-i
                   " --encryption True" + \
                   " --source-platform "+tvaultconf.source_platform
 workload_delete = "workloadmgr workload-delete "
+workload_delete_db = "workloadmgr workload-delete --database_only "
 workload_modify = "workloadmgr workload-modify "
 workload_unlock = "workloadmgr workload-unlock "
 workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
 workload_import = "workloadmgr workload-importworkloads"
+workload_setting_create = "workloadmgr setting-create "
+workload_setting_show = "workloadmgr setting-show "
+workload_setting_delete = " workloadmgr setting-delete "
 
 #Trust commands
 workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
@@ -65,13 +69,6 @@ list_vm = "nova list | awk -F '|' '{print $2}' | grep -v ID"
 license_create = "workloadmgr license-create "
 license_check = "workloadmgr license-check"
 license_list = "workloadmgr license-list"
-
-#Config backup commands
-config_workload_configure = "workloadmgr config-workload-configure"
-config_workload_show = "workloadmgr config-workload-show"
-config_backup = "workloadmgr config-backup"
-config_backup_show = "workloadmgr config-backup-show"
-config_backup_delete = "workloadmgr config-backup-delete"
 
 #Workload policy commands
 policy_create = "workloadmgr policy-create --policy-fields "
