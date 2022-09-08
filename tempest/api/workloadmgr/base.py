@@ -2233,7 +2233,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return is_successful
 
     '''
-    Method to wiat for snapshot to be mounted and return the status
+    Method to wait for snapshot to be mounted and return the status
     '''
 
     def wait_for_snapshot_tobe_mounted(
