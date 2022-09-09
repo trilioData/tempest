@@ -313,7 +313,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### Create vm and workload ###
             self.created = False
-            vm_id = self.create_vm(vm_cleanup=True)
+            vm_id = self.create_vm()
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
 
@@ -416,7 +416,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### Create vm and workload ###
             self.created = False
-            vm_id = self.create_vm(vm_cleanup=True)
+            vm_id = self.create_vm()
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
 
