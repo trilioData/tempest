@@ -4387,3 +4387,50 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
         else:
             return True
+
+
+
+    '''
+    Method to create user
+    '''
+    def createUser(self, user_cleanup=True):
+        try:
+            # Create a user.
+            u_name = data_utils.rand_name('user')
+            u_desc = u_name + 'description'
+            u_email = u_name + '@testmail.tm'
+            u_password = data_utils.rand_password()
+            user_body = self.users_client.create_user(
+                name=u_name, description=u_desc, password=u_password,
+                email=u_email, enabled=True)['user']
+
+            LOG.debug(f"createUser response is : {user_body['id']} and user name is {user_body['name']}")
+
+            #add cleanup
+            if (tvaultconf.cleanup and user_cleanup):
+                self.addCleanup(self.deleteUser, user_body['id'])
+
+            return user_body['id']
+
+        except Exception as e:
+            LOG.error(f"Exception in create_user : {e}")
+            return False
+
+
+
+    '''
+    Method to delete  user
+    '''
+    def deleteUser(self, user_id):
+        try:
+            #delete a user
+            resp = self.users_client.delete_user(user_id)
+            LOG.debug(f"response in delete_user : {resp}")
+            return True
+
+        except Exception as e:
+            LOG.error(f"Exception in delete_user : {e}")
+            return False
+
+
+
