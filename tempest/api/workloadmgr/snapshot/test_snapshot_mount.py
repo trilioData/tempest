@@ -341,7 +341,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         try:
             test_var = "tempest.api.workloadmgr.snapshot.test_image_booted_fvm_"
             tests = [[test_var + "snapshot_mount_invalid_cli", 0],
-                     [test_var + "snapshot_mount_valid_cli", 0]]
+                     [test_var + "snapshot_mount_valid_cli", 0],
+                     [test_var + "snapshot_dismount_cli", 0]]
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
@@ -510,10 +511,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     pass
             else:
                 reporting.add_test_step("Snapshot mount of full snapshot", tvaultconf.FAIL)
+            tests[1][1] = 1
+            reporting.test_case_to_write()
 
-            unmount_status = self.unmount_snapshot(self.wid, self.snapshot_id)
-            LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
-            if unmount_status:
+            reporting.add_test_script(tests[2][0])
+            # Unmount snapshot
+            snapshot_unmount = command_argument_string.snapshot_dismount + \
+                             str(self.snapshot_id)
+            unmount_status = cli_parser.cli_output(snapshot_unmount)
+            LOG.debug(f"unmount_status for full snapshot: {unmount_status}")
+
+            snapshot_unmounted = self.wait_for_snapshot_tobe_available(
+                self.wid, self.snapshot_id)
+            if snapshot_unmounted == 'available':
                 reporting.add_test_step(
                     "Snapshot unmount of full snapshot", tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
@@ -530,7 +540,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Snapshot unmount of full snapshot", tvaultconf.FAIL)
-            tests[1][1] = 1
+            tests[2][1] = 1
             reporting.test_case_to_write()
 
         except Exception as e:
