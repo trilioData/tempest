@@ -20,6 +20,8 @@ workload_import = "workloadmgr workload-importworkloads"
 workload_setting_create = "workloadmgr setting-create "
 workload_setting_show = "workloadmgr setting-show "
 workload_setting_delete = " workloadmgr setting-delete "
+workload_setting_update = "workloadmgr setting-update "
+workload_setting_list = "workloadmgr setting-list "
 
 #Trust commands
 workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "

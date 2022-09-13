@@ -276,3 +276,131 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_06_workload_setting_update(self):
+        reporting.add_test_script(str(__name__) + "_create_workload_setting_cli_update")
+        try:
+            # Create workload setting with CLI command
+            workload_setting_name = tvaultconf.workload_setting_name + str(random.randint(0, 10000))
+            wl_setting_create = command_argument_string.workload_setting_create + \
+                                workload_setting_name + " " + tvaultconf.workload_setting_value + \
+                                " --is-hidden True"
+            LOG.debug("Workload setting create command: {}".format(wl_setting_create))
+            rc = cli_parser.cli_returncode(wl_setting_create)
+
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload setting-create command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload setting-create command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            # workload setting show with CLI command
+            wl_setting_show = command_argument_string.workload_setting_show + \
+                              tvaultconf.workload_setting_name + " --get_hidden True"
+            out = cli_parser.cli_output(wl_setting_show)
+            LOG.debug("Response from CLI: " + str(out))
+
+            if (workload_setting_name == cli_parser.cli_response_parser(out, 'name')):
+                reporting.add_test_step(
+                    "Verify workload setting name", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting name", tvaultconf.FAIL)
+            if (tvaultconf.workload_setting_value == cli_parser.cli_response_parser(out, 'value')):
+                reporting.add_test_step(
+                    "Verify workload setting value", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting value", tvaultconf.FAIL)
+            if (cli_parser.cli_response_parser(out, 'hidden') == 'True'):
+                reporting.add_test_step(
+                    "Verify workload setting get-hidden", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting get-hidden", tvaultconf.FAIL)
+
+            update_val = "value123"
+            # workload setting update with CLI command
+            wl_setting_show = command_argument_string.workload_setting_update + \
+                              workload_setting_name + " " + update_val + " --is-hidden False"
+            out = cli_parser.cli_output(wl_setting_show)
+            LOG.debug("Response from CLI: " + str(out))
+
+            # Compare values after updating workloadmgr setting
+            wc = query_data.get_created_workload_setting(workload_setting_name)
+            LOG.debug("workload settings in db: {}".format(wc))
+
+            wl_setting_show = command_argument_string.workload_setting_show + workload_setting_name
+            out = cli_parser.cli_output(wl_setting_show)
+            LOG.debug("Response from CLI: " + str(out))
+            if (wc[0] == cli_parser.cli_response_parser(out, 'name')):
+                reporting.add_test_step(
+                    "Verify workload setting name after updation", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting name after updation", tvaultconf.FAIL)
+            if (wc[1] == cli_parser.cli_response_parser(out, update_val)):
+                reporting.add_test_step(
+                    "Verify workload setting value after updation", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting value after updation", tvaultconf.FAIL)
+            if (cli_parser.cli_response_parser(out, 'hidden') == 'False'):
+                reporting.add_test_step(
+                    "Verify workload setting get-hidden after updation", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting get-hidden after updation", tvaultconf.FAIL)
+
+            # Cleanup
+            # Delete workload setting
+            wl_setting_delete = command_argument_string.workload_setting_delete + \
+                                workload_setting_name
+            LOG.debug("Workload setting delete command: {}".format(wl_setting_delete))
+            rc = cli_parser.cli_returncode(wl_setting_delete)
+            time.sleep(10)
+            wc = query_data.get_created_workload_setting(workload_setting_name)
+            LOG.debug("Workload setting status: " + str(wc))
+
+            if wc:
+                reporting.add_test_step(
+                    "workload setting deletion failed", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "workload setting deleted successfully", tvaultconf.PASS)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_07_workload_setting_list(self):
+        reporting.add_test_script(str(__name__) + "_create_workload_setting_cli_list")
+        try:
+            # workload setting list with CLI command
+            wl_setting_list = command_argument_string.workload_setting_list + " --get_hidden True | wc -l"
+            out = cli_parser.cli_output(wl_setting_list)
+            LOG.debug("Response from CLI: " + str(out))
+
+            # Compare values with database for workloadmgr setting-list
+            wc = query_data.get_db_rows_count("settings", "hidden", 1)
+            LOG.debug("workload settings in db: {}".format(wc))
+            if (wc == (int(out) - 4 )):
+                reporting.add_test_step(
+                    "Verify workload setting list with DB", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify workload setting list with DB", tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
