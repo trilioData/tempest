@@ -600,7 +600,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 
     '''
-    OS-2064 - workload reassign with same user and same project after deletion of project.
+    OS-2064 - workload reassign with same user and different project after deletion of project1.
     http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2064
     '''
     @decorators.attr(type='workloadmgr_api')
