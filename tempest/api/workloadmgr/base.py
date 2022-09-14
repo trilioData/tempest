@@ -4205,8 +4205,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         project_details = {"id": project_id, "name": project_name}
         LOG.debug("Created project details: {}".format(project_details))
         if (tvaultconf.cleanup and project_cleanup):
-            self.addCleanup(self.projects_client.delete_project, project['id'])
+            self.addCleanup(self.delete_project, project['id'])
         return project_details
+
+
+    '''
+    This method will delete the project id passed to it.
+    '''
+    def delete_project(self, project_id):
+        try:
+            #delete project id
+            resp = self.projects_client.delete_project(project_id)
+            LOG.debug(f"Response for project deletion : {resp}")
+
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in assign_role_to_user_project: {e}")
+            return False
+
+
 
     '''
     This method will get the list of triliovault created snapshots
