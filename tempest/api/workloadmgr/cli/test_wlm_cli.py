@@ -19,8 +19,8 @@ sys.path.append(os.getcwd())
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
-class WorkloadTest(base.BaseWorkloadmgrTest):
 
+class WorkloadTest(base.BaseWorkloadmgrTest):
     credentials = ['primary']
     vm_id = None
     vol_id = None
@@ -35,7 +35,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             # Create workload setting with CLI command
             wl_setting_create = command_argument_string.workload_setting_create + \
-                              tvaultconf.workload_setting_name + " " + tvaultconf.workload_setting_value
+                                tvaultconf.workload_setting_name + " " + tvaultconf.workload_setting_value
             LOG.debug("Workload setting create command: {}".format(wl_setting_create))
             rc = cli_parser.cli_returncode(wl_setting_create)
             if rc != 0:
@@ -113,7 +113,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             # workload setting delete with CLI command
             wl_setting_delete = command_argument_string.workload_setting_delete + \
-                              tvaultconf.workload_setting_name
+                                tvaultconf.workload_setting_name
             LOG.debug("Workload setting delete command: {}".format(wl_setting_delete))
             rc = cli_parser.cli_returncode(wl_setting_delete)
             if rc != 0:
@@ -149,12 +149,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             text_metadata = "test_metadata=metadata_value1"
             # Create workload setting with CLI command
             wl_setting_create = command_argument_string.workload_setting_create + \
-                              workload_setting_name + " " + tvaultconf.workload_setting_value + \
-                            " --description 'create-test' --is-public True --is-hidden False" + \
-                            " --category cat1 --type type1 --metadata " + text_metadata
+                                workload_setting_name + " " + tvaultconf.workload_setting_value + \
+                                " --description 'create-test' --is-public True --is-hidden False" + \
+                                " --category cat1 --type type1 --metadata " + text_metadata
             LOG.debug("Workload setting create command: {}".format(wl_setting_create))
             rc = cli_parser.cli_returncode(wl_setting_create)
-            
+
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload setting-create command", tvaultconf.FAIL)
@@ -176,7 +176,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verification with DB for created workload-setting", tvaultconf.FAIL)
                 raise Exception(
                     "Workload setting-create command execution failed")
-            
+
             wl_setting_show = command_argument_string.workload_setting_show + workload_setting_name
             out = cli_parser.cli_output(wl_setting_show)
             LOG.debug("Response from CLI: " + str(out))
@@ -215,18 +215,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify workload setting metadata", tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Verify workload setting metadata", tvaultconf.FAIL)        
-            
-            # Cleanup
+                    "Verify workload setting metadata", tvaultconf.FAIL)
+
+                # Cleanup
             # Delete workload setting
             wl_setting_delete = command_argument_string.workload_setting_delete + \
-                              workload_setting_name
+                                workload_setting_name
             LOG.debug("Workload setting delete command: {}".format(wl_setting_delete))
             rc = cli_parser.cli_returncode(wl_setting_delete)
             time.sleep(10)
             wc = query_data.get_created_workload_setting(workload_setting_name)
             LOG.debug("Workload setting status: " + str(wc))
-            
+
             if wc:
                 reporting.add_test_step(
                     "workload setting deletion failed", tvaultconf.FAIL)
@@ -259,7 +259,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute workload setting-create with invalid values", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-                
+
             cli_err = cli_parser.cli_error(wl_setting_create)
             LOG.debug("cli error: {}".format(cli_err))
             if (cli_err and cli_error_string in cli_err):
@@ -279,7 +279,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_cli')
     def test_06_workload_setting_update(self):
-        reporting.add_test_script(str(__name__) + "_create_workload_setting_cli_update")
+        reporting.add_test_script(str(__name__) + "_update_workload_setting_cli")
         try:
             # Create workload setting with CLI command
             global workload_setting_name
@@ -301,7 +301,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # workload setting show with CLI command
             wl_setting_show = command_argument_string.workload_setting_show + \
-                              tvaultconf.workload_setting_name + " --get_hidden True"
+                              workload_setting_name + " --get_hidden True"
+            LOG.debug("workloadmgr setting-show command: {}".format(wl_setting_show))
             out = cli_parser.cli_output(wl_setting_show)
             LOG.debug("Response from CLI: " + str(out))
 
@@ -326,10 +327,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             update_val = "value123"
             # workload setting update with CLI command
-            wl_setting_show = command_argument_string.workload_setting_update + \
-                              workload_setting_name + " " + update_val + " --is-hidden False"
-            out = cli_parser.cli_output(wl_setting_show)
-            LOG.debug("Response from CLI: " + str(out))
+            wl_setting_update = command_argument_string.workload_setting_update + \
+                                workload_setting_name + " " + update_val + " --is-hidden False"
+
+            rc = cli_parser.cli_returncode(wl_setting_update)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload setting-update command", tvaultconf.FAIL)
+                raise Exception("workload setting-update command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload setting-update command", tvaultconf.PASS)
+                LOG.debug("workload setting-update command executed correctly")
 
             # Compare values after updating workloadmgr setting
             wc = query_data.get_created_workload_setting(workload_setting_name)
@@ -344,7 +353,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Verify workload setting name after updation", tvaultconf.FAIL)
-            if (wc[1] == cli_parser.cli_response_parser(out, update_val)):
+            if (cli_parser.cli_response_parser(out, 'value') == update_val):
                 reporting.add_test_step(
                     "Verify workload setting value after updation", tvaultconf.PASS)
             else:
@@ -388,7 +397,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_update_workload_setting_cli_with_invalid_values")
         try:
             cli_error_string = tvaultconf.wl_setting_update_cli_error_string
-            wl_setting_update = command_argument_string.workload_setting_update + " " + wl_setting_name + \
+            wl_setting_update = command_argument_string.workload_setting_update + " " + workload_setting_name + \
                                 " value45 --description --type set2"
             LOG.debug("Workload setting update command with invalid values: {}".format(wl_setting_update))
             rc = cli_parser.cli_returncode(wl_setting_update)
@@ -398,19 +407,37 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("workload setting-update command did not execute correctly")
             else:
                 reporting.add_test_step(
-                    "Execute workload setting-create with invalid values", tvaultconf.PASS)
+                    "Execute workload setting-update with invalid values", tvaultconf.PASS)
                 LOG.debug("workload setting-update command executed correctly")
 
             cli_err = cli_parser.cli_error(wl_setting_update)
             LOG.debug("cli error: {}".format(cli_err))
             if (cli_err and cli_error_string in cli_err):
                 reporting.add_test_step(
-                    "Verify error thrown for invalid parameter", tvaultconf.PASS)
+                    "Verify correct error thrown for invalid parameter", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             else:
                 reporting.add_test_step(
-                    "Verify error thrown for invalid parameter", tvaultconf.FAIL)
+                    "Verify correct error thrown for invalid parameter", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
+
+            # Cleanup
+            # Delete workload setting
+            wl_setting_delete = command_argument_string.workload_setting_delete + \
+                                workload_setting_name
+            LOG.debug("Workload setting delete command: {}".format(wl_setting_delete))
+            rc = cli_parser.cli_returncode(wl_setting_delete)
+            time.sleep(10)
+            wc = query_data.get_created_workload_setting(workload_setting_name)
+            LOG.debug("Workload setting status: " + str(wc))
+
+            if wc:
+                reporting.add_test_step(
+                    "workload setting deletion failed", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "workload setting deleted successfully", tvaultconf.PASS)
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
@@ -423,14 +450,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_create_workload_setting_cli_list")
         try:
             # workload setting list with CLI command
-            wl_setting_list = command_argument_string.workload_setting_list + " --get_hidden True | wc -l"
+            wl_setting_list = command_argument_string.workload_setting_list + " --get_hidden True -f value | wc -l"
+            LOG.debug("Workload setting list command: {}".format(wl_setting_list))
+            rc = cli_parser.cli_returncode(wl_setting_list)
+            if rc == 0:
+                reporting.add_test_step(
+                    "Execute workload setting-list", tvaultconf.PASS)
+                LOG.debug("workload setting-list command executed correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload setting-list", tvaultconf.FAIL)
+                raise Exception("workload setting-list command did not execute correctly")
+
             out = cli_parser.cli_output(wl_setting_list)
             LOG.debug("Response from CLI: " + str(out))
 
             # Compare values with database for workloadmgr setting-list
-            wc = query_data.get_db_rows_count("settings", "hidden", 1)
+            wc = query_data.get_db_rows_count("settings", "hidden", str(1))
             LOG.debug("workload settings in db: {}".format(wc))
-            if (wc == (int(out) - 4 )):
+            if (wc == (int(out) - 4)):
                 reporting.add_test_step(
                     "Verify workload setting list with DB", tvaultconf.PASS)
             else:
