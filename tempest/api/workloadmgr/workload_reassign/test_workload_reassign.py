@@ -584,9 +584,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload reassign with same temp project and temp user is successful. Test case failed.")
                 raise Exception("Workload reassign with temp project and temp user")
             else:
-                LOG.error("Workload reassign with same temp project and temp user is failed. Test case Passed")
+                LOG.error("Workload reassign on deleted temp project failed. Test case Passed")
                 reporting.add_test_step(
-                    "Workload reassign with temp project and temp user", tvaultconf.PASS)
+                    "Workload reassign on deleted temp project failed.", tvaultconf.PASS)
 
 
         except Exception as e:
