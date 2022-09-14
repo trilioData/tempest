@@ -215,10 +215,110 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
+    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
+    @decorators.attr(type='workloadmgr_cli')
+    def test_4_cancel_snapshot(self):
+        try:
+            reporting.add_test_script(str(__name__) + "_cancel_snapshot_cli_with_invalid_options")
+
+            global workload_id
+            LOG.debug("workload is:" + str(workload_id))
+
+            # Create snapshot with CLI command
+            create_snapshot = command_argument_string.snapshot_create + workload_id
+            LOG.debug("Create snapshot command: " + str(create_snapshot))
+            rc = cli_parser.cli_returncode(create_snapshot)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-snapshot command with --full",
+                    tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-snapshot command with --full",
+                    tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            time.sleep(5)
+            snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
+            LOG.debug("Snapshot ID: " + str(snapshot_id))
+
+            # Snapshot cancel CLI with invalid options
+            snapshot_cancel_novalue = command_argument_string.snapshot_cancel
+            err_msg1 = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
+            error1 = cli_parser.cli_error(snapshot_cancel_novalue)
+            if error1 and (str(error1.strip('\n')).find(err_msg1) != -1):
+                LOG.debug("Snapshot cancel cli with no snapshot id returned correct error " + str(error1))
+                reporting.add_test_step("Snapshot cancel cli with no option returned correct error",
+                                        tvaultconf.PASS)
+            else:
+                LOG.debug("Snapshot cancel cli with no snapshot id returned no error")
+                reporting.add_test_step("Snapshot cancel cli with no snapshot id returned correct error",
+                                        tvaultconf.FAIL)
+
+            # Snapshot cancel CLI with invalid options
+            snapshot_cancel_invalid = command_argument_string.snapshot_cancel + "invalid"
+            err_msg2 = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
+            error2 = cli_parser.cli_output(snapshot_cancel_invalid)
+            if error2 and (str(error2.strip('\n')).find(err_msg2) != -1):
+                LOG.debug("Snapshot cancel cli with invalid snapshot id returned correct error " + str(error2))
+                reporting.add_test_step("Snapshot cancel cli with invalid option returned correct error",
+                                        tvaultconf.PASS)
+            else:
+                LOG.debug("Snapshot cancel cli with invalid snapshot id returned no error")
+                reporting.add_test_step("Snapshot cancel cli with invalid snapshot id returned correct error",
+                                        tvaultconf.FAIL)
+
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(str(__name__) + "_cancel_snapshot_cli")
+
+            snapshot_cancel = command_argument_string.snapshot_cancel + snapshot_id
+            LOG.debug("Cancel snapshot command: " + str(snapshot_cancel))
+            rc1 = cli_parser.cli_returncode(snapshot_cancel)
+            if rc1 != 0:
+                reporting.add_test_step(
+                    "Execute snapshot-cancel command",
+                    tvaultconf.FAIL)
+                raise Exception("snapshot-cancel Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute snapshot-cancel command",
+                    tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            self.wait_for_workload_tobe_available(workload_id)
+            snapshot_status = self.getSnapshotStatus(workload_id,
+                                                          snapshot_id)
+            if (snapshot_status == "cancelled"):
+                reporting.add_test_step("Full snapshot cancelled", tvaultconf.PASS)
+                LOG.debug("Workload snapshot successfully cancelled")
+            else:
+                reporting.add_test_step("Full snapshot not cancelled", tvaultconf.FAIL)
+                raise Exception("Workload snapshot did not get cancelled")
+
+
+            # Cleanup : # Delete snapshot
+            self.snapshot_delete(workload_id, snapshot_id)
+            LOG.debug("Incremental Snapshot deleted successfully")
+
+            # DB validations for snapshots after cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+
+            # DB validations for full snapshots before
+            full_snapshot_validations = self.db_cleanup_snapshot_validations(snapshot_id)
+            LOG.debug("db entries after triggering full snapshot: {}".format(full_snapshot_validations))
+            reporting.test_case_to_write()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
     @decorators.attr(type='smoke')
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
-    def test_4_delete_snapshot(self):
+    def test_5_delete_snapshot(self):
         try:
             global workload_id
             global snapshot_id
