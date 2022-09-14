@@ -511,6 +511,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     pass
             else:
                 reporting.add_test_step("Snapshot mount of full snapshot", tvaultconf.FAIL)
+                raise Exception("Snapshot mount of full snapshot failed")
             tests[1][1] = 1
             reporting.test_case_to_write()
 
@@ -540,6 +541,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Snapshot unmount of full snapshot", tvaultconf.FAIL)
+                raise Exception("Snapshot unmount of full snapshot failed")
             tests[2][1] = 1
             reporting.test_case_to_write()
 
@@ -547,3 +549,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
+
+        finally:
+            for test in tests:
+                if test[1] != 1:
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    reporting.add_test_script(test[0])
+                    reporting.test_case_to_write()
