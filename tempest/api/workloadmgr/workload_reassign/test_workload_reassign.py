@@ -509,7 +509,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Role ID not returned")
 
             #create temp project
-            project_details = self.create_project(project_cleanup=True)
+            project_details = self.create_project()
             LOG.debug("Project created details - {}".format(project_details["name"]))
             self.temp_tenant_id = project_details["id"]
             self.temp_project_name = project_details["name"]
@@ -531,7 +531,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id], tvaultconf.parallel)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -618,13 +618,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Role ID not returned")
 
             #create temp project 1
-            project_details = self.create_project(project_cleanup=True)
+            project_details = self.create_project()
             LOG.debug("Project created details - {}".format(project_details["name"]))
             self.temp_tenant_id = project_details["id"]
             self.temp_project_name = project_details["name"]
 
             #create temp project 2
-            project_details1 = self.create_project(project_cleanup=True)
+            project_details1 = self.create_project()
             LOG.debug("Project created details - {}".format(project_details1["name"]))
             self.temp_tenant_id_1 = project_details1["id"]
             self.temp_project_name_1 = project_details1["name"]
@@ -654,7 +654,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id], tvaultconf.parallel)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
