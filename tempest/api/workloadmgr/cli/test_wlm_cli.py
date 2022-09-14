@@ -366,26 +366,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Verify workload setting get-hidden after updation", tvaultconf.FAIL)
 
-            """
-            # Cleanup
-            # Delete workload setting
-            wl_setting_delete = command_argument_string.workload_setting_delete + \
-                                workload_setting_name
-            LOG.debug("Workload setting delete command: {}".format(wl_setting_delete))
-            rc = cli_parser.cli_returncode(wl_setting_delete)
-            time.sleep(10)
-            wc = query_data.get_created_workload_setting(workload_setting_name)
-            LOG.debug("Workload setting status: " + str(wc))
-
-            if wc:
-                reporting.add_test_step(
-                    "workload setting deletion failed", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.add_test_step(
-                    "workload setting deleted successfully", tvaultconf.PASS)
-            """
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
