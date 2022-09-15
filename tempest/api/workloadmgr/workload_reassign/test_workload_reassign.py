@@ -722,3 +722,126 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 
 
+    '''
+    OS-2065 - workload reassign on same project and user(with trustee role), after deleting both
+    http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2065
+    '''
+    @decorators.attr(type='workloadmgr_api')
+    def test_08_workload_reassign(self):
+        try:
+
+            reporting.add_test_script(str(__name__) + "_same_user_same_tenant_after_deletion_of_both")
+
+            #create a temp user...
+            self.temp_user_id = self.createUser()
+
+            #assign trustee role
+            role_id = self.get_role_id(tvaultconf.trustee_role)
+            if len(role_id) != 1:
+                raise Exception("Role ID not returned")
+
+            #create temp project
+            project_details = self.create_project()
+            LOG.debug("Project created details - {}".format(project_details["name"]))
+            self.temp_tenant_id = project_details["id"]
+            self.temp_project_name = project_details["name"]
+
+            #assign role to user and current project.
+            if self.assign_role_to_user_project(self.temp_tenant_id,
+                    self.temp_user_id, role_id[0], False):
+                LOG.debug("Role assigned to user and project")
+                reporting.add_test_step("Role assignment to user and project", tvaultconf.PASS)
+            else:
+                raise Exception("Role assignment to user and project failed")
+
+
+            ### Create vm and workload ###
+            self.created = False
+            vm_id = self.create_vm()
+            LOG.debug("\nVm id : {}\n".format(str(vm_id)))
+
+
+            ### create workload ###
+            workload_id = self.workload_create(
+                [vm_id], tvaultconf.parallel)
+            LOG.debug("Workload ID: " + str(workload_id))
+
+            if(workload_id is not None):
+                self.wait_for_workload_tobe_available(workload_id)
+                if(self.getWorkloadStatus(workload_id) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    LOG.error("Failed to get workload status as available for workload ID: " + str(workload_id))
+                    raise Exception("Create workload")
+            else:
+                LOG.error("Failed to create workload.")
+                raise Exception("Create workload")
+
+            #take a full snapshot of it.
+            snapshot_id = self.create_snapshot(workload_id, is_full=True)
+
+            snapshot_status = self.getSnapshotStatus(workload_id, snapshot_id)
+
+            if (snapshot_status == "available"):
+                LOG.debug("Full snapshot created.")
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+            else:
+                LOG.error("Full snapshot creation failed.")
+                raise Exception("Create full snapshot")
+
+
+            #use temp user and temp project for workload reassign.
+            rc = self.workload_reassign(self.temp_tenant_id, workload_id, self.temp_user_id)
+            if rc == 0:
+                LOG.debug("Workload reassign to temp project with temp user is passed")
+                reporting.add_test_step(
+                    "Workload reassign to temp project with temp user", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reassign to temp project with temp user is failed")
+                raise Exception("Workload reassign to temp project with temp user")
+
+
+            #delete the current created user.
+            resp = self.deleteUser(self.temp_user_id)
+            if resp:
+                LOG.debug(f"User {self.temp_user_id} deleted successfully")
+                reporting.add_test_step(
+                    "User deletion", tvaultconf.PASS)
+            else:
+                LOG.error(f"User {self.temp_user_id} is not deleted successfully")
+                raise Exception("User deletion")
+
+
+            #delete the current created project.
+            resp = self.delete_project(self.temp_tenant_id)
+            if resp:
+                LOG.debug(f"Project {self.temp_tenant_id} deleted successfully")
+                reporting.add_test_step(
+                    "Project deletion", tvaultconf.PASS)
+            else:
+                LOG.error(f"Project {self.temp_user_id} is not deleted successfully")
+                raise Exception("Project deletion")
+
+
+            #use same deleted temp project and temp user for workload reassign.
+            rc = self.workload_reassign(self.temp_tenant_id, workload_id, self.temp_user_id)
+            if rc == 0:
+                LOG.debug("Workload reassign on deleted temp user and temp project is successful. Test case failed.")
+                raise Exception("Workload reassign on deleted temp user and temp project passed.")
+            else:
+                LOG.error("Workload reassign on deleted temp user and temp project failed. Test case Passed")
+                reporting.add_test_step(
+                    "Workload reassign on deleted temp user and temp project failed.", tvaultconf.PASS)
+
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
+
+
+
+
