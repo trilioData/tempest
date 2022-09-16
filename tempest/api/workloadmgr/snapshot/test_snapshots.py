@@ -259,7 +259,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Snapshot cancel CLI with invalid options
             snapshot_cancel_invalid = command_argument_string.snapshot_cancel + "invalid"
             err_msg2 = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
-            error2 = cli_parser.cli_output(snapshot_cancel_invalid)
+            error2 = cli_parser.cli_error(snapshot_cancel_invalid)
             if error2 and (str(error2.strip('\n')).find(err_msg2) != -1):
                 LOG.debug("Snapshot cancel cli with invalid snapshot id returned correct error " + str(error2))
                 reporting.add_test_step("Snapshot cancel cli with invalid option returned correct error",
