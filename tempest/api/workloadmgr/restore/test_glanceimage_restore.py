@@ -307,6 +307,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_key_pair(tvaultconf.key_pair_name)
             LOG.debug("Delete original image, flavor & keypair")
 
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                                20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            new_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
+
             #selective restore of full snapshot
             rest_details = {}
             rest_details['rest_type'] = 'selective'
@@ -315,7 +321,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 CONF.network.internal_network_id)
             self.volumes = [self.boot_volume_id]
             rest_details['instances'] = {self.vm_id: self.volumes}
-            rest_details['flavor'] = self.original_flavor_conf
+            rest_details['flavor'] = new_flavor_conf
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
@@ -364,6 +370,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_flavor(self.flavor_id)
             self.delete_key_pair(tvaultconf.key_pair_name)
             LOG.debug("Delete restored image, flavor & keypair")
+
+            # Create flavor before restore
+            incr_flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                                20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            incr_flavor_conf = self.get_flavor_details(incr_flavor_id)
+            LOG.debug(f"incr_flavor_conf: {incr_flavor_conf}")
 
             # Trigger selective restore of incremental snapshot
             restore_id_2 = self.snapshot_selective_restore(
@@ -417,6 +429,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Delete restored image, flavor, keypair & vm")
             restored_vm_id = []
 
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            new_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
+
             #Trigger one click restore of full snapshot
             restore_id_3 = self.snapshot_restore(self.wid, self.snapshot_id)
             if(self.getRestoreStatus(self.wid, self.snapshot_id,
@@ -455,6 +473,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if len(restored_vm_id):
                 self.delete_vm(restored_vm_id[0])
             LOG.debug("Delete restored image, flavor, keypair & vm")
+
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            incr_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {incr_flavor_conf}")
 
             #Trigger one click restore of incremental snapshot
             restore_id_4 = self.snapshot_restore(self.wid, self.snapshot_id2)
