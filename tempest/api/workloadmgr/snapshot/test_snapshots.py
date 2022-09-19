@@ -245,7 +245,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Snapshot cancel CLI with invalid options
             snapshot_cancel_novalue = command_argument_string.snapshot_cancel
-            err_msg1 = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
+            err_msg1 = tvaultconf.error_cancel_snapshot_cli_without_any_options
             error1 = cli_parser.cli_error(snapshot_cancel_novalue)
             if error1 and (str(error1.strip('\n')).find(err_msg1) != -1):
                 LOG.debug("Snapshot cancel cli with no snapshot id returned correct error " + str(error1))
@@ -258,7 +258,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Snapshot cancel CLI with invalid options
             snapshot_cancel_invalid = command_argument_string.snapshot_cancel + "invalid"
-            err_msg2 = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
+            err_msg2 = tvaultconf.error_cancel_snapshot_cli_with_invalid_workloadid_option
             error2 = cli_parser.cli_error(snapshot_cancel_invalid)
             if error2 and (str(error2.strip('\n')).find(err_msg2) != -1):
                 LOG.debug("Snapshot cancel cli with invalid snapshot id returned correct error " + str(error2))

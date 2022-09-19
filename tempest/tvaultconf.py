@@ -154,3 +154,6 @@ workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_t
 #error strings
 wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '
 
+#snapshot cancel cli error strings
+error_cancel_snapshot_cli_without_any_options = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
+error_cancel_snapshot_cli_with_invalid_workloadid_option = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
