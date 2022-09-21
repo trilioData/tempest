@@ -844,4 +844,140 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
 
 
+    '''
+    OS-2066 - workload reassign on different project and user(with trustee role), after deleting both user1 and project1
+    http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2066
+    '''
+    @decorators.attr(type='workloadmgr_api')
+    def test_09_workload_reassign(self):
+        try:
+
+            reporting.add_test_script(str(__name__) + "_different_user_different_tenant_after_deletion_of_user1_tenant1")
+
+            #create a temp user1...
+            self.temp_user_id_1 = self.createUser()
+
+            #create a temp user2...
+            self.temp_user_id_2 = self.createUser()
+
+            #create temp project1...
+            project_details_1 = self.create_project()
+            LOG.debug("Project created details - {}".format(project_details_1["name"]))
+            self.temp_tenant_id_1 = project_details_1["id"]
+            self.temp_project_name_1 = project_details_1["name"]
+
+            #create temp project2...
+            project_details_2 = self.create_project()
+            LOG.debug("Project created details - {}".format(project_details_2["name"]))
+            self.temp_tenant_id_2 = project_details_2["id"]
+            self.temp_project_name_2 = project_details_2["name"]
+
+            #assign trustee role
+            role_id = self.get_role_id(tvaultconf.trustee_role)
+            if len(role_id) != 1:
+                raise Exception("Role ID not returned")
+
+            #assign role to user1 and current project1.
+            if self.assign_role_to_user_project(self.temp_tenant_id_1,
+                    self.temp_user_id_1, role_id[0], False):
+                LOG.debug("Role assigned to user1 and project1")
+                reporting.add_test_step("Role assignment to user1 and project1", tvaultconf.PASS)
+            else:
+                raise Exception("Role assignment to user1 and project1 failed")
+
+            #assign role to user2 and current project2.
+            if self.assign_role_to_user_project(self.temp_tenant_id_2,
+                    self.temp_user_id_2, role_id[0], False):
+                LOG.debug("Role assigned to user2 and project2")
+                reporting.add_test_step("Role assignment to user2 and project2", tvaultconf.PASS)
+            else:
+                raise Exception("Role assignment to user2 and project2 failed")
+
+            ### Create vm and workload ###
+            self.created = False
+            vm_id = self.create_vm()
+            LOG.debug("\nVm id : {}\n".format(str(vm_id)))
+
+
+            ### create workload ###
+            workload_id = self.workload_create(
+                [vm_id], tvaultconf.parallel)
+            LOG.debug("Workload ID: " + str(workload_id))
+
+            if(workload_id is not None):
+                self.wait_for_workload_tobe_available(workload_id)
+                if(self.getWorkloadStatus(workload_id) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    LOG.error("Failed to get workload status as available for workload ID: " + str(workload_id))
+                    raise Exception("Create workload")
+            else:
+                LOG.error("Failed to create workload.")
+                raise Exception("Create workload")
+
+            #take a full snapshot of it.
+            snapshot_id = self.create_snapshot(workload_id, is_full=True)
+
+            snapshot_status = self.getSnapshotStatus(workload_id, snapshot_id)
+
+            if (snapshot_status == "available"):
+                LOG.debug("Full snapshot created.")
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+            else:
+                LOG.error("Full snapshot creation failed.")
+                raise Exception("Create full snapshot")
+
+
+            #use temp user and temp project for workload reassign.
+            rc = self.workload_reassign(self.temp_tenant_id_1, workload_id, self.temp_user_id_1)
+            if rc == 0:
+                LOG.debug("Workload reassign to temp project1 with temp user1 is passed")
+                reporting.add_test_step(
+                    "Workload reassign to temp project1 with temp user1", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reassign to temp project1 with temp user1 is failed")
+                raise Exception("Workload reassign to temp project1 with temp user1")
+
+
+            #delete the current created user.
+            resp = self.deleteUser(self.temp_user_id_1)
+            if resp:
+                LOG.debug(f"User1 {self.temp_user_id_1} deleted successfully")
+                reporting.add_test_step(
+                    "User1 deletion", tvaultconf.PASS)
+            else:
+                LOG.error(f"User1 {self.temp_user_id_1} is not deleted successfully")
+                raise Exception("User1 deletion")
+
+
+            #delete the current created project.
+            resp = self.delete_project(self.temp_tenant_id_1)
+            if resp:
+                LOG.debug(f"Project1 {self.temp_tenant_id_1} deleted successfully")
+                reporting.add_test_step(
+                    "Project1 deletion", tvaultconf.PASS)
+            else:
+                LOG.error(f"Project1 {self.temp_tenant_id_1} is not deleted successfully")
+                raise Exception("Project1 deletion")
+
+
+            #use same deleted temp project and temp user for workload reassign.
+            rc = self.workload_reassign(self.temp_tenant_id_2, workload_id, self.temp_user_id_2)
+            if rc == 0:
+                LOG.debug("Workload reassign with temp user2 and temp project2 is successful.")
+                reporting.add_test_step(
+                    "Workload reassign with temp user2 and temp project2 passed", tvaultconf.PASS)
+            else:
+                LOG.error("Workload reassign with temp user2 and temp project2 failed.")
+                raise Exception("Workload reassign with temp user2 and temp project2 failed.")
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
+
+
 

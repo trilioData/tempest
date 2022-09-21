@@ -77,6 +77,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.order_client = cls.os_primary.order_client
         cls.projects_client = cls.os_primary.projects_client
         cls.roles_client = cls.os_primary.roles_v3_client
+        cls.users_client = cls.os_primary.users_v3_client
 
         if CONF.identity_feature_enabled.api_v2:
             cls.identity_client = cls.os_primary.identity_client
