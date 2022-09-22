@@ -47,21 +47,40 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             is_full = True
         else:
             is_full = False
-        self.snapshot_id = self.workload_snapshot(self.wid, is_full)
+        snapshot_id = self.workload_snapshot(self.wid, is_full)
         self.wait_for_workload_tobe_available(self.wid)
-        self.snapshot_status = self.getSnapshotStatus(self.wid,
-                self.snapshot_id)
-        if(self.snapshot_status == "available"):
+        snapshot_status = self.getSnapshotStatus(self.wid,
+                snapshot_id)
+        if(snapshot_status == "available"):
             reporting.add_test_step(f"Create {snapshot_type} snapshot",
                     tvaultconf.PASS)
         else:
             raise Exception(f"Create {snapshot_type} snapshot")
-        return self.snapshot_id
+        return snapshot_id
 
     def _verify_post_restore(self, images_list_bf, images_list_af,
-            key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af):
+                             key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af):
         tmp_fail = False
-        if images_list_bf == images_list_af:
+        attributes = ['visibility', 'name', 'size', 'virtual_size', 'disk_format', 'container_format', 'checksum',
+                      'hw_disk_busi', 'hw_qemu_guest_agent', 'hw_video_model', 'hw_vif_model',
+                      'hw_vif_multiqueue_enabled', 'os_distro', 'os_require_quiesce']
+
+        LOG.debug("one_Image properties before: {}".format(images_list_bf))
+        LOG.debug("one_Image properties after: {}".format(images_list_af))
+
+        img_list_bf = []
+        img_list_af = []
+        for i in range(0, len(images_list_bf)):
+            images_list_bf_1 = {k: v for k, v in images_list_bf[i].items() if k in attributes}
+            img_list_bf.append(images_list_bf_1)
+            # print("Testing: {}".format(images_list_bf_1))
+            images_list_af_1 = {k: v for k, v in images_list_af[i].items() if k in attributes}
+            img_list_af.append(images_list_af_1)
+            # print("Testing123: {}".format(images_list_af_1))
+
+        LOG.debug("Image properties before: {}".format(img_list_bf))
+        LOG.debug("Image properties after: {}".format(img_list_af))
+        if img_list_bf == img_list_af:
             reporting.add_test_step(
                 "Image properties intact after restore", tvaultconf.PASS)
         else:
@@ -77,13 +96,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 "Keypair not restored properly", tvaultconf.FAIL)
             tmp_fail = True
 
-        #md5sum verification
+        # md5sum verification
         if md5sums_bf == md5sums_af:
             reporting.add_test_step("Md5sum verification", tvaultconf.PASS)
         else:
             reporting.add_test_step("Md5sum verification", tvaultconf.FAIL)
             tmp_fail = True
-        
+
         if tmp_fail:
             reporting.set_test_script_status(tvaultconf.FAIL)
 
