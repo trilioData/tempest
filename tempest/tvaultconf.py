@@ -156,3 +156,6 @@ wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following 
 wl_setting_update_cli_error_string = 'workloadmgr setting-update: error: argument --description: expected one argument'
 wl_setting_list_cli_error_string = 'workloadmgr setting-list: error: argument --get_hidden: expected one argument'
 
+#snapshot cancel cli error strings
+error_cancel_snapshot_cli_without_any_options = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
+error_cancel_snapshot_cli_with_invalid_workloadid_option = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
