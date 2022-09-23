@@ -295,11 +295,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_same_user_same_tenant_after_deletion_of_user")
 
-            #create a temp user...
+            #create a temp user.
             user_details = self.createUser()
             if user_details == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
@@ -404,11 +404,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_different_user_same_tenant_after_deletion_of_user1")
 
-            #create a temp user...
+            #create a temp user.
             user_details = self.createUser()
             if user_details == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
@@ -512,11 +512,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_same_user_same_tenant_after_deletion_of_project1")
 
-            #create a temp user...
+            #create a temp user.
             user_details = self.createUser()
             if user_details == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
@@ -627,11 +627,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_same_user_different_tenant_after_deletion_of_temp_project1")
 
-            #create a temp user...
+            #create a temp user.
             user_details = self.createUser()
             if user_details == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
@@ -756,11 +756,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_same_user_same_tenant_after_deletion_of_both")
 
-            #create a temp user...
+            #create a temp user.
             user_details = self.createUser()
             if user_details == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
@@ -884,13 +884,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(str(__name__) + "_different_user_different_tenant_after_deletion_of_user1_tenant1")
 
-            #create a temp user1...
+            #create a temp user1.
             user_details1 = self.createUser()
             user_details2 = self.createUser()
 
             if user_details1 == False or user_details2 == False:
-                LOG.error("Failed to create user...")
-                raise Exception("Failed to create user...")
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
 
 
             self.temp_user_id_1 = user_details1['id']
@@ -899,13 +899,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_user_id_2 = user_details2['id']
             self.temp_user_name_2 = user_details2['name']
 
-            #create temp project1...
+            #create temp project1.
             project_details_1 = self.create_project()
             LOG.debug("Project created details - {}".format(project_details_1["name"]))
             self.temp_tenant_id_1 = project_details_1["id"]
             self.temp_tenant_name_1 = project_details_1["name"]
 
-            #create temp project2...
+            #create temp project2.
             project_details_2 = self.create_project()
             LOG.debug("Project created details - {}".format(project_details_2["name"]))
             self.temp_tenant_id_2 = project_details_2["id"]
