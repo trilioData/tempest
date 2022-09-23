@@ -4428,7 +4428,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if (tvaultconf.cleanup and user_cleanup):
                 self.addCleanup(self.deleteUser, user_body['id'])
 
-            return user_body['id']
+            return user_body
 
         except Exception as e:
             LOG.error(f"Exception in create_user : {e}")
