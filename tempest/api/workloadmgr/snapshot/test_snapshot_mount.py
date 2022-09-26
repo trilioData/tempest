@@ -342,7 +342,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             test_var = "tempest.api.workloadmgr.snapshot.test_image_booted_fvm_"
             tests = [[test_var + "snapshot_mount_invalid_cli", 0],
                      [test_var + "snapshot_mount_valid_cli", 0],
-                     [test_var + "snapshot_dismount_cli", 0]]
+                     [test_var + "snapshot_mounted_list_valid_values_cli", 0],
+                     [test_var + "snapshot_mounted_list_invalid_workload_id_cli", 0],
+                     [test_var + "snapshot_dismount_cli", 0],
+                     [test_var + "snapshot_mounted_list_unmounted_snapshot_cli", 0]]
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
             self.vm_id = self.create_vm(key_pair=self.kp)
@@ -366,6 +369,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             elif "ubuntu" in self.frm_image:
                 self.frm_ssh_user = "ubuntu"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
+            LOG.debug("FRM Instance uername: " + str(self.frm_ssh_user))
             self.set_floating_ip(fip[1], self.frm_id)
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
@@ -516,9 +520,86 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
             reporting.add_test_script(tests[2][0])
+            # Mount snapshot mounted list
+            snapshot_mounted_list_mount_table = command_argument_string.snapshot_mounted_list + "-f table --workloadid " + \
+                                                str(self.wid)
+            snapshot_mounted_list_mount_table = cli_parser.cli_output(snapshot_mounted_list_mount_table)
+            snapshot_mounted_list_mount_table = snapshot_mounted_list_mount_table.strip()
+            LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_table}")
+            table_format = '| ' + self.snapshot_id + ' |'
+
+            if table_format in snapshot_mounted_list_mount_table:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in table format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in table format", tvaultconf.FAIL)
+
+            snapshot_mounted_list_mount_csv = command_argument_string.snapshot_mounted_list + "-f csv --workloadid " + \
+                                              str(self.wid)
+            snapshot_mounted_list_mount_csv = cli_parser.cli_output(snapshot_mounted_list_mount_csv)
+            LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_csv}")
+            csv_format = '"snapshot_id","snapshot_name","workload_id","mounturl","status"'
+
+            if csv_format in snapshot_mounted_list_mount_csv.strip() and self.snapshot_id in snapshot_mounted_list_mount_csv:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in csv format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in csv format", tvaultconf.FAIL)
+
+            snapshot_mounted_list_mount_json = command_argument_string.snapshot_mounted_list + "-f json --workloadid " + \
+                                               str(self.wid)
+            snapshot_mounted_list_mount_json = cli_parser.cli_output(snapshot_mounted_list_mount_json)
+            snapshot_mounted_list_mount_json = snapshot_mounted_list_mount_json.replace("\n", "").strip()
+            LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_json}")
+            json_format = '[  {    "snapshot_id": "' + self.snapshot_id + '",'
+
+            if json_format in snapshot_mounted_list_mount_json:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in json format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in json format", tvaultconf.FAIL)
+
+            snapshot_mounted_list_mount_yaml = command_argument_string.snapshot_mounted_list + "-f yaml --workloadid " + \
+                                               str(self.wid)
+            snapshot_mounted_list_mount_yaml = cli_parser.cli_output(snapshot_mounted_list_mount_yaml)
+            snapshot_mounted_list_mount_yaml = snapshot_mounted_list_mount_yaml.replace("\n", "").strip()
+            LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_yaml}")
+            yaml_format = 'snapshot_id: ' + self.snapshot_id
+
+            if yaml_format in snapshot_mounted_list_mount_yaml:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in yaml format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for mounted full snapshot in yaml format", tvaultconf.FAIL)
+
+            tests[2][1] = 1
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(tests[3][0])
+            # snapshot mounted list invalid workload id
+            snapshot_mounted_list_invalid_wid = command_argument_string.snapshot_mounted_list + "-f json --workloadid " + \
+                                                "invalid"
+            snapshot_mounted_list_error = cli_parser.cli_error(snapshot_mounted_list_invalid_wid)
+            if snapshot_mounted_list_error and (str(snapshot_mounted_list_error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("Snapshot mounted list cli with invalid workload id returned correct error " + str(error))
+                reporting.add_test_step("Snapshot mounted list cli with invalid workload id returned correct error",
+                                        tvaultconf.PASS)
+            else:
+                LOG.debug("Snapshot mounted list cli with invalid workload id returned no error")
+                reporting.add_test_step("Snapshot mounted list cli with invalid workload id returned correct error",
+                                        tvaultconf.FAIL)
+
+            tests[3][1] = 1
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(tests[4][0])
             # Unmount snapshot
             snapshot_unmount = command_argument_string.snapshot_dismount + \
-                             str(self.snapshot_id)
+                               str(self.snapshot_id)
             unmount_status = cli_parser.cli_output(snapshot_unmount)
             LOG.debug(f"unmount_status for full snapshot: {unmount_status}")
 
@@ -541,14 +622,28 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Snapshot unmount of full snapshot", tvaultconf.FAIL)
-                raise Exception("Snapshot unmount of full snapshot failed")
-            tests[2][1] = 1
+            tests[4][1] = 1
+            reporting.test_case_to_write()
+
+            reporting.add_test_script(tests[5][0])
+            # Unmount snapshot mounted list
+            snapshot_mounted_list_unmount = command_argument_string.snapshot_mounted_list + "-f table --workloadid " + \
+                                            str(self.wid)
+            snapshot_mounted_list_unmount = cli_parser.cli_output(snapshot_mounted_list_unmount)
+            LOG.debug(f"snapshot_mounted_list for unmounted full snapshot: {snapshot_mounted_list_unmount}")
+
+            if snapshot_mounted_list_unmount.strip() == '':
+                reporting.add_test_step(
+                    "snapshot_mounted_list for unmounted full snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "snapshot_mounted_list for unmounted full snapshot", tvaultconf.FAIL)
+            tests[5][1] = 1
             reporting.test_case_to_write()
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
-            reporting.test_case_to_write()
 
         finally:
             for test in tests:
