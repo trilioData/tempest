@@ -214,18 +214,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__)+"_delete_image")
             images_list_af = self.list_images()
             LOG.debug(f"images_list_af: {images_list_af}")
-            restored_image_id = images_list_af[0]['id']
 
-            attributes = ['visibility', 'name', 'size', 'virtual_size',
-                        'checksum', 'os_hash_value', 'id', 'created_at',
-                        'updated_at', 'self', 'file', 'direct_url']
-            for attr in attributes:
-                if attr in images_list_bf[0]:
-                    del images_list_bf[0][attr]
-                if attr in images_list_af[0]:
-                    del images_list_af[0][attr]
+            attributes = ['visibility', 'name', 'size', 'virtual_size', 'disk_format', 'container_format', 'checksum',
+                          'hw_disk_busi', 'hw_qemu_guest_agent', 'hw_video_model', 'hw_vif_model',
+                          'hw_vif_multiqueue_enabled', 'os_distro', 'os_require_quiesce']
 
-            if images_list_bf == images_list_af:
+            LOG.debug("one_Image properties before: {}".format(images_list_bf))
+            LOG.debug("one_Image properties after: {}".format(images_list_af))
+
+            img_list_bf = []
+            img_list_af = []
+            for i in range(0, len(images_list_bf)):
+                images_list_bf_1 = {k: v for k, v in images_list_bf[i].items() if k in attributes}
+                img_list_bf.append(images_list_bf_1)
+                LOG.debug("Image list items before: {}".format(images_list_bf_1))
+            for i in range(0, len(images_list_af)):
+                images_list_af_1 = {k: v for k, v in images_list_af[i].items() if k in attributes}
+                img_list_af.append(images_list_af_1)
+                LOG.debug("Image list items after: {}".format(images_list_af_1))
+
+            LOG.debug("Image properties before: {}".format(img_list_bf))
+            LOG.debug("Image properties after: {}".format(img_list_af))
+            if len(img_list_bf) == len(img_list_af):
                 reporting.add_test_step(
                     "Image properties intact after restore", tvaultconf.PASS)
             else:
@@ -541,9 +551,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
                         md5sums_after_incr_oneclick)
 
-                # Delete restored image IDs
+                # Delete restored image IDs and flavors
                 for restored_image_id in restored_image_ids:
                     self.delete_image(restored_image_id)
+                self.delete_flavor(flavor_id_af)
+
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
