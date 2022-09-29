@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import datetime
 
 from oslo_log import log as logging
 
@@ -196,13 +197,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with CLI command
-            self.start_date = time.strftime("%m/%d/%Y")
-            self.start_time = time.strftime("%I:%M %p")
+            # Modify workload scheduler to enable and set the start date, time
+            # and timezone
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_2 = now + datetime.timedelta(minutes=2)
+            now_time_plus_2 = datetime.datetime.strftime(
+                now_time_plus_2, "%I:%M %p")
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
             workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(self.vm_id)\
-                + " --jobschedule start_date=" + str(self.start_date) + " --jobschedule start_time='" + str(self.start_time)\
+                + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_2.strip())\
                 + "' --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
                 + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)\
                 + " --jobschedule enabled=True"
@@ -640,14 +646,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create scheduled workload
-            self.start_date = time.strftime("%m/%d/%Y")
-            self.start_time = time.strftime("%I:%M %p")
+            # Modify workload scheduler to enable and set the start date, time
+            # and timezone
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_2 = now + datetime.timedelta(minutes=2)
+            now_time_plus_2 = datetime.datetime.strftime(
+                now_time_plus_2, "%I:%M %p")
             self.interval = tvaultconf.interval
             self.retention_policy_type = tvaultconf.retention_policy_type
             self.retention_policy_value = tvaultconf.retention_policy_value
             self.wid = self.workload_create([self.vm_id], tvaultconf.parallel,
-                                    jobschedule={"start_date": self.start_date,
-                                                 "start_time": self.start_time,
+                                    jobschedule={"start_date": now_date.strip(),
+                                                 "start_time": now_time_plus_2.strip(),
                                                  "interval": self.interval,
                                                  "retention_policy_type":
                                                      self.retention_policy_type,
