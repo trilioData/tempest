@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import json
+import datetime
 
 from oslo_log import log as logging
 
@@ -194,11 +195,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             exception = self.exception
 
             # Create scheduled workload
-            self.start_date = time.strftime("%m/%d/%Y")
-            self.start_time = time.strftime("%I:%M %p")
+            # Modify workload scheduler to enable and set the start date, time
+            # and timezone
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_2 = now + datetime.timedelta(minutes=2)
+            now_time_plus_2 = datetime.datetime.strftime(
+                now_time_plus_2, "%I:%M %p")
             self.wid = self.workload_create([vm_id], tvaultconf.parallel,
-                        jobschedule={"start_date": self.start_date,
-                            "start_time": self.start_time,
+                        jobschedule={"start_date": now_date.strip(),
+                            "start_time": now_time_plus_2.strip(),
                             "interval": tvaultconf.interval,
                             "retention_policy_type":
                                 tvaultconf.retention_policy_type,
