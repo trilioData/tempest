@@ -624,6 +624,8 @@ function configure_tempest
     if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
     then
         echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+        echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
+        echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
     fi
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
