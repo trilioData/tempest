@@ -4450,5 +4450,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in delete_user : {e}")
             return False
 
+    '''
+    Method to execute curl command on instance
+    '''
+
+    def executecurlonvm(self, ssh, command):
+        stdin, stdout, stderr = ssh.exec_command("curl " + command)
+        time.sleep(15)
+        output = stdout.readlines()
+        LOG.debug("command executed: " + str(output))
+        return output
 
 

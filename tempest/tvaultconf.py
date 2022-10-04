@@ -93,6 +93,8 @@ bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 mount_points = ["mount_data_b", "mount_data_c"]
 user_frm_data = "/home/nchavan/tempest/tempest/frm_userdata.sh"
+user_data_vm = "/home/nchavan/tempest/tempest/vm_userdata.sh"
+curl_to_get_userdata = "http://169.254.169.254/2009-04-04/user-data"
 
 #Email settings data
 setting_data = {"smtp_default_recipient": "test@trilio.io",
