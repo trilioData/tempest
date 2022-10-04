@@ -2382,6 +2382,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
         commands = role_add_command + rule_assign_command
         LOG.debug("Commands to add role: %s", commands)
+        if (tvaultconf.cleanup and policy_changes_cleanup):
+            self.addCleanup(self.revert_changes_policyyaml, old_rule)
         return commands
 
     '''
@@ -2397,21 +2399,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
         if len(tvaultconf.tvault_ip) == 0:
             if (tvaultconf.openstack_distro.lower() == 'mosk'):
-                #cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
-                wlm_file = '/etc/triliovault-wlm/policy.yaml'
-                #ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                #                                      tvaultconf.tvault_password)
-                commands = add_changes_policyyaml_file(role, rule, wlm_file, policy_changes_cleanup=True)
-                cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- ' + commands
-                LOG.debug("rbac commands: " + cmd)
-                #stdin, stdout, stderr = ssh.exec_command(cmd)
-                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-                stdout, stderr = p.communicate()
-                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-                if (tvaultconf.cleanup and policy_changes_cleanup):
-                    self.addCleanup(self.revert_changes_policyyaml, old_rule)
-                #ssh.close()
+                for wlm_container in tvaultconf.wlm_containers:
+                    #cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
+                    wlm_file = '/etc/triliovault-wlm/policy.yaml'
+                    #ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
+                    #                                      tvaultconf.tvault_password)
+                    commands = self.add_changes_policyyaml_file(role, rule, wlm_file, policy_changes_cleanup=True)
+                    #cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- ' + commands
+                    cmd = 'docker exec -itu root' + wlm_container + ' bash -c "' + commands + '"'
+                    LOG.debug("rbac commands: " + cmd)
+                    #stdin, stdout, stderr = ssh.exec_command(cmd)
+                    p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE)
+                    stdout, stderr = p.communicate()
+                    LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+                    #if (tvaultconf.cleanup and policy_changes_cleanup):
+                    #    self.addCleanup(self.revert_changes_policyyaml, old_rule)
+                    #ssh.close()
             else:
                 raise Exception("Tvault IPs not available")
         else:
@@ -2419,7 +2423,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 policy_filepath = '/etc/workloadmgr/policy.yaml'
                 ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                       tvaultconf.tvault_password)
-                commands = add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
                 stdin, stdout, stderr = ssh.exec_command(commands)
                 if (tvaultconf.cleanup and policy_changes_cleanup):
                     self.addCleanup(self.revert_changes_policyyaml, old_rule)
@@ -2436,7 +2440,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     policy.yaml file on tvault
     '''
 
-    def revert_changes_policyyaml_file(self, role, rule, policy_filepath, policy_changes_cleanup=True):
+    def revert_changes_policyyaml_file(self, rule, policy_filepath):
         if rule == "admin_api":
             role = "newadmin_api"
             operations = ["workload:get_storage_usage", "workload:get_nodes"]
@@ -2460,28 +2464,30 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def revert_changes_policyyaml(self, rule):
         if len(tvaultconf.tvault_ip) == 0:
             if (tvaultconf.openstack_distro.lower() == 'mosk'):
-                # cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
-                wlm_file = '/etc/triliovault-wlm/policy.yaml'
-                # ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                #                                      tvaultconf.tvault_password)
-                commands = revert_changes_policyyaml_file(role, rule, wlm_file, policy_changes_cleanup=True)
-                cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- ' + commands
-                LOG.debug("rbac commands: " + cmd)
-                # stdin, stdout, stderr = ssh.exec_command(cmd)
-                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-                stdout, stderr = p.communicate()
-                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-                if (tvaultconf.cleanup and policy_changes_cleanup):
-                    self.addCleanup(self.revert_changes_policyyaml, old_rule)
-                # ssh.close()
+                for wlm_container in tvaultconf.wlm_containers:
+                    # cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
+                    wlm_file = '/etc/triliovault-wlm/policy.yaml'
+                    # ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
+                    #                                      tvaultconf.tvault_password)
+                    commands = self.revert_changes_policyyaml_file(rule, wlm_file)
+                    #cmd = 'kubectl exec ' + wlm_container + ' -n triliovault -it -- ' + commands
+                    cmd = 'docker exec -itu root ' + wlm_container + ' bash -c "' + commands + '"'
+                    LOG.debug("rbac commands: " + cmd)
+                    # stdin, stdout, stderr = ssh.exec_command(cmd)
+                    p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE)
+                    stdout, stderr = p.communicate()
+                    LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+                    #if (tvaultconf.cleanup and policy_changes_cleanup):
+                    #    self.addCleanup(self.revert_changes_policyyaml, old_rule)
+                    # ssh.close()
             else:
                 raise Exception("Tvault IPs not available")
         for ip in tvaultconf.tvault_ip:
             policy_filepath = '/etc/workloadmgr/policy.yaml'
             ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                   tvaultconf.tvault_password)
-            commands = revert_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+            commands = self.revert_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
             stdin, stdout, stderr = ssh.exec_command(commands)
             ssh.close()
 

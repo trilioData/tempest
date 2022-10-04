@@ -372,6 +372,7 @@ function configure_tempest
 	cd /root
         eval "$(<env.sh)"
         cd -
+        IFS=$' ' read -r -d '' -a wlm_containers < <( docker ps | grep wlm-api | cut -d ' ' -f 1 | tr "\n" "," && printf '\0' )
         wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
         conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
@@ -626,6 +627,7 @@ function configure_tempest
         echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
         echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
         echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
+        echo 'wlm_containers = ["'$wlm_containers'"]' >> $TEMPEST_TVAULTCONF
     fi
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
