@@ -35,6 +35,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp)
             self.volumes = []
 
+            with open(tvaultconf.user_data_vm, "r") as in_file:
+                userdata = in_file.readlines()
+
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
             if len(fip) < 2:
@@ -95,14 +98,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 vm_list = self.get_restored_vm_list(restore_id_1)
                 LOG.debug("Restored vm(selective) ID : " + str(vm_list))
                 time.sleep(60)
-                self.set_floating_ip(fip[2], vm_list[0])
+                self.set_floating_ip(fip[1], vm_list[0])
                 LOG.debug("Floating ip assigned to selective restored vm -> " + \
-                          f"{fip[2]}")
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[2])
+                          f"{fip[1]}")
+                ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[1])
                 userdata_after = self.executecurlonvm(ssh,tvaultconf.curl_to_get_userdata)
                 ssh.close()
 
-                if userdata_before == userdata_after:
+                if userdata_before == userdata_after == userdata:
                     LOG.debug("***User data MATCH***")
                     reporting.add_test_step(
                         "User data Verification", tvaultconf.PASS)
