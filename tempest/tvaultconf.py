@@ -155,6 +155,8 @@ workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_t
 wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '
 wl_setting_update_cli_error_string = 'workloadmgr setting-update: error: argument --description: expected one argument'
 wl_setting_list_cli_error_string = 'workloadmgr setting-list: error: argument --get_hidden: expected one argument'
+wl_assigned_policy_error_string = "ERROR:workloadmgr:No recognized column names in ['id']. Recognized columns are ['ID', 'Name', 'Deleted', 'CreatedAt']"
+wl_assigned_policy_no_projectid_error_string = 'workloadmgr list-assigned-policies: error: the following arguments are required: <project_id>'
 
 #snapshot cancel cli error strings
 error_cancel_snapshot_cli_without_any_options = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
