@@ -621,11 +621,12 @@ def basic_workload(self):
         LOG.debug("Volume attached")
 
         # Create workload
+        self.workload_name = tvaultconf.workload_name + str(time.time())
         self.workload_instances.append(self.vm_id)
         self.wid = self.workload_create(
             self.workload_instances,
             tvaultconf.parallel,
-            workload_name=tvaultconf.workload_name,
+            workload_name=self.workload_name,
             workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
 

@@ -23,6 +23,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     snapshot_id = None
     vm_id = None
     volume_id = None
+    workload_name = None
 
     @classmethod
     def setup_clients(cls):
@@ -35,16 +36,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_1_get_audit_log(self):
         try:
             reporting.add_test_script(str(__name__) + "_get_audit_log")
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+
             global vm_id
             global volume_id
             global workload_id
+            global workload_name
             global snapshot_id
 
             workload_id = self.wid
+            workload_name = self.workload_name
             vm_id = self.vm_id
             volume_id = self.volume_id
 
             LOG.debug("workload is:" + str(workload_id))
+            LOG.debug("workload is:" + str(workload_name))
             LOG.debug("vm id: " + str(vm_id))
             LOG.debug("volume id: " + str(volume_id))
 
@@ -89,7 +98,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             storage_usage = self.getStorageUsage()
             LOG.debug("Storage details are : " + str(storage_usage))
-            wkld_name = tvaultconf.workload_name
+            wkld_name = workload_name
             if len(
                 storage_usage) > 0 and storage_usage[0]['total_capacity_humanized'] is not None:
                 LOG.debug("storage details returns successfully")
@@ -114,7 +123,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             tenant_usage = self.getTenantUsage()
             LOG.debug("Tenant details are : " + str(tenant_usage))
-            wkld_name = tvaultconf.workload_name
+            wkld_name = workload_name
             if len(tenant_usage) > 0:
                 LOG.debug("Tenant details returns successfully")
                 reporting.add_test_step("Tenant Details ", tvaultconf.PASS)
