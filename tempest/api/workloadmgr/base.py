@@ -772,7 +772,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to wait until the workload is available
     '''
 
-    def wait_for_workload_tobe_available(self, workload_id):
+    def wait_for_workload_tobe_available(self, workload_id, timeout=7200):
         status = "available"
         start_time = int(time.time())
         LOG.debug('Checking workload status')
@@ -781,6 +781,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 LOG.debug('workload status is: %s , workload create failed' %
                           self.getWorkloadStatus(workload_id))
                 # raise Exception("Workload creation failed")
+                return False
+            if time.time() - start_time > timeout:
+                LOG.error("Timeout Waiting for workload to be available")
                 return False
             LOG.debug('workload status is: %s , sleeping for 30 sec' %
                       self.getWorkloadStatus(workload_id))
@@ -1009,14 +1012,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to wait until the snapshot is available
     '''
 
-    def wait_for_snapshot_tobe_available(self, workload_id, snapshot_id):
+    def wait_for_snapshot_tobe_available(self, workload_id, snapshot_id, timeout=7200):
         status = "available"
         LOG.debug('Checking snapshot status')
+        start_time = int(time.time())
         while (status != self.getSnapshotStatus(workload_id, snapshot_id)):
             if (self.getSnapshotStatus(workload_id, snapshot_id) == 'error'):
                 LOG.debug('Snapshot status is: %s' %
                           self.getSnapshotStatus(workload_id, snapshot_id))
                 raise Exception("Snapshot creation failed")
+            if time.time() - start_time > timeout:
+                LOG.error("Timeout Waiting for snapshot to be available")
+                return False
             LOG.debug('Snapshot status is: %s' %
                       self.getSnapshotStatus(workload_id, snapshot_id))
             time.sleep(10)
@@ -1080,7 +1087,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def restore_delete(self, workload_id, snapshot_id, restore_id):
         LOG.debug("Deletion of restore {0} of snapshot {1} started".format(
             restore_id, snapshot_id))
-        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id,timeout=1800)
         resp, body = self.wlm_client.client.delete(
             "/workloads/" + workload_id + "/snapshots/" + snapshot_id + "/restores/" + restore_id)
         LOG.debug(
@@ -1089,7 +1096,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 202):
             resp.raise_for_status()
-        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id)
+        self.wait_for_snapshot_tobe_available(workload_id, snapshot_id,timeout=1800)
         LOG.debug('RestoreDeleted: %s' % workload_id)
 
     '''
