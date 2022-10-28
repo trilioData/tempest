@@ -466,7 +466,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"mount_status for full snapshot: {mount_status}")
 
             snapshot_mounted = self.wait_for_snapshot_tobe_mounted(
-                self.wid, self.snapshot_id)
+                self.wid, self.snapshot_id, timeout=1800)
 
             # Show snapshot details using CLI command
             rc = cli_parser.cli_returncode(
@@ -604,7 +604,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"unmount_status for full snapshot: {unmount_status}")
 
             snapshot_unmounted = self.wait_for_snapshot_tobe_available(
-                self.wid, self.snapshot_id)
+                self.wid, self.snapshot_id, timeout=1800)
             if snapshot_unmounted == 'available':
                 reporting.add_test_step(
                     "Snapshot unmount of full snapshot", tvaultconf.PASS)
