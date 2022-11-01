@@ -853,3 +853,151 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #Cleanup instance and volume
             self.delete_vm(self.vm_id)
             self.delete_volume(self.volume_id)
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_15_workload_get_orphaned_workloads_list(self):
+        try:
+
+            reporting.add_test_script(
+                str(__name__) + "_workload_get_orphaned_workloads_list")
+
+            vm_id = self.create_vm()
+            LOG.debug("\nVm id : {}\n".format(str(vm_id)))
+
+            # create a temp user1.
+            user_details1 = self.createUser()
+
+            if user_details1 == False:
+                LOG.error("Failed to create user.")
+                raise Exception("Failed to create user.")
+
+            self.temp_user_id_1 = user_details1['id']
+            self.temp_user_name_1 = user_details1['name']
+
+            # create temp project1.
+            project_details_1 = self.create_project()
+            LOG.debug("Project created details - {}".format(project_details_1["name"]))
+            self.temp_tenant_id_1 = project_details_1["id"]
+            self.temp_tenant_name_1 = project_details_1["name"]
+
+            # assign trustee role
+            role_id = self.get_role_id(tvaultconf.trustee_role)
+            if len(role_id) != 1:
+                raise Exception("Role ID not returned")
+
+            # assign role to user1 and current project1.
+            if self.assign_role_to_user_project(self.temp_tenant_id_1,
+                                                self.temp_user_id_1, role_id[0], False):
+                LOG.debug("Role assigned to user1 and project1")
+                reporting.add_test_step("Role assignment to user1 and project1", tvaultconf.PASS)
+            else:
+                raise Exception("Role assignment to user1 and project1 failed")
+
+            os.environ['OS_USERNAME'] = CONF.identity.backupuser
+            os.environ['OS_PASSWORD'] = CONF.identity.backupuser_password
+
+            ### create workload ###
+            workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(vm_id)
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command",
+                    tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command",
+                    tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+            time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            self.wait_for_workload_tobe_available(self.wid)
+            if (self.getWorkloadStatus(self.wid) == "available"):
+                reporting.add_test_step(
+                    "Create workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Create workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            # use temp user and temp project for workload reassign.
+            rc = self.workload_reassign(self.temp_tenant_id_1, self.wid, self.temp_user_id_1)
+            if rc == 0:
+                LOG.debug(
+                    f"Workload reassign to temp user1 {self.temp_user_name_1} with temp tenant1 {self.temp_tenant_name_1} is passed")
+                reporting.add_test_step(
+                    "Workload reassign to temp user1 {} with temp project1 {}".format(self.temp_user_name_1,
+                                                                                      self.temp_tenant_name_1),
+                    tvaultconf.PASS)
+            else:
+                LOG.error(
+                    f"Workload reassign to temp user1 {self.temp_user_name_1} with temp tenant1 {self.temp_tenant_name_1} is failed")
+                raise Exception(
+                    "Workload reassign to temp user1 {} with temp tenant1 {}".format(self.temp_user_name_1,
+                                                                                     self.temp_tenant_name_1))
+
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
+            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id_1
+            os.environ['OS_USERNAME'] = CONF.identity.username
+            os.environ['OS_PASSWORD'] = CONF.identity.password
+
+            # List available workloads using CLI command
+            rc = cli_parser.cli_returncode(
+                command_argument_string.workload_get_orphaned_workloads_list)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload_get_orphaned_workloads_list command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload_get_orphaned_workloads_list command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            out = cli_parser.cli_output(command_argument_string.workload_get_orphaned_workloads_list)
+            if (tvaultconf.workload_name in str(out)):
+                reporting.add_test_step(
+                    "Verification with workload name", tvaultconf.PASS)
+                LOG.debug(
+                    "workload_get_orphaned_workloads_list command listed available workloads correctly")
+            else:
+                reporting.add_test_step(
+                    "Verification with workload name", tvaultconf.FAIL)
+                raise Exception(
+                    "workload_get_orphaned_workloads_list command did not list available workloads correctly from cmd: " + str(out))
+
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
+
+            # delete the current created user.
+            resp = self.deleteUser(self.temp_user_id_1)
+            if resp:
+                LOG.debug(f"temp User1 {self.temp_user_name_1} deleted successfully")
+                reporting.add_test_step(
+                    "temp User1 {} deletion".format(self.temp_user_name_1), tvaultconf.PASS)
+
+            else:
+                LOG.error(f"temp User1 {self.temp_user_name_1} is not deleted successfully")
+                raise Exception("temp User1 {} deletion".format(self.temp_user_name_1))
+
+            # delete the current created project.
+            resp = self.delete_project(self.temp_tenant_id_1)
+            if resp:
+                LOG.debug(f"temp Project1 {self.temp_tenant_name_1} deleted successfully")
+                reporting.add_test_step(
+                    "temp Project1 {} deletion".format(self.temp_tenant_name_1), tvaultconf.PASS)
+            else:
+                LOG.error(f"temp Project1 {self.temp_tenant_name_1} is not deleted successfully")
+                raise Exception("temp Project1 {} deletion".format(self.temp_tenant_name_1))
+
+            # Cleanup
+            # Delete workload
+            self.workload_delete(self.wid)
+            LOG.debug("Workload deleted successfully")
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
