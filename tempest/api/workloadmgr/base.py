@@ -2227,7 +2227,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             workload_id,
             snapshot_id,
             vm_id,
-            mount_cleanup=True):
+            mount_cleanup=True, timeout=7200):
         payload = {"mount": {"mount_vm_id": vm_id,
                              "options": {}}}
         resp, body = self.wlm_client.client.post(
@@ -2235,7 +2235,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("#### Mounting of snapshot is initiated: ")
         if (resp.status_code != 200):
             resp.raise_for_status()
-        is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id)
+        is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
         if (tvaultconf.cleanup and mount_cleanup):
             self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
         return is_successful
@@ -2247,13 +2247,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def wait_for_snapshot_tobe_mounted(
             self,
             workload_id,
-            snapshot_id):
+            snapshot_id, timeout=7200):
         is_successful = True
         LOG.debug("Getting snapshot mount status")
+        start_time = int(time.time())
         while (self.getSnapshotStatus(workload_id, snapshot_id) != "mounted"):
             if (self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
                 LOG.debug('Snapshot status is: %s' %
                           self.getSnapshotStatus(workload_id, snapshot_id))
+                is_successful = False
+                return is_successful
+            if time.time() - start_time > timeout:
+                LOG.error("Timeout Waiting for snapshot to be mounted")
                 is_successful = False
                 return is_successful
             LOG.debug('snapshot mount status is: %s , sleeping for 30 sec' %
