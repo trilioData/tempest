@@ -590,7 +590,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self,
             instances,
             workload_type=tvaultconf.parallel,
-            jobschedule={},
+            jobschedule={"enabled": False},
             workload_name="",
             workload_cleanup=True,
             encryption=False,
