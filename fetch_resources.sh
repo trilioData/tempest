@@ -367,9 +367,26 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
+    env | grep OS_
+    if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
     then
-	cd /root
+        dbusername="automation"
+        mysql_wlm_pwd="password"
+        dbname="workloadmgr"
+        mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
+        mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
+        mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
+        echo "mysql_leader_pod: "$mysql_leader_pod
+        echo "mysql_ip: "$mysql_ip
+        echo "mysql_root_pwd: "$mysql_root_pwd
+        # create db user to run queries against workloadmgr db
+ssh -t $CANONICAL_NODE_IP << EOF
+juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
+EOF
+
+    elif [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
+    then
+        cd /root
         eval "$(<env.sh)"
         cd -
         wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
@@ -377,15 +394,19 @@ function configure_tempest
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
         datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
         command_prefix="kubectl -n triliovault exec $datamover_pod -- "
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     fi
 
-    echo "sql_connection: "$conn_str
-    dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-    mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
