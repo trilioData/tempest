@@ -235,73 +235,82 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Result json after snapshot complete: " +\
                       str(result_json))
 
+            self.restore_id = None
             for k in result_json.keys():
                 if('snapshot_status' in result_json[k].keys() and \
                         result_json[k]['snapshot_status'] == "available"):
-                    self.restore_id = self._trigger_selective_restore(
-                        [result_json[k]['instances']],
-                        result_json[k]['workload'],
-                        result_json[k]['snapshot'])
-                    result_json[k]['restore'] = self.restore_id
-            LOG.debug(
-                "Result json after trigger selective restore: " +
-                str(result_json))
-
-            for k in result_json.keys():
-                if('restore' in result_json[k].keys()):
-                    result_json[k]['snapshot_status'] = self._wait_for_workload(
-                        result_json[k]['workload'],
-                        result_json[k]['snapshot'])
-                    result_json[k]['workload_status'] = self.getWorkloadStatus(
-                        result_json[k]['workload'])
-                    result_json[k]['restore_status'] = self.getRestoreStatus(
-                        result_json[k]['workload'], result_json[k]['snapshot'],
-                        result_json[k]['restore'])
-                    result_json[k]['restore_size'] = (
-                        self.getRestoreDetails(
-                            result_json[k]['restore']))['size']
-                    result_json[k]['restore_time_taken'] = (
-                        self.getRestoreDetails(result_json[k]['restore']))\
-                                ['time_taken']
-                    result_json[k]['restore_uploaded_size'] = (
-                        self.getRestoreDetails(result_json[k]['restore']))\
-                                ['uploaded_size']
-                    if(result_json[k]['restore_status'] == "available"):
-                        result_json[k]['result']['Selective_Restore'] = \
-                            tvaultconf.PASS
-                    else:
-                        result_json[k]['restore_error_msg'] = (
-                            self.getRestoreDetails(result_json[k]['restore']))\
-                                    ['error_msg']
+                    try:
+                        self.restore_id = self._trigger_selective_restore(
+                            [result_json[k]['instances']],
+                            result_json[k]['workload'],
+                            result_json[k]['snapshot'])
+                        result_json[k]['restore'] = self.restore_id
+                    except Exception as e:
+                        result_json[k]['restore_error_msg'] = str(e)
                         result_json[k]['result']['Selective_Restore'] = \
                             tvaultconf.FAIL + "\nERROR " + \
                             result_json[k]['restore_error_msg']
-            LOG.debug(
-                "Result json after selective restore complete: " +
-                str(result_json))
+                        continue
+                    LOG.debug(
+                        "Result json after trigger selective restore: " +
+                        str(result_json))
 
-            for k in result_json.keys():
-                if('restore_status' in result_json[k].keys()):
-                    result_json[k]['snapshot_status'] = self._wait_for_workload(
-                        result_json[k]['workload'], result_json[k]['snapshot'])
-                    result_json[k]['workload_status'] = self.getWorkloadStatus(
-                        result_json[k]['workload'])
-                    result_json[k]['restore_status'] = self.getRestoreStatus(
-                        result_json[k]['workload'], result_json[k]['snapshot'],
-                        result_json[k]['restore'])
-                    if(result_json[k]['workload_status'] == "available" and \
-                            result_json[k]['restore_status'] in \
-                                ("available", "error")):
-                        self._delete_restored_vms(result_json[k]['restore'])
-                        result_json[k]['restore_delete_response'] = \
-                            self._delete_restore(result_json[k]['workload'],
-                                    result_json[k]['snapshot'],
-                                    result_json[k]['restore'])
-                        # if(result_json[k]['restore_delete_response']):
-                        #    result_json[k]['result']['Delete_Restore'] = tvaultconf.PASS
-                        # else:
-                        #    result_json[k]['result']['Delete_Restore'] = tvaultconf.FAIL
-            LOG.debug("Result json after delete restore: " + str(result_json))
+            if self.restore_id:
+                for k in result_json.keys():
+                    if('restore' in result_json[k].keys()):
+                        result_json[k]['snapshot_status'] = self._wait_for_workload(
+                            result_json[k]['workload'],
+                            result_json[k]['snapshot'])
+                        result_json[k]['workload_status'] = self.getWorkloadStatus(
+                            result_json[k]['workload'])
+                        result_json[k]['restore_status'] = self.getRestoreStatus(
+                            result_json[k]['workload'], result_json[k]['snapshot'],
+                            result_json[k]['restore'])
+                        result_json[k]['restore_size'] = (
+                            self.getRestoreDetails(
+                                result_json[k]['restore']))['size']
+                        result_json[k]['restore_time_taken'] = (
+                            self.getRestoreDetails(result_json[k]['restore']))\
+                                    ['time_taken']
+                        result_json[k]['restore_uploaded_size'] = (
+                            self.getRestoreDetails(result_json[k]['restore']))\
+                                    ['uploaded_size']
+                        if(result_json[k]['restore_status'] == "available"):
+                            result_json[k]['result']['Selective_Restore'] = \
+                                tvaultconf.PASS
+                        else:
+                            result_json[k]['restore_error_msg'] = (
+                                self.getRestoreDetails(result_json[k]['restore']))\
+                                        ['error_msg']
+                            result_json[k]['result']['Selective_Restore'] = \
+                                tvaultconf.FAIL + "\nERROR " + \
+                                result_json[k]['restore_error_msg']
+                LOG.debug(
+                    "Result json after selective restore complete: " +
+                    str(result_json))
+
+                for k in result_json.keys():
+                    if('restore_status' in result_json[k].keys()):
+                        result_json[k]['snapshot_status'] = self._wait_for_workload(
+                            result_json[k]['workload'], result_json[k]['snapshot'])
+                        result_json[k]['workload_status'] = self.getWorkloadStatus(
+                            result_json[k]['workload'])
+                        result_json[k]['restore_status'] = self.getRestoreStatus(
+                            result_json[k]['workload'], result_json[k]['snapshot'],
+                            result_json[k]['restore'])
+                        if(result_json[k]['workload_status'] == "available" and \
+                                result_json[k]['restore_status'] in \
+                                    ("available", "error")):
+                            self._delete_restored_vms(result_json[k]['restore'])
+                            result_json[k]['restore_delete_response'] = \
+                                self._delete_restore(result_json[k]['workload'],
+                                        result_json[k]['snapshot'],
+                                        result_json[k]['restore'])
+                            # if(result_json[k]['restore_delete_response']):
+                            #    result_json[k]['result']['Delete_Restore'] = tvaultconf.PASS
+                            # else:
+                            #    result_json[k]['result']['Delete_Restore'] = tvaultconf.FAIL
+                LOG.debug("Result json after delete restore: " + str(result_json))
 
             for k in result_json.keys():
                 if('snapshot_status' in result_json[k].keys()):
@@ -354,7 +363,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_result_json(result_json2)
             for k, v in result_json2.items():
                 if(('result' in v.keys()) and (len(v['result'].keys()) > 0)):
-                    for k1 in reversed(list(v['result'].keys())):
+                    for k1 in list(v['result'].keys()):
                         reporting.add_sanity_results(
                             k1 + "_" + k, v['result'][k1])
 
