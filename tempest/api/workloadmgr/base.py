@@ -2228,16 +2228,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             snapshot_id,
             vm_id,
             mount_cleanup=True, timeout=7200):
-        payload = {"mount": {"mount_vm_id": vm_id,
-                             "options": {}}}
-        resp, body = self.wlm_client.client.post(
-            "/snapshots/" + snapshot_id + "/mount", json=payload)
-        LOG.debug("#### Mounting of snapshot is initiated: ")
-        if (resp.status_code != 200):
-            resp.raise_for_status()
-        is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
-        if (tvaultconf.cleanup and mount_cleanup):
-            self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
+        try:
+            payload = {"mount": {"mount_vm_id": vm_id,
+                                 "options": {}}}
+            resp, body = self.wlm_client.client.post(
+                "/snapshots/" + snapshot_id + "/mount", json=payload)
+            LOG.debug("#### Mounting of snapshot is initiated: ")
+            if (resp.status_code != 200):
+                resp.raise_for_status()
+            is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
+            if (tvaultconf.cleanup and mount_cleanup):
+                self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
+        except Exception as e:
+            LOG.error('Snapshot mount failed with error: %s' % snapshot_id)
+            is_successful = False
         return is_successful
 
     '''
