@@ -162,12 +162,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(30)
 
             # create volume
-            volume_id = self.create_volume(volume_cleanup=False)
+            volume_id = self.create_volume(volume_cleanup=True)
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
             # attach volume to vm
-            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=True)
             LOG.debug("Volume attached")
 
             # assign floating ip

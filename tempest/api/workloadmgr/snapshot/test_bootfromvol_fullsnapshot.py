@@ -43,7 +43,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         try:
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(
-                self.workload_id, True, snapshot_cleanup=False)
+                self.workload_id, True, snapshot_cleanup=True)
             self.wait_for_workload_tobe_available(self.workload_id)
             if(self.getSnapshotStatus(self.workload_id, self.snapshot_id) == "available"):
                 reporting.add_test_step(

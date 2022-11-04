@@ -95,7 +95,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.key_pair_name, keypair_cleanup=True)
             LOG.debug("Key_pair : " + str(kp))
 
-            vm_id = self.create_vm(key_pair=kp, vm_cleanup=False)
+            vm_id = self.create_vm(key_pair=kp, vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             time.sleep(30)
 

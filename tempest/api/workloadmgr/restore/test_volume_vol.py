@@ -112,7 +112,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
-                volume_cleanup=False)
+                volume_cleanup=True)
             self.set_volume_as_bootable(boot_volume_id)
             LOG.debug("Bootable Volume ID : " + str(boot_volume_id))
 
@@ -127,18 +127,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 key_pair=kp,
                 image_id="",
                 block_mapping_data=self.block_mapping_details,
-                vm_cleanup=False)
+                vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             time.sleep(30)
 
             # Create and attach volume
             volume_id = self.create_volume(
                 volume_type_id=CONF.volume.volume_type_id,
-                volume_cleanup=False)
+                volume_cleanup=True)
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
-            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=True)
             LOG.debug("Volume attached")
 
             # Assign floating IP
