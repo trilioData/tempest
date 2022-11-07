@@ -448,7 +448,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Compare values with database for workloadmgr setting-list
             wc = query_data.get_db_rows_count("settings", "hidden", str(1))
             LOG.debug("workload settings in db: {}".format(wc))
-            if (wc == (int(out) - 4)):
+            if (wc == int(out) - 4) or (wc == int(out)):
                 reporting.add_test_step(
                     "Verify workload setting list with DB", tvaultconf.PASS)
             else:

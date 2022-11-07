@@ -2322,6 +2322,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "Create_Multiple_workloads_with_same_Secret_UUID", 0],
                      [test_var + "create_workload_with_wrong_secretUUID", 0]]
             reporting.add_test_script(tests[0][0])
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             vm_id = self.vm_id
             secret_uuid = self.secret_uuid
             volume_id = self.volume_id
@@ -2330,6 +2335,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
+            LOG.debug("WORKLOAD CMD - " + str(workload_create_with_encryption))
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful : " + error)
@@ -2448,6 +2454,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_07_barbican(self):
         reporting.add_test_script(str(__name__) + "_Create_encrypted_workload_with_workload_policy")
         try:
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             snapshots_list = []
 
             # Create workload policy

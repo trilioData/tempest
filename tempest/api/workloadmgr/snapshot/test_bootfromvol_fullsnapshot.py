@@ -41,6 +41,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_bootfromvol_fullsnapshot(self):
         try:
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(
                 self.workload_id, True, snapshot_cleanup=True)
