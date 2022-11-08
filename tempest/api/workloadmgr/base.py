@@ -4477,18 +4477,41 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns True if snapshot dir is exists on backup target media
     '''
 
-    def check_snapshot_size_on_backend(self, mount_path,
-            workload_id, snapshot_id):
+    def check_snapshot_size_on_backend(self, mount_path, workload_id,
+            snapshot_id, instance_id, disk_name):
         snapshot_size = 0
-        cmd = tvaultconf.command_prefix + "ls -l " + str(mount_path).strip() + \
-                "/workload_" + str(workload_id).strip() + "/snapshot_" + \
-                str(snapshot_id).strip() + " | cut -d ' ' -f 5"
+        cmd = tvaultconf.command_prefix + "ls " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip()
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        match_pattern = "_" + disk_name
+        for line in stdout.splitlines():
+            if match_pattern in str(line):
+                cmd1 = line.decode('utf-8')
+                break
+        cmd += "/" + cmd1
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        cmd2 = stdout.decode('utf-8')
+
+        final_cmd = tvaultconf.command_prefix + "ls -s --block-size=1 " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2 
+        LOG.debug(f"Final command for snapshot size: {final_cmd}")
+        p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
         if str(stderr).find('No such file or directory') != -1:
             return snapshot_size
         else:
-            snapshot_size = str(stdout)
+            snapshot_size = str(stdout.decode("utf-8")).split(' ')[0]
             return snapshot_size
+
