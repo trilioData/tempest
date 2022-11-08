@@ -400,6 +400,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create workload with image " \
                                 "booted vm")
 
+            full_snapshot_size = 0
+            incr_snapshot_size = 0
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -413,6 +415,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on " \
                                             "target backend", tvaultconf.PASS)
+                    full_snapshot_size = self.check_snapshot_size_on_backend(self.mount_path, self.wid,
+                                                                             self.snapshot_id)
+                    LOG.debug(f"full snapshot_size: {full_snapshot_size}")
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
@@ -437,7 +442,13 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on " \
                                             "target backend", tvaultconf.PASS)
-
+                    incr_snapshot_size = self.check_snapshot_size_on_backend(self.mount_path, self.wid,
+                                                                             self.snapshot_id)
+                    LOG.debug(f"incr snapshot_size: {incr_snapshot_size}")
+                    if (full_snapshot_size > incr_snapshot_size):
+                        reporting.add_test_step("Full snapshot size is greater than incr snapshot size", tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step("Full snapshot size is greater than incr snapshot size", tvaultconf.FAIL)
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:

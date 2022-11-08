@@ -4473,4 +4473,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("command executed: " + str(output))
         return output
 
+    '''
+    Method returns True if snapshot dir is exists on backup target media
+    '''
 
+    def check_snapshot_size_on_backend(self, mount_path,
+            workload_id, snapshot_id):
+        snapshot_size = 0
+        cmd = tvaultconf.command_prefix + "ls -l " + str(mount_path).strip() + \
+                "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + " | cut -d ' ' -f 5"
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return snapshot_size
+        else:
+            snapshot_size = str(stdout)
+            return snapshot_size
