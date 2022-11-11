@@ -4484,6 +4484,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
                 str(instance_id).strip()
+
         LOG.debug("Command to get vdisks: {}".format(cmd))
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)

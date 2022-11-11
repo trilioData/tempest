@@ -447,7 +447,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                             "target backend", tvaultconf.PASS)
                     for disk_name in self.disk_names:
                         incr_snapshot_size = self.check_snapshot_size_on_backend(self.mount_path, self.wid,
-                                                                             self.snapshot_id2, self.vm_id, disk_name)
+                                                   self.snapshot_id2, self.vm_id, disk_name)
                         LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
                         incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
                     LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
