@@ -179,6 +179,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "booted vm")
 
             reporting.add_test_script(tests[1][0])
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -192,8 +194,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        full_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                        full_snapshot_sizes.append({disk_name: full_snapshot_size})
+                    LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -221,8 +229,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        incr_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id2,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                        incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+                    LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+                    for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                        for key, value in dict1.items():
+                            LOG.debug(f"All values: {dict1} {dict2} {value} {dict2[key]}")
+                            if value > dict2[key]:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.PASS)
+                            else:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.FAIL)
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -677,6 +700,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "booted vm and vol attached")
 
             reporting.add_test_script(tests[1][0])
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -690,8 +715,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        full_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                        full_snapshot_sizes.append({disk_name: full_snapshot_size})
+                    LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -718,8 +749,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        incr_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id2,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                        incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+                    LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+                    for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                        for key, value in dict1.items():
+                            LOG.debug(f"All values: {dict1} {dict2} {value} {dict2[key]}")
+                            if value > dict2[key]:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.PASS)
+                            else:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.FAIL)
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1089,7 +1135,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.execute_command_disk_mount(ssh, fip[0],
                         tvaultconf.volumes_parts, tvaultconf.mount_points)
                 time.sleep(5)
-                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"]) 
+                md5sums_after_full_oneclick = self._get_md5sum(ssh, ["/opt", "volumes"])
                 LOG.debug(f"md5sums_after_full_oneclick: {md5sums_after_full_oneclick}")
                 ssh.close()
 
@@ -1239,6 +1285,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "booted vm")
 
             reporting.add_test_script(tests[1][0])
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -1252,8 +1300,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        full_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                        full_snapshot_sizes.append({disk_name: full_snapshot_size})
+                    LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1281,8 +1335,23 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        incr_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id2,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                        incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+                    LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+                    for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                        for key, value in dict1.items():
+                            LOG.debug(f"All values: {dict1} {dict2} {value} {dict2[key]}")
+                            if value > dict2[key]:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.PASS)
+                            else:
+                                reporting.add_test_step(
+                                    f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.FAIL)
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1754,6 +1823,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         "booted vm and vol attached")
 
             reporting.add_test_script(tests[1][0])
+            full_snapshot_sizes = 0
+            incr_snapshot_sizes = 0
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -1767,8 +1838,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        full_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                        full_snapshot_sizes = full_snapshot_sizes + full_snapshot_size
+                    LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
                     tests[1][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -1798,8 +1875,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Verify snapshot existence on "\
                             "target backend", tvaultconf.PASS)
                     self._check_encryption_on_backend(self.wid, self.snapshot_id2,
-                            self.vm_id, self.disk_names, self.mount_path)
-
+                                                      self.vm_id, self.disk_names, self.mount_path)
+                    for disk_name in self.disk_names:
+                        incr_snapshot_size = int(
+                            self.check_snapshot_size_on_backend(self.mount_path, self.wid, self.snapshot_id2,
+                                                                self.vm_id, disk_name))
+                        LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                        incr_snapshot_sizes = incr_snapshot_sizes + incr_snapshot_size
+                    LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+                    if (full_snapshot_sizes > incr_snapshot_sizes):
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size",
+                                                tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size",
+                                                tvaultconf.FAIL)
                     tests[2][1] = 1
                     reporting.test_case_to_write()
                 else:
@@ -4097,7 +4186,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         self.delete_restored_vms(restored_vms, restored_volumes)
                         self.restore_delete(wid, snapshot_id, restore_id)
                         reporting.add_test_step("Deleted restored vms and volumes", tvaultconf.PASS)
-                        
+
                         # DB validations for selective restore after restore deletion
                         restore_validations_after_deletion = self.db_cleanup_restore_validations(restore_id)
                         if (all(value == 0 for value in restore_validations_after_deletion.values())):
@@ -4115,7 +4204,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         LOG.debug("triliovault created snapshots are not deleted after deleting snapshots")
                     else:
                         raise Exception("triliovault created snapshots should not be deleted after deleting snapshots")
-                    
+
                     # DB validations for snapshots after deletion
                     snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
                     if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
@@ -4123,7 +4212,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("selective: db cleanup validations for snapshot ", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
-                    
+
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
@@ -4134,7 +4223,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                                 tvaultconf.PASS)
                     else:
                         raise Exception("triliovault created snapshots are NOT deleted after workload deletion")
-                    
+
                     # DB validations for workload after workload deletion
                     workload_validations_after_deletion = self.db_cleanup_workload_validations(wid)
                     if (all(value == 0 for value in workload_validations_after_deletion.values())):
@@ -4197,7 +4286,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         raise Exception(
                             "triliovault created snapshots for in_place restore are deleted after deleting workload snapshots")
-                    
+
                     # DB validations for snapshots after deletion
                     snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
                     if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
@@ -4205,7 +4294,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("inplace: db cleanup validations for snapshot ", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
-                        
+
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
@@ -4216,7 +4305,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("inplace: db cleanup validations for workload ", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
-                    
+
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name_for_inplace)
                     LOG.debug("Inplace restore - trilio_vol_snapshots_before : {}".format(trilio_vol_snapshots_before))
                     LOG.debug("Inplace restore - trilio_vol_snapshots_after : {}".format(trilio_vol_snapshots_after))
@@ -4296,7 +4385,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("oneclick: db cleanup validations for snapshot ", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
-                    
+
                     # Delete workloads and verify
                     self.workload_delete(wid)
                     time.sleep(30)
@@ -4307,7 +4396,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step("oneclick: db cleanup validations for workload ", tvaultconf.FAIL)
                         reporting.set_test_script_status(tvaultconf.FAIL)
-                    
+
                     trilio_vol_snapshots_after = self.get_trilio_volume_snapshot(vol_snap_name)
                     if trilio_vol_snapshots_after != trilio_vol_snapshots_before:
                         LOG.debug("triliovault created snapshots are still present")
@@ -4626,7 +4715,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
 
     # OS-2026
-    # Test case automated #AUTO-53 for verification of secret key added to secret container. 
+    # Test case automated #AUTO-53 for verification of secret key added to secret container.
     # http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2026
     @decorators.attr(type='workloadmgr_api')
     def test_19_barbican(self):
@@ -4681,7 +4770,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create secret container with secret_href.")
 
             reporting.test_case_to_write()
- 
+
             reporting.add_test_script(tests[1][0])
             # Create workload with CLI to pass secret uuid.
             workload_create_cmd = command_argument_string.workload_create_with_encryption + \

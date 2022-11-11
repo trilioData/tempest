@@ -78,13 +78,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(5)
             snapshot_id = query_data.get_inprogress_snapshot_id(workload_id)
             LOG.debug("Snapshot ID: " + str(snapshot_id))
-
+            global full_snapshot_size
+            mount_path = self.get_mountpoint_path()
             wc = self.wait_for_snapshot_tobe_available(
                 workload_id, snapshot_id)
             if (str(wc) == "available"):
                 reporting.add_test_step("Full snapshot", tvaultconf.PASS)
                 LOG.debug("Workload snapshot successfully completed")
                 self.created = True
+                full_snapshot_size = self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                         snapshot_id, vm_id)
+                LOG.debug(f"full snapshot_size for vda: {full_snapshot_size} MB")
             else:
                 if (str(wc) == "error"):
                     pass
@@ -111,8 +115,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 str(__name__) + "_create_incremental_snapshot")
 
             global workload_id
+            incr_snapshot_size = 0
             self.created = False
             LOG.debug("workload is:" + str(workload_id))
+            LOG.debug("vm id: " + str(vm_id))
 
             # Create incremental snapshot using CLI command
             create_snapshot = command_argument_string.incr_snapshot_create + workload_id
@@ -135,11 +141,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Wait for incremental snapshot to complete
             wc = self.wait_for_snapshot_tobe_available(
                 workload_id, self.incr_snapshot_id)
+            mount_path = self.get_mountpoint_path()
             if (str(wc) == "available"):
                 reporting.add_test_step(
                     "Incremental snapshot", tvaultconf.PASS)
                 LOG.debug("Workload incremental snapshot successfully completed")
                 self.created = True
+                # Verification for disk size for full and incr
+                incr_snapshot_size = self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                         self.incr_snapshot_id, vm_id)
+                LOG.debug(f"incr snapshot_size for vda: {incr_snapshot_size} MB")
+                if full_snapshot_size > incr_snapshot_size:
+                    reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for vda",
+                                            tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for vda",
+                                            tvaultconf.FAIL)
             if (self.created == False):
                 reporting.add_test_step(
                     "Incremental snapshot", tvaultconf.FAIL)
@@ -153,14 +170,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Cleanup : # Delete snapshot
             self.snapshot_delete(workload_id, self.incr_snapshot_id)
             LOG.debug("Incremental Snapshot deleted successfully")
-            
+
             # DB validations for snapshots after cleanup
             snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(self.incr_snapshot_id)
-            
-            # For full snapshot, new entry is added in table "vm_recent_snapshot". For incr, same entry is updated. 
+
+            # For full snapshot, new entry is added in table "vm_recent_snapshot". For incr, same entry is updated.
             # However, when we delete incr snapshot, this entry is removed.
             # vm_recent_snapshot table has FK with Snapshot having ondelete="CASCADE" effect,
-            # so whenever the snapshot is deleted it's respective entry from this table would get removed. 
+            # so whenever the snapshot is deleted it's respective entry from this table would get removed.
             LOG.debug("Print values for {}".format(snapshot_validations_after_deletion))
 
             if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
@@ -168,7 +185,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("db cleanup validations for incr snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            
+
             reporting.test_case_to_write()
 
         except Exception as e:
@@ -357,7 +374,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.error("Timeout Waiting for snapshot deletion for the workload.")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Snapshot did not get deleted")
-            
+
             time.sleep(10)
 
             # DB validations for snapshots after cleanup
@@ -367,12 +384,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            
+
             # Cleanup
             # Delete volume
             self.volume_snapshots = self.get_available_volume_snapshots()
             self.delete_volume_snapshots(self.volume_snapshots)
-            
+
             # Delete workload
             self.workload_delete(workload_id)
             time.sleep(10)
@@ -390,7 +407,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Delete volume
             self.delete_volume(volume_id)
-    
+
             reporting.test_case_to_write()
 
         except Exception as e:

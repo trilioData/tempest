@@ -400,6 +400,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create workload with image " \
                                 "booted vm")
 
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
             self.snapshot_id = self.workload_snapshot(self.wid, True)
             self.wait_for_workload_tobe_available(self.wid)
             self.snapshot_status = self.getSnapshotStatus(self.wid,
@@ -413,6 +415,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on " \
                                             "target backend", tvaultconf.PASS)
+                    for disk_name in self.disk_names:
+                        full_snapshot_size = self.check_snapshot_size_on_backend(self.mount_path, self.wid,
+                                                                                 self.snapshot_id, self.vm_id, disk_name)
+                        LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                        full_snapshot_sizes.append({disk_name: full_snapshot_size})
+                    LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
@@ -437,7 +445,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 if self.snapshot_found:
                     reporting.add_test_step("Verify snapshot existence on " \
                                             "target backend", tvaultconf.PASS)
-
+                    for disk_name in self.disk_names:
+                        incr_snapshot_size = self.check_snapshot_size_on_backend(self.mount_path, self.wid,
+                                                   self.snapshot_id2, self.vm_id, disk_name)
+                        LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                        incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+                    LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+                    for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                        for key, value in dict1.items():
+                            if value > dict2[key]:
+                                reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.PASS)
+                            else:
+                                reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}", tvaultconf.FAIL)
                 else:
                     raise Exception("Verify snapshot existence on target backend")
             else:
