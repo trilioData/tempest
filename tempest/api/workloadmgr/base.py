@@ -1661,7 +1661,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to create key pair
     '''
 
-    def create_key_pair(self, keypair_name=tvaultconf.key_pair_name, 
+    def create_key_pair(self, keypair_name=tvaultconf.key_pair_name,
                         keypair_cleanup=True):
         key_pairs_list_response = self.keypairs_client.list_keypairs()
         key_pairs = key_pairs_list_response['keypairs']
@@ -3730,7 +3730,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             #return the container ref URL
             return container_ref
 
-    
+
     '''
     This method deletes a secrete container created
     '''
@@ -4401,7 +4401,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         LOG.debug("DB counts for workload validations: {}".format(workload_policy_validations))
         return workload_policy_validations
-       
+
     '''
     Method returns True if workload dir exists on backup target media
     '''
@@ -4417,7 +4417,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
         else:
             return True
-
 
 
     '''
@@ -4477,18 +4476,43 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns True if snapshot dir is exists on backup target media
     '''
 
-    def check_snapshot_size_on_backend(self, mount_path,
-            workload_id, snapshot_id):
+    def check_snapshot_size_on_backend(self, mount_path, workload_id,
+            snapshot_id, instance_id, disk_name="vda"):
         snapshot_size = 0
-        cmd = tvaultconf.command_prefix + "ls -l " + str(mount_path).strip() + \
-                "/workload_" + str(workload_id).strip() + "/snapshot_" + \
-                str(snapshot_id).strip() + " | cut -d ' ' -f 5"
+        cmd = tvaultconf.command_prefix + "ls " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip()
+        LOG.debug("Command to get vdisks: {}".format(cmd))
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        match_pattern = "_" + disk_name
+        for line in stdout.splitlines():
+            if match_pattern in str(line):
+                cmd1 = line.decode('utf-8')
+                break
+        cmd += "/" + cmd1
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        cmd2 = stdout.decode('utf-8')
+
+        # block size calculation is done for MB: 1 MB = 1048576 bytes
+        final_cmd = tvaultconf.command_prefix + "ls -s --block-size=1048576 " + \
+                str(mount_path).strip() + "/workload_" + \
+                str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + \
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+        LOG.debug(f"Final command for snapshot size in MB: {final_cmd}")
+        p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
         if str(stderr).find('No such file or directory') != -1:
             return snapshot_size
         else:
-            snapshot_size = str(stdout)
+            snapshot_size = str(stdout.decode("utf-8")).split(' ')[0]
             return snapshot_size
+

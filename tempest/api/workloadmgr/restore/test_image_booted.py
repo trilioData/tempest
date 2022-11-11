@@ -113,7 +113,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       str(md5sums_before_full))
 
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(vm_id)
+                              " --instance instance-id=" + str(vm_id) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -146,6 +146,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             snapshot_id = self.create_snapshot(workload_id, is_full=True)
 
+            mount_path = self.get_mountpoint_path()
+            disk_names = ["vda"]
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
+            for disk_name in disk_names:
+                full_snapshot_size = int(self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                             snapshot_id, vm_id, disk_name))
+                LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                full_snapshot_sizes.append({disk_name: full_snapshot_size})
+            LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
+
             # Add some more data to files on VM
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
             self.addCustomfilesOnLinuxVM(ssh, data_dir_path, 2)
@@ -159,6 +170,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ### Incremental snapshot ###
 
             incr_snapshot_id = self.create_snapshot(workload_id, is_full=False)
+
+            for disk_name in disk_names:
+                incr_snapshot_size = int(self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                             incr_snapshot_id, vm_id, disk_name))
+                LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+            LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+            for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                for key, value in dict1.items():
+                    if value > dict2[key]:
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}",
+                                                tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}",
+                                                tvaultconf.FAIL)
 
             ### Selective restore ###
 
