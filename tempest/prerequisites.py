@@ -1265,6 +1265,7 @@ def network_topology(self):
 
 def barbican_workload(self):
     try:
+        self.exception = ""
         LOG.debug("Running prerequisites for : barbican_workload")
 
         # Create volume
