@@ -8,6 +8,7 @@ TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
+TEMPEST_VM_DATA_FILE=$TEMPEST_DIR/tempest/vm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 TEMPEST_VENV_DIR=$TEMPEST_DIR/.venv
@@ -619,6 +620,7 @@ function configure_tempest
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
+    sed -i "/user_data_vm = /c user_data_vm = \"$TEMPEST_VM_DATA_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
     if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]

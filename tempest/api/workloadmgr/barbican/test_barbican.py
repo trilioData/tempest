@@ -4698,7 +4698,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI to pass secret uuid.
             workload_create_cmd = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
-                                              " --secret-uuid " + str(self.secret_uuid)
+                                              " --secret-uuid " + str(self.secret_uuid) + " --jobschedule enabled=False"
 
             error = cli_parser.cli_error(workload_create_cmd)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
