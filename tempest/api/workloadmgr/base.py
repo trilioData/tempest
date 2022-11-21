@@ -2809,6 +2809,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return str(mountpoint_path)
 
     '''
+    Method returns mountpoint path of backup target media from pods/container
+    '''
+
+    def get_mountpoint_path_from_pod(self):
+        cmd = tvaultconf.command_prefix + "mount"
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        mountpoint_path = None
+        for line in stdout.splitlines():
+            if str(line).find('triliovault-mounts') != -1:
+                mountpoint_path = str(line).split()[2]
+        LOG.debug("mountpoint path is : " + str(mountpoint_path))
+        return str(mountpoint_path)
+
+    '''
     Method returns True if snapshot dir is exists on backup target media
     '''
 
@@ -2834,6 +2850,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         else:
             return False
+
+    '''
+     Method returns True if snapshot dir is exists on backup target media on pods/containers
+     '''
+
+    def check_snapshot_exist_on_backend_from_pod(self, mount_path,
+                                        workload_id, snapshot_id):
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return False
+        else:
+            return True
 
     '''
     Method to return policies list assigned to particular project
