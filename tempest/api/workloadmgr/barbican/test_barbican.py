@@ -1221,7 +1221,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
-                volume_cleanup=False)
+                volume_cleanup=True)
             self.set_volume_as_bootable(self.boot_volume_id)
             LOG.debug(f"Bootable Volume ID : {self.boot_volume_id}")
             self.block_mapping_details = [{"source_type": "volume",
@@ -1233,7 +1233,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp,
                 image_id="",
                 block_mapping_data=self.block_mapping_details,
-                vm_cleanup=False)
+                vm_cleanup=True)
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
             if len(fip) < 4:
@@ -1646,6 +1646,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(tests[7][0])
             self.delete_vm(self.vm_id)
+            self.delete_volume(self.boot_volume_id)
             time.sleep(10)
             rest_details = {}
             rest_details['rest_type'] = 'oneclick'
@@ -1742,7 +1743,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
-                volume_cleanup=False)
+                volume_cleanup=True)
             self.set_volume_as_bootable(self.boot_volume_id)
             LOG.debug(f"Bootable Volume ID : {self.boot_volume_id}")
             self.block_mapping_details = [{"source_type": "volume",
@@ -1754,7 +1755,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp,
                 image_id="",
                 block_mapping_data=self.block_mapping_details,
-                vm_cleanup=False)
+                vm_cleanup=True)
             fip = self.get_floating_ips()
             LOG.debug("\nAvailable floating ips are {}: \n".format(fip))
             if len(fip) < 4:
@@ -2366,7 +2367,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             for i in range(0, (rpv + 1)):
                 snapshot_id = self.workload_snapshot(
-                    workload_id, True, snapshot_cleanup=False)
+                    workload_id, True, snapshot_cleanup=True)
                 self.snapshots.append(snapshot_id)
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getSnapshotStatus(workload_id, snapshot_id) == "available"):
@@ -2410,6 +2411,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "Create_Multiple_workloads_with_same_Secret_UUID", 0],
                      [test_var + "create_workload_with_wrong_secretUUID", 0]]
             reporting.add_test_script(tests[0][0])
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             vm_id = self.vm_id
             secret_uuid = self.secret_uuid
             volume_id = self.volume_id
@@ -2418,6 +2424,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
+            LOG.debug("WORKLOAD CMD - " + str(workload_create_with_encryption))
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful : " + error)
@@ -2536,6 +2543,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def test_07_barbican(self):
         reporting.add_test_script(str(__name__) + "_Create_encrypted_workload_with_workload_policy")
         try:
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             snapshots_list = []
 
             # Create workload policy
@@ -2660,7 +2672,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 True,
                 snapshot_name=tvaultconf.snapshot_name +
                               "_final",
-                snapshot_cleanup=False)
+                snapshot_cleanup=True)
             LOG.debug("Last snapshot id is : " + str(snapshot_id))
 
             self.wait_for_snapshot_tobe_available(
@@ -4105,7 +4117,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 try:
                     wid = self.workload_create([vm_id],
                                                tvaultconf.workload_type_id, encryption=True,
-                                               secret_uuid=secret_uuid, workload_cleanup=False)
+                                               secret_uuid=secret_uuid, workload_cleanup=True)
                     LOG.debug("Workload ID: " + str(wid))
                 except Exception as e:
                     LOG.error(f"Exception: {e}")
@@ -4121,7 +4133,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     raise Exception("Create encrypted workload with attached ceph volume")
 
-                snapshot_id = self.workload_snapshot(wid, True, snapshot_cleanup=False)
+                snapshot_id = self.workload_snapshot(wid, True, snapshot_cleanup=True)
                 self.wait_for_workload_tobe_available(wid)
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
                 if (snapshot_status == "available"):
@@ -4163,7 +4175,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         wid, snapshot_id,
                         restore_name="selective_restore_full_snap",
                         instance_details=payload['instance_details'],
-                        network_details=payload['network_details'], restore_cleanup=False)
+                        network_details=payload['network_details'], restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
 
                     if (self.getRestoreStatus(wid, snapshot_id, restore_id) == "available"):
@@ -4246,7 +4258,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                     # Trigger inplace restore of full snapshot
                     restore_id = self.snapshot_inplace_restore(
-                        wid, snapshot_id, payload, restore_cleanup=False)
+                        wid, snapshot_id, payload, restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
                                               restore_id) == "available"):
@@ -4341,7 +4353,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                     # Trigger oneclick restore of full snapshot
                     restore_id = self.snapshot_inplace_restore(
-                        wid, snapshot_id, payload, restore_cleanup=False)
+                        wid, snapshot_id, payload, restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
                                               restore_id) == "available"):
@@ -4488,7 +4500,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 try:
                     wid = self.workload_create([vm_id],
                                                tvaultconf.workload_type_id, encryption=True,
-                                               secret_uuid=secret_uuid, workload_cleanup=False)
+                                               secret_uuid=secret_uuid, workload_cleanup=True)
                     LOG.debug("Workload ID: " + str(wid))
                 except Exception as e:
                     LOG.error(f"Exception: {e}")
@@ -4504,7 +4516,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 else:
                     raise Exception("Create encrypted workload with attached ceph volume")
 
-                snapshot_id = self.workload_snapshot(wid, True, snapshot_cleanup=False)
+                snapshot_id = self.workload_snapshot(wid, True, snapshot_cleanup=True)
                 self.wait_for_workload_tobe_available(wid)
                 snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
                 if (snapshot_status == "available"):
@@ -4544,7 +4556,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         restore_name="selective_restore_full_snap",
                         instance_details=payload['instance_details'],
                         network_details=payload['network_details'],
-                        restore_cleanup=False)
+                        restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
 
                     if (self.getRestoreStatus(wid, snapshot_id, restore_id) == "available"):
@@ -4600,7 +4612,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                     # Trigger inplace restore of full snapshot
                     restore_id = self.snapshot_inplace_restore(
-                        wid, snapshot_id, payload, restore_cleanup=False)
+                        wid, snapshot_id, payload, restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
                                               restore_id) == "available"):
@@ -4668,7 +4680,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
                     # Trigger oneclick restore of full snapshot
                     restore_id = self.snapshot_inplace_restore(
-                        wid, snapshot_id, payload, restore_cleanup=False)
+                        wid, snapshot_id, payload, restore_cleanup=True)
                     self.wait_for_snapshot_tobe_available(wid, snapshot_id)
                     if (self.getRestoreStatus(wid, snapshot_id,
                                               restore_id) == "available"):
@@ -4775,7 +4787,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI to pass secret uuid.
             workload_create_cmd = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
-                                              " --secret-uuid " + str(self.secret_uuid)
+                                              " --secret-uuid " + str(self.secret_uuid) + " --jobschedule enabled=False"
 
             error = cli_parser.cli_error(workload_create_cmd)
             if error and (str(error.strip('\n')).find('ERROR') != -1):

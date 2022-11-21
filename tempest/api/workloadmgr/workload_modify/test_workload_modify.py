@@ -133,7 +133,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.workload_instances,
                 tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name,
-                workload_cleanup=True)
+                workload_cleanup=True,
+                jobschedule={"enabled": True})
             LOG.debug("Workload ID-2: " + str(self.wid))
 
             # Verify workload created with scheduler enable

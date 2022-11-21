@@ -15,18 +15,19 @@ CONF = config.CONF
 
 def small_workload(self):
     try:
+        self.exception = ""
         LOG.debug("Running prerequisites for : small_workload")
 
         # Create volume
-        self.volume_id = self.create_volume(volume_cleanup=False)
+        self.volume_id = self.create_volume(volume_cleanup=True)
         LOG.debug("Volume ID: " + str(self.volume_id))
 
         # create vm
-        self.vm_id = self.create_vm(vm_cleanup=False)
+        self.vm_id = self.create_vm(vm_cleanup=True)
         LOG.debug("Vm ID: " + str(self.vm_id))
 
         # Attach volume to the instance
-        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
+        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=True)
         LOG.debug("Volume attached")
 
     except Exception as err:
@@ -1264,6 +1265,7 @@ def network_topology(self):
 
 def barbican_workload(self):
     try:
+        self.exception = ""
         LOG.debug("Running prerequisites for : barbican_workload")
 
         # Create volume

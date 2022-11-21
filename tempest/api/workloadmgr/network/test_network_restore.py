@@ -339,6 +339,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 if vm_details_af[vm_name]['tenant_id'] == tenant_id_1 and \
                         vm_details_bf_2[vm_name]['tenant_id'] == tenant_id:
                     del vm_details_af[vm_name]['tenant_id']
+                    del vm_details_af[vm_name]['security_groups']
                     del vm_details_bf_2[vm_name]['tenant_id']
                     del vm_details_bf_2[vm_name]['security_groups']
 

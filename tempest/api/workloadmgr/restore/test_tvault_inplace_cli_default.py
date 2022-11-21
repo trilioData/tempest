@@ -47,7 +47,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_inplace_cli_default(self):
         try:
-
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]
 
