@@ -376,7 +376,7 @@ function configure_tempest
         mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
         mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
         mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
-        command_prefix='ssh $CANONICAL_NODE_IP "juju ssh trilio-wlm/leader" -- '
+        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- "
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd

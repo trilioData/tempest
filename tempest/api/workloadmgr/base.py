@@ -23,6 +23,8 @@ import re
 import collections
 import base64
 import io
+import subprocess
+import shlex
 
 from oslo_log import log as logging
 from tempest import config
