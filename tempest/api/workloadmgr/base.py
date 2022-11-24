@@ -4003,6 +4003,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
+    Method returns True if snapshot is marked as encrypted on backup target media
+    '''
+
+    def check_snapshot_encryption_on_backend_from_pod(
+            self,
+            mount_path,
+            workload_id,
+            snapshot_id,
+            instance_id,
+            disk_name):
+        disk_path = str(mount_path).strip() + "/workload_" + \
+                        str(workload_id).strip() + "/snapshot_" + \
+                        str(snapshot_id).strip() + "/vm_id_" + \
+                        str(instance_id).strip() + "/vm_res_id*_" + \
+                        str(disk_name) + "/*"
+        is_snapshot_encrypted = "qemu-img info " + disk_path +\
+                " | grep -q encrypted && echo 'exists' ||echo 'not exists'"
+        LOG.debug("snapshot command is : " + str(is_snapshot_encrypted))
+        cmd = tvaultconf.command_prefix + is_snapshot_encrypted
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        snapshot_encrypt = stdout.read().decode('utf-8').strip()
+        LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
+        if str(snapshot_encrypt) == 'exists':
+            return True
+        else:
+            return False
+
+    '''
     List WLM trusts
     '''
 
