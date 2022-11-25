@@ -4026,7 +4026,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        snapshot_encrypt = stdout.read().decode('utf-8').strip()
+        snapshot_encrypt = stdout.decode('utf-8').strip('\n')
         LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
         if str(snapshot_encrypt) == 'exists':
             return True
