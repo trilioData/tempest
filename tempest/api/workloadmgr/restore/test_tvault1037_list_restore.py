@@ -82,7 +82,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                 tvaultconf.restore_name, self.snapshot_id)
             LOG.debug("Snapshot restore status: " + str(wc))
             while (str(wc) != "available" or str(wc) != "error"):
-                time.sleep(5)
+                time.sleep(15)
                 wc = query_data.get_snapshot_restore_status(
                     tvaultconf.restore_name, self.snapshot_id)
                 LOG.debug("Snapshot restore status: " + str(wc))
@@ -122,9 +122,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
                     "Verification with DB", tvaultconf.FAIL)
                 raise Exception(
                     "Restore list command did not list available restores correctly")
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()

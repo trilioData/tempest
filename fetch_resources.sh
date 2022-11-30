@@ -379,6 +379,7 @@ function configure_tempest
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd
+        wlm_pod=`ssh $CANONICAL_NODE_IP "juju status | grep wlm/ | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
         # create db user to run queries against workloadmgr db
 ssh -t $CANONICAL_NODE_IP << EOF
 juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
@@ -647,6 +648,15 @@ EOF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
+    if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
+    then
+        #echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+        echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
+        echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
+        #echo 'wlm_containers = ["'$wlm_containers'"]' >> $TEMPEST_TVAULTCONF
+    fi
+    sed -i 's/\r//g' $TEMPEST_TVAULTCONF
+    sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 
 }
 
