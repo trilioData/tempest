@@ -1035,19 +1035,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Check first snapshot is deleted from backup target when retension
             # value exceed
-            mount_path = self.get_mountpoint_path(
-                ipaddress=tvaultconf.tvault_ip[0],
-                username=tvaultconf.tvault_username,
-                password=tvaultconf.tvault_password)
-            LOG.debug("Backup target mount_path is : " + mount_path)
-            is_snapshot_exist = self.check_snapshot_exist_on_backend(
-                tvaultconf.tvault_ip[0],
-                tvaultconf.tvault_username,
-                tvaultconf.tvault_password,
-                mount_path,
-                self .workload_id,
-                deleted_snapshot_id)
-            LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
+            mount_path = ""
+            if tvaultconf.command_prefix:
+                mount_path = self.get_mountpoint_path_from_pod()
+                LOG.debug("Backup target mount_path is : " + mount_path)
+                is_snapshot_exist = self.check_snapshot_exist_on_backend_from_pod(
+                    mount_path, self.workload_id, deleted_snapshot_id)
+                LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
+            else:
+                mount_path = self.get_mountpoint_path(
+                    ipaddress=tvaultconf.tvault_ip[0],
+                    username=tvaultconf.tvault_username,
+                    password=tvaultconf.tvault_password)
+                LOG.debug("Backup target mount_path is : " + mount_path)
+                is_snapshot_exist = self.check_snapshot_exist_on_backend(
+                    tvaultconf.tvault_ip[0],
+                    tvaultconf.tvault_username,
+                    tvaultconf.tvault_password,
+                    mount_path,
+                    self .workload_id,
+                    deleted_snapshot_id)
+                LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
             if not is_snapshot_exist:
                 LOG.debug("First snapshot is deleted from backup target")
                 reporting.add_test_step(
