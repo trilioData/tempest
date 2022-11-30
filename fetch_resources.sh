@@ -376,6 +376,7 @@ function configure_tempest
         mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
         mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
         mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
+        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- "
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd
@@ -650,10 +651,8 @@ EOF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
     if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
     then
-        #echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
-        echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
+        echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
         echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
-        #echo 'wlm_containers = ["'$wlm_containers'"]' >> $TEMPEST_TVAULTCONF
     fi
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
