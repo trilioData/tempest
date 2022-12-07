@@ -2317,8 +2317,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' {2}'.format(
             rule, role, policy_filepath)
-        #role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
-        #    rule, role)
         rule_assign_command = ""
         for op in operations:
             rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
@@ -2341,25 +2339,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
-        if len(tvaultconf.tvault_ip) == 0:
-            if (tvaultconf.openstack_distro.lower() == 'canonical'):
-                #for wlm_container in tvaultconf.wlm_containers:
-                #cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
-                policy_filepath = '/etc/workloadmgr/policy.yaml'
-                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
-                cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
-                LOG.debug("rbac commands: " + cmd)
-                #stdin, stdout, stderr = ssh.exec_command(cmd)
-                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-                stdout, stderr = p.communicate()
-                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-                #if (tvaultconf.cleanup and policy_changes_cleanup):
-                #    self.addCleanup(self.revert_changes_policyyaml, old_rule)
-                #ssh.close()
-            else:
-                raise Exception("Tvault IPs not available")
-        else:
+        if (tvaultconf.openstack_distro.lower() == 'canonical'):
+            policy_filepath = '/etc/workloadmgr/policy.yaml'
+            commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+            cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
+            LOG.debug("rbac commands: " + cmd)
+            p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        elif len(tvaultconf.tvault_ip) != 0:
             for ip in tvaultconf.tvault_ip:
                 policy_filepath = '/etc/workloadmgr/policy.yaml'
                 ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
@@ -2369,6 +2358,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 if (tvaultconf.cleanup and policy_changes_cleanup):
                     self.addCleanup(self.revert_changes_policyyaml, old_rule)
                 ssh.close()
+        else:
+            raise Exception("Tvault IPs not available")
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2403,34 +2394,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return commands
 
     def revert_changes_policyyaml(self, rule):
-        if len(tvaultconf.tvault_ip) == 0:
-            if (tvaultconf.openstack_distro.lower() == 'canonical'):
-                #for wlm_container in tvaultconf.wlm_containers:
-                # cmd = 'kubectl exec ' + tvaultconf.wlm_pod + ' -n triliovault -it -- bash'
-                policy_filepath = '/etc/workloadmgr/policy.yaml'
-                # ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                #                                      tvaultconf.tvault_password)
-                commands = self.revert_changes_policyyaml_file(rule, policy_filepath)
-                #cmd = 'kubectl exec ' + wlm_container + ' -n triliovault -it -- ' + commands
-                cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
-                LOG.debug("rbac commands: " + cmd)
-                # stdin, stdout, stderr = ssh.exec_command(cmd)
-                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
-                                     stderr=subprocess.PIPE)
-                stdout, stderr = p.communicate()
-                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-                #if (tvaultconf.cleanup and policy_changes_cleanup):
-                #    self.addCleanup(self.revert_changes_policyyaml, old_rule)
-                # ssh.close()
-            else:
-                raise Exception("Tvault IPs not available")
-        for ip in tvaultconf.tvault_ip:
+        if (tvaultconf.openstack_distro.lower() == 'canonical'):
             policy_filepath = '/etc/workloadmgr/policy.yaml'
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            commands = self.revert_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            ssh.close()
+            commands = self.revert_changes_policyyaml_file(rule, policy_filepath)
+            cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
+            LOG.debug("rbac commands: " + cmd)
+            p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+            LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        elif len(tvaultconf.tvault_ip) != 0:
+            for ip in tvaultconf.tvault_ip:
+                policy_filepath = '/etc/workloadmgr/policy.yaml'
+                ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
+                                                      tvaultconf.tvault_password)
+                commands = self.revert_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+                stdin, stdout, stderr = ssh.exec_command(commands)
+                ssh.close()
+        else:
+            raise Exception("Tvault IPs not available")
 
     '''
     add security group rule
