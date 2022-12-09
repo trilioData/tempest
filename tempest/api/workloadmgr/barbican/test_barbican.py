@@ -3,6 +3,7 @@ from tempest import config
 from tempest.lib import decorators
 from tempest import test
 import time
+import random
 from oslo_log import log as logging
 from tempest import tvaultconf
 from tempest import reporting
@@ -2505,6 +2506,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             vm_id = self.vm_id
             secret_uuid = self.secret_uuid
             volume_id = self.volume_id
+            workload_name = tvaultconf.workload_name + str(random.randint(0, 10000))
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
@@ -2523,12 +2525,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute workload_create_with_encryption command",
                     tvaultconf.PASS)
-                time.sleep(10)
                 self.wid1 = query_data.get_workload_id_in_creation(
-                    tvaultconf.workload_name)
-                workload_available = self.wait_for_workload_tobe_available(
-                    self.wid1)
+                    workload_name)
                 LOG.debug("Workload ID: " + str(self.wid1))
+                timer = 0
+                while (self.wid1 is None):
+                    time.sleep(10)
+                    self.wid1 = query_data.get_workload_id_in_creation(workload_name)
+                    timer = timer + 1
+                    if (self.wid1 is not None):
+                        workload_available = self.wait_for_workload_tobe_available(self.wid1)
+                        if (self.getWorkloadStatus(self.wid1) == "available"):
+                            reporting.add_test_step(
+                                "Create workload with encryption", tvaultconf.PASS)
+                        else:
+                            reporting.add_test_step(
+                                "Create workload with encryption", tvaultconf.FAIL)
+                            reporting.set_test_script_status(tvaultconf.FAIL)
+                    elif (timer >= 12):
+                        raise Exception("Create workload with encryption")
 
                 # Show workload details using CLI command
                 rc = cli_parser.cli_returncode(
@@ -3487,9 +3502,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 # workload created successfully, we need to delete it. Get the workload id...
                 self.wid1 = query_data.get_workload_id_in_creation(
                     tvaultconf.workload_name)
+                LOG.debug("Workload ID: " + str(self.wid))
                 workload_available = self.wait_for_workload_tobe_available(
                     self.wid1)
-                LOG.debug("Workload ID: " + str(self.wid1))
+                LOG.debug("Workload ID available: " + str(self.wid1))
 
                 # Delete workload
                 self.workload_delete(self.wid1)
