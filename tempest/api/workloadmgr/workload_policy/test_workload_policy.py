@@ -1036,13 +1036,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Check first snapshot is deleted from backup target when retension
             # value exceed
             mount_path = ""
-            if tvaultconf.command_prefix:
+            if len(tvaultconf.tvault_ip) == 0:
                 mount_path = self.get_mountpoint_path_from_pod()
                 LOG.debug("Backup target mount_path is : " + mount_path)
                 is_snapshot_exist = self.check_snapshot_exist_on_backend_from_pod(
                     mount_path, self.workload_id, deleted_snapshot_id)
                 LOG.debug("Snapshot does not exist : %s" % is_snapshot_exist)
             else:
+                LOG.debug("print creds: {} {} {}".format(tvaultconf.tvault_ip[0], tvaultconf.tvault_username,
+                                                         tvaultconf.tvault_password))
                 mount_path = self.get_mountpoint_path(
                     ipaddress=tvaultconf.tvault_ip[0],
                     username=tvaultconf.tvault_username,
