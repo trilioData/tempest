@@ -386,22 +386,32 @@ ssh -t $CANONICAL_NODE_IP << EOF
 juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
 EOF
 
-    elif [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
-    then
-        cd /root
-        eval "$(<env.sh)"
-        cd -
-        wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
-        conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
-        mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
-        datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
-        command_prefix="kubectl -n triliovault exec $datamover_pod -- "
-        echo "sql_connection: "$conn_str
-        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     else
-        conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+        if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
+        then
+            cd /root
+            eval "$(<env.sh)"
+            cd -
+            wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
+            conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
+            mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
+            datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
+            command_prefix="kubectl -n triliovault exec $datamover_pod -- "
+            #echo "sql_connection: "$conn_str
+            #dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+            #mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+            #dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+        elif [[ ${OPENSTACK_DISTRO,,} == 'lxc'* ]]
+        then
+            wlm_containers=`ssh $Controller -- lxc-ls | grep triliovault-wlm`
+            command_prefix=`ssh $Controller -- lxc-attach -n $wlm_containers --`
+            conn_str=`ssh $Controller -- lxc-attach -n $wlm_containers -- "grep -ai sql_connection /etc/triliovault-wlm/triliovault-wlm.conf"`
+            #echo "sql_connection: "$conn_str
+            #echo "command_prefix: "$command_prefix
+        fi
+        #conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+        echo "sql_connection: "$conn_str
+        echo "command_prefix: "$command_prefix
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
@@ -648,6 +658,7 @@ EOF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
+    sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_TVAULTCONF
 
 }
 
