@@ -373,13 +373,14 @@ function configure_tempest
         dbusername="automation"
         mysql_wlm_pwd="password"
         dbname="workloadmgr"
-        mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
-        mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
+        mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb-cluster/' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
+        mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb-cluster/' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
         mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
         command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- "
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd
+        wlm_pod=`ssh $CANONICAL_NODE_IP "juju status | grep wlm/ | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
         # create db user to run queries against workloadmgr db
 ssh -t $CANONICAL_NODE_IP << EOF
 juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
@@ -651,6 +652,8 @@ EOF
     if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
     then
         echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+        echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
+        echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
     fi
 }
 

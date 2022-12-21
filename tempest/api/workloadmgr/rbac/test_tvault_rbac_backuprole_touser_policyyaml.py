@@ -145,7 +145,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI by admin role
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.instances_id[1])
+            LOG.debug("workload create command: {}".format(workload_create))
             error = cli_parser.cli_error(workload_create)
+            LOG.debug("Error for workload create: {}".format(error))
             if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug(
                     "Command workload_create did not execute correctly by admin role")
@@ -156,8 +158,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Command workload_create did not execute correctly by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command workload_create executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run snapshot_create CLI by admin role
             snapshot_create = command_argument_string.snapshot_create + \
@@ -174,8 +175,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute snapshot_create command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command snapshot_create executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Create one-click restore using CLI command by admin role
             restore_command = command_argument_string.oneclick_restore + \
@@ -191,8 +191,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute restore_create command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command restore_create executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run restore_delete CLI by admin role
             restore_delete = command_argument_string.restore_delete + \
@@ -208,8 +207,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute restore_delete command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command restore_delete executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run snapshot_delete CLI by admin role
             snapshot_delete = command_argument_string.snapshot_delete + \
@@ -225,8 +223,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute snapshot_delete command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command snapshot_delete executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete workload with CLI by admin role
             workload_delete = command_argument_string.workload_delete + \
@@ -242,8 +239,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute workload_delete command by admin role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command workload_delete executed correctly by admin role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Use nonadmin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
@@ -263,8 +259,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute workload_create command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command workload_create executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run snapshot_create CLI by default role
             snapshot_create = command_argument_string.snapshot_create + \
@@ -280,8 +275,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute snapshot_create command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command snapshot_create executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Create one-click restore using CLI by default role
             restore_command = command_argument_string.oneclick_restore + \
@@ -297,8 +291,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute restore_create command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command restore_create executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run restore_delete CLI by default role
             restore_delete = command_argument_string.restore_delete + \
@@ -314,8 +307,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute restore_delete command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command restore_delete executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Run snapshot_delete CLI by default role
             snapshot_delete = command_argument_string.snapshot_delete + \
@@ -332,8 +324,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute snapshot_delete command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command snapshot_delete executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete workload with CLI by default role
             workload_delete = command_argument_string.workload_delete + \
@@ -349,8 +340,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Can not execute workload_delete command by default role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command workload_delete executed correctly by default role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Use backupuser credentials
             os.environ['OS_USERNAME'] = CONF.identity.backupuser
@@ -364,8 +354,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute  restore_delete command by backup role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command  restore_delete did not execute correctly by backup role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step(
                     "Execute restore_delete command by backup role",
@@ -388,8 +377,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute snapshot_delete command by backup role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "Command snapshot_delete did not execute correctly by backup role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step(
                     "Execute snapshot_delete command by backup role",
@@ -407,8 +395,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute workload_delete command by backup role",
                     tvaultconf.FAIL)
-                raise Exception(
-                    "RBAC policy fails for workload deletion by backup role")
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 LOG.debug("Workload deleted successfully by backup role")
                 reporting.add_test_step(

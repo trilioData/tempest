@@ -473,22 +473,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_wise_filecount_1 = self.verifyFilepath_Search(filesearch_id_1, "/opt/File_4")
             snapshot_wise_filecount_2 = self.verifyFilepath_Search(filesearch_id_2, "/opt/File_4")
 
-            for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount_1[snapshot_id] == filecount_in_snapshots[snapshot_id] \
-                        and snapshot_wise_filecount_2[snapshot_id] == filecount_in_snapshots[snapshot_id]:
-                    filesearch_status = True
-                else:
-                    filesearch_status = False
-            if filesearch_status:
-                LOG.debug("Filepath_Search default_parameters successful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.PASS)
+            if snapshot_wise_filecount_1 == 0 or snapshot_wise_filecount_2 == 0:
+                reporting.add_test_step("filesearch has failed with error", tvaultconf.FAIL)
             else:
-                LOG.debug("Filepath Search default_parameters unsuccessful")
-                reporting.add_test_step(
-                    "Verification of Filesearch with default parameters",
-                    tvaultconf.FAIL)
+                for snapshot_id in filecount_in_snapshots.keys():
+                    if snapshot_wise_filecount_1[snapshot_id] == filecount_in_snapshots[snapshot_id] \
+                            and snapshot_wise_filecount_2[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                        filesearch_status = True
+                    else:
+                        filesearch_status = False
+                if filesearch_status:
+                    LOG.debug("Filepath_Search default_parameters successful")
+                    reporting.add_test_step(
+                        "Verification of Filesearch with default parameters",
+                        tvaultconf.PASS)
+                else:
+                    LOG.debug("Filepath Search default_parameters unsuccessful")
+                    reporting.add_test_step(
+                        "Verification of Filesearch with default parameters",
+                        tvaultconf.FAIL)
             reporting.test_case_to_write()
             tests[4][1] = 1
 

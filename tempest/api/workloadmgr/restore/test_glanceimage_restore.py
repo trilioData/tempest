@@ -47,21 +47,41 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             is_full = True
         else:
             is_full = False
-        self.snapshot_id = self.workload_snapshot(self.wid, is_full)
+        snapshot_id = self.workload_snapshot(self.wid, is_full)
         self.wait_for_workload_tobe_available(self.wid)
-        self.snapshot_status = self.getSnapshotStatus(self.wid,
-                self.snapshot_id)
-        if(self.snapshot_status == "available"):
+        snapshot_status = self.getSnapshotStatus(self.wid,
+                snapshot_id)
+        if(snapshot_status == "available"):
             reporting.add_test_step(f"Create {snapshot_type} snapshot",
                     tvaultconf.PASS)
         else:
             raise Exception(f"Create {snapshot_type} snapshot")
-        return self.snapshot_id
+        return snapshot_id
 
     def _verify_post_restore(self, images_list_bf, images_list_af,
             key_pair_list_bf, key_pair_list_af, md5sums_bf, md5sums_af):
         tmp_fail = False
-        if images_list_bf == images_list_af:
+        attributes = ['visibility', 'name', 'size', 'virtual_size', 'disk_format', 'container_format', 'checksum',
+                      'hw_disk_busi', 'hw_qemu_guest_agent', 'hw_video_model', 'hw_vif_model',
+                      'hw_vif_multiqueue_enabled', 'os_distro', 'os_require_quiesce']
+
+        LOG.debug("one_Image properties before: {}".format(images_list_bf))
+        LOG.debug("one_Image properties after: {}".format(images_list_af))
+
+        img_list_bf = []
+        img_list_af = []
+        for i in range(0, len(images_list_bf)):
+            images_list_bf_1 = {k: v for k, v in images_list_bf[i].items() if k in attributes}
+            img_list_bf.append(images_list_bf_1)
+            LOG.debug("Image list items before: {}".format(images_list_bf_1))
+        for i in range(0, len(images_list_af)):
+            images_list_af_1 = {k: v for k, v in images_list_af[i].items() if k in attributes}
+            img_list_af.append(images_list_af_1)
+            LOG.debug("Image list items after: {}".format(images_list_af_1))
+
+        LOG.debug("Image properties before: {}".format(img_list_bf))
+        LOG.debug("Image properties after: {}".format(img_list_af))
+        if len(img_list_bf) - 1 == len(img_list_af):
             reporting.add_test_step(
                 "Image properties intact after restore", tvaultconf.PASS)
         else:
@@ -194,18 +214,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__)+"_delete_image")
             images_list_af = self.list_images()
             LOG.debug(f"images_list_af: {images_list_af}")
-            restored_image_id = images_list_af[0]['id']
 
-            attributes = ['visibility', 'name', 'size', 'virtual_size',
-                        'checksum', 'os_hash_value', 'id', 'created_at',
-                        'updated_at', 'self', 'file', 'direct_url']
-            for attr in attributes:
-                if attr in images_list_bf[0]:
-                    del images_list_bf[0][attr]
-                if attr in images_list_af[0]:
-                    del images_list_af[0][attr]
+            attributes = ['visibility', 'name', 'size', 'virtual_size', 'disk_format', 'container_format', 'checksum',
+                          'hw_disk_busi', 'hw_qemu_guest_agent', 'hw_video_model', 'hw_vif_model',
+                          'hw_vif_multiqueue_enabled', 'os_distro', 'os_require_quiesce']
 
-            if images_list_bf == images_list_af:
+            LOG.debug("one_Image properties before: {}".format(images_list_bf))
+            LOG.debug("one_Image properties after: {}".format(images_list_af))
+
+            img_list_bf = []
+            img_list_af = []
+            for i in range(0, len(images_list_bf)):
+                images_list_bf_1 = {k: v for k, v in images_list_bf[i].items() if k in attributes}
+                img_list_bf.append(images_list_bf_1)
+                LOG.debug("Image list items before: {}".format(images_list_bf_1))
+            for i in range(0, len(images_list_af)):
+                images_list_af_1 = {k: v for k, v in images_list_af[i].items() if k in attributes}
+                img_list_af.append(images_list_af_1)
+                LOG.debug("Image list items after: {}".format(images_list_af_1))
+
+            LOG.debug("Image properties before: {}".format(img_list_bf))
+            LOG.debug("Image properties after: {}".format(img_list_af))
+            if len(img_list_bf) == len(img_list_af):
                 reporting.add_test_step(
                     "Image properties intact after restore", tvaultconf.PASS)
             else:
@@ -296,6 +326,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             #Fetch list of images, keypairs and flavor before restore
             restored_image_id = None
+            restored_image_ids = []
             images_list_bf = self.list_images()
             LOG.debug(f"images_list_bf: {images_list_bf}")
             key_pair_list_bf = self.list_key_pairs()
@@ -307,6 +338,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.delete_key_pair(tvaultconf.key_pair_name)
             LOG.debug("Delete original image, flavor & keypair")
 
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            new_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
+
             #selective restore of full snapshot
             rest_details = {}
             rest_details['rest_type'] = 'selective'
@@ -315,10 +352,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 CONF.network.internal_network_id)
             self.volumes = [self.boot_volume_id]
             rest_details['instances'] = {self.vm_id: self.volumes}
-            rest_details['flavor'] = self.original_flavor_conf
+            rest_details['flavor'] = new_flavor_conf
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
+            LOG.debug("wid, snapshot_id: {}".format(self.snapshot_id))
             restore_id_1 = self.snapshot_selective_restore(
                 self.wid, self.snapshot_id,
                 restore_name="selective_restore_full_snap",
@@ -344,13 +382,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 #Verify restored image and keypair details
                 images_list_af = self.list_images()
                 LOG.debug(f"images_list_af: {images_list_af}")
-                restored_image_id = images_list_af[0]['id']
+                for each in images_list_af:
+                    if (each['name'] == self.image_name):
+                        restored_image_id = each['id']
+                        restored_image_ids.append(restored_image_id)
+                LOG.debug("Restored image IDs: {}".format(restored_image_ids))
                 key_pair_list_af = self.list_key_pairs()
                 LOG.debug(f"key_pair_list_af: {key_pair_list_af}")
                 flavor_id_af = self.get_flavor_id(tvaultconf.flavor_name)
                 LOG.debug(f"flavor_id_af: {flavor_id_af}")
 
-                self._verify_post_restore(self, images_list_bf, images_list_af,
+                self._verify_post_restore(images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_full,
                         md5sums_after_full_selective)
             else:
@@ -359,11 +401,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Delete restored image, keypair and flavor
-            if restored_image_id:
+            for restored_image_id in restored_image_ids:
                 self.delete_image(restored_image_id)
             self.delete_flavor(self.flavor_id)
             self.delete_key_pair(tvaultconf.key_pair_name)
             LOG.debug("Delete restored image, flavor & keypair")
+
+            # Create flavor before restore
+            incr_flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                                20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            incr_flavor_conf = self.get_flavor_details(incr_flavor_id)
+            LOG.debug(f"incr_flavor_conf: {incr_flavor_conf}")
 
             # Trigger selective restore of incremental snapshot
             restore_id_2 = self.snapshot_selective_restore(
@@ -391,13 +439,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 #Verify restored image and keypair details
                 images_list_af = self.list_images()
                 LOG.debug(f"images_list_af: {images_list_af}")
-                restored_image_id = images_list_af[0]['id']
+                for each in images_list_af:
+                    if (each['name'] == self.image_name):
+                        restored_image_id = each['id']
+                        restored_image_ids.append(restored_image_id)
                 key_pair_list_af = self.list_key_pairs()
                 LOG.debug(f"key_pair_list_af: {key_pair_list_af}")
                 flavor_id_af = self.get_flavor_id(tvaultconf.flavor_name)
                 LOG.debug(f"flavor_id_af: {flavor_id_af}")
 
-                self._verify_post_restore(self, images_list_bf, images_list_af,
+                self._verify_post_restore(images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
                         md5sums_after_incr_selective)
             else:
@@ -409,13 +460,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(tests[1])
             #Delete restored image, keypair and flavor
-            if restored_image_id:
+            for restored_image_id in restored_image_ids:
                 self.delete_image(restored_image_id)
             self.delete_flavor(self.flavor_id)
             self.delete_key_pair(tvaultconf.key_pair_name)
             self.delete_vm(self.vm_id)
             LOG.debug("Delete restored image, flavor, keypair & vm")
             restored_vm_id = []
+
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            new_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
 
             #Trigger one click restore of full snapshot
             restore_id_3 = self.snapshot_restore(self.wid, self.snapshot_id)
@@ -431,7 +488,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 #Verify restored image and keypair details
                 images_list_af = self.list_images()
                 LOG.debug(f"images_list_af: {images_list_af}")
-                restored_image_id = images_list_af[0]['id']
+                for each in images_list_af:
+                    if (each['name'] == self.image_name):
+                        restored_image_id = each['id']
+                        restored_image_ids.append(restored_image_id)
                 key_pair_list_af = self.list_key_pairs()
                 LOG.debug(f"key_pair_list_af: {key_pair_list_af}")
                 flavor_id_af = self.get_flavor_id(tvaultconf.flavor_name)
@@ -439,7 +499,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 restored_vm_id = self.get_restored_vm_list(restore_id_3)
                 LOG.debug(f"restored_vm_id: {restored_vm_id}")
 
-                self._verify_post_restore(self, images_list_bf, images_list_af,
+                self._verify_post_restore(images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_full,
                         md5sums_after_full_oneclick)
             else:
@@ -448,13 +508,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Delete restored image, keypair and flavor
-            if restored_image_id:
+            for restored_image_id in restored_image_ids:
                 self.delete_image(restored_image_id)
             self.delete_flavor(self.flavor_id)
             self.delete_key_pair(tvaultconf.key_pair_name)
             if len(restored_vm_id):
                 self.delete_vm(restored_vm_id[0])
             LOG.debug("Delete restored image, flavor, keypair & vm")
+
+            # Create flavor before restore
+            flavor_id = self.create_flavor(tvaultconf.flavor_name,
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+            incr_flavor_conf = self.get_flavor_details(flavor_id)
+            LOG.debug(f"New_flavor_conf: {incr_flavor_conf}")
 
             #Trigger one click restore of incremental snapshot
             restore_id_4 = self.snapshot_restore(self.wid, self.snapshot_id2)
@@ -470,7 +536,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 #Verify restored image and keypair details
                 images_list_af = self.list_images()
                 LOG.debug(f"images_list_af: {images_list_af}")
-                restored_image_id = images_list_af[0]['id']
+                for each in images_list_af:
+                    if (each['name'] == self.image_name):
+                        restored_image_id = each['id']
+                        restored_image_ids.append(restored_image_id)
                 key_pair_list_af = self.list_key_pairs()
                 LOG.debug(f"key_pair_list_af: {key_pair_list_af}")
                 flavor_id_af = self.get_flavor_id(tvaultconf.flavor_name)
@@ -478,9 +547,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 restored_vm_id = self.get_restored_vm_list(restore_id_4)
                 LOG.debug(f"restored_vm_id: {restored_vm_id}")
 
-                self._verify_post_restore(self, images_list_bf, images_list_af,
+                self._verify_post_restore(images_list_bf, images_list_af,
                         key_pair_list_bf, key_pair_list_af, md5sums_before_incr,
                         md5sums_after_incr_oneclick)
+
+                # Delete restored image IDs and flavors
+                for restored_image_id in restored_image_ids:
+                    self.delete_image(restored_image_id)
+                self.delete_flavor(flavor_id_af)
+
             else:
                 reporting.add_test_step("Oneclick restore of incremental snapshot",
                         tvaultconf.FAIL)
