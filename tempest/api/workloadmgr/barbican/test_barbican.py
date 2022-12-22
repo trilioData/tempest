@@ -2503,15 +2503,20 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "Create_Multiple_workloads_with_same_Secret_UUID", 0],
                      [test_var + "create_workload_with_wrong_secretUUID", 0]]
             reporting.add_test_script(tests[0][0])
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             vm_id = self.vm_id
             secret_uuid = self.secret_uuid
             volume_id = self.volume_id
-            workload_name = tvaultconf.workload_name + str(random.randint(0, 10000))
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
+            LOG.debug("WORKLOAD CMD - " + str(workload_create_with_encryption))
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful : " + error)
@@ -2526,12 +2531,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     "Execute workload_create_with_encryption command",
                     tvaultconf.PASS)
                 self.wid1 = query_data.get_workload_id_in_creation(
-                    workload_name)
+                    tvaultconf.workload_name)
                 LOG.debug("Workload ID: " + str(self.wid1))
                 timer = 0
                 while (self.wid1 is None):
                     time.sleep(10)
-                    self.wid1 = query_data.get_workload_id_in_creation(workload_name)
+                    self.wid1 = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
                     timer = timer + 1
                     if (self.wid1 is not None):
                         workload_available = self.wait_for_workload_tobe_available(self.wid1)
