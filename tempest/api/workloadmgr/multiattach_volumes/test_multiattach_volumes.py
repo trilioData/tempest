@@ -303,8 +303,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                      [test_var + "oneclickrestore_api", 0]]
             reporting.add_test_script(tests[0][0])
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)
-            self.vm_id_1 = self.create_vm(key_pair=self.kp)
-            self.vm_id_2 = self.create_vm(key_pair=self.kp)
+            self.vm_id_1 = self.create_vm(key_pair=self.kp, image_id=CONF.compute.image_ref_alt)
+            self.vm_id_2 = self.create_vm(key_pair=self.kp, image_id=CONF.compute.image_ref_alt)
 
             # find volume_type = multiattach. So that existing multiattach volume type can be used.
             # Get the volume_type_id
@@ -588,7 +588,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Now create volume with derived volume type id...
             self.boot_volume_id = self.create_volume(
                 volume_type_id=vol_type_id, size=tvaultconf.bootfromvol_vol_size,
-                image_id=CONF.compute.image_ref, volume_cleanup=False)
+                image_id=CONF.compute.image_ref_alt, volume_cleanup=False)
             LOG.debug("Bootable Volume ID: " + str(self.boot_volume_id))
             api_version.COMPUTE_MICROVERSION = '2.60'
 

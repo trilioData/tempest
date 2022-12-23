@@ -223,13 +223,18 @@ function configure_tempest
 
     echo "Fetching image details\n"
     while read -r IMAGE_NAME IMAGE_UUID; do
-        if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
-            image_uuid="$IMAGE_UUID"
-            image_uuid_alt="$IMAGE_UUID"
+        img=$(echo "${TEST_IMAGE_NAME[@]:0}" | grep -o $IMAGE_NAME)
+        if [[ ! -z $img ]]; then
+            echo "image name: $IMAGE_NAME"
+            images+=($IMAGE_UUID)
         fi
-        images+=($IMAGE_UUID)
+        image_id1=$IMAGE_UUID
     done < <($OPENSTACK_CMD image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    if [[ "${#images[*]}" == 0 ]]; then
+            images+=($image_id1)
+    fi
 
+    echo "${#images[*]} and ${images[@]}"
     case "${#images[*]}" in
         0)
             echo "Found no valid images to use!\n"
@@ -240,11 +245,13 @@ function configure_tempest
                 image_uuid=${images[0]}
                 image_uuid_alt=${images[0]}
             fi
+            echo "case1: ${images[0]}"
             ;;
         *)
             if [ -z "$image_uuid" ]; then
                 image_uuid=${images[0]}
                 image_uuid_alt=${images[1]}
+                echo "case2: ${images[0]} and ${images[1]}"
             fi
             ;;
     esac
@@ -319,6 +326,7 @@ function configure_tempest
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
+    iniset $TEMPEST_CONFIG compute image_ref_alt $image_uuid_alt
     iniset $TEMPEST_CONFIG compute fvm_image_ref $frm_data
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
