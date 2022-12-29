@@ -2342,7 +2342,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if len(tvaultconf.tvault_ip) == 0:
             if (tvaultconf.openstack_distro.lower() == 'canonical'):
                 policy_filepath = '/etc/workloadmgr/policy.yaml'
-                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup)
                 cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
                 LOG.debug("rbac commands: " + cmd)
                 p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
@@ -2356,10 +2356,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 policy_filepath = '/etc/workloadmgr/policy.yaml'
                 ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                       tvaultconf.tvault_password)
-                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup)
+                LOG.debug("rbac commands: " + commands)
                 stdin, stdout, stderr = ssh.exec_command(commands)
-                if (tvaultconf.cleanup and policy_changes_cleanup):
-                    self.addCleanup(self.revert_changes_policyyaml, old_rule)
                 ssh.close()
 
     '''
@@ -2412,7 +2411,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 policy_filepath = '/etc/workloadmgr/policy.yaml'
                 ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
                                                       tvaultconf.tvault_password)
-                commands = self.revert_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup=True)
+                commands = self.revert_changes_policyyaml_file(rule, policy_filepath)
                 stdin, stdout, stderr = ssh.exec_command(commands)
                 ssh.close()
 
