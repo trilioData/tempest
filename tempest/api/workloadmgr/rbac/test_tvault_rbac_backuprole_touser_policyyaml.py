@@ -57,6 +57,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI by backup role
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.instances_id[0])
+            LOG.debug("workload_create command: {}".format(workload_create))
             error = cli_parser.cli_error(workload_create)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload creation unsuccessful by backup role")
