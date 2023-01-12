@@ -113,7 +113,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__)+"_vm_reboot")
             self.image_name = "tempest_test_image"
             self.image_id = self.create_image(image_name=self.image_name,
-                                    image_cleanup=False)
+                                    image_cleanup=True)
             LOG.debug(f"Image ID: {self.image_id}")
             if not self.image_id:
                 raise Exception("Image not created")
@@ -261,22 +261,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[0])
             self.image_name = "tempest_test_image"
             self.image_id = self.create_image(image_name=self.image_name,
-                                    image_cleanup=False)
+                                    image_cleanup=True)
             LOG.debug(f"Image ID: {self.image_id}")
             if not self.image_id:
                 raise Exception("Image not created")
             self.ssh_username = "ubuntu"
-            self.kp = self.create_key_pair(keypair_cleanup=False)
+            self.kp = self.create_key_pair(keypair_cleanup=True)
             self.old_flavor_id = self.get_flavor_id(tvaultconf.flavor_name)
             self.delete_flavor(self.old_flavor_id)
             self.flavor_id = self.create_flavor(tvaultconf.flavor_name,
-                                    20, 2, 2048, 1536, 1, flavor_cleanup=False)
+                                    20, 2, 2048, 1536, 1, flavor_cleanup=True)
             self.original_flavor_conf = self.get_flavor_details(self.flavor_id)
             LOG.debug(f"original_flavor_conf: {self.original_flavor_conf}")
             self.boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=self.image_id,
-                volume_cleanup=False)
+                volume_cleanup=True)
             self.set_volume_as_bootable(self.boot_volume_id)
             LOG.debug("Bootable Volume ID : " + str(self.boot_volume_id))
 
@@ -291,7 +291,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 image_id="",
                 flavor_id=self.flavor_id,
                 block_mapping_data=self.block_mapping_details,
-                vm_cleanup=False)
+                vm_cleanup=True)
             LOG.debug(f"VM ID : {self.vm_id}")
 
             fip = self.get_floating_ips()
@@ -340,7 +340,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create flavor before restore
             flavor_id = self.create_flavor(tvaultconf.flavor_name,
-                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=True)
             new_flavor_conf = self.get_flavor_details(flavor_id)
             LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
 
@@ -409,7 +409,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create flavor before restore
             incr_flavor_id = self.create_flavor(tvaultconf.flavor_name,
-                                                20, 2, 2048, 1536, 1, flavor_cleanup=False)
+                                                20, 2, 2048, 1536, 1, flavor_cleanup=True)
             incr_flavor_conf = self.get_flavor_details(incr_flavor_id)
             LOG.debug(f"incr_flavor_conf: {incr_flavor_conf}")
 
@@ -470,7 +470,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create flavor before restore
             flavor_id = self.create_flavor(tvaultconf.flavor_name,
-                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=True)
             new_flavor_conf = self.get_flavor_details(flavor_id)
             LOG.debug(f"New_flavor_conf: {new_flavor_conf}")
 
@@ -518,7 +518,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create flavor before restore
             flavor_id = self.create_flavor(tvaultconf.flavor_name,
-                                           20, 2, 2048, 1536, 1, flavor_cleanup=False)
+                                           20, 2, 2048, 1536, 1, flavor_cleanup=True)
             incr_flavor_conf = self.get_flavor_details(flavor_id)
             LOG.debug(f"New_flavor_conf: {incr_flavor_conf}")
 

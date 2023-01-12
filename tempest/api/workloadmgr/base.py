@@ -3790,9 +3790,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def install_qemu(self, ssh):
         try:
-            buildCommand = "sudo apt install qemu-guest-agent"
+            buildCommand = 'sudo sh -c "echo nameserver 8.8.8.8 >> /etc/resolv.conf"'
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"dns entry: {stdout.readlines()} \n {stderr.readlines()}")
+            time.sleep(10)
+            buildCommand = "sudo apt update && sudo apt -y install qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"Install qemu status: {stdout.readlines()} \n {stderr.readlines()}")
             time.sleep(20)
+            buildCommand = "sudo systemctl enable qemu-guest-agent && sudo systemctl start qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(10)
+            buildCommand = "sudo systemctl status qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"qemu-guest-agent status: {stdout.readlines()} \n {stderr.readlines()}")
+            time.sleep(10)
         except Exception as e:
             LOG.error("Exception in install_qemu: " + str(e))
 
