@@ -2904,6 +2904,54 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
 
     '''
+    Method returns True if snapshot dir is exists on backup target media
+    '''
+
+    def check_backup_chain_by_quemu_cmd(self, mount_path,
+                                        workload_id, snapshot_id, vm_id):
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip() + "/vm_id_" + \
+              str(vm_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
+        vm_res_ids = str(stdout).split("\\n")
+        LOG.debug(f"vm_res_id list : {vm_res_ids}")
+        for vm_res_id in vm_res_ids:
+            if "vda" in vm_res_id:
+                vm_res_id_vda = vm_res_id
+                break
+
+        LOG.debug(f"vm_res_id_vda: {vm_res_id_vda}")
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip() + "/vm_id_" + \
+              str(vm_id).strip() + "/" + str(vm_res_id_vda)
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
+        ids = str(stdout).split("\\n")
+        LOG.debug(f"id list : {ids}")
+        id1 = ids[0].replace("b'", "")
+        LOG.debug(f"id: {id1}")
+
+        cmd = tvaultconf.command_prefix + "qemu-img info " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip() + "/vm_id_" + \
+              str(vm_id).strip() + "/" + str(vm_res_id_vda) + "/" + str(id1) + "  --backing-chain"
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return False
+        else:
+            return True
+
+    '''
     Method to return policies list assigned to particular project
     '''
 
