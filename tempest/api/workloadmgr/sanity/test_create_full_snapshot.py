@@ -246,8 +246,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             result_json[k]['snapshot'])
                         result_json[k]['restore'] = self.restore_id
                     except Exception as e:
-                        error_message = str(e).replace("<br /><br />","")
-                        error_message = error_message.replace("\n","")
+                        error_message = str(e).replace("<br /><br />\n\n\n","")
                         result_json[k]['restore_error_msg'] = error_message
                         result_json[k]['result']['Selective_Restore'] = \
                             tvaultconf.FAIL + "\nERROR " + \
