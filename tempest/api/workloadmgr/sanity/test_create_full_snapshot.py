@@ -283,6 +283,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             result_json[k]['restore_error_msg'] = (
                                 self.getRestoreDetails(result_json[k]['restore']))\
                                         ['error_msg']
+                            result_json[k]['restore_error_msg'] = (result_json[k]['restore_error_msg']).replace("<br /><br />\n\n\n", "")
                             result_json[k]['result']['Selective_Restore'] = \
                                 tvaultconf.FAIL + "\nERROR " + \
                                 result_json[k]['restore_error_msg']
