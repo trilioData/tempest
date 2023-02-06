@@ -589,7 +589,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            workload_type=tvaultconf.parallel,
+            workload_type=tvaultconf.serial,
             jobschedule={"enabled": False},
             workload_name="",
             workload_cleanup=True,

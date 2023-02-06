@@ -16,6 +16,7 @@ enabled_tests = ["Attached_Volume_Ceph"]
 
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
+serial="f82ce76f-17fe-438b-aa37-7a023058e50d"
 
 #Resources to use from file
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
