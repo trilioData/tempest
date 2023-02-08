@@ -59,7 +59,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.attach_volume(volume_id, vm_id)
 
             self.workload_id = self.workload_create(
-                workload_instances, tvaultconf.parallel)
+                workload_instances)
             self.workloads.append(self.workload_id)
 
         for workload in range(0, self.total_workloads):

@@ -202,7 +202,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             now_time_plus_2 = now + datetime.timedelta(minutes=2)
             now_time_plus_2 = datetime.datetime.strftime(
                 now_time_plus_2, "%I:%M %p")
-            self.wid = self.workload_create([vm_id], tvaultconf.parallel,
+            self.wid = self.workload_create([vm_id],
                         jobschedule={"start_date": now_date.strip(),
                             "start_time": now_time_plus_2.strip(),
                             "interval": tvaultconf.interval,

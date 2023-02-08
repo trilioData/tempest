@@ -377,7 +377,7 @@ function configure_tempest
         mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
         mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
         mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
-        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- "
+        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- <command>"
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd
@@ -395,11 +395,25 @@ EOF
         conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
         datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
-        command_prefix="kubectl -n triliovault exec $datamover_pod -- "
+        command_prefix="kubectl -n triliovault exec $datamover_pod -- <command>"
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+    elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
+    then
+		    ssh_controller='ssh heat-admin@$controller_hostname'
+		    mysql_ip=`ssh stack@$UNDERCLOUD_IP '$ssh_controller '$sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
+		    conn_str=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname '$sudo podman exec -it triliovault_wlm_api cat "/etc/triliovault-wlm/triliovault-wlm.conf" | grep sql_connection | cut -d "=" -f 2''`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+        echo "mysql_dbusername: "$dbusername
+        echo "mysql_ip: "$mysql_ip
+        echo "dbname: "$dbname
+        echo "mysql_wlm_pwd: "$mysql_wlm_pwd
+		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`

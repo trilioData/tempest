@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _create_workload(self, workload_instances, encrypt=False, secret=""):
         time.sleep(5)
         self.workload_id = self.workload_create(
-            workload_instances, tvaultconf.serial, encryption=encrypt,
+            workload_instances, encryption=encrypt,
             secret_uuid=secret, workload_cleanup=False)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.workload_status = self.getWorkloadStatus(self.workload_id)

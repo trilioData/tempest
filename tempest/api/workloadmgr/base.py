@@ -589,7 +589,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            workload_type=tvaultconf.serial,
             jobschedule={"enabled": False},
             workload_name="",
             workload_cleanup=True,
@@ -2878,7 +2877,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def get_mountpoint_path(self):
-        cmd = tvaultconf.command_prefix + "mount"
+        cmd = (tvaultconf.command_prefix).replace("<command>","mount")
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2895,9 +2894,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_exist_on_backend(self, mount_path,
             workload_id, snapshot_id):
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
-                str(snapshot_id).strip()
+                str(snapshot_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4062,11 +4061,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_encryption_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name):
-        cmd = tvaultconf.command_prefix + "ls " + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip()
+                str(instance_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4081,11 +4080,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         stdout, stderr = p.communicate()
         cmd2 = stdout.decode('utf-8')
 
-        final_cmd = tvaultconf.command_prefix + "qemu-img info " + \
+        final_cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2)
         p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4411,8 +4410,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def check_workload_exist_on_backend(self, mount_path, workload_id):
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() +\
-                "/workload_" + str(workload_id).strip()
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() +\
+                "/workload_" + str(workload_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4483,11 +4482,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def check_snapshot_size_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name="vda"):
         snapshot_size = 0
-        cmd = tvaultconf.command_prefix + "ls " + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip()
+                str(instance_id).strip())
 
         LOG.debug("Command to get vdisks: {}".format(cmd))
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
@@ -4505,11 +4504,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cmd2 = stdout.decode('utf-8')
 
         # block size calculation is done for MB: 1 MB = 1048576 bytes
-        final_cmd = tvaultconf.command_prefix + "ls -s --block-size=1048576 " + \
+        final_cmd = (tvaultconf.command_prefix).replace("<command>","ls -s --block-size=1048576 " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2)
         LOG.debug(f"Final command for snapshot size in MB: {final_cmd}")
         p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
