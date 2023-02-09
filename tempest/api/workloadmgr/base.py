@@ -632,7 +632,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for id in instances:
                 in_list.append({'instance-id': id})
             payload = {'workload': {'name': workload_name,
-                                    'workload_type_id': workload_type,
                                     'source_platform': 'openstack',
                                     'instances': in_list,
                                     'jobschedule': jobschedule,
