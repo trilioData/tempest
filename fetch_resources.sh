@@ -402,8 +402,7 @@ EOF
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
-		    ssh_controller='ssh heat-admin@$controller_hostname'
-		    mysql_ip=`ssh stack@$UNDERCLOUD_IP '$ssh_controller 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
+		    mysql_ip=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
 		    conn_str=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo podman exec -it triliovault_wlm_api cat "/etc/triliovault-wlm/triliovault-wlm.conf" | grep sql_connection | cut -d "=" -f 2''`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
