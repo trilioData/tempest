@@ -2,10 +2,10 @@ from tempest import tvaultconf
 
 #Workload commands
 workload_list = "workloadmgr workload-list | grep available | wc -l"
-workload_create = "workloadmgr workload-create --workload-type-id "+tvaultconf.workload_type_id+\
+workload_create = "workloadmgr workload-create "\
                   " --display-name "+tvaultconf.workload_name+\
                   " --source-platform "+tvaultconf.source_platform
-workload_create_with_encryption = "workloadmgr workload-create --workload-type-id "+tvaultconf.workload_type_id+\
+workload_create_with_encryption = "workloadmgr workload-create --workload-type-id "\
                   " --display-name "+tvaultconf.workload_name+ \
                   " --encryption True" + \
                   " --source-platform "+tvaultconf.source_platform

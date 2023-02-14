@@ -430,8 +430,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with API
             try:
-                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
-                                                tvaultconf.workload_type_id)
+                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2])
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
@@ -664,8 +663,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with API
             try:
-                self.wid = self.workload_create([self.vm_id],
-                                                tvaultconf.workload_type_id)
+                self.wid = self.workload_create([self.vm_id])
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
@@ -993,11 +991,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with API
             try:
-                wid1 = self.workload_create([self.vm_id_1],
-                                                tvaultconf.workload_type_id)
+                wid1 = self.workload_create([self.vm_id_1])
                 LOG.debug("Workload ID1 : " + str(wid1))
-                wid2 = self.workload_create([self.vm_id_2],
-                                            tvaultconf.workload_type_id)
+                wid2 = self.workload_create([self.vm_id_2])
                 LOG.debug("Workload ID2 : " + str(wid2))
 
             except Exception as e:
@@ -1105,8 +1101,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with API
             try:
-                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
-                                                tvaultconf.workload_type_id)
+                self.wid = self.workload_create([self.vm_id_1, self.vm_id_2])
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")
