@@ -75,7 +75,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                attach_cleanup=False)
         self.workload_id = self.workload_create(
             self.workload_instances,
-            tvaultconf.parallel,
             self.schedule,
             'Workload-1',
             False,

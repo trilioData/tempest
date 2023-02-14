@@ -854,7 +854,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id_1, self.vm_id_2],
-                                                workload_type=tvaultconf.parallel,
                                                 jobschedule=self.schedule,
                                                 workload_name='Workload-1',
                                                 description='New Test')

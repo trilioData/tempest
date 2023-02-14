@@ -55,7 +55,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload
             self.wid = self.workload_create(
                 self.instances_id,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             workload_available = self.wait_for_workload_tobe_available(

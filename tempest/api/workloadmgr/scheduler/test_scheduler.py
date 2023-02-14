@@ -60,7 +60,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.attach_volume(volume, vmid, attach_cleanup=True)
             wid = self.workload_create(
                 [vmid],
-                tvaultconf.parallel,
                 self.schedule,
                 'Workload-1',
                 True,

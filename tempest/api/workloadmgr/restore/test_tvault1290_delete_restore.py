@@ -54,7 +54,6 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)

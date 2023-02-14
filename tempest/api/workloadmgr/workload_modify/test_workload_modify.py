@@ -54,7 +54,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name,
                 workload_cleanup=True)
             LOG.debug("Workload ID: " + str(self.wid))
@@ -131,7 +130,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name,
                 workload_cleanup=True,
                 jobschedule={"enabled": True})
