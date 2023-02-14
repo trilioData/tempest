@@ -26,8 +26,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     def _create_workload(self):
         try:
-            self.wid = self.workload_create([self.vm_id],
-                    tvaultconf.workload_type_id)
+            self.wid = self.workload_create([self.vm_id])
             LOG.debug(f"Workload ID: {self.wid}")
         except Exception as e:
             LOG.error(f"Exception: {e}")

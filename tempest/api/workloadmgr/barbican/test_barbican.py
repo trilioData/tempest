@@ -156,7 +156,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                        tvaultconf.workload_type_id, encryption=True,
+                        encryption=True,
                         secret_uuid=self.secret_uuid)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
@@ -676,7 +676,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                        tvaultconf.workload_type_id, encryption=True,
+                        encryption=True,
                         secret_uuid=self.secret_uuid)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
@@ -1262,7 +1262,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                        tvaultconf.workload_type_id, encryption=True,
+                        encryption=True,
                         secret_uuid=self.secret_uuid)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
@@ -1800,7 +1800,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                        tvaultconf.workload_type_id, encryption=True,
+                        encryption=True,
                         secret_uuid=self.secret_uuid)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
@@ -2487,7 +2487,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                                                tvaultconf.workload_type_id, encryption=True,
+                                                encryption=True,
                                                 secret_uuid=str(self.secret_uuid))
                 reporting.add_test_step("Create multiple encrypted workloads with same secret UUID", tvaultconf.FAIL)
             except Exception as e:
@@ -2500,7 +2500,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                                                tvaultconf.workload_type_id, encryption=True,
+                                                encryption=True,
                                                 secret_uuid="invalid")
                 reporting.add_test_step("Create encrypted workload api created for invalid secret UUID", tvaultconf.FAIL)
             except Exception as e:
@@ -2796,7 +2796,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             #create a workload with encryption status as disabled and try to attach it to vm...
             try:
                 workload_id = self.workload_create([self.vm_id],
-                                                tvaultconf.workload_type_id, encryption=False,
+                                                encryption=False,
                                                 workload_cleanup=True)
 
                 LOG.debug("Workload ID: " + str(workload_id))
@@ -2877,7 +2877,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # create a workload with encryption status as disabled and try to attach it to vm...
             try:
                 wid = self.workload_create([vm_id],
-                                           tvaultconf.workload_type_id, encryption=False,
+                                           encryption=False,
                                            workload_cleanup=True)
 
                 LOG.debug("Workload ID: " + str(wid))
@@ -3026,7 +3026,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # create a workload with encryption status as disabled and try to attach it to vm...
             wid = self.workload_create([vm_id],
-                                       tvaultconf.workload_type_id, encryption=False,
+                                       encryption=False,
                                        workload_cleanup=True)
 
             LOG.debug("Workload ID: " + str(wid))
@@ -3476,7 +3476,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # create a workload
             workload_id = self.workload_create([vm_id],
-                                               tvaultconf.workload_type_id, encryption=True,
+                                               encryption=True,
                                                secret_uuid=secret_uuid)
 
             LOG.debug("Workload ID: " + str(workload_id))
@@ -3623,7 +3623,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with API
             try:
                 self.wid = self.workload_create([self.vm_id],
-                        tvaultconf.workload_type_id, encryption=True,
+                        encryption=True,
                         secret_uuid=self.secret_uuid)
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
@@ -4115,7 +4115,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 wid = []
                 try:
                     wid = self.workload_create([vm_id],
-                                               tvaultconf.workload_type_id, encryption=True,
+                                               encryption=True,
                                                secret_uuid=secret_uuid, workload_cleanup=True)
                     LOG.debug("Workload ID: " + str(wid))
                 except Exception as e:
@@ -4498,7 +4498,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 wid = []
                 try:
                     wid = self.workload_create([vm_id],
-                                               tvaultconf.workload_type_id, encryption=True,
+                                               encryption=True,
                                                secret_uuid=secret_uuid, workload_cleanup=True)
                     LOG.debug("Workload ID: " + str(wid))
                 except Exception as e:

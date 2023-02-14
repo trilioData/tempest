@@ -169,7 +169,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with API
-            self.wid = self.workload_create([self.vm_id], tvaultconf.workload_type_id)
+            self.wid = self.workload_create([self.vm_id])
             LOG.debug("Workload ID: " + str(self.wid))
             if(self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
