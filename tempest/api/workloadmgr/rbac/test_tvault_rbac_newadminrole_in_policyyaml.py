@@ -44,6 +44,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
             error = cli_parser.cli_error(get_storage_usage)
+            LOG.debug(
+                "Error: " + error)
             if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
                 reporting.add_test_step(
                     "Execute get_storage_usage command by newadmin role",
@@ -60,6 +62,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
             error = cli_parser.cli_error(get_nodes)
+            LOG.debug(
+                "Error: " + error)
             if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
                 reporting.add_test_step(
                     "Execute get_nodes command by newadmin role",
@@ -79,6 +83,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
             error = cli_parser.cli_error(get_storage_usage)
+            LOG.debug(
+                "Error: " + error)
             if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_storage_usage command by admin role ",
@@ -95,6 +101,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
             error = cli_parser.cli_error(get_nodes)
+            LOG.debug(
+                "Error: " + error)
             if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
                 reporting.add_test_step(
                     "Can not execute get_nodes command by admin role",
