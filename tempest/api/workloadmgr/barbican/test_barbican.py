@@ -109,18 +109,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 md5sums[pth].sort()
         LOG.debug(f"_get_md5sum data: {md5sums}")
         return md5sums
-    
-    def _execute_cli_command_return_err(self,command):
-        response = cli_parser.cli_response(command)
-        error = str(response[1])
-        out = str(response[0])
-        if error and (str(error.strip('\n')).find('ERROR') != -1):
-            return error
-        elif out and (str(out.strip('\n')).find('ERROR') != -1):
-            return out
-        else :
-            return ""
-        
+
     @decorators.attr(type='workloadmgr_api')
     def test_01_barbican(self):
         try:
@@ -2435,7 +2424,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
             LOG.debug("WORKLOAD CMD - " + str(workload_create_with_encryption))
-            error = self._execute_cli_command_return_err(workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful : " + error)
                 reporting.add_test_step(
@@ -2483,7 +2472,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI with no sceret uuid
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id)
-            error = self._execute_cli_command_return_err(workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful for no secret")
                 reporting.add_test_step("Create encrypted workload cli failed for no secret UUID",
@@ -2522,7 +2511,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + "invalid"
-            error = self._execute_cli_command_return_err(workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful for invalid secret")
                 reporting.add_test_step("Create encrypted workload cli failed for invalid secret UUID", tvaultconf.PASS)
@@ -2597,7 +2586,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               " --secret-uuid " + str(self.secret_uuid) + \
                                               " --policy-id " + str(policy_id)
             LOG.debug("workload_create_with_encryption : " + workload_create_with_encryption)
-            error = self._execute_cli_command_return_err(workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
             LOG.debug("Workload created: " + error)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 reporting.add_test_step(
@@ -2937,7 +2926,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
                                           str(vm_id1) + " --instance instance-id=" + str(vm_id) + " " + str(wid)
 
-                error = self._execute_cli_command_return_err(workload_modify_command)
+                error = cli_parser.cli_error(workload_modify_command)
                 if error:
                     err_msg = ["Unencrypted workload cannot have instance", "with encrypted Volume"]
                     result = all(x in error for x in err_msg)
@@ -3380,7 +3369,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
 
-            error = self._execute_cli_command_return_err(workload_create_with_encryption)
+            error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("Error: " + str(error))
                 err_msg = ["Either the secret UUID or the payload of the secret is invalid"]
@@ -4796,7 +4785,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               " --instance instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid) + " --jobschedule enabled=False"
 
-            error = self._execute_cli_command_return_err(workload_create_cmd)
+            error = cli_parser.cli_error(workload_create_cmd)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.error("Create workload Error: " + str(error))
                 raise Exception("Create workload using secret uuid")
