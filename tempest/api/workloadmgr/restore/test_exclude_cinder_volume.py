@@ -352,6 +352,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("In-place restore checksum verification", tvaultconf.FAIL)
                 LOG.debug("MD5checksum did not match. test case failed.")
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             # Delete restore for snapshot
             if (tvaultconf.cleanup):
@@ -424,6 +425,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         finally:
             if (deleted == 0):
@@ -438,6 +440,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     self.delete_volume(volume_id)
                 except BaseException:
                     pass
-
-            reporting.test_case_to_write()
 
