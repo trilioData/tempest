@@ -2399,7 +2399,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         rule_assign_command = ""
         for op in operations:
             rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-            /etc/workloadmgr/policy.yaml'.format(rule, op)
+            /etc/triliovault-wlm/policy.yaml'.format(rule, op)
         LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
         commands = role_add_command + rule_assign_command
         LOG.debug("Commands to add role: %s", commands)
@@ -2437,7 +2437,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         rule_reassign_command = ""
         for op in operations:
             rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-            /etc/workloadmgr/policy.yaml'.format(rule, op)
+            /etc/triliovault-wlm/policy.yaml'.format(rule, op)
         LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
                   role_delete_command, rule_reassign_command)
         commands = role_delete_command + rule_reassign_command
