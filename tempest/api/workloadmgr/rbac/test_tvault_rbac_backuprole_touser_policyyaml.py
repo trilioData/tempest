@@ -40,7 +40,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug("Out: " + out)
             return out
         else :
-            return None
+            return ""
 
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_backuprole_touser_policyyaml(self):
