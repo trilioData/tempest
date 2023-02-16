@@ -180,8 +180,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                    raise Exception(
+                        "Create workload: Workload status is not available " + workload_id)
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                raise Exception(
+                    "Create workload failed")
 
             if (tvaultconf.cleanup):
                 self.addCleanup(self.workload_delete, workload_id)
@@ -230,6 +234,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     else:
                         reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}",
                                                 tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
             ### Selective restore ###
 
