@@ -378,6 +378,7 @@ function configure_tempest
         mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
         mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
         command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- <command>"
+        command_prefix_wlm="ssh $CANONICAL_NODE_IP juju ssh $mysql_leader_pod -- <command>"
         echo "mysql_leader_pod: "$mysql_leader_pod
         echo "mysql_ip: "$mysql_ip
         echo "mysql_root_pwd: "$mysql_root_pwd
@@ -396,6 +397,7 @@ EOF
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
         datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
         command_prefix="kubectl -n triliovault exec $datamover_pod -- <command>"
+        command_prefix_wlm="kubectl -n triliovault exec $wlm_pod -- <command>"
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
@@ -413,6 +415,7 @@ EOF
         echo "dbname: "$dbname
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
 		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
+		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
@@ -659,6 +662,7 @@ EOF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 

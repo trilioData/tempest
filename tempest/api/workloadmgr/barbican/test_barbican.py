@@ -3334,10 +3334,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_14_barbican(self):
         try:
-
-            test_var = "tempest.api.workloadmgr.barbican.test_"
-            tests = [[test_var + "create_secret_with_empty_payload", 0]]
-            reporting.add_test_script(tests[0][0])
+            reporting.add_test_script(str(__name__) + "_create_secret_with_empty_payload")
 
             # create key pair...
             self.kp = self.create_key_pair(tvaultconf.key_pair_name)

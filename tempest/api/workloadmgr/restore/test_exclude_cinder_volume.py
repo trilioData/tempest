@@ -287,6 +287,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             cmd_status = self.check_mount_cmd_status(floating_ip_2, volumes, mount_point)
             if cmd_status:
                 tests[0][1] = 1
+                reporting.test_case_to_write()
             else:
                 raise Exception("Mount command for excluded volume is successful. Test case failed.")
 
@@ -346,10 +347,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     floating_ip_1)] == md5sums_after_inplace[str(floating_ip_1)]:
                 reporting.add_test_step("In-place restore checksum verification", tvaultconf.PASS)
                 tests[1][1] = 1
+                reporting.test_case_to_write()
             else:
                 reporting.add_test_step("In-place restore checksum verification", tvaultconf.FAIL)
                 LOG.debug("MD5checksum did not match. test case failed.")
                 reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             # Delete restore for snapshot
             if (tvaultconf.cleanup):
@@ -399,6 +402,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("One-click restore passed")
             else:
                 reporting.add_test_step("One-click restore of full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
                 LOG.debug("One-click restore failed")
 
             # Fetch instance details after restore
@@ -412,6 +416,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             cmd_status = self.check_mount_cmd_status(floating_ip_1, volumes, mount_point)
             if cmd_status:
                 tests[2][1] = 1
+                reporting.test_case_to_write()
             else:
                 raise Exception("Mount command for excluded volume is successful. Test case failed.")
 
@@ -420,6 +425,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         finally:
             if (deleted == 0):
@@ -434,6 +440,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     self.delete_volume(volume_id)
                 except BaseException:
                     pass
-
-            reporting.test_case_to_write()
 
