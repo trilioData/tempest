@@ -2383,35 +2383,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
-        if len(tvaultconf.tvault_ip) == 0:
-            raise Exception("Tvault IPs not available")
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if role == "newadmin":
-                old_rule = "admin_api"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
+        if role == "newadmin":
+            old_rule = "admin_api"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            elif role == "backup":
-                old_rule = "admin_or_owner"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+        elif role == "backup":
+            old_rule = "admin_or_owner"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-            role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
-                rule, role)
-            rule_assign_command = ""
-            for op in operations:
-                rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
-            commands = role_add_command + rule_assign_command
-            LOG.debug("Commands to add role: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            if (tvaultconf.cleanup and policy_changes_cleanup):
-                self.addCleanup(self.revert_changes_policyyaml, old_rule)
-            ssh.close()
+        role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
+            rule, role)
+        rule_assign_command = ""
+        for op in operations:
+            rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            /etc/workloadmgr/policy.yaml'.format(rule, op)
+        LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
+        commands = role_add_command + rule_assign_command
+        LOG.debug("Commands to add role: %s", commands)
+        cmd = (tvaultconf.command_prefix).replace("<command>",commands)
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        if (tvaultconf.cleanup and policy_changes_cleanup):
+            self.addCleanup(self.revert_changes_policyyaml, old_rule)
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2425,31 +2423,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def revert_changes_policyyaml(self, rule):
-        if len(tvaultconf.tvault_ip) == 0:
-            raise Exception("Tvault IPs not available")
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if rule == "admin_api":
-                role = "newadmin_api"
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            elif rule == "admin_or_owner":
-                role = "backup_api"
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+        if rule == "admin_api":
+            role = "newadmin_api"
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
-            rule_reassign_command = ""
-            for op in operations:
-                rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
-                      role_delete_command, rule_reassign_command)
-            commands = role_delete_command + rule_reassign_command
-            LOG.debug("Commands to revert policy changes: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            ssh.close()
+        elif rule == "admin_or_owner":
+            role = "backup_api"
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+        role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
+        rule_reassign_command = ""
+        for op in operations:
+            rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            /etc/workloadmgr/policy.yaml'.format(rule, op)
+        LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
+                  role_delete_command, rule_reassign_command)
+        commands = role_delete_command + rule_reassign_command
+        LOG.debug("Commands to revert policy changes: %s", commands)
+        cmd = (tvaultconf.command_prefix).replace("<command>", commands)
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
 
     '''
     add security group rule
