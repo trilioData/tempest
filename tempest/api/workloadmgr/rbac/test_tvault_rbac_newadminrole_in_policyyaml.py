@@ -26,6 +26,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
+    def _execute_cli_command_return_err(self, command):
+        response = cli_parser.cli_response(command)
+        error = str(response[1])
+        out = str(response[0])
+        if error and (str(error.strip('\n')).find('ERROR') != -1):
+            LOG.debug("Error: " + error)
+            return error
+        elif out and (str(out.strip('\n')).find('ERROR') != -1):
+            LOG.debug("Out: " + out)
+            return out
+        else:
+            return None
+
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_newadminrole_in_policyyaml(self):
         try:
@@ -43,7 +56,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_storage_usage CLI by newadmin role
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
-            error = cli_parser.cli_error(get_storage_usage)
+            error = self._execute_cli_command_return_err(get_storage_usage)
             LOG.debug(
                 "Error: " + error)
             if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
@@ -61,7 +74,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_nodes CLI by newadmin role
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
-            error = cli_parser.cli_error(get_nodes)
+            error = self._execute_cli_command_return_err(get_nodes)
             LOG.debug(
                 "Error: " + error)
             if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):
@@ -82,7 +95,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_storage_usage CLI by admin
             get_storage_usage = command_argument_string.get_storage_usage
             LOG.debug("get_storage_usage  command: " + str(get_storage_usage))
-            error = cli_parser.cli_error(get_storage_usage)
+            error = self._execute_cli_command_return_err(get_storage_usage)
             LOG.debug(
                 "Error: " + error)
             if error and (str(error.strip('\n')).find(storage_usage_error_str) != -1):
@@ -100,7 +113,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Run get_nodes CLI by admin
             get_nodes = command_argument_string.get_nodes
             LOG.debug("get_nodes command: " + str(get_nodes))
-            error = cli_parser.cli_error(get_nodes)
+            error = self._execute_cli_command_return_err(get_nodes)
             LOG.debug(
                 "Error: " + error)
             if error and (str(error.strip('\n')).find(get_nodes_error_str) != -1):

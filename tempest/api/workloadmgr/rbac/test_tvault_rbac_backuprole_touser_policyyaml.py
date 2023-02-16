@@ -29,6 +29,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         super(WorkloadsTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
+    def _execute_cli_command_return_err(self,command):
+        response = cli_parser.cli_response(command)
+        error = str(response[1])
+        out = str(response[0])
+        if error and (str(error.strip('\n')).find('ERROR') != -1):
+            LOG.debug("Error: " + error)
+            return error
+        elif out and (str(out.strip('\n')).find('ERROR') != -1):
+            LOG.debug("Out: " + out)
+            return out
+        else :
+            return None
+
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_rbac_backuprole_touser_policyyaml(self):
         try:
@@ -146,7 +159,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             # Create workload with CLI by admin role
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.instances_id[1])
-            error = cli_parser.cli_error(workload_create)
+            # error = cli_parser.cli_error(workload_create)
+            error = self._execute_cli_command_return_err(workload_create)
             LOG.debug(
                 "Error: " + error)
             if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
