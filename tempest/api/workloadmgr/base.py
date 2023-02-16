@@ -2394,7 +2394,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
                           "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-        role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
+        role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/triliovault-wlm/policy.yaml'.format(
             rule, role)
         rule_assign_command = ""
         for op in operations:
@@ -2433,7 +2433,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
                           "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-        role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
+        role_delete_command = "sed -i '/^{0}/,+1d' /etc/triliovault-wlm/policy.yaml".format(role)
         rule_reassign_command = ""
         for op in operations:
             rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
