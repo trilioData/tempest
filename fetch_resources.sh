@@ -415,7 +415,7 @@ EOF
         echo "dbname: "$dbname
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
 		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
-		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_workloads <command>''"
+		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
