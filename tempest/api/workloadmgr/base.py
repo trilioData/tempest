@@ -1311,6 +1311,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     volumes.append(volume['volume_id'])
             snapshot_info[instance['id']] = volumes
         LOG.debug("Response:" + str(resp.content))
+        LOG.debug("Snapshot info:" + str(snapshot_info))
         if (resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_info
