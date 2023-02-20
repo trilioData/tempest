@@ -316,7 +316,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         vol_flag = True
         for vm in snapshot_info.keys():
             LOG.debug("VM:" + str(vm) + " volumes:" + str(len(snapshot_info[vm])))
-            if len(snapshot_info[vm]) != 2:
+            if len(snapshot_info[vm]) != 1:
                 vol_flag = False
         if vol_flag:
             reporting.add_test_step("Number of multiattach volume attached to VM is equal to 1", tvaultconf.PASS)
