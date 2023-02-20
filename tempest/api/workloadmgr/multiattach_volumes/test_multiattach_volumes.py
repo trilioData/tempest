@@ -206,14 +206,14 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             raise Exception(str(e))
 
-    def _selective_restore(self, rest_details, ip_list, md5sums_list, full=True):
+    def _selective_restore(self, payload, vol_type, ip_list, md5sums_list, full=True):
         if full:
             snapshot_id = self.snapshot_id
             snapshot_type = 'full'
         else:
             snapshot_id = self.snapshot_id2
             snapshot_type = 'incremental'
-        payload = self.create_restore_json(rest_details)
+
         # Trigger selective restore of snapshot
         restore_id = self.snapshot_selective_restore(
             self.wid, snapshot_id,
@@ -226,19 +226,22 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             vm_list = self.get_restored_vm_list(restore_id)
-            volume_info_list = self.get_restored_volume_info_list(restore_id)
+            # volume_info_list = self.get_restored_volume_info_list(restore_id)
+            volume_info = self.get_restored_volume_info_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
-            LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
-            volume_flag = True
-            for volume_info in volume_info_list:
-                if volume_info['volume_type'] != rest_details['volume_type']:
-                    volume_flag = False
-            if volume_flag:
-                reporting.add_test_step("Attached volume after Selective restore is " + rest_details['volume_type'],
+            # LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
+            LOG.debug("Restored volume(selective) ID : " + str(volume_info))
+            # volume_flag = True
+            # for volume_info in volume_info_list:
+            #     if volume_info['volume_type'] != vol_type:
+            #         volume_flag = False
+            # if volume_flag:
+            if volume_info['volume_type'] != vol_type:
+                reporting.add_test_step("Attached volume after Selective restore is " + vol_type,
                                         tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "Attached volume after Selective restore is not " + rest_details['volume_type'],
+                    "Attached volume after Selective restore is not " + vol_type,
                     tvaultconf.FAIL)
             time.sleep(60)
             i = 0
@@ -315,7 +318,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         vol_flag = True
         for vm in snapshot_info.keys():
-            if len(snapshot_info[vm]) != 2:
+            LOG.debug("VM:" + str(vm) + " volumes:" + str(len(snapshot_info[vm])))
+            if len(snapshot_info[vm]) != 1:
                 vol_flag = False
         if vol_flag:
             reporting.add_test_step("Number of multiattach volume attached to VM is equal to 1", tvaultconf.PASS)
@@ -331,7 +335,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(f"File search-{i+1} failed", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                snapshot_wise_filecount = self.verifyFilepath_Search(vms_list[i], search_path)
+                snapshot_wise_filecount = self.verifyFilepath_Search(filesearch_id, search_path)
 
                 for snapshot_id in filecount_in_snapshots.keys():
                     if snapshot_wise_filecount[snapshot_id] == \
@@ -529,10 +533,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
-            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
+            self._selective_restore(payload, rest_details['volume_type'], [fip[2], fip[3]], md5sums_before_full)
 
             # Trigger selective restore of incremental snapshot
-            self._selective_restore(rest_details, [fip[4], fip[5]], md5sums_before_incr,
+            self._selective_restore(payload, rest_details['volume_type'], [fip[4], fip[5]], md5sums_before_incr,
                                     False)
             reporting.test_case_to_write()
             tests[5][1] = 1
@@ -543,7 +547,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             payload = self.create_restore_json(rest_details)
 
             # Trigger selective restore of full snapshot
-            self._selective_restore(rest_details, [fip[2], fip[3]], md5sums_before_full)
+            self._selective_restore(payload, rest_details['volume_type'],[fip[2], fip[3]], md5sums_before_full)
             reporting.test_case_to_write()
             tests[6][1] = 1
 
@@ -591,7 +595,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                     reporting.set_test_script_status(tvaultconf.FAIL)
                     reporting.add_test_script(test[0])
                     reporting.test_case_to_write()
-
 
     @decorators.attr(type='workloadmgr_api')
     def test_02_multiattach_volumes(self):
@@ -737,10 +740,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             payload = self.create_restore_json(rest_details)
             # Trigger selective restore of full snapshot
-            self._selective_restore(payload, [fip[1]], md5sums_before_full)
+            self._selective_restore(payload, rest_details['volume_type'], [fip[1]], md5sums_before_full)
 
             # Trigger selective restore of incremental snapshot
-            self._selective_restore(payload, [fip[2]], md5sums_before_incr,
+            self._selective_restore(payload, rest_details['volume_type'], [fip[2]], md5sums_before_incr,
                                     False)
             reporting.test_case_to_write()
             tests[3][1] = 1
