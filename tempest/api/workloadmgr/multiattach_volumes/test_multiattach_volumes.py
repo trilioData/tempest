@@ -226,14 +226,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step("Selective restore of " + snapshot_type + " snapshot",
                                     tvaultconf.PASS)
             vm_list = self.get_restored_vm_list(restore_id)
-            volume_info_list = self.get_restored_volume_info_list(restore_id)
+            # volume_info_list = self.get_restored_volume_info_list(restore_id)
+            volume_info = self.get_restored_volume_info_list(restore_id)
             LOG.debug("Restored vm(selective) ID : " + str(vm_list))
-            LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
-            volume_flag = True
-            for volume_info in volume_info_list:
-                if volume_info['volume_type'] != vol_type:
-                    volume_flag = False
-            if volume_flag:
+            # LOG.debug("Restored volume(selective) ID : " + str(volume_info_list))
+            LOG.debug("Restored volume(selective) ID : " + str(volume_info))
+            # volume_flag = True
+            # for volume_info in volume_info_list:
+            #     if volume_info['volume_type'] != vol_type:
+            #         volume_flag = False
+            # if volume_flag:
+            if volume_info['volume_type'] != vol_type:
                 reporting.add_test_step("Attached volume after Selective restore is " + vol_type,
                                         tvaultconf.PASS)
             else:
