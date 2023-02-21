@@ -986,11 +986,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_restored_volume_info_list(self, restore_id):
         instances = self.get_restored_vm_list(restore_id)
         volume_info_list = []
+
         for instance in instances:
             LOG.debug("instance:" + instance)
-            if len(self.get_attached_volumes(instance)) > 0:
-                for volume in self.get_attached_volumes(instance['id']):
-                    volume_info_list.append(self.get_attached_volumes_info(volume))
+            attached_volumes = self.get_attached_volumes(instance)
+            volume_info = {}
+            if len(attached_volumes) > 0:
+                for volume in attached_volumes:
+                    volume_info['id'] = volume
+                    volume_info['volume_type'] = self.get_attached_volumes_info(volume)
+                    volume_info_list.append(volume_info)
         LOG.debug("restored volume info list:" + str(volume_info_list))
         return volume_info_list
 
