@@ -993,7 +993,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             volume_info = {}
             if len(attached_volumes) > 0:
                 for volume in attached_volumes:
-                    volume_info[volume] = self.get_attached_volumes_info(volume)
+                    volume_info['id'] = volume
+                    volume_info['volume_type'] = self.get_attached_volumes_info(volume)
                     volume_info_list.append(volume_info)
         LOG.debug("restored volume info list:" + str(volume_info_list))
         return volume_info_list
