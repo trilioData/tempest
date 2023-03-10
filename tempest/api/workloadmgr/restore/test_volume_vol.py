@@ -112,7 +112,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             boot_volume_id = self.create_volume(
                 size=tvaultconf.bootfromvol_vol_size,
                 image_id=CONF.compute.image_ref,
-                volume_cleanup=False)
+                volume_cleanup=True)
             self.set_volume_as_bootable(boot_volume_id)
             LOG.debug("Bootable Volume ID : " + str(boot_volume_id))
 
@@ -127,18 +127,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 key_pair=kp,
                 image_id="",
                 block_mapping_data=self.block_mapping_details,
-                vm_cleanup=False)
+                vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             time.sleep(30)
 
             # Create and attach volume
             volume_id = self.create_volume(
                 volume_type_id=CONF.volume.volume_type_id,
-                volume_cleanup=False)
+                volume_cleanup=True)
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
-            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=True)
             LOG.debug("Volume attached")
 
             # Assign floating IP
@@ -159,7 +159,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 md5sums_before_full))
 
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(vm_id)
+                              " --instance instance-id=" + str(vm_id) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -180,8 +180,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                    raise Exception(
+                        "Create workload: Workload status is not available " + workload_id)
             else:
                 reporting.add_test_step("Create workload", tvaultconf.FAIL)
+                raise Exception(
+                    "Create workload failed")
 
             if (tvaultconf.cleanup):
                 self.addCleanup(self.workload_delete, workload_id)
@@ -189,6 +193,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ### Full Snapshot ###
 
             snapshot_id = self.create_snapshot(workload_id, is_full=True)
+
+            mount_path = self.get_mountpoint_path()
+            disk_names = ["vda", "vdb"]
+            full_snapshot_sizes = []
+            incr_snapshot_sizes = []
+            for disk_name in disk_names:
+                full_snapshot_size = int(self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                             snapshot_id, vm_id, disk_name))
+                LOG.debug(f"full snapshot_size for {disk_name}: {full_snapshot_size} MB")
+                full_snapshot_sizes.append({disk_name: full_snapshot_size})
+            LOG.debug(f"Full snapshot sizes for all disks: {full_snapshot_sizes}")
 
             # Add some more data to files on VM
             ssh = self.SshRemoteMachineConnectionWithRSAKey(str(floating_ip_1))
@@ -203,6 +218,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ### Incremental snapshot ###
 
             incr_snapshot_id = self.create_snapshot(workload_id, is_full=False)
+
+            for disk_name in disk_names:
+                incr_snapshot_size = int(self.check_snapshot_size_on_backend(mount_path, workload_id,
+                                                                             incr_snapshot_id, vm_id, disk_name))
+                LOG.debug(f"incr snapshot_size for {disk_name}: {incr_snapshot_size} MB")
+                incr_snapshot_sizes.append({disk_name: incr_snapshot_size})
+            LOG.debug(f"Incr snapshot sizes for all disks: {incr_snapshot_sizes}")
+            for dict1, dict2 in zip(full_snapshot_sizes, incr_snapshot_sizes):
+                for key, value in dict1.items():
+                    LOG.debug(f"All values: {dict1} {dict2} {value} {dict2[key]}")
+                    if value > dict2[key]:
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}",
+                                                tvaultconf.PASS)
+                    else:
+                        reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for {key}",
+                                                tvaultconf.FAIL)
+                        reporting.set_test_script_status(tvaultconf.FAIL)
 
             ### Selective restore ###
 

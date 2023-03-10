@@ -8,6 +8,7 @@ TEMPEST_CONFIG=$TEMPEST_CONFIG_DIR/tempest.conf
 TEMPEST_STATE_PATH=${TEMPEST_STATE_PATH:-$TEMPEST_DIR/lock}
 TEMPEST_ACCOUNTS=$TEMPEST_CONFIG_DIR/accounts.yaml
 TEMPEST_FRM_FILE=$TEMPEST_DIR/tempest/frm_userdata.sh
+TEMPEST_VM_DATA_FILE=$TEMPEST_DIR/tempest/vm_userdata.sh
 TEMPEST_TVAULTCONF=$TEMPEST_DIR/tempest/tvaultconf.py
 OPENSTACK_CLI_VENV=$TEMPEST_DIR/.myenv
 TEMPEST_VENV_DIR=$TEMPEST_DIR/.venv
@@ -367,25 +368,63 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_project_name $CLOUDADMIN_PROJECT_NAME
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
-    if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
+    env | grep OS_
+    if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
     then
-	cd /root
+        dbusername="automation"
+        mysql_wlm_pwd="password"
+        dbname="workloadmgr"
+        mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
+        mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
+        mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
+        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- <command>"
+        command_prefix_wlm="ssh $CANONICAL_NODE_IP juju ssh $mysql_leader_pod -- <command>"
+        echo "mysql_leader_pod: "$mysql_leader_pod
+        echo "mysql_ip: "$mysql_ip
+        echo "mysql_root_pwd: "$mysql_root_pwd
+        # create db user to run queries against workloadmgr db
+ssh -t $CANONICAL_NODE_IP << EOF
+juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
+EOF
+
+    elif [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
+    then
+        cd /root
         eval "$(<env.sh)"
         cd -
         wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
         conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
         mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
         datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
-        command_prefix="kubectl -n triliovault exec $datamover_pod -- "
+        command_prefix="kubectl -n triliovault exec $datamover_pod -- <command>"
+        command_prefix_wlm="kubectl -n triliovault exec $wlm_pod -- <command>"
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+    elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
+    then
+		    mysql_ip=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
+		    conn_str=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo podman exec -it triliovault_wlm_api cat "/etc/triliovault-wlm/triliovault-wlm.conf" | grep sql_connection | cut -d "=" -f 2''`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+        echo "mysql_dbusername: "$dbusername
+        echo "mysql_ip: "$mysql_ip
+        echo "dbname: "$dbname
+        echo "mysql_wlm_pwd: "$mysql_wlm_pwd
+		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
+		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     fi
 
-    echo "sql_connection: "$conn_str
-    dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-    mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
@@ -619,12 +658,11 @@ function configure_tempest
     sed -i '/wlm_dbpasswd = /c wlm_dbpasswd = "'$mysql_wlm_pwd'"' $TEMPEST_TVAULTCONF
     sed -i '/wlm_dbhost = /c wlm_dbhost = "'$mysql_ip'"' $TEMPEST_TVAULTCONF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
+    sed -i "/user_data_vm = /c user_data_vm = \"$TEMPEST_VM_DATA_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
-    if [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
-    then
-        echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
-    fi
+    echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 

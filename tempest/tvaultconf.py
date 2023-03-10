@@ -16,6 +16,7 @@ enabled_tests = ["Attached_Volume_Ceph"]
 
 #Id of workload type "parallel"
 parallel="2ddd528d-c9b4-4d7e-8722-cc395140255a"
+serial="f82ce76f-17fe-438b-aa37-7a023058e50d"
 
 #Resources to use from file
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
@@ -38,6 +39,8 @@ compute_license_filename = "test_licenses/tvault_license_10compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"
 triliovault_vol_snapshot_name = "TrilioVaultSnapshot"
+workload_setting_name = "wl_setting_name"
+workload_setting_value = "wl_setting_value"
 
 workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
@@ -91,6 +94,8 @@ bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 mount_points = ["mount_data_b", "mount_data_c"]
 user_frm_data = "/home/nchavan/tempest/tempest/frm_userdata.sh"
+user_data_vm = "/home/nchavan/tempest/tempest/vm_userdata.sh"
+curl_to_get_userdata = "http://169.254.169.254/2009-04-04/user-data"
 
 #Email settings data
 setting_data = {"smtp_default_recipient": "test@trilio.io",
@@ -146,3 +151,16 @@ max_retries = 20
 workload_tables = ["workloads", "workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
 snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources", "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps", "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata", "snap_network_resources", "snap_network_resource_metadata"]
 restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
+workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
+workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
+
+#error strings
+wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '
+wl_setting_update_cli_error_string = 'workloadmgr setting-update: error: argument --description: expected one argument'
+wl_setting_list_cli_error_string = 'workloadmgr setting-list: error: argument --get_hidden: expected one argument'
+wl_assigned_policy_error_string = "ERROR:workloadmgr:No recognized column names in ['id']. Recognized columns are ['ID', 'Name', 'Deleted', 'CreatedAt']"
+wl_assigned_policy_no_projectid_error_string = 'workloadmgr list-assigned-policies: error: the following arguments are required: <project_id>'
+
+#snapshot cancel cli error strings
+error_cancel_snapshot_cli_without_any_options = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
+error_cancel_snapshot_cli_with_invalid_workloadid_option = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."

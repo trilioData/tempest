@@ -142,7 +142,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.retention_policy_value_update + "' --policy-fields fullbackup_interval='" + tvaultconf.fullbackup_interval_update + \
                 "' --display-name 'policy_update' " + str(policy_id)
             error = cli_parser.cli_error(policy_update_command)
-            if error and (str(error.strip('\n')).find(policy_update_error_str) != -1): 
+            if error and (str(error.strip('\n')).find(policy_update_error_str) != -1):
                 reporting.add_test_step(
                     "Can not update workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -192,6 +192,29 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Workload policy not assigned to project by admin user unsuccessfully")
 
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f value"
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.PASS)
+
+            LOG.debug("cli command: {}".format(cmd))
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (policy_id in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.FAIL)
+
             # Update workload policy which is assigned to tenant
             updated_status = self.workload_policy_update(
                 policy_id,
@@ -210,6 +233,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Assigned workload policy not updated by admin user")
+
+            # DB validations for workload policy before
+            workload_policy_validations_before = self.db_cleanup_workload_policy_validations(policy_id)
+            LOG.debug("Workload policy table values before deletion: {}".format(workload_policy_validations_before))
 
             # Verify workload policy which has assigned to tenant is updated with parameters
             # Below function returns list as [policy_name, {field_values},
@@ -256,6 +283,30 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Workload policy not unassigned by admin user unsuccessfully")
 
+            # Verify unassigned policy is not listed in list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id
+            rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Response from CLI: " + str(rc))
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.PASS)
+
+            LOG.debug("cli command: {}".format(cmd))
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (policy_id not in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy does not show assigned project_id", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy does not show assigned project_id", tvaultconf.FAIL)
+
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
@@ -281,11 +332,185 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_cli')
+    def test_4_list_assigned_policies(self):
+        reporting.add_test_script(str(__name__) + "_list_assigned_policies")
+        try:
+            global policy_id
+            cli_error_string = tvaultconf.wl_assigned_policy_error_string
+            cli_error_string_noprojectid = tvaultconf.wl_assigned_policy_no_projectid_error_string
+            # Assign workload policy to projects by admin user
+            admin_project_id = CONF.identity.admin_tenant_id
+            status = self.assign_unassign_workload_policy(
+                policy_id, add_project_ids_list=[admin_project_id], remove_project_ids_list=[])
+            if status:
+                reporting.add_test_step(
+                    "Assign workload policy by admin user", tvaultconf.PASS)
+                LOG.debug("Workload policy is assigned to project by admin user")
+            else:
+                reporting.add_test_step(
+                    "Assign workload policy by admin user", tvaultconf.FAIL)
+                raise Exception(
+                    "Workload policy not assigned to project by admin user")
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with no project_id is successful",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with no project_id is not successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            cli_err = cli_parser.cli_error(cmd)
+            LOG.debug("cli error: {}".format(cli_err))
+            if (cli_err and cli_error_string_noprojectid in cli_err):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy throws proper error", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy throws proper error", tvaultconf.FAIL)
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c id"
+            rc = cli_parser.cli_returncode(cmd)
+            if rc == 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with incorrect column is successful",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with incorrect column is not successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            cli_err = cli_parser.cli_error(cmd)
+            LOG.debug("cli error: {}".format(cli_err))
+            if (cli_err and cli_error_string in cli_err):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy command with incorrect column throws proper error", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy command with incorrect column throws proper error", tvaultconf.FAIL)
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c ID -f value"
+            LOG.debug("cli command: {}".format(cmd))
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with column 'ID' is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with column 'ID' is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (policy_id in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows policy_id only", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows policy_id only", tvaultconf.FAIL)
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c Name -f value"
+            LOG.debug("cli command: {}".format(cmd))
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with column 'Name' is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with column 'Name' is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (tvaultconf.policy_name_update in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows policy_name only", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows policy_name only", tvaultconf.FAIL)
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f table"
+            LOG.debug("cli command: {}".format(cmd))
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with '-f table' is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with '-f table' is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            cli_output_table = out.strip()
+            table_format = '| ' + policy_id + ' |'
+
+            if table_format in cli_output_table:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows output in table format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows output in table format", tvaultconf.FAIL)
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f json"
+            LOG.debug("cli command: {}".format(cmd))
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with '-f json' is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command with '-f json' is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            cli_output_json = out.replace("\n", "").strip()
+            json_format = '[  {    "ID": "' + policy_id + '",'
+
+            if json_format in cli_output_json:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows output in json format", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows output in json format", tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
     @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
-    def test_4_workload_modify(self):
+    def test_5_workload_modify(self):
         reporting.add_test_script(str(__name__) + "_workload_modify")
         try:
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             global vm_id
             global policy_id
             global volume_id
@@ -424,7 +649,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_5_workload_policy_in_use(self):
+    def test_6_workload_policy_in_use(self):
         reporting.add_test_script(str(__name__) + "_in_use")
         try:
             global vm_id
@@ -479,6 +704,28 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Can not update policy while in use", tvaultconf.PASS)
                 LOG.debug("Workload policy has not been updated while in use")
 
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (policy_id in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.FAIL)
+
             # Verify policy can not be deleted when it is in use
             delete_status = self.workload_policy_delete(policy_id)
             if delete_status:
@@ -504,7 +751,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_6_workload_policy_delete(self):
+    def test_7_workload_policy_delete(self):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
             global policy_id
@@ -562,6 +809,46 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step(
                         "Verify policy deleted", tvaultconf.PASS)
                     LOG.debug("Policy deleted passed")
+
+            # Verify policy assigned to tenant by admin user using list_assigned_policies cli
+            cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            rc = cli_parser.cli_returncode(cmd)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                    "Execute list_assigned_policies command is successful",
+                    tvaultconf.PASS)
+
+            out = cli_parser.cli_output(cmd)
+            LOG.debug("Response from CLI: " + str(out))
+            if (CONF.identity.tenant_id not in out):
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify list_assigned_policy shows assigned project_id", tvaultconf.FAIL)
+
+            # DB validations for workload policy after workload cleanup
+            workload_policy_fields_data = query_data.get_workload_policy_fields()
+            LOG.debug("Get workload policy fields data: {}".format(workload_policy_fields_data))
+
+            if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
+                LOG.debug("workload policy fields data is correct")
+            else:
+                reporting.add_test_step("workload policy fields data is in-correct", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(policy_id)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
             if failed:
                 reporting.set_test_script_status(tvaultconf.FAIL)
         except Exception as e:
@@ -572,7 +859,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     # Workload policy with scheduler and retension parameter
     @decorators.attr(type='workloadmgr_cli')
-    def test_7_policywith_scheduler_retension(self):
+    def test_8_policywith_scheduler_retension(self):
         reporting.add_test_script(str(__name__) + "_with_scheduler_retention")
         try:
             global vm_id
@@ -583,8 +870,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance instance-id=" + \
                 str(vm_id) + " --jobschedule enabled=True"
             LOG.debug("WORKLOAD CMD - " + str(workload_create))
-            rc = cli_parser.cli_returncode(workload_create)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_create)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("workload creation unsuccessful : " + error)
                 reporting.add_test_step(
                     "Execute workload-create command with scheduler enable",
                     tvaultconf.FAIL)
@@ -596,7 +884,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("Command workload create executed correctly")
 
-            time.sleep(10)
+            time.sleep(20)
             self.workload_id = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
             LOG.debug("Created workload ID: " + str(self.workload_id))
@@ -755,13 +1043,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w1 == retention_policy_type_wid and retention_policy_value_w1 == retention_policy_value_wid and Full_Backup_Interval_Value_w1\
                 == Full_Backup_Interval_Value_wid:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler enabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler enabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler enabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler enabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler enabled Retension param's not preserved")
@@ -769,13 +1057,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if retention_policy_type_w2 == retention_policy_type_wid2 and retention_policy_value_w2 == retention_policy_value_wid2 and Full_Backup_Interval_Value_w2\
                 == Full_Backup_Interval_Value_wid2:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler disabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
                 LOG.debug(
                     "workload with scheduler disabled Retension param's preserved")
             else:
                 reporting.add_test_step(
-                    "Scheduler disabled workload Retension param's preserve afte policy assign to tenant",
+                    "Scheduler disabled workload Retension param's preserve after policy assign to tenant",
                     tvaultconf.FAIL)
                 raise Exception(
                     "workload with scheduler disabled Retension param's not preserved")
@@ -1160,12 +1448,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception(
                     "Policy assigned workload scheduler enabled unsuccessfully")
-        except Exception as e:
-            LOG.error("Exception: " + str(e))
-            reporting.add_test_step(str(e), tvaultconf.FAIL)
-            reporting.set_test_script_status(tvaultconf.FAIL)
-        finally:
-            reporting.test_case_to_write()
+
             # Cleanup
             # Delete snapshot
             snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
@@ -1181,6 +1464,35 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_policy_delete(self.policy_id)
             self.workload_policy_delete(self.policy_id2)
 
+            # DB validations for workload policy after workload cleanup
+            workload_policy_fields_data = query_data.get_workload_policy_fields()
+            if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
+                LOG.debug("workload policy fields data is correct")
+            else:
+                reporting.add_test_step("workload policy fields data is in-correct", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(self.policy_id)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy-1", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy-1", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            workload_policy_validations_after_deletion = self.db_cleanup_workload_policy_validations(self.policy_id2)
+            if (all(value == 0 for value in workload_policy_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload policy-2", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload policy-2", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
+            reporting.test_case_to_write()
             # Delete vm
             self.delete_vm(vm_id)
             LOG.debug("vm deleted succesfully")
@@ -1188,3 +1500,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # delete volume
             self.delete_volume(volume_id)
             LOG.debug("volume deleted successfully")
+

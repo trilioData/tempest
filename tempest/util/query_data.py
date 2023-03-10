@@ -1,6 +1,7 @@
 from tempest.util import db_handler
 from oslo_log import log as logging
 from tempest import config
+import json
 LOG = logging.getLogger(__name__)
 CONF = config.CONF
 
@@ -753,6 +754,41 @@ def get_restored_vm_resource_metadata(restore_id):
         rows = cursor.fetchall()
         for row in rows:
             return row[0]
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_workload_policy_fields():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_policy_fields = ("select field_name from workload_policy_fields")
+        cursor.execute(get_workload_policy_fields)
+        rows = cursor.fetchall()
+        field_list = []
+        for row in rows:
+            field_list.append(row[0])
+        return field_list
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def get_created_workload_setting(setting_name):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_workload_setting = ("select name,value,description,category,type from settings where name='" +
+                           setting_name + "' order by created_at desc limit 1")
+        cursor.execute(get_workload_setting)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
     except Exception as e:
         print(str(e))
     finally:

@@ -2,10 +2,10 @@ from tempest import tvaultconf
 
 #Workload commands
 workload_list = "workloadmgr workload-list | grep available | wc -l"
-workload_create = "workloadmgr workload-create --workload-type-id "+tvaultconf.workload_type_id+\
+workload_create = "workloadmgr workload-create "\
                   " --display-name "+tvaultconf.workload_name+\
                   " --source-platform "+tvaultconf.source_platform
-workload_create_with_encryption = "workloadmgr workload-create --workload-type-id "+tvaultconf.workload_type_id+\
+workload_create_with_encryption = "workloadmgr workload-create "\
                   " --display-name "+tvaultconf.workload_name+ \
                   " --encryption True" + \
                   " --source-platform "+tvaultconf.source_platform
@@ -17,6 +17,12 @@ workload_type_list = "workloadmgr workload-type-list | grep '[a-z0-9]-[a-z0-9]' 
 workload_type_show = "workloadmgr workload-type-show " + str(tvaultconf.workload_type_id)
 workload_show = "workloadmgr workload-show "
 workload_import = "workloadmgr workload-importworkloads"
+workload_setting_create = "workloadmgr setting-create "
+workload_setting_show = "workloadmgr setting-show "
+workload_setting_delete = " workloadmgr setting-delete "
+workload_setting_update = "workloadmgr setting-update "
+workload_setting_list = "workloadmgr setting-list "
+workload_get_orphaned_workloads_list = "workloadmgr workload-get-orphaned-workloads-list --generate_yaml True"
 
 #Trust commands
 workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
@@ -38,6 +44,12 @@ snapshot_create = "workloadmgr workload-snapshot " + " --full --display-name " +
 snapshot_delete = "workloadmgr snapshot-delete "
 incr_snapshot_create = "workloadmgr workload-snapshot " + " --display-name " +tvaultconf.snapshot_name + " "
 snapshot_cancel = "workloadmgr snapshot-cancel "
+
+#Snapshot mount commands
+snapshot_mount = "workloadmgr snapshot-mount "
+snapshot_dismount = "workloadmgr snapshot-dismount "
+snapshot_mounted_list = "workloadmgr snapshot-mounted-list "
+snapshot_show = "workloadmgr --insecure snapshot-show --output metadata "
 
 #Restore commands
 restore_list = "workloadmgr restore-list | grep available | wc -l"
@@ -72,6 +84,7 @@ policy_create = "workloadmgr policy-create --policy-fields "
 policy_update = "workloadmgr policy-update --policy-fields "
 policy_assign = "workloadmgr policy-assign --add_project "
 policy_delete = "workloadmgr policy-delete "
+list_assigned_policies = "workloadmgr list-assigned-policies "
 
 #Quota commands
 quota_type_list_count = "workloadmgr project-quota-type-list | grep '[a-z0-9]-[a-z0-9]' | wc -l"

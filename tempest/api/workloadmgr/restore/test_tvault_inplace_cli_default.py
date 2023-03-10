@@ -47,7 +47,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_cli')
     def test_tvault_inplace_cli_default(self):
         try:
-
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             volumes = ["/dev/vdb", "/dev/vdc"]
             mount_points = ["mount_data_b", "mount_data_c"]
 
@@ -225,6 +229,57 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             reporting.test_case_to_write()
 
+            reporting.add_test_script(str(__name__) + "_restore_cancel_valid_cli")
+
+            rc = cli_parser.cli_returncode(restore_command)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Triggering In-Place restore via CLI", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Triggering In-Place restore via CLI", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            # get restore id from database
+            self.restore_id1 = query_data.get_snapshot_restore_id(
+                self.incr_snapshot_id)
+
+            restore_cancel_invalid = command_argument_string.restore_cancel + "invalid"
+            error = cli_parser.cli_error(restore_cancel_invalid)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("Restore cancel cli with invalid option returned correct error " + str(error))
+                reporting.add_test_step("Restore cancel cli with invalid option returned correct error",
+                                        tvaultconf.PASS)
+            else:
+                LOG.debug("Restore cancel cli with invalid option returned no error")
+                reporting.add_test_step("Restore cancel cli with invalid option returned correct error",
+                                        tvaultconf.FAIL)
+
+            restore_cancel_command = command_argument_string.restore_cancel + \
+                " " + str(self.restore_id1)
+
+            rc = cli_parser.cli_returncode(restore_cancel_command)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Triggering restore cancel via CLI", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Triggering restore cancel via CLI", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            self.wait_for_snapshot_tobe_available(
+                self.workload_id, self.incr_snapshot_id)
+
+            # get in-place restore status
+            if (self.getRestoreStatus(self.workload_id, self.incr_snapshot_id, self.restore_id1) == "cancelled"):
+                reporting.add_test_step("In-place restore cancelled", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("In-place restore cancelled", tvaultconf.FAIL)
+                raise Exception("In-place restore cancel failed")
+
+            reporting.test_case_to_write()
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)

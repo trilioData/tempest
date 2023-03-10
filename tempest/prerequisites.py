@@ -15,18 +15,19 @@ CONF = config.CONF
 
 def small_workload(self):
     try:
+        self.exception = ""
         LOG.debug("Running prerequisites for : small_workload")
 
         # Create volume
-        self.volume_id = self.create_volume(volume_cleanup=False)
+        self.volume_id = self.create_volume(volume_cleanup=True)
         LOG.debug("Volume ID: " + str(self.volume_id))
 
         # create vm
-        self.vm_id = self.create_vm(vm_cleanup=False)
+        self.vm_id = self.create_vm(vm_cleanup=True)
         LOG.debug("Vm ID: " + str(self.vm_id))
 
         # Attach volume to the instance
-        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=False)
+        self.attach_volume(self.volume_id, self.vm_id, attach_cleanup=True)
         LOG.debug("Volume attached")
 
     except Exception as err:
@@ -179,7 +180,7 @@ def inplace(self):
 
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel)
+            self.workload_instances)
         self.snapshot_id = self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         if (self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
@@ -331,7 +332,7 @@ def bootfrom_image_with_floating_ips(self):
 
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel)
+            self.workload_instances)
         self.snapshot_id = self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         if (self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
@@ -425,7 +426,7 @@ def selective_basic(self):
 
         # Create workload and trigger full snapshot
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel)
+            self.workload_instances)
         self.snapshot_id = self.workload_snapshot(self.workload_id, True)
         self.wait_for_workload_tobe_available(self.workload_id)
         if (self.getSnapshotStatus(self.workload_id, self.snapshot_id) != "available"):
@@ -523,7 +524,6 @@ def filesearch(self):
         # Create workload
         self.wid = self.workload_create(
             self.instances_ids,
-            tvaultconf.parallel,
             workload_name=tvaultconf.workload_name,
             workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
@@ -621,11 +621,11 @@ def basic_workload(self):
         LOG.debug("Volume attached")
 
         # Create workload
+        self.workload_name = tvaultconf.workload_name + str(time.time())
         self.workload_instances.append(self.vm_id)
         self.wid = self.workload_create(
             self.workload_instances,
-            tvaultconf.parallel,
-            workload_name=tvaultconf.workload_name,
+            workload_name=self.workload_name,
             workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.wid))
 
@@ -663,7 +663,6 @@ def bootfromvol_workload(self):
         # Create workload
         self.workload_id = self.workload_create(
             self.workload_instances,
-            tvaultconf.parallel,
             workload_cleanup=False)
         if (self.wait_for_workload_tobe_available(self.workload_id) == False):
             reporting.add_test_step("Create_Workload", tvaultconf.FAIL)
@@ -813,7 +812,6 @@ def bootfromvol_workload_medium(self):
         # Create workload
         self.workload_id = self.workload_create(
             self.workload_instances,
-            tvaultconf.parallel,
             workload_cleanup=False)
         if (self.wait_for_workload_tobe_available(self.workload_id) == False):
             self.exception = "Create_Workload"
@@ -983,7 +981,6 @@ def create_instances_workload_snapshots(self, floating_ip_image, floating_ip_vol
     # Create workload
     self.wid = self.workload_create(
         self.instances_ids,
-        tvaultconf.parallel,
         workload_name=tvaultconf.workload_name,
         workload_cleanup=False)
     LOG.debug("Workload ID: " + str(self.wid))
@@ -1193,7 +1190,7 @@ def network_topology(self):
 
         self.vms_ids = [x[1] for x in self.vms]
         self.workload_id = self.workload_create(
-            self.vms_ids, tvaultconf.parallel, workload_cleanup=False)
+            self.vms_ids, workload_cleanup=False)
         LOG.debug("Workload ID: " + str(self.workload_id))
         if(self.workload_id is not None):
             self.wait_for_workload_tobe_available(self.workload_id)
@@ -1263,6 +1260,7 @@ def network_topology(self):
 
 def barbican_workload(self):
     try:
+        self.exception = ""
         LOG.debug("Running prerequisites for : barbican_workload")
 
         # Create volume

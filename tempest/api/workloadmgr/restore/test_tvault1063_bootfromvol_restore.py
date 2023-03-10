@@ -40,7 +40,11 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     @decorators.attr(type='workloadmgr_api')
     def test_tvault1063_bootfromvol_restore(self):
         try:
-
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             # Create full snapshot
             self.snapshot_id = self.workload_snapshot(self.workload_id, True)
             self.wait_for_workload_tobe_available(self.workload_id)
