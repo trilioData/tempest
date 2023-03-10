@@ -223,13 +223,18 @@ function configure_tempest
 
     echo "Fetching image details\n"
     while read -r IMAGE_NAME IMAGE_UUID; do
-        if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
-            image_uuid="$IMAGE_UUID"
-            image_uuid_alt="$IMAGE_UUID"
+        img=$(echo "${TEST_IMAGE_NAME[@]:0}" | grep -o $IMAGE_NAME)
+        if [[ ! -z $img ]]; then
+            echo "image name: $IMAGE_NAME"
+            images+=($IMAGE_UUID)
         fi
-        images+=($IMAGE_UUID)
+        image_id1=$IMAGE_UUID
     done < <($OPENSTACK_CMD image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
+    if [[ "${#images[*]}" == 0 ]]; then
+            images+=($image_id1)
+    fi
 
+    echo "${#images[*]} and ${images[@]}"
     case "${#images[*]}" in
         0)
             echo "Found no valid images to use!\n"
@@ -240,11 +245,13 @@ function configure_tempest
                 image_uuid=${images[0]}
                 image_uuid_alt=${images[0]}
             fi
+            echo "case1: ${images[0]}"
             ;;
         *)
             if [ -z "$image_uuid" ]; then
                 image_uuid=${images[0]}
                 image_uuid_alt=${images[1]}
+                echo "case2: ${images[0]} and ${images[1]}"
             fi
             ;;
     esac
@@ -319,6 +326,7 @@ function configure_tempest
     no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
+    iniset $TEMPEST_CONFIG compute image_ref_alt $image_uuid_alt
     iniset $TEMPEST_CONFIG compute fvm_image_ref $frm_data
     iniset $TEMPEST_CONFIG compute flavor_ref $flavor_ref
     iniset $TEMPEST_CONFIG compute flavor_ref_alt $flavor_ref_alt
@@ -368,12 +376,33 @@ function configure_tempest
     iniset $TEMPEST_CONFIG auth admin_domain_name $CLOUDADMIN_DOMAIN_NAME
 
     env | grep OS_
-    conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
-    echo "sql_connection: "$conn_str
-    dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-    mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-    mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
-    dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f1`
+    if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
+    then
+        dbusername="automation"
+        mysql_wlm_pwd="password"
+        dbname="workloadmgr"
+        mysql_leader_pod=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb-cluster/' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
+        mysql_ip=`ssh $CANONICAL_NODE_IP "juju status | grep 'mysql-innodb-cluster/' | grep 'R/W' | head -1 | xargs | cut -d ' ' -f 5"`
+        mysql_root_pwd=`ssh $CANONICAL_NODE_IP "juju run --unit $mysql_leader_pod leader-get | grep mysql.passwd | cut -d ' ' -f 2"`
+        command_prefix="ssh $CANONICAL_NODE_IP juju ssh trilio-wlm/leader -- "
+        echo "mysql_leader_pod: "$mysql_leader_pod
+        echo "mysql_ip: "$mysql_ip
+        echo "mysql_root_pwd: "$mysql_root_pwd
+        wlm_pod=`ssh $CANONICAL_NODE_IP "juju status | grep wlm/ | head -1 | xargs | cut -d ' ' -f 1 | tr -d '*'"`
+        # create db user to run queries against workloadmgr db
+ssh -t $CANONICAL_NODE_IP << EOF
+juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
+EOF
+
+    else
+        conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
+        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+    fi
+
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
 
     #Set test user credentials
@@ -628,7 +657,12 @@ function configure_tempest
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
-
+    if [[ ${OPENSTACK_DISTRO,,} == 'canonical'* ]]
+    then
+        echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
+        echo 'wlm_pod = "'$wlm_pod'"' >> $TEMPEST_TVAULTCONF
+        echo 'openstack_distro = "'$OPENSTACK_DISTRO'"' >> $TEMPEST_TVAULTCONF
+    fi
 }
 
 

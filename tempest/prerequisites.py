@@ -104,7 +104,7 @@ def inplace(self):
             security_group_id=security_group_id,
             flavor_id=flavor_id,
             key_pair=tvaultconf.key_pair_name,
-            vm_cleanup=True)
+            image_id=CONF.compute.image_ref_alt, vm_cleanup=True)
         self.workload_instances.append(vm_id)
         self.workload_volumes.append(self.volumes_list[0])
         self.attach_volume(str(self.volumes_list[0]), vm_id, device=volumes[0])
@@ -134,6 +134,7 @@ def inplace(self):
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[0]))
+        self.install_qemu(ssh)
         self.execute_command_disk_create(ssh, str(self.floating_ips_list[0]), [
             volumes[0]], [mount_points[0]])
         ssh.close()
@@ -146,6 +147,7 @@ def inplace(self):
 
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             str(self.floating_ips_list[1]))
+        self.install_qemu(ssh)
         self.execute_command_disk_create(
             ssh, str(self.floating_ips_list[1]), volumes, mount_points)
         ssh.close()

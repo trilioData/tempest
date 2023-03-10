@@ -23,6 +23,8 @@ import re
 import collections
 import base64
 import io
+import subprocess
+import shlex
 
 from oslo_log import log as logging
 from tempest import config
@@ -2301,6 +2303,31 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             # raise Exception("Unmounting of a snapshot failed")
         return is_successful
 
+    def add_changes_policyyaml_file(self, role, rule, policy_filepath, policy_changes_cleanup=True):
+        if role == "newadmin":
+            old_rule = "admin_api"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
+
+        elif role == "backup":
+            old_rule = "admin_or_owner"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+        role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' {2}'.format(
+            rule, role, policy_filepath)
+        rule_assign_command = ""
+        for op in operations:
+            rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            {2}'.format(rule, op, policy_filepath)
+        LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
+        commands = role_add_command + rule_assign_command
+        LOG.debug("Commands to add role: %s", commands)
+        if (tvaultconf.cleanup and policy_changes_cleanup):
+            self.addCleanup(self.revert_changes_policyyaml, old_rule)
+        return commands
+
     '''
     Method to add newadmin role and newadmin_api rule to 
     "workload:get_storage_usage" operation and "workload:get_nodes" 
@@ -2312,33 +2339,27 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if role == "newadmin":
-                old_rule = "admin_api"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
-
-            elif role == "backup":
-                old_rule = "admin_or_owner"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
-
-            role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
-                rule, role)
-            rule_assign_command = ""
-            for op in operations:
-                rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
-            commands = role_add_command + rule_assign_command
-            LOG.debug("Commands to add role: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            if (tvaultconf.cleanup and policy_changes_cleanup):
-                self.addCleanup(self.revert_changes_policyyaml, old_rule)
-            ssh.close()
+        if len(tvaultconf.tvault_ip) == 0:
+            if (tvaultconf.openstack_distro.lower() == 'canonical'):
+                policy_filepath = '/etc/workloadmgr/policy.yaml'
+                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup)
+                cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
+                LOG.debug("rbac commands: " + cmd)
+                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                stdout, stderr = p.communicate()
+                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+            else:
+                raise Exception("Tvault IPs not available")
+        else:
+            for ip in tvaultconf.tvault_ip:
+                policy_filepath = '/etc/workloadmgr/policy.yaml'
+                ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
+                                                      tvaultconf.tvault_password)
+                commands = self.add_changes_policyyaml_file(role, rule, policy_filepath, policy_changes_cleanup)
+                LOG.debug("rbac commands: " + commands)
+                stdin, stdout, stderr = ssh.exec_command(commands)
+                ssh.close()
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2351,30 +2372,48 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     policy.yaml file on tvault
     '''
 
+    def revert_changes_policyyaml_file(self, rule, policy_filepath):
+        if rule == "admin_api":
+            role = "newadmin_api"
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
+
+        elif rule == "admin_or_owner":
+            role = "backup_api"
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+        role_delete_command = "sed -i '/^{0}/,+1d' {1}".format(role, policy_filepath)
+        rule_reassign_command = ""
+        for op in operations:
+            rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            {2}'.format(rule, op, policy_filepath)
+        LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
+                  role_delete_command, rule_reassign_command)
+        commands = role_delete_command + rule_reassign_command
+        LOG.debug("Commands to revert policy changes: %s", commands)
+        return commands
+
     def revert_changes_policyyaml(self, rule):
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if rule == "admin_api":
-                role = "newadmin_api"
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
-
-            elif rule == "admin_or_owner":
-                role = "backup_api"
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
-
-            role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
-            rule_reassign_command = ""
-            for op in operations:
-                rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
-                      role_delete_command, rule_reassign_command)
-            commands = role_delete_command + rule_reassign_command
-            LOG.debug("Commands to revert policy changes: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            ssh.close()
+        if len(tvaultconf.tvault_ip) == 0:
+            if (tvaultconf.openstack_distro.lower() == 'canonical'):
+                policy_filepath = '/etc/workloadmgr/policy.yaml'
+                commands = self.revert_changes_policyyaml_file(rule, policy_filepath)
+                cmd = tvaultconf.command_prefix + ' -- sudo bash -c "' + commands + '"'
+                LOG.debug("rbac commands: " + cmd)
+                p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
+                stdout, stderr = p.communicate()
+                LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+            else:
+                raise Exception("Tvault IPs not available")
+        else:
+            for ip in tvaultconf.tvault_ip:
+                policy_filepath = '/etc/workloadmgr/policy.yaml'
+                ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
+                                                      tvaultconf.tvault_password)
+                commands = self.revert_changes_policyyaml_file(rule, policy_filepath)
+                stdin, stdout, stderr = ssh.exec_command(commands)
+                ssh.close()
 
     '''
     add security group rule
@@ -2809,6 +2848,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return str(mountpoint_path)
 
     '''
+    Method returns mountpoint path of backup target media from pods/container
+    '''
+
+    def get_mountpoint_path_from_pod(self):
+        cmd = tvaultconf.command_prefix + "mount"
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        mountpoint_path = None
+        for line in stdout.splitlines():
+            if str(line).find('triliovault-mounts') != -1:
+                mountpoint_path = str(line).split()[2]
+        LOG.debug("mountpoint path is : " + str(mountpoint_path))
+        return str(mountpoint_path)
+
+    '''
     Method returns True if snapshot dir is exists on backup target media
     '''
 
@@ -2834,6 +2889,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         else:
             return False
+
+    '''
+     Method returns True if snapshot dir is exists on backup target media on pods/containers
+     '''
+
+    def check_snapshot_exist_on_backend_from_pod(self, mount_path,
+                                        workload_id, snapshot_id):
+        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip()
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        if str(stderr).find('No such file or directory') != -1:
+            return False
+        else:
+            return True
 
     '''
     Method to return policies list assigned to particular project
@@ -3612,6 +3685,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 tenant_id=tenant_id)
         rules_list = body["security_group_rules"]
         LOG.debug("No. of security group rules: {}".format(len(rules_list)))
+        LOG.debug("List of security group rules: {}".format(rules_list))
         return rules_list
 
     # Delete vms, volumes, security groups
@@ -3716,9 +3790,21 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def install_qemu(self, ssh):
         try:
-            buildCommand = "sudo apt install qemu-guest-agent"
+            buildCommand = 'sudo sh -c "echo nameserver 8.8.8.8 >> /etc/resolv.conf"'
             stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"dns entry: {stdout.readlines()} \n {stderr.readlines()}")
+            time.sleep(10)
+            buildCommand = "sudo apt update && sudo apt -y install qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"Install qemu status: {stdout.readlines()} \n {stderr.readlines()}")
             time.sleep(20)
+            buildCommand = "sudo systemctl enable qemu-guest-agent && sudo systemctl start qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            time.sleep(10)
+            buildCommand = "sudo systemctl status qemu-guest-agent"
+            stdin, stdout, stderr = ssh.exec_command(buildCommand)
+            LOG.debug(f"qemu-guest-agent status: {stdout.readlines()} \n {stderr.readlines()}")
+            time.sleep(10)
         except Exception as e:
             LOG.error("Exception in install_qemu: " + str(e))
 
@@ -3959,6 +4045,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("snapshot command is : " + str(is_snapshot_encrypted))
         stdin, stdout, stderr = ssh.exec_command(is_snapshot_encrypted)
         snapshot_encrypt = stdout.read().decode('utf-8').strip()
+        LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
+        if str(snapshot_encrypt) == 'exists':
+            return True
+        else:
+            return False
+
+    '''
+    Method returns True if snapshot is marked as encrypted on backup target media
+    '''
+
+    def check_snapshot_encryption_on_backend_from_pod(
+            self,
+            mount_path,
+            workload_id,
+            snapshot_id,
+            instance_id,
+            disk_name):
+        disk_path = str(mount_path).strip() + "/workload_" + \
+                        str(workload_id).strip() + "/snapshot_" + \
+                        str(snapshot_id).strip() + "/vm_id_" + \
+                        str(instance_id).strip() + "/vm_res_id*_" + \
+                        str(disk_name) + "/*"
+        is_snapshot_encrypted = "qemu-img info " + disk_path +\
+                " | grep -q encrypted && echo 'exists' ||echo 'not exists'"
+        LOG.debug("snapshot command is : " + str(is_snapshot_encrypted))
+        cmd = tvaultconf.command_prefix + is_snapshot_encrypted
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        snapshot_encrypt = stdout.decode('utf-8').strip('\n')
         LOG.debug(f"is snapshot encrypted command output: {snapshot_encrypt}")
         if str(snapshot_encrypt) == 'exists':
             return True
