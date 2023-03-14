@@ -60,8 +60,6 @@ smtp_password_pwdless = "sample-password"
 trustee_role = "_member_"
 test_role = "backup"
 
-no_of_compute_nodes = 1
-
 # Scheduler parameter
 
 interval="1 hr"
