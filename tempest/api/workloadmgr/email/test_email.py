@@ -3,6 +3,7 @@ import os
 import re
 import subprocess
 import sys
+import time
 from urllib.parse import urlencode
 
 from oslo_log import log as logging
