@@ -29,6 +29,31 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
         reporting.add_test_script(str(__name__))
 
+    def _email_settings(self):
+        # Fetch existing settings
+        existing_setting = self.get_settings_list()
+        LOG.debug("Existing setting list: " + str(existing_setting))
+        # Delete any existing settings
+        flag = False
+        if(existing_setting != {}):
+            for k, v in existing_setting.items():
+                if (self.delete_setting(k) == False):
+                    flag = True
+        if flag:
+            raise Exception("Delete existing setting")
+
+        # Update trilioVault email settings
+        settings_resp = self.update_email_setings(tvaultconf.setting_data)
+
+        # Enable email notification for project
+        enable_email_resp = self.update_email_setings(
+                tvaultconf.enable_email_notification)[0]
+        if((str(enable_email_resp['name']) == 'smtp_email_enable') \
+                and (str(enable_email_resp['value']) == '1')):
+            LOG.debug("Enable email notification for project")
+        else:
+            raise Exception("Enable email notification for project")
+
     @decorators.attr(type='workloadmgr_api')
     def test_1_email(self):
         reporting.add_test_script(str(__name__) + "_smtp_with_password")
@@ -177,34 +202,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_api')
     def test_3_email(self):
-        reporting.add_test_script(str(__name__) + "_email_notification")
+        reporting.add_test_script(str(__name__) + "_snapshot_notification")
         try:
-            # Fetch existing settings
-            existing_setting = self.get_settings_list()
-            LOG.debug("Existing setting list: " + str(existing_setting))
-            # Delete any existing settings
-            flag = False
-            if(existing_setting != {}):
-                for k, v in existing_setting.items():
-                    if (self.delete_setting(k) == False):
-                        flag = True
-            if flag:
-                raise Exception("Delete existing setting")
-
-            # Update trilioVault email settings
-            settings_resp = self.update_email_setings(tvaultconf.setting_data)
-
-            # Enable email notification for project
-            enable_email_resp = self.update_email_setings(
-                        tvaultconf.enable_email_notification)[0]
-            params = tvaultconf.setting_data
-            params['smtp_server_password'] = tvaultconf.smtp_password
-            if((str(enable_email_resp['name']) == 'smtp_email_enable') \
-                    and (str(enable_email_resp['value']) == '1')):
-                reporting.add_test_step(
-                    "Enable email notification for project", tvaultconf.PASS)
-            else:
-                raise Exception("Enable email notification for project")
+            self._email_settings()
 
             #Create workload
             vm_id = self.create_vm(vm_cleanup=False)
@@ -324,6 +324,95 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 LOG.error("Incremental Snapshot failure email not sent to user")
                 reporting.add_test_step("Incremental Snapshot failure email sent to user", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_4_email(self):
+        reporting.add_test_script(str(__name__) + "_restore_notification")
+        try:
+            self._email_settings()
+
+            #Create workload
+            vm_id = self.create_vm(vm_cleanup=False)
+            wid = self.workload_create([vm_id])
+            LOG.debug(f"Workload ID: {wid}")
+            if wid:
+                self.wait_for_workload_tobe_available(wid)
+                if(self.getWorkloadStatus(wid) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload")
+            else:
+                raise Exception("Create workload")
+            workload_name = self.get_workload_details(wid)['name']
+            LOG.debug(f"Workload Name: {workload_name}")
+
+            snapshot_id = self.workload_snapshot(wid, True)
+            LOG.debug(f"Snapshot ID: {snapshot_id}")
+            self.wait_for_workload_tobe_available(wid)
+            snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
+            LOG.debug(f"Snapshot status: {snapshot_status}")
+            if snapshot_status == 'available':
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+            else:
+                raise Exception("Create full snapshot")
+
+            restore_id = self.snapshot_restore(wid, snapshot_id)
+            LOG.debug(f"One click Restore ID: {restore_id}")
+            self.wait_for_workload_tobe_available(wid)
+            restore_status = self.getRestoreStatus(wid, snapshot_id, restore_id)
+            if restore_status == 'error':
+                reporting.add_test_step("Create errored One click restore",
+                        tvaultconf.PASS)
+            else:
+                raise Exception("Create errored one click restore of full snapshot")
+
+            cmd = 'curl  -u ' + tvaultconf.setting_data[
+                    "smtp_default_recipient"] + ':' + tvaultconf.smtp_password \
+                    + ' --silent "https://mail.google.com/mail/feed/atom"'
+            op = subprocess.check_output(cmd, shell=True)
+            LOG.debug(f"Gmail output: {op}")
+
+            if len(re.findall(f'{workload_name} Restore failed',
+                    op.decode().split('<entry>')[1])) == 1:
+                LOG.debug("One Click Restore failure email sent to user")
+                reporting.add_test_step("Restore failure email sent to user", tvaultconf.PASS)
+            else:
+                LOG.error("One Click Restore failure email not sent to user")
+                reporting.add_test_step("Restore failure email sent to user", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.delete_vm(vm_id)
+            restore_id = self.snapshot_restore(wid, snapshot_id)
+            LOG.debug(f"One click Restore ID: {restore_id}")
+            self.wait_for_workload_tobe_available(wid)
+            restore_status = self.getRestoreStatus(wid, snapshot_id, restore_id)
+            if restore_status == 'available':
+                reporting.add_test_step("Create One click restore",
+                        tvaultconf.PASS)
+            else:
+                raise Exception("Create one click restore of full snapshot")
+
+            cmd = 'curl  -u ' + tvaultconf.setting_data[
+                    "smtp_default_recipient"] + ':' + tvaultconf.smtp_password \
+                    + ' --silent "https://mail.google.com/mail/feed/atom"'
+            op = subprocess.check_output(cmd, shell=True)
+            LOG.debug(f"Gmail output: {op}")
+
+            if len(re.findall(f'{workload_name} Restored successfully',
+                    op.decode().split('<entry>')[1])) == 1:
+                LOG.debug("One Click Restore success email sent to user")
+                reporting.add_test_step("Restore success email sent to user", tvaultconf.PASS)
+            else:
+                LOG.error("One Click Restore success email not sent to user")
+                reporting.add_test_step("Restore success email sent to user", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
         except Exception as e:
