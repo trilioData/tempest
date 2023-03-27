@@ -149,7 +149,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verification
             out = cli_parser.cli_output(self.cmd)
             LOG.debug("CLI Response: " + str(out))
-            if(str(out).strip('\n') == 'Valid License'):
+            if(str(out).strip('\n').find('License is valid') != -1 ):
                 reporting.add_test_step(
                     "License-check verification", tvaultconf.PASS)
             else:
@@ -195,7 +195,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verification
             out = cli_parser.cli_output(self.cmd)
             LOG.debug("CLI Response: " + str(out))
-            if(str(out).strip('\n') == 'Valid License'):
+            if(str(out).strip('\n').find('License is valid') != -1 ):
                 reporting.add_test_step(
                     "License-check verification", tvaultconf.PASS)
             else:
