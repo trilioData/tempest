@@ -432,40 +432,6 @@ def get_workload_schedule(workload_id):
         conn.close()
 
 
-def get_available_workload_types():
-    try:
-        conn = db_handler.dbHandler()
-        cursor = conn.cursor()
-        get_workload_types = (
-            "select count(*) from workload_types where deleted <> 1")
-        cursor.execute(get_workload_types)
-        rows = cursor.fetchall()
-        for row in rows:
-            return row[0]
-    except Exception as e:
-        LOG.error(str(e))
-    finally:
-        cursor.close()
-        conn.close()
-
-
-def get_workload_type_data(workload_type_id):
-    try:
-        conn = db_handler.dbHandler()
-        cursor = conn.cursor()
-        get_workload_types = (
-            "select * from workload_types where deleted <> 1 and ID='" + str(workload_type_id) + "'")
-        cursor.execute(get_workload_types)
-        rows = cursor.fetchall()
-        for row in rows:
-            return row
-    except Exception as e:
-        LOG.error(str(e))
-    finally:
-        cursor.close()
-        conn.close()
-
-
 def get_workload_vmids(workload_id):
     try:
         vm_ids = []
