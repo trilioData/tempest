@@ -506,6 +506,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def test_5_workload_modify(self):
         reporting.add_test_script(str(__name__) + "_workload_modify")
         try:
+            if self.exception != "":
+                LOG.debug("pre req failed")
+                reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
+                raise Exception(str(self.exception))
+            LOG.debug("pre req completed")
             global vm_id
             global policy_id
             global volume_id
@@ -865,8 +870,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance instance-id=" + \
                 str(vm_id) + " --jobschedule enabled=True"
             LOG.debug("WORKLOAD CMD - " + str(workload_create))
-            rc = cli_parser.cli_returncode(workload_create)
-            if rc != 0:
+            error = cli_parser.cli_error(workload_create)
+            if error and (str(error.strip('\n')).find('ERROR') != -1):
+                LOG.debug("workload creation unsuccessful : " + error)
                 reporting.add_test_step(
                     "Execute workload-create command with scheduler enable",
                     tvaultconf.FAIL)

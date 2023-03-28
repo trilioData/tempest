@@ -50,8 +50,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with API
             try:
-                self.wid = self.workload_create([self.vm_id],
-                                                tvaultconf.workload_type_id)
+                self.wid = self.workload_create([self.vm_id])
                 LOG.debug("Workload ID: " + str(self.wid))
             except Exception as e:
                 LOG.error(f"Exception: {e}")

@@ -132,7 +132,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.attach_volume(self.volume_id, self.vm_id)
                 self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
-                self.workload_instances, tvaultconf.parallel)
+                self.workload_instances)
             LOG.debug("Workload ID: " + str(self.wid))
 
             # Verify license-check CLI command

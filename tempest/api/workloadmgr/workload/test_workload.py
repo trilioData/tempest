@@ -169,7 +169,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with API
-            self.wid = self.workload_create([self.vm_id], tvaultconf.workload_type_id)
+            self.wid = self.workload_create([self.vm_id])
             LOG.debug("Workload ID: " + str(self.wid))
             if(self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
@@ -269,7 +269,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
 
@@ -319,7 +318,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name,
                 workload_cleanup=False)
             LOG.debug("Workload ID: " + str(self.wid))
@@ -399,7 +397,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
 
@@ -470,7 +467,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
@@ -528,7 +524,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             i = 1
             workload_id = self.workload_create(
                 [vm_id],
-                tvaultconf.parallel,
                 workload_name="w1",
                 workload_cleanup=True,
                 description='test')
@@ -616,7 +611,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload
-            self.wid = self.workload_create([self.vm_id], tvaultconf.parallel)
+            self.wid = self.workload_create([self.vm_id])
             LOG.debug("Workload ID: " + str(self.wid))
             if(self.wid is not None):
                 self.wait_for_workload_tobe_available(self.wid)
@@ -656,7 +651,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.interval = tvaultconf.interval
             self.retention_policy_type = tvaultconf.retention_policy_type
             self.retention_policy_value = tvaultconf.retention_policy_value
-            self.wid = self.workload_create([self.vm_id], tvaultconf.parallel,
+            self.wid = self.workload_create([self.vm_id], 
                                     jobschedule={"start_date": now_date.strip(),
                                                  "start_time": now_time_plus_2.strip(),
                                                  "interval": self.interval,

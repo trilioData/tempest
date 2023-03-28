@@ -67,7 +67,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         LOG.debug("\nvms : {}\n".format(vms))
         workload_id = self.workload_create(
             instances=vms,
-            workload_type=tvaultconf.parallel,
             workload_name="for_remote_secgrp",
             workload_cleanup=True,
         )

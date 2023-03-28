@@ -171,7 +171,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         for each in l1:
             i += 1
             workload_id = self.workload_create(
-                each, tvaultconf.parallel, workload_cleanup=True)
+                each, workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)

@@ -36,11 +36,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             jobschedule = {
                 'retention_policy_type': 'Number of Snapshots to Keep',
                 'retention_policy_value': '3',
-                'full_backup_interval': '2'}
+                'full_backup_interval': '2',
+                'enabled': False}
             rpv = int(jobschedule['retention_policy_value'])
             workload_id = self.workload_create(
                 [vm_id],
-                tvaultconf.parallel,
                 jobschedule=jobschedule,
                 workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))

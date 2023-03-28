@@ -589,7 +589,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            workload_type=tvaultconf.parallel,
             jobschedule={"enabled": False},
             workload_name="",
             workload_cleanup=True,
@@ -608,7 +607,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 for id in instances:
                     in_list.append({'instance-id': id})
                 payload = {'workload': {'name': workload_name,
-                                        'workload_type_id': workload_type,
                                         'source_platform': 'openstack',
                                         'instances': in_list,
                                         'jobschedule': jobschedule,
@@ -634,7 +632,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for id in instances:
                 in_list.append({'instance-id': id})
             payload = {'workload': {'name': workload_name,
-                                    'workload_type_id': workload_type,
                                     'source_platform': 'openstack',
                                     'instances': in_list,
                                     'jobschedule': jobschedule,
@@ -989,11 +986,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_restored_volume_info_list(self, restore_id):
         instances = self.get_restored_vm_list(restore_id)
         volume_info_list = []
+
         for instance in instances:
             LOG.debug("instance:" + instance)
-            if len(self.get_attached_volumes(instance)) > 0:
-                for volume in self.get_attached_volumes(instance['id']):
-                    volume_info_list.append(self.get_attached_volumes_info(volume))
+            attached_volumes = self.get_attached_volumes(instance)
+            volume_info = {}
+            if len(attached_volumes) > 0:
+                for volume in attached_volumes:
+                    volume_info['id'] = volume
+                    volume_info['volume_type'] = self.get_attached_volumes_info(volume)
+                    volume_info_list.append(volume_info)
         LOG.debug("restored volume info list:" + str(volume_info_list))
         return volume_info_list
 
@@ -1314,6 +1316,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     volumes.append(volume['volume_id'])
             snapshot_info[instance['id']] = volumes
         LOG.debug("Response:" + str(resp.content))
+        LOG.debug("Snapshot info:" + str(snapshot_info))
         if (resp.status_code != 200):
             resp.raise_for_status()
         return snapshot_info
@@ -2228,16 +2231,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             snapshot_id,
             vm_id,
             mount_cleanup=True, timeout=7200):
-        payload = {"mount": {"mount_vm_id": vm_id,
-                             "options": {}}}
-        resp, body = self.wlm_client.client.post(
-            "/snapshots/" + snapshot_id + "/mount", json=payload)
-        LOG.debug("#### Mounting of snapshot is initiated: ")
-        if (resp.status_code != 200):
-            resp.raise_for_status()
-        is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
-        if (tvaultconf.cleanup and mount_cleanup):
-            self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
+        try:
+            payload = {"mount": {"mount_vm_id": vm_id,
+                                 "options": {}}}
+            resp, body = self.wlm_client.client.post(
+                "/snapshots/" + snapshot_id + "/mount", json=payload)
+            LOG.debug("#### Mounting of snapshot is initiated: ")
+            if (resp.status_code != 200):
+                resp.raise_for_status()
+            is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
+            if (tvaultconf.cleanup and mount_cleanup):
+                self.addCleanup(self.unmount_snapshot, workload_id, snapshot_id)
+        except Exception as e:
+            LOG.error('Snapshot mount failed with error: %s' % snapshot_id)
+            is_successful = False
         return is_successful
 
     '''
@@ -2382,35 +2389,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def change_policyyaml_file(self, role, rule, policy_changes_cleanup=True):
-        if len(tvaultconf.tvault_ip) == 0:
-            raise Exception("Tvault IPs not available")
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if role == "newadmin":
-                old_rule = "admin_api"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
+        if role == "newadmin":
+            old_rule = "admin_api"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            elif role == "backup":
-                old_rule = "admin_or_owner"
-                LOG.debug("Add %s role in policy.yaml", role)
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+        elif role == "backup":
+            old_rule = "admin_or_owner"
+            LOG.debug("Add %s role in policy.yaml", role)
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
 
-            role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/workloadmgr/policy.yaml'.format(
-                rule, role)
-            rule_assign_command = ""
-            for op in operations:
-                rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
-            commands = role_add_command + rule_assign_command
-            LOG.debug("Commands to add role: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            if (tvaultconf.cleanup and policy_changes_cleanup):
-                self.addCleanup(self.revert_changes_policyyaml, old_rule)
-            ssh.close()
+        role_add_command = 'sed -i \'1s/^/{0}:\\n- - role:{1}\\n/\' /etc/triliovault-wlm/policy.yaml'.format(
+            rule, role)
+        rule_assign_command = ""
+        for op in operations:
+            rule_assign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            /etc/triliovault-wlm/policy.yaml'.format(rule, op)
+        LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
+        commands = role_add_command + rule_assign_command
+        LOG.debug("Commands to add role: %s", commands)
+        cmd = (tvaultconf.command_prefix).replace("<command>",commands)
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+
+        if (tvaultconf.cleanup and policy_changes_cleanup):
+            self.addCleanup(self.revert_changes_policyyaml, old_rule)
 
     '''
     Method to revert changes of role and rule in policy.json file on tvault
@@ -2424,31 +2429,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def revert_changes_policyyaml(self, rule):
-        if len(tvaultconf.tvault_ip) == 0:
-            raise Exception("Tvault IPs not available")
-        for ip in tvaultconf.tvault_ip:
-            ssh = self.SshRemoteMachineConnection(ip, tvaultconf.tvault_username,
-                                                  tvaultconf.tvault_password)
-            if rule == "admin_api":
-                role = "newadmin_api"
-                operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            elif rule == "admin_or_owner":
-                role = "backup_api"
-                operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
-                              "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+        if rule == "admin_api":
+            role = "newadmin_api"
+            operations = ["workload:get_storage_usage", "workload:get_nodes"]
 
-            role_delete_command = "sed -i '/^{0}/,+1d' /etc/workloadmgr/policy.yaml".format(role)
-            rule_reassign_command = ""
-            for op in operations:
-                rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
-                /etc/workloadmgr/policy.yaml'.format(rule, op)
-            LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
-                      role_delete_command, rule_reassign_command)
-            commands = role_delete_command + rule_reassign_command
-            LOG.debug("Commands to revert policy changes: %s", commands)
-            stdin, stdout, stderr = ssh.exec_command(commands)
-            ssh.close()
+        elif rule == "admin_or_owner":
+            role = "backup_api"
+            operations = ["workload:workload_snapshot", "snapshot:snapshot_delete", "workload:workload_create",
+                          "workload:workload_delete", "snapshot:snapshot_restore", "restore:restore_delete"]
+
+        role_delete_command = "sed -i '/^{0}/,+1d' /etc/triliovault-wlm/policy.yaml".format(role)
+        rule_reassign_command = ""
+        for op in operations:
+            rule_reassign_command += '; ' + 'sed -i \'/{1}/c {1}: rule:{0}\'\
+            /etc/triliovault-wlm/policy.yaml'.format(rule, op)
+        LOG.debug("role_delete_command: %s ;\n rule_reassign_command: %s", \
+                  role_delete_command, rule_reassign_command)
+        commands = role_delete_command + rule_reassign_command
+        LOG.debug("Commands to revert policy changes: %s", commands)
+        cmd = (tvaultconf.command_prefix).replace("<command>", commands)
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
 
     '''
     add security group rule
@@ -2874,7 +2877,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def get_mountpoint_path(self):
-        cmd = tvaultconf.command_prefix + "mount"
+        cmd = (tvaultconf.command_prefix).replace("<command>","mount")
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2891,14 +2894,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_exist_on_backend(self, mount_path,
             workload_id, snapshot_id):
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
-                str(snapshot_id).strip()
+                str(snapshot_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        if str(stderr).find('No such file or directory') != -1:
+        if (str(stderr).find('No such file or directory') != -1) or (str(stdout).find('No such file or directory') != -1):
             return False
         else:
             return True
@@ -4106,11 +4109,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_encryption_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name):
-        cmd = tvaultconf.command_prefix + "ls " + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip()
+                str(instance_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4125,11 +4128,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         stdout, stderr = p.communicate()
         cmd2 = stdout.decode('utf-8')
 
-        final_cmd = tvaultconf.command_prefix + "qemu-img info " + \
+        final_cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2)
         p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4455,8 +4458,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def check_workload_exist_on_backend(self, mount_path, workload_id):
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() +\
-                "/workload_" + str(workload_id).strip()
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() +\
+                "/workload_" + str(workload_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -4527,11 +4530,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def check_snapshot_size_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name="vda"):
         snapshot_size = 0
-        cmd = tvaultconf.command_prefix + "ls " + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip()
+                str(instance_id).strip())
 
         LOG.debug("Command to get vdisks: {}".format(cmd))
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
@@ -4549,11 +4552,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cmd2 = stdout.decode('utf-8')
 
         # block size calculation is done for MB: 1 MB = 1048576 bytes
-        final_cmd = tvaultconf.command_prefix + "ls -s --block-size=1048576 " + \
+        final_cmd = (tvaultconf.command_prefix).replace("<command>","ls -s --block-size=1048576 " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
-                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2
+                str(instance_id).strip() + "/" + cmd1 + "/" + cmd2)
         LOG.debug(f"Final command for snapshot size in MB: {final_cmd}")
         p = subprocess.Popen(shlex.split(final_cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)

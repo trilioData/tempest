@@ -67,6 +67,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.start_date = self.workload_start_date.strftime("%Y-%m-%d")
             self.start_time = self.workload_start_date.strftime("%H:%M:%S")
             self.schedule = {"fullbackup_interval": "-1", "retention_policy_type": "Number of Snapshots to Keep", "enabled": self.enabled, "start_date": self.start_date, "start_time": self.start_time,"interval": tvaultconf.interval,"retention_policy_value": 3}
-            self.workload_id=self.workload_create(self.workload_instances,tvaultconf.parallel,self.schedule)
+            self.workload_id=self.workload_create(self.workload_instances,self.schedule)
             self.workloads.append(self.workload_id)
 

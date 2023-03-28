@@ -63,7 +63,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
             vmdetails = self.get_vm_details(vm_id)
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id], workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -151,7 +151,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id],  workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -225,7 +225,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("\nVm id : {}\n".format(str(vm_id)))
 
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id],  workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -325,7 +325,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id],  workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -434,7 +434,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel, workload_cleanup=True)
+                [vm_id],  workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -549,7 +549,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel)
+                [vm_id])
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -678,7 +678,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel)
+                [vm_id])
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -793,7 +793,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel)
+                [vm_id])
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):
@@ -940,7 +940,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ### create workload ###
             workload_id = self.workload_create(
-                [vm_id], tvaultconf.parallel)
+                [vm_id])
             LOG.debug("Workload ID: " + str(workload_id))
 
             if(workload_id is not None):

@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 import time
@@ -146,6 +147,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             workload_create = command_argument_string.workload_create + \
                 " --instance instance-id=" + str(self.instances_id[1])
             error = cli_parser.cli_error(workload_create)
+            LOG.debug(
+                "Error: " + error)
             if error and (str(error.strip('\n')).find(workload_create_error_str) != -1):
                 LOG.debug(
                     "Command workload_create did not execute correctly by admin role")

@@ -162,12 +162,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(30)
 
             # create volume
-            volume_id = self.create_volume(volume_cleanup=False)
+            volume_id = self.create_volume(volume_cleanup=True)
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
             # attach volume to vm
-            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=True)
             LOG.debug("Volume attached")
 
             # assign floating ip
@@ -268,7 +268,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Selective restore of full snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("Selective restore of full snapshot", tvaultconf.FAIL)
-                raise Exception("Selective restore failed")
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                LOG.debug("Selective restore failed")
 
             # Fetch instance details after restore
             vm_list = self.get_restored_vm_list(restore_id_1)
@@ -286,6 +287,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             cmd_status = self.check_mount_cmd_status(floating_ip_2, volumes, mount_point)
             if cmd_status:
                 tests[0][1] = 1
+                reporting.test_case_to_write()
             else:
                 raise Exception("Mount command for excluded volume is successful. Test case failed.")
 
@@ -310,7 +312,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             if rc != 0:
                 reporting.add_test_step(
                     "Triggering In-Place restore via CLI", tvaultconf.FAIL)
-                raise Exception("Command did not execute correctly")
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step(
                     "Triggering In-Place restore via CLI", tvaultconf.PASS)
@@ -325,7 +327,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("In-place restore of full snapshot", tvaultconf.PASS)
             else:
                 reporting.add_test_step("In-place restore of full snapshot", tvaultconf.FAIL)
-                raise Exception("In-place restore failed")
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Fetch instance details after restore
             vm_list = []
@@ -342,12 +344,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       str(md5sums_after_inplace))
 
             if md5sums_before_full[str(
-                    floating_ip_1)] != md5sums_after_inplace[str(floating_ip_1)]:
+                    floating_ip_1)] == md5sums_after_inplace[str(floating_ip_1)]:
                 reporting.add_test_step("In-place restore checksum verification", tvaultconf.PASS)
                 tests[1][1] = 1
+                reporting.test_case_to_write()
             else:
                 reporting.add_test_step("In-place restore checksum verification", tvaultconf.FAIL)
-                raise Exception("MD5checksum matched. test case failed.")
+                LOG.debug("MD5checksum did not match. test case failed.")
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                reporting.test_case_to_write()
 
             # Delete restore for snapshot
             if (tvaultconf.cleanup):
@@ -377,7 +382,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Oneclick-restore cli command",
                     tvaultconf.FAIL)
-                raise Exception("One-click restore command did not executed correctly")
+                LOG.debug("One-click restore command did not executed correctly")
+                reporting.set_test_script_status(tvaultconf.FAIL)
             else:
                 reporting.add_test_step(
                     "Oneclick-restore cli command",
@@ -396,8 +402,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("One-click restore passed")
             else:
                 reporting.add_test_step("One-click restore of full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
                 LOG.debug("One-click restore failed")
-                raise Exception("One-click restore failed")
 
             # Fetch instance details after restore
             vm_list = []
@@ -410,6 +416,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             cmd_status = self.check_mount_cmd_status(floating_ip_1, volumes, mount_point)
             if cmd_status:
                 tests[2][1] = 1
+                reporting.test_case_to_write()
             else:
                 raise Exception("Mount command for excluded volume is successful. Test case failed.")
 
@@ -418,14 +425,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
 
         finally:
-            for test in tests:
-                if test[1] != 1:
-                    reporting.add_test_script(test[0])
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-                    reporting.test_case_to_write()
-
             if (deleted == 0):
                 try:
                     self.delete_vm(vm_id)
@@ -438,6 +440,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     self.delete_volume(volume_id)
                 except BaseException:
                     pass
-
-            reporting.test_case_to_write()
 

@@ -154,7 +154,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 "retention_policy_value": tvaultconf.retention_policy_value}
             self.workload_id = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 self.jobschedule,
                 workload_cleanup=False)
             if(self.wait_for_workload_tobe_available(self.workload_id)):
@@ -189,7 +188,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             f.write("instance_id_2=" + str(self.instances) + "\n")
 
             self.workload_id2 = self.workload_create(
-                self.instances, tvaultconf.parallel, jobschedule={
+                self.instances, jobschedule={
                     'enabled': False}, workload_cleanup=False)
             if(self.wait_for_workload_tobe_available(self.workload_id2)):
                 reporting.add_test_step(

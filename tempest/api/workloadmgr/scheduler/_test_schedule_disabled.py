@@ -67,9 +67,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.volume_size, tvaultconf.volume_type)
             self.workload_volumes.append(volume_id)
             self.attach_volume(volume_id, vm_id)
-        print self.schedule
+        print(self.schedule)
         self.workload_id = self.workload_create(
-            self.workload_instances, tvaultconf.parallel, self.schedule)
+            self.workload_instances, self.schedule)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.assertEqual(self.getSchedulerStatus(self.workload_id), False)
         #self.SchedulerStatus = True

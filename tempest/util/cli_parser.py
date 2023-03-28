@@ -22,6 +22,11 @@ def cli_error(argument_string):
     p.wait()
     return err
 
+def cli_response(argument_string):
+    p = subprocess.Popen(argument_string, shell=True, stderr=subprocess.PIPE, universal_newlines=True)
+    response = p.communicate()
+    p.wait()
+    return response
 
 def cli_response_parser(cli_resp, key_attr):
     arrResp = cli_resp.splitlines()

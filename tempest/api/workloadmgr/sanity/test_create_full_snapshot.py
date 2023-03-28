@@ -55,7 +55,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def _create_workload(self, workload_instances, encrypt=False, secret=""):
         time.sleep(5)
         self.workload_id = self.workload_create(
-            workload_instances, tvaultconf.parallel, encryption=encrypt,
+            workload_instances, encryption=encrypt,
             secret_uuid=secret, workload_cleanup=False)
         self.wait_for_workload_tobe_available(self.workload_id)
         self.workload_status = self.getWorkloadStatus(self.workload_id)
@@ -246,7 +246,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             result_json[k]['snapshot'])
                         result_json[k]['restore'] = self.restore_id
                     except Exception as e:
-                        result_json[k]['restore_error_msg'] = str(e)
+                        error_message = str(e).replace("<br /><br />\n\n\n","")
+                        result_json[k]['restore_error_msg'] = error_message
                         result_json[k]['result']['Selective_Restore'] = \
                             tvaultconf.FAIL + "\nERROR " + \
                             result_json[k]['restore_error_msg']
@@ -282,6 +283,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             result_json[k]['restore_error_msg'] = (
                                 self.getRestoreDetails(result_json[k]['restore']))\
                                         ['error_msg']
+                            result_json[k]['restore_error_msg'] = (result_json[k]['restore_error_msg']).replace("<br /><br />\n\n\n", "")
                             result_json[k]['result']['Selective_Restore'] = \
                                 tvaultconf.FAIL + "\nERROR " + \
                                 result_json[k]['restore_error_msg']

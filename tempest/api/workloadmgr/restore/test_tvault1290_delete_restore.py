@@ -38,23 +38,22 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.workload_instances = []
 
             # Launch instance
-            self.vm_id = self.create_vm(vm_cleanup=False)
+            self.vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("VM ID: " + str(self.vm_id))
 
             # Create volume
-            self.volume_id = self.create_volume(volume_cleanup=False)
+            self.volume_id = self.create_volume(volume_cleanup=True)
             LOG.debug("Volume ID: " + str(self.volume_id))
 
             # Attach volume to the instance
             self.attach_volume(self.volume_id, self.vm_id,
-                               attach_cleanup=False)
+                               attach_cleanup=True)
             LOG.debug("Volume attached")
 
             # Create workload
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances,
-                tvaultconf.parallel,
                 workload_name=tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
@@ -105,7 +104,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             # Create one-click restore
             self.restore_id = self.snapshot_restore(
-                self.wid, self.snapshot_id, tvaultconf.restore_name, restore_cleanup=False)
+                self.wid, self.snapshot_id, tvaultconf.restore_name, restore_cleanup=True)
             LOG.debug("Restore ID: " + str(self.restore_id))
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
 

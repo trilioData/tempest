@@ -106,15 +106,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.key_pair_name, keypair_cleanup=True)
             LOG.debug("Key_pair : " + str(kp))
 
-            vm_id = self.create_vm(key_pair=kp, vm_cleanup=False)
+            vm_id = self.create_vm(key_pair=kp, vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             time.sleep(30)
 
-            volume_id = self.create_volume(volume_cleanup=False)
+            volume_id = self.create_volume(volume_cleanup=True)
             LOG.debug("Volume ID: " + str(volume_id))
             volumes = tvaultconf.volumes_parts
 
-            self.attach_volume(volume_id, vm_id, attach_cleanup=False)
+            self.attach_volume(volume_id, vm_id, attach_cleanup=True)
             LOG.debug("Volume attached")
 
             floating_ip_1 = self.assign_floating_ips(vm_id, False)
