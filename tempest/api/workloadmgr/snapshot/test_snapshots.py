@@ -115,6 +115,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 str(__name__) + "_create_incremental_snapshot")
 
             global workload_id
+            global full_snapshot_size
             incr_snapshot_size = 0
             self.created = False
             LOG.debug("workload is:" + str(workload_id))
@@ -151,7 +152,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 incr_snapshot_size = self.check_snapshot_size_on_backend(mount_path, workload_id,
                                                                          self.incr_snapshot_id, vm_id)
                 LOG.debug(f"incr snapshot_size for vda: {incr_snapshot_size} MB")
-                if full_snapshot_size > incr_snapshot_size:
+                if int(full_snapshot_size) > int(incr_snapshot_size):
                     reporting.add_test_step(f"Full snapshot size is greater than incr snapshot size for vda",
                                             tvaultconf.PASS)
                 else:
