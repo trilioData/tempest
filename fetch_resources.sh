@@ -403,8 +403,10 @@ EOF
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
-		    mysql_ip=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
-		    conn_str=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo podman exec -it triliovault_wlm_api cat "/etc/triliovault-wlm/triliovault-wlm.conf" | grep sql_connection | cut -d "=" -f 2''`
+	cmd="ssh heat-admin@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
+	mysql_ip=`ssh stack@$UNDERCLOUD_IP $cmd | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1`
+	cmd="ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api cat /etc/triliovault-wlm/triliovault-wlm.conf'"
+	conn_str=`ssh stack@$UNDERCLOUD_IP $cmd | grep sql_connection | cut -d "=" -f 2`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
@@ -413,8 +415,8 @@ EOF
         echo "mysql_ip: "$mysql_ip
         echo "dbname: "$dbname
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
-		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
-		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
+	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
