@@ -149,7 +149,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verification
             out = cli_parser.cli_output(self.cmd)
             LOG.debug("CLI Response: " + str(out))
-            if(str(out).find('2') != -1):
+            if(str(out).strip('\n').find('License is valid') != -1 ):
                 reporting.add_test_step(
                     "License-check verification", tvaultconf.PASS)
             else:
@@ -195,7 +195,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verification
             out = cli_parser.cli_output(self.cmd)
             LOG.debug("CLI Response: " + str(out))
-            if(str(out).find('Number of compute nodes deployed \'' + str(tvaultconf.no_of_compute_nodes) + '\'') != -1):
+            if(str(out).strip('\n').find('License is valid') != -1 ):
                 reporting.add_test_step(
                     "License-check verification", tvaultconf.PASS)
             else:

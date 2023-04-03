@@ -317,7 +317,6 @@ function configure_tempest
     flavor_ref_alt=${fvm_flavor[0]}
 
     compute_az=$($OPENSTACK_CMD availability zone list --long | awk "/ nova-compute / " | awk "/ available / { print \$2 }" | head -1)
-    no_of_computes=$($OPENSTACK_CMD compute service list | awk "/ nova-compute / " | wc -l)
 
     iniset $TEMPEST_CONFIG compute image_ref $image_uuid
     iniset $TEMPEST_CONFIG compute fvm_image_ref $frm_data
@@ -404,8 +403,10 @@ EOF
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
-		    mysql_ip=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1''`
-		    conn_str=`ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@<controller_hostname> 'sudo podman exec -it triliovault_wlm_api cat "/etc/triliovault-wlm/triliovault-wlm.conf" | grep sql_connection | cut -d "=" -f 2''`
+	cmd="ssh heat-admin@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
+	mysql_ip=`ssh stack@$UNDERCLOUD_IP $cmd | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1`
+	cmd="ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api cat /etc/triliovault-wlm/triliovault-wlm.conf'"
+	conn_str=`ssh stack@$UNDERCLOUD_IP $cmd | grep sql_connection | cut -d "=" -f 2`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
@@ -414,8 +415,8 @@ EOF
         echo "mysql_ip: "$mysql_ip
         echo "dbname: "$dbname
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
-		    command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
-		    command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
+	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
@@ -649,7 +650,6 @@ EOF
 
 
     # tvaultconf.py
-    sed -i '/no_of_compute_nodes = /c no_of_compute_nodes = '$no_of_computes'' $TEMPEST_TVAULTCONF
     sed -i '/enabled_tests = /c enabled_tests = '$enabled_tests'' $TEMPEST_TVAULTCONF
     sed -i '/instance_username = /c instance_username = "'${TEST_USER_NAME,,}'"' $TEMPEST_TVAULTCONF
     sed -i '/bootfromvol_vol_size = /c bootfromvol_vol_size = '$BOOTVOL_SIZE'' $TEMPEST_TVAULTCONF
