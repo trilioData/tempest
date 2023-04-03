@@ -2912,10 +2912,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_backup_chain_by_quemu_cmd(self, mount_path,
                                         workload_id, snapshot_id, vm_id):
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
-              str(vm_id).strip()
+              str(vm_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2928,10 +2928,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 break
 
         LOG.debug(f"vm_res_id_vda: {vm_res_id_vda}")
-        cmd = tvaultconf.command_prefix + "ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
-              str(vm_id).strip() + "/" + str(vm_res_id_vda)
+              str(vm_id).strip() + "/" + str(vm_res_id_vda))
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2941,10 +2941,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         id1 = ids[0].replace("b'", "")
         LOG.debug(f"id: {id1}")
 
-        cmd = tvaultconf.command_prefix + "qemu-img info " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
-              str(vm_id).strip() + "/" + str(vm_res_id_vda) + "/" + str(id1) + "  --backing-chain"
+              str(vm_id).strip() + "/" + str(vm_res_id_vda) + "/" + str(id1) + "  --backing-chain")
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()

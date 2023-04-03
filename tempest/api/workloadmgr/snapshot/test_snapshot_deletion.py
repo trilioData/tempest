@@ -128,7 +128,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             rpv = int(self.schedule['retention_policy_value'])
             workload_id = self.workload_create(
                 [self.vm_id],
-                tvaultconf.parallel,
                 jobschedule=self.schedule,
                 workload_cleanup=True)
             LOG.debug("Workload ID: " + str(workload_id))
