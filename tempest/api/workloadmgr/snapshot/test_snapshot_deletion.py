@@ -332,6 +332,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
