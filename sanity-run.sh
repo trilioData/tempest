@@ -24,7 +24,7 @@ LOGS_DIR=`echo "$line" | sed  's/\./\//g'`
 LOGS_DIR=logs/$LOGS_DIR
 mkdir -p $LOGS_DIR
 echo "running $line"
-./run_tempest.sh -V tempest.api.workloadmgr.sanity.test_create_full_snapshot
+./run_tempest.sh -V tempest.api.workloadmgr.sanity.test_sanity
 if [ $? -ne 0 ]; then
    echo "$line FAIL"
 fi
