@@ -371,7 +371,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
-            self.workload_delete(self.wid)
+            if self.wid:
+                self.workload_delete(self.wid)
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_api')

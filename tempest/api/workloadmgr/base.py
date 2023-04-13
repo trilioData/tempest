@@ -1535,9 +1535,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("build command data population : " +
                       str(dirPath) + " number of files : " + str(fileCount))
             for count in range(fileCount):
-                buildCommand = "sudo dd if=/dev/urandom of=" + \
-                               str(dirPath) + "/" + "File_" + \
-                               str(count + 1) + " bs=2M count=10"
+                buildCommand = "sudo mkdir -p " + str(dirPath) + \
+                        " && sudo dd if=/dev/urandom of=" + \
+                        str(dirPath) + "/" + "File_" + \
+                        str(count + 1) + " bs=2M count=10"
                 LOG.debug("Executing command -> " + buildCommand)
                 stdin, stdout, stderr = ssh.exec_command(buildCommand)
                 start_time = time.time()
@@ -4476,7 +4477,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return output
 
     '''
-    Method returns True if snapshot dir is exists on backup target media
+    Method returns actual size of the snapshot from target backend
     '''
 
     def check_snapshot_size_on_backend(self, mount_path, workload_id,
@@ -4519,4 +4520,51 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         else:
             snapshot_size = str(stdout.decode("utf-8")).split(' ')[0]
             return snapshot_size
+
+    '''
+    Method returns backing chain of a specific snapshot
+    '''
+
+    def get_backing_chain(self, mount_path, workload_id, snapshot_id, vm_id):
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip() + "/vm_id_" + \
+              str(vm_id).strip())
+        LOG.debug(f"cmd1: {cmd}")
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
+        vm_res_ids = stdout.decode('UTF-8').split("\r\n")
+        LOG.debug(f"vm_res_id list : {vm_res_ids}")
+        for vm_res_id in vm_res_ids:
+            if "_vda" in vm_res_id:
+                vm_res_id_vda = vm_res_id
+                break
+        LOG.debug(f"vm_res_id_vda: {vm_res_id_vda}")
+
+        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+              "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+              str(snapshot_id).strip() + "/vm_id_" + \
+              str(vm_id).strip() + "/" + str(vm_res_id_vda))
+        LOG.debug(f"cmd2: {cmd}")
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
+        ids = stdout.decode('UTF-8').split("\r\n")
+        LOG.debug(f"id list : {ids}")
+
+        cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info"+\
+                " --output=json --backing-chain " + str(mount_path).strip() +\
+                "/workload_" + str(workload_id).strip() + "/snapshot_" + \
+                str(snapshot_id).strip() + "/vm_id_" + str(vm_id).strip() +\
+                "/" + str(vm_res_id_vda) + "/" + str(ids[0]))
+        LOG.debug(f"cmd3: {cmd}")
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        stdout, stderr = p.communicate()
+        LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
+        backing_chain = stdout.decode('UTF-8')
+        return backing_chain
 

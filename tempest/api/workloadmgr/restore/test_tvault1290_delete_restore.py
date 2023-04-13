@@ -38,16 +38,16 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             self.workload_instances = []
 
             # Launch instance
-            self.vm_id = self.create_vm(vm_cleanup=True)
+            self.vm_id = self.create_vm(vm_cleanup=False)
             LOG.debug("VM ID: " + str(self.vm_id))
 
             # Create volume
-            self.volume_id = self.create_volume(volume_cleanup=True)
+            self.volume_id = self.create_volume(volume_cleanup=False)
             LOG.debug("Volume ID: " + str(self.volume_id))
 
             # Attach volume to the instance
             self.attach_volume(self.volume_id, self.vm_id,
-                               attach_cleanup=True)
+                               attach_cleanup=False)
             LOG.debug("Volume attached")
 
             # Create workload
@@ -64,35 +64,13 @@ class RestoreTest(base.BaseWorkloadmgrTest):
             LOG.debug("Snapshot ID: " + str(self.snapshot_id))
 
             # Wait till snapshot is complete
-            wc = query_data.get_workload_snapshot_status(
-                tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, self.snapshot_id)
-            LOG.debug("Workload snapshot status: " + str(wc))
-            retry_count = 0
-            while (str(wc) != "available" or str(wc) != "error" or str(wc) != "None"):
-                time.sleep(15)
-                wc = query_data.get_workload_snapshot_status(
-                    tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, self.snapshot_id)
-                LOG.debug("Workload snapshot status: " + str(wc))
-                if (str(wc) == "available"):
-                    LOG.debug("Workload snapshot successfully completed")
-                    self.created = True
-                    break
-                elif (str(wc) == "None") or (str(wc) == "error"):
-                    LOG.debug("Failed to create workload snapshot")
-                    self.created = False
-                    break
-                else:
-                    if retry_count >= tvaultconf.max_retries:
-                        LOG.error("Max retries to get Snapshot restore status is over. Failed to get restore snapshot status.")
-                        self.created = False
-                        break
-                    else:
-                        LOG.debug("Retrying to get restore snapshot status again - retry count = "+ str(retry_count))
-                        retry_count += 1
-            #end of while loop.
-
-            if (self.created == False):
-                raise Exception("Workload snapshot did not get created")
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                    self.snapshot_id)
+            if(self.snapshot_status == "available"):
+                reporting.add_test_step("Create full snapshot", tvaultconf.PASS)
+            else:
+                raise Exception("Create full snapshot")
 
             # Delete instance
             self.delete_vm(self.vm_id)
@@ -104,7 +82,8 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             # Create one-click restore
             self.restore_id = self.snapshot_restore(
-                self.wid, self.snapshot_id, tvaultconf.restore_name, restore_cleanup=True)
+                self.wid, self.snapshot_id, tvaultconf.restore_name, 
+                restore_cleanup=False)
             LOG.debug("Restore ID: " + str(self.restore_id))
             self.wait_for_snapshot_tobe_available(self.wid, self.snapshot_id)
 
