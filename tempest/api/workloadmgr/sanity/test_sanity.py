@@ -184,7 +184,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             result_json[k]['result']['Create_Workload'] = \
                                 tvaultconf.PASS
                         elif(self.workload_status == "error"):
-                            result_json[k]['workload_error_msg'] = self.workload_details
+                            result_json[k]['workload_error_msg'] = \
+                                    self.workload_details['error_msg']
                             result_json[k]['result']['Create_Workload'] = \
                                 tvaultconf.FAIL + "\nERROR " + \
                                 result_json[k]['workload_error_msg']
@@ -196,14 +197,15 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                 result_json[k]['workload_error_msg']
                         continue
 
-                    if self.workload_id:
+                    if self.workload_id and \
+                        self.workload_status == "available":
                         try:
-                            self._create_full_snapshot(self.workload_id)
+                            self._create_snapshot(self.workload_id, 'full')
                             result_json[k]['snapshot'] = self.snapshot_id
                             result_json[k]['snapshot_status'] = self.snapshot_status
                         except Exception as e:
                             result_json[k]['snapshot_error_msg'] = str(e)
-                            result_json[k]['result']['Create_Snapshot'] = \
+                            result_json[k]['result']['Create_Full_Snapshot'] = \
                                 tvaultconf.FAIL + "\nERROR " + \
                                 result_json[k]['snapshot_error_msg']
                             continue
