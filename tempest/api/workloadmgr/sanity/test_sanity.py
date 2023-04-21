@@ -197,9 +197,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         continue
 
                     if self.workload_id:
-                        self._create_snapshot(self.workload_id, 'full')
-                        result_json[k]['snapshot'] = self.snapshot_id
-                        result_json[k]['snapshot_status'] = self.snapshot_status
+                        try:
+                            self._create_full_snapshot(self.workload_id)
+                            result_json[k]['snapshot'] = self.snapshot_id
+                            result_json[k]['snapshot_status'] = self.snapshot_status
+                        except Exception as e:
+                            result_json[k]['snapshot_error_msg'] = str(e)
+                            result_json[k]['result']['Create_Snapshot'] = \
+                                tvaultconf.FAIL + "\nERROR " + \
+                                result_json[k]['snapshot_error_msg']
+                            continue
                 else:
                     result_json[k]['result']['Prerequisite'] = tvaultconf.FAIL
                     continue
