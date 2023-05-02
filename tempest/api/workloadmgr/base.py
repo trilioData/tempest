@@ -4579,6 +4579,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if resp.status_code != 200:
                 resp.raise_for_status()
             node_list = body['nodes']
+            LOG.debug(f"Node list returned: {node_list}")
         except Exception as e:
             LOG.error(f"Exception in get_wlm_nodes: {e}")
         finally:
