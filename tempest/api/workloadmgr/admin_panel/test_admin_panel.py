@@ -214,5 +214,51 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_cli')
+    def test_5_wlm_service(self):
+        try:
+            reporting.add_test_script(str(__name__) + "_disable_enable_wlm_service_non-admin-user")
+            # Fetch wlm nodes list
+            wlm_nodes = self.get_wlm_nodes()
+            node_names = [x['node'] for x in wlm_nodes]
+            LOG.debug(f"node_names: {node_names}")
 
+            # Use non-admin credentials
+            os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
+            os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
+
+            wlm_disable = command_argument_string.service_disable +\
+                    node_names[0]
+            error = cli_parser.cli_error(wlm_disable)
+            LOG.debug(f"Error returned from CLI: {error}")
+            if error and \
+                    (str(error.strip('\n')).find(
+                        tvaultconf.wlm_disable_err_msg) != -1):
+                reporting.add_test_step("Non-admin user unable to disable WLM service",
+                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Non-admin user able to disable WLM service",
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            wlm_enable = command_argument_string.service_enable +\
+                    node_names[0]
+            error = cli_parser.cli_error(wlm_enable)
+            LOG.debug(f"Error returned from CLI: {error}")
+            if error and \
+                    (str(error.strip('\n')).find(
+                        tvaultconf.wlm_disable_err_msg) != -1):
+                reporting.add_test_step("Non-admin user unable to enable WLM service",
+                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Non-admin user able to enable WLM service",
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
 
