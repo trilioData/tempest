@@ -41,6 +41,7 @@ workload_modify_name = "test2-new"
 workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
+wlm_disable_reason = "Trilio Test Reason"
 
 tvault_ip = []
 tvault_version = "4.1.124"

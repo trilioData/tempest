@@ -4568,3 +4568,19 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         backing_chain = stdout.decode('UTF-8')
         return backing_chain
 
+    '''
+    List WLM nodes
+    '''
+
+    def get_wlm_nodes(self):
+        try:
+            node_list = []
+            resp, body = self.wlm_client.client.get("/workloads/metrics/nodes")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            node_list = body['nodes']
+        except Exception as e:
+            LOG.error(f"Exception in get_wlm_nodes: {e}")
+        finally:
+            return node_list
+

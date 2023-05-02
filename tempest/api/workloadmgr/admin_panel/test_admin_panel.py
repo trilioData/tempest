@@ -137,3 +137,33 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_4_wlm_service(self):
+        try:
+            reporting.add_test_script(str(__name__) + "_disable_enable_wlm_service")
+            # Fetch wlm nodes list
+            wlm_nodes = self.get_wlm_nodes()
+            node_names = [x['node'] for x in wlm_nodes]
+            LOG.debug(f"node_names: {node_names}")
+
+            workload_create = command_argument_string.workload_create + \
+                " --instance instance-id=" + str(self.vm_id)
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
