@@ -9,6 +9,9 @@ from tempest import test
 from tempest import tvaultconf
 from tempest.api.workloadmgr import base
 from tempest.lib import decorators
+from tempest import command_argument_string
+from tempest.util import cli_parser
+from tempest.util import query_data
 
 sys.path.append(os.getcwd())
 
@@ -30,8 +33,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         super(WorkloadTest, cls).setup_clients()
 
     @test.pre_req({'type': 'basic_workload'})
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_api')
     def test_1_get_audit_log(self):
         try:
@@ -81,16 +82,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 LOG.debug("audit log API does not return anything")
                 reporting.add_test_step("Audit Log", tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_api')
     def test_2_get_storage_details(self):
         try:
@@ -106,16 +104,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 LOG.debug("storage detailsAPI does not return anything")
                 reporting.add_test_step("Storage Details", tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_api')
     def test_3_get_tenant_details(self):
         try:
@@ -130,12 +125,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 LOG.debug("Tenant details API does not return anything")
                 reporting.add_test_step("Tenant Details", tvaultconf.FAIL)
-
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
