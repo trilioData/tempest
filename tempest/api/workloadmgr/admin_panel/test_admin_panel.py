@@ -256,3 +256,83 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_6_wlm_service(self):
+        try:
+            reporting.add_test_script(str(__name__) + "_disable_wlm_service_all_nodes")
+            node_names = []
+
+            vm_id = self.create_vm()
+            wlm_nodes = self.get_wlm_nodes()
+            node_names = [x['node'] for x in wlm_nodes]
+            LOG.debug(f"node_names: {node_names}")
+            #Ensure all wlm nodes are enabled
+            for node in node_names:
+                self.update_wlm_service(node, 'enable')
+            wlm_nodes = self.get_wlm_nodes()
+
+            try:
+                wid = self.workload_create([vm_id])
+                LOG.debug("Workload ID: " + str(wid))
+            except Exception as e:
+                raise Exception(e)
+            if wid:
+                self.wait_for_workload_tobe_available(wid)
+                workload_status = self.getWorkloadStatus(wid)
+                if(workload_status == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload")
+            else:
+                raise Exception("Create workload")
+
+            #Disable all wlm nodes
+            for node in node_names:
+                self.update_wlm_service(node, 'disable')
+            wlm_nodes_after_disable = self.get_wlm_nodes()
+            flag = True
+            for node in wlm_nodes_after_disable:
+                if node['status'].lower() != 'down':
+                    flag = False
+            if flag:
+                reporting.add_test_step(
+                        "Disable wlm-workloads service on all nodes",
+                        tvaultconf.PASS)
+                #Trigger snapshot
+                snapshot_id = self.workload_snapshot(wid, True)
+                self.wait_for_workload_tobe_available(wid)
+                snapshot_data = self.getSnapshotDetails(wid, snapshot_id)
+                workload_status = self.getWorkloadStatus(wid)
+                if workload_status == 'available':
+                    reporting.add_test_step("Workload status set to available",
+                            tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Workload status set to available",
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                if snapshot_data['status'] == 'error' and \
+                        snapshot_data['error_msg'] == 'No valid host was found. ':
+                    reporting.add_test_step("Unable to create snapshot",
+                            tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Able to create snapshot",
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            else:
+                reporting.add_test_step(
+                        "Disable wlm-workloads service on all nodes",
+                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #Enable all wlm nodes
+            for node in node_names:
+                self.update_wlm_service(node, 'enable')
+            wlm_nodes_final = self.get_wlm_nodes()
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
