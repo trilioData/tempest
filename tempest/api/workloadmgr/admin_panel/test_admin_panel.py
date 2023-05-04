@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 
 from oslo_log import log as logging
 
@@ -365,6 +366,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Trigger snapshot", tvaultconf.PASS)
             else:
                 raise Exception("Trigger snapshot")
+            time.sleep(30)
             snapshot_data = self.getSnapshotDetails(wid, snapshot_id)
 
             #Disable wlm-workloads service on specific host on which
