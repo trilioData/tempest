@@ -303,19 +303,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wait_for_workload_tobe_available(wid)
                 snapshot_data = self.getSnapshotDetails(wid, snapshot_id)
                 workload_status = self.getWorkloadStatus(wid)
-                if workload_status == 'available':
-                    reporting.add_test_step("Workload status set to available",
-                            tvaultconf.PASS)
-                else:
-                    reporting.add_test_step("Workload status set to available",
-                            tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
                 if snapshot_data['status'] == 'error' and \
                         snapshot_data['error_msg'] == 'No valid host was found. ':
                     reporting.add_test_step("Unable to create snapshot",
                             tvaultconf.PASS)
                 else:
                     reporting.add_test_step("Able to create snapshot",
+                            tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+                if workload_status == 'available':
+                    reporting.add_test_step("Workload status set to available",
+                            tvaultconf.PASS)
+                else:
+                    reporting.add_test_step("Workload status set to available",
                             tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
