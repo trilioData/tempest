@@ -247,7 +247,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             mount_status = self.mount_snapshot(
                     workload_id, new_snap_id, self.frm_id, mount_cleanup=False)
             if mount_status:
-                reporting.add_test_step("Snapshot mount of incremental snapshot",
+                reporting.add_test_step("Snapshot mount of latest incremental snapshot",
                         tvaultconf.PASS)
                 ssh = self.SshRemoteMachineConnectionWithRSAKey(
                         fip[1], self.frm_ssh_user)
@@ -257,20 +257,16 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 ssh.close()
                 flag = 0
                 for i in output_list:
-                    if 'vda1.mnt' in i:
+                    if 'vda1.mnt/test1/File_2' in i:
                         reporting.add_test_step(
                             "Verify that mountpoint mounted is shown on FVM instance",
                             tvaultconf.PASS)
+                        reporting.add_test_step(
+                            "Verification of file's existance on mounted snapshot",
+                            tvaultconf.PASS)
                         flag = 1
-                        if '/test1/File_2' in i:
-                            reporting.add_test_step(
-                                "Verification of file's existance on mounted snapshot",
-                                tvaultconf.PASS)
-                        else:
-                            reporting.add_test_step(
-                                "Verification of file's existance on mounted snapshot",
-                                tvaultconf.FAIL)
-                            reporting.set_test_script_status(tvaultconf.FAIL)
+                    else:
+                        pass
 
                 if flag == 0:
                     reporting.add_test_step(
@@ -332,6 +328,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
