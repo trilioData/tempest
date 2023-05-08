@@ -234,7 +234,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                       str(result_json))
 
             for k in result_json.keys():
-                if(result_json[k]['result']['Create_Full_Snapshot'] == 
+                if('snapshot_status' in result_json[k].keys() and \
+                        result_json[k]['result']['Create_Full_Snapshot'] == 
                         tvaultconf.PASS):
                     self._create_snapshot(result_json[k]['workload'], 'incremental')
                     result_json[k]['incr_snapshot'] = self.snapshot_id
