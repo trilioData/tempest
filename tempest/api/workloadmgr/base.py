@@ -4568,3 +4568,42 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         backing_chain = stdout.decode('UTF-8')
         return backing_chain
 
+    '''
+    List WLM nodes
+    '''
+
+    def get_wlm_nodes(self):
+        try:
+            node_list = []
+            resp, body = self.wlm_client.client.get("/workloads/metrics/nodes")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            node_list = body['nodes']
+            LOG.debug(f"Node list returned: {node_list}")
+        except Exception as e:
+            LOG.error(f"Exception in get_wlm_nodes: {e}")
+        finally:
+            return node_list
+
+    '''
+    Update wlm workloads service for specific node
+    '''
+
+    def update_wlm_service(self, node, operation):
+        try:
+            if operation.lower() == 'enable':
+                status = 0
+                reason = ""
+            else:
+                status = 1
+                reason = tvaultconf.wlm_disable_reason
+            payload = {"node_name": node, "status": status, "reason": reason}
+            resp, body = self.wlm_client.client.post(
+                    "/workloads/service/update", json=payload)
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in update_wlm_service: {e}")
+            return False
+

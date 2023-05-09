@@ -760,3 +760,21 @@ def get_created_workload_setting(setting_name):
     finally:
         cursor.close()
         conn.close()
+
+
+def get_service_status(host):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_status = ("select disabled, disabled_reason from services where host='" +\
+                host + "' and topic='workloadmgr-workloads'")
+        cursor.execute(get_status)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        print(str(e))
+    finally:
+        cursor.close()
+        conn.close()
+

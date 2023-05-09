@@ -157,3 +157,9 @@ wl_assigned_policy_no_projectid_error_string = 'workloadmgr list-assigned-polici
 #snapshot cancel cli error strings
 error_cancel_snapshot_cli_without_any_options = "workloadmgr snapshot-cancel: error: the following arguments are required: <snapshot_id>"
 error_cancel_snapshot_cli_with_invalid_workloadid_option = "ERROR:workloadmgr:No snapshot with a name or ID of 'invalid' exists."
+
+
+service_disable_msg = "workloads service successfully disabled on node: "
+service_enable_msg = "workloads service successfully enabled on node: "
+wlm_disable_reason = "Trilio Test Reason"
+wlm_disable_err_msg = "ERROR:workloadmgr:User does not have admin privileges"
