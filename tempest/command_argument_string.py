@@ -35,6 +35,8 @@ workload_disable_global_job_scheduler = "workloadmgr disable-global-job-schedule
 workload_enable_global_job_scheduler = "workloadmgr enable-global-job-scheduler"
 get_nodes  = "workloadmgr workload-get-nodes" 
 get_auditlog = "workloadmgr workload-get-auditlog"
+service_disable = "workloadmgr workload-service-disable --reason '" + tvaultconf.wlm_disable_reason + "' "
+service_enable = "workloadmgr workload-service-enable "
 
 #Snapshot commands
 snapshot_list = "workloadmgr snapshot-list | grep available | wc -l"
