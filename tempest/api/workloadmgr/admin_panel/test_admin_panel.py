@@ -472,6 +472,32 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             for wid in wids:
                 self.wait_for_workload_tobe_available(wid)
 
+            #Enable wlm-workloads on disabled nodes
+            for i in range(0, len(node_names)-1):
+                if self.update_wlm_service(node_names[i], 'enable'):
+                    reporting.add_test_step(f"Enable wlm service on host {node_names[i]}",
+                        tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(f"Enable wlm service on host {node_names[i]}",
+                        tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            wlm_nodes = self.get_wlm_nodes()
+
+            #Trigger snapshots for both workloads
+            for i in range(len(wids)):
+                snapshot_id = self.workload_snapshot(wids[i], True)
+                snapshots.append(snapshot_id)
+                if snapshot_id:
+                    reporting.add_test_step(f"Trigger snapshot-{i+1}",
+                            tvaultconf.PASS)
+                else:
+                    raise Exception(f"Trigger snapshot-{i+1}")
+                snapshot_data = self.getSnapshotDetails(wids[i], snapshot_id)
+                reporting.add_test_step(f"Snapshot-{i+1} scheduled on host "+\
+                        f"{snapshot_data['host']}", tvaultconf.PASS)
+            for wid in wids:
+                self.wait_for_workload_tobe_available(wid)
+
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
@@ -482,4 +508,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.update_wlm_service(node, 'enable')
             wlm_nodes = self.get_wlm_nodes()
             reporting.test_case_to_write()
-
