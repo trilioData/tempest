@@ -163,3 +163,5 @@ service_disable_msg = "workloads service successfully disabled on node: "
 service_enable_msg = "workloads service successfully enabled on node: "
 wlm_disable_reason = "Trilio Test Reason"
 wlm_disable_err_msg = "ERROR:workloadmgr:User does not have admin privileges"
+snapshot_reset_err_msg = "ERROR:workloadmgr:Please check service status on the Host("
+

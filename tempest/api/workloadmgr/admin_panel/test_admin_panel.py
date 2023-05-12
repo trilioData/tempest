@@ -509,7 +509,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             wlm_nodes = self.get_wlm_nodes()
             reporting.test_case_to_write()
 
-    @decorators.attr(type='workloadmgr_api')
+    @decorators.attr(type='workloadmgr_cli')
     def test_9_wlm_service(self):
         try:
             reporting.add_test_script(str(__name__) + \
@@ -551,21 +551,20 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("Disable wlm service on snapshot host",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            
+
             snapshot_reset = command_argument_string.snapshot_reset + snapshot_id
             error = cli_parser.cli_error(snapshot_reset)
             LOG.debug(f"Error returned from CLI: {error}")
-            '''
+            err_msg = tvaultconf.snapshot_reset_err_msg + \
+                    snapshot_data['host'] + ")"
             if error and \
-                    (str(error.strip('\n')).find(
-                        tvaultconf.wlm_disable_err_msg) != -1):
-                reporting.add_test_step("Non-admin user unable to disable WLM service",
+                    (str(error.strip('\n')).find(err_msg) != -1):
+                reporting.add_test_step("Snapshot-reset returned proper error message",
                         tvaultconf.PASS)
             else:
-                reporting.add_test_step("Non-admin user able to disable WLM service",
+                reporting.add_test_step("Snapshot-reset did not return proper message",
                         tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-            '''
 
             self.wait_for_workload_tobe_available(wid)
             snapshot_status = self.getSnapshotStatus(wid, snapshot_id)
