@@ -225,13 +225,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.snapshot_name, tvaultconf.snapshot_type_full, snapshot_id)
                 LOG.debug("Snapshot Delete status: " + str(wc))
                 time.sleep(5)
-            if(str(wc) == "1"):
+            if(str(wc) == "None"):
+                LOG.debug("Snapshot is already deleted. Returned return value as None.")
                 reporting.add_test_step("Verification", tvaultconf.PASS)
-                LOG.debug("Workload snapshot successfully deleted")
-            else:
-                LOG.debug("Timeout Waiting for snapshot deletion for the workload.")
+            elif(str(wc) == "1"):
+                LOG.error("Unexpected return value as 1 while checking snapshot delete status")
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
                 raise Exception("Snapshot did not get deleted")
+            else:
+                LOG.error("Timeout Waiting for snapshot deletion for the workload.")
+                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                raise Exception("Snapshot did not get deleted")
+
+            time.sleep(10)
+
+            # DB validations for snapshots after cleanup
+            snapshot_validations_after_deletion = self.db_cleanup_snapshot_validations(snapshot_id)
+            if (all(value == 0 for value in snapshot_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for full snapshot", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Cleanup
             # Delete volume
@@ -240,6 +254,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Delete workload
             self.workload_delete(workload_id)
+            time.sleep(10)
+
+            # DB validations for workload after workload cleanup
+            workload_validations_after_deletion = self.db_cleanup_workload_validations(workload_id)
+            if (all(value == 0 for value in workload_validations_after_deletion.values())):
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # Delete vm
             self.delete_vm(vm_id)
@@ -247,9 +270,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Delete volume
             self.delete_volume(volume_id)
 
-            reporting.test_case_to_write()
-
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
             reporting.test_case_to_write()
+

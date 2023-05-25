@@ -119,12 +119,14 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             wc = query_data.get_snapshot_restore_delete_status(
                 tvaultconf.restore_name, tvaultconf.restore_type)
-            if (str(wc) == "1"):
+            LOG.debug("Snapshot delete status: " + str(wc))
+            if (str(wc) == "None"):
                 reporting.add_test_step("Verification", tvaultconf.PASS)
-                LOG.debug("Snapshot restore successfully deleted")
+                LOG.debug("Snapshot deleted already. Returned return value as None.")
             else:
                 reporting.add_test_step("Verification", tvaultconf.FAIL)
-                raise Exception("Restore did not get deleted")
+                reporting.set_test_script_status(tvaultconf.FAIL)
+                LOG.error("Unexpected return value received while checking snapshot delete status")
 
             # Cleanup
             # Delete restored VM instance and volume

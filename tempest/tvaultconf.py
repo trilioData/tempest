@@ -138,3 +138,14 @@ enable_cinder_volume_exclusion = {"exclude_from_backup": "True"}
 enable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "True"}
 disable_bootdisk_exclusion = {"exclude_boot_disk_from_backup": "False"}
 
+#max retry count
+max_retries = 20
+
+#db cleanup validations tables
+workload_tables = ["workloads", "workload_vms", "workload_vm_metadata", "scheduled_jobs", "snapshots"]
+snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources", "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps", "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata", "snap_network_resources", "snap_network_resource_metadata"]
+restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
+workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
+workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
+
+
