@@ -165,3 +165,5 @@ wlm_disable_reason = "Trilio Test Reason"
 wlm_disable_err_msg = "ERROR:workloadmgr:User does not have admin privileges"
 snapshot_reset_err_msg = "ERROR:workloadmgr:Please check service status on the Host("
 
+create_license_expected_str = "End User License Agreement"
+create_license_send_str = "y"

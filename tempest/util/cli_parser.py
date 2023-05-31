@@ -38,3 +38,16 @@ def cli_response_parser(cli_resp, key_attr):
         if(len(arrL) > 1):
             if(arrL[1] == key_attr):
                 return arrL[2]
+
+def cli_expect(argument_string, expected_list, param_list):
+    try:
+        child = pexpect.spawn(argument_string)
+        for i in range(len(expected_list)):
+            child.expect(expected_list[i], timeout=180)
+            child.send(param_list[i])
+            time.sleep(2)
+        return True
+    except Exception as e:
+        LOG.error(f"Exception in cli_expect: {e}")
+        return False
+
