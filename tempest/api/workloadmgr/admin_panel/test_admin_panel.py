@@ -509,8 +509,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             wlm_nodes = self.get_wlm_nodes()
             reporting.test_case_to_write()
 
-<<<<<<< HEAD
-=======
     @decorators.attr(type='workloadmgr_cli')
     def test_9_wlm_service(self):
         try:
@@ -595,4 +593,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
->>>>>>> upstream/stable/5.0
