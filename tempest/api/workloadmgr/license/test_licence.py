@@ -25,8 +25,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_01_expired_license(self):
         reporting.add_test_script(str(__name__) + "_expired_license")
@@ -35,9 +33,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.cmd = command_argument_string.license_create + \
                 tvaultconf.expired_license_filename
             LOG.debug("License create command: " + str(self.cmd))
-            rc = cli_parser.cli_returncode(self.cmd)
-            LOG.debug("rc value: " + str(rc))
-            if rc != 0:
+            rc = cli_parser.cli_expect(self.cmd,
+                    [tvaultconf.create_license_expected_str],
+                    [tvaultconf.create_license_send_str])
+            if not rc:
                 reporting.add_test_step(
                     "Execute license_create command with expired license",
                     tvaultconf.FAIL)
@@ -64,8 +63,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_02_invalid_license(self):
         reporting.add_test_script(str(__name__) + "_invalid_license")
@@ -74,8 +71,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.cmd = command_argument_string.license_create + \
                 tvaultconf.invalid_license_filename
             LOG.debug("License create command: " + str(self.cmd))
-            rc = cli_parser.cli_returncode(self.cmd)
-            if rc == 0:
+            rc = cli_parser.cli_expect(self.cmd,
+                    [tvaultconf.create_license_expected_str],
+                    [tvaultconf.create_license_send_str])
+            if rc:
                 reporting.add_test_step(
                     "Execute license_create command with invalid license",
                     tvaultconf.PASS)
@@ -108,16 +107,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_03_license_check_vms(self):
         reporting.add_test_script(str(__name__) + "_check_vms")
         try:
             # Create license using CLI command
             self.cmd = command_argument_string.license_create + tvaultconf.vm_license_filename
-            rc = cli_parser.cli_returncode(self.cmd)
-            if rc != 0:
+            rc = cli_parser.cli_expect(self.cmd,
+                    [tvaultconf.create_license_expected_str],
+                    [tvaultconf.create_license_send_str])
+            if not rc:
                 reporting.add_test_step("Apply 10VM license", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Command did not execute correctly")
@@ -128,8 +127,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.workload_instances = []
             for i in range(0, 2):
                 self.vm_id = self.create_vm()
-                self.volume_id = self.create_volume()
-                self.attach_volume(self.volume_id, self.vm_id)
                 self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
                 self.workload_instances)
@@ -162,8 +159,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_05_license_check_compute(self):
         reporting.add_test_script(str(__name__) + "_check_compute")
@@ -171,8 +166,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create license using CLI command
             self.cmd = command_argument_string.license_create + \
                 tvaultconf.compute_license_filename
-            rc = cli_parser.cli_returncode(self.cmd)
-            if rc != 0:
+            rc = cli_parser.cli_expect(self.cmd,
+                    [tvaultconf.create_license_expected_str],
+                    [tvaultconf.create_license_send_str])
+            if not rc:
                 reporting.add_test_step(
                     "Apply 10 compute node license", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)

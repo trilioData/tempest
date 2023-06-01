@@ -52,3 +52,16 @@ def cli_expect(argument_string, expected_list, param_list):
         LOG.error(f"Exception in cli_expect: {e}")
         return False
 
+def cli_expect_error(argument_string, expected_list, param_list):
+    try:
+        child = pexpect.spawn(argument_string)
+        for i in range(len(expected_list)):
+            child.expect(expected_list[i], timeout=180)
+            child.send(param_list[i])
+            time.sleep(2)
+            error_str = child.read().decode('utf-8').split('\r\n')[-2]
+        return error_str
+    except Exception as e:
+        LOG.error(f"Exception in cli_expect_error: {e}")
+        return None
+
