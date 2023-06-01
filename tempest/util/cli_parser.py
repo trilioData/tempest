@@ -1,5 +1,6 @@
 import subprocess
-
+import pexpect
+import time
 
 def cli_returncode(argument_string):
     p = subprocess.Popen(argument_string, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
