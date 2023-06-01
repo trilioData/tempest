@@ -1,8 +1,6 @@
 import subprocess
 import pexpect
 import time
-from oslo_log import log as logging
-LOG = logging.getLogger(__name__)
 
 def cli_returncode(argument_string):
     p = subprocess.Popen(argument_string, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
@@ -51,7 +49,7 @@ def cli_expect(argument_string, expected_list, param_list):
             time.sleep(2)
         return True
     except Exception as e:
-        LOG.error(f"Exception in cli_expect: {e}")
+        print(f"Exception in cli_expect: {e}")
         return False
 
 def cli_expect_error(argument_string, expected_list, param_list):
@@ -64,6 +62,6 @@ def cli_expect_error(argument_string, expected_list, param_list):
             error_str = child.read().decode('utf-8').split('\r\n')[-2]
         return error_str
     except Exception as e:
-        LOG.error(f"Exception in cli_expect_error: {e}")
+        print(f"Exception in cli_expect_error: {e}")
         return None
 
