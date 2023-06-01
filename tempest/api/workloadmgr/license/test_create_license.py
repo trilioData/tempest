@@ -49,7 +49,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("License verification")
         except Exception as e:
-            reporting.add_test_step(ste(e), tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
