@@ -30,3 +30,4 @@ apscheduler>=3.3.0
 mysql-connector-python==8.0.29
 bs4
 pycodestyle<2.1,>=2.0
+pexpect

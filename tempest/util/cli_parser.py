@@ -1,5 +1,6 @@
 import subprocess
-
+import pexpect
+import time
 
 def cli_returncode(argument_string):
     p = subprocess.Popen(argument_string, shell=True, stdout=subprocess.PIPE, universal_newlines=True)
@@ -38,3 +39,29 @@ def cli_response_parser(cli_resp, key_attr):
         if(len(arrL) > 1):
             if(arrL[1] == key_attr):
                 return arrL[2]
+
+def cli_expect(argument_string, expected_list, param_list):
+    try:
+        child = pexpect.spawn(argument_string)
+        for i in range(len(expected_list)):
+            child.expect(expected_list[i], timeout=180)
+            child.send(param_list[i])
+            time.sleep(2)
+        return True
+    except Exception as e:
+        print(f"Exception in cli_expect: {e}")
+        return False
+
+def cli_expect_error(argument_string, expected_list, param_list):
+    try:
+        child = pexpect.spawn(argument_string)
+        for i in range(len(expected_list)):
+            child.expect(expected_list[i], timeout=180)
+            child.send(param_list[i])
+            time.sleep(2)
+            error_str = child.read().decode('utf-8').split('\r\n')[-2]
+        return error_str
+    except Exception as e:
+        print(f"Exception in cli_expect_error: {e}")
+        return None
+
