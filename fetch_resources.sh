@@ -678,7 +678,7 @@ python$PYTHON_VERSION -m venv $OPENSTACK_CLI_VENV
 source openstack-setup.conf
 pip$PYTHON_VERSION install wheel
 pip$PYTHON_VERSION install --upgrade pip
-pip$PYTHON_VERSION install openstacksdk
+pip$PYTHON_VERSION install openstacksdk==1.2.0
 pip$PYTHON_VERSION install os-client-config
 pip$PYTHON_VERSION install python-openstackclient
 
