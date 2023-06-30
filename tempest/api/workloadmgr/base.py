@@ -4417,7 +4417,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        if str(stderr).find('No such file or directory') != -1:
+        if str(stdout).find('No such file or directory') != -1:
             return False
         else:
             return True

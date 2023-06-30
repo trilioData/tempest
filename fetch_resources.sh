@@ -581,9 +581,17 @@ EOF
         floating_ip_cnt=$(( $floating_ip_cnt + 1 ))
     done
     $OPENSTACK_CMD floating ip list --project $test_project_id
+    #Check if atleast tvaultconf.vm_count floating ips are available in the project, else stop the execution
+    floating_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
+    tvaultconf_vm_count=`grep vm_count $TEMPEST_TVAULTCONF | cut -d '=' -f2 | xargs`
+    if [ $floating_cnt -lt $tvaultconf_vm_count ]
+    then
+        echo "Sufficient floating ips not available, exiting the execution"
+	exit 1
+    fi
 
     #Update default security group rules
-    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep 'default ' | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id

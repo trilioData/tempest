@@ -141,6 +141,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 + "' --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
                 + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)\
                 + " --jobschedule enabled=True"
+            LOG.debug(f"workload create command: {workload_create}")
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -580,7 +581,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.interval = tvaultconf.interval
             self.retention_policy_type = tvaultconf.retention_policy_type
             self.retention_policy_value = tvaultconf.retention_policy_value
-            self.wid = self.workload_create([self.vm_id], 
+            try:
+                self.wid = self.workload_create([self.vm_id], 
                                     jobschedule={"start_date": now_date.strip(),
                                                  "start_time": now_time_plus_2.strip(),
                                                  "interval": self.interval,
@@ -590,15 +592,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                      self.retention_policy_value,
                                                  "enabled": "True",
                                                  "workload_cleanup": "False"})
-            LOG.debug("Workload ID: " + str(self.wid))
-            self.wait_for_workload_tobe_available(self.wid)
-            if(self.getWorkloadStatus(self.wid) == "available"):
-                reporting.add_test_step(
-                    "Create scheduled workload", tvaultconf.PASS)
-            else:
-                reporting.add_test_step(
-                    "Create scheduled workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
+                LOG.debug("Workload ID: " + str(self.wid))
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step(
+                        "Create scheduled workload", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Create scheduled workload", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            except Exception as e:
+                raise Exception(f"Create scheduled workload API with error {e}")
 
             self.schedule = self.getSchedulerStatus(self.wid)
             LOG.debug("Workload schedule: " + str(self.schedule))
@@ -627,6 +631,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
