@@ -895,30 +895,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "workload_get_orphaned_workloads_list command did not list available workloads correctly from cmd: " + str(out))
 
-            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
-            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
-
-            # delete the current created user.
-            resp = self.deleteUser(self.temp_user_id_1)
-            if resp:
-                LOG.debug(f"temp User1 {self.temp_user_name_1} deleted successfully")
-                reporting.add_test_step(
-                    "temp User1 {} deletion".format(self.temp_user_name_1), tvaultconf.PASS)
-
-            else:
-                LOG.error(f"temp User1 {self.temp_user_name_1} is not deleted successfully")
-                raise Exception("temp User1 {} deletion".format(self.temp_user_name_1))
-
-            # delete the current created project.
-            resp = self.delete_project(self.temp_tenant_id_1)
-            if resp:
-                LOG.debug(f"temp Project1 {self.temp_tenant_name_1} deleted successfully")
-                reporting.add_test_step(
-                    "temp Project1 {} deletion".format(self.temp_tenant_name_1), tvaultconf.PASS)
-            else:
-                LOG.error(f"temp Project1 {self.temp_tenant_name_1} is not deleted successfully")
-                raise Exception("temp Project1 {} deletion".format(self.temp_tenant_name_1))
-
             # Cleanup
             # Delete workload
             self.workload_delete(self.wid)
