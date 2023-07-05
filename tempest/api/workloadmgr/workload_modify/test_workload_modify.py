@@ -71,8 +71,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
-            workload_modify_command = command_argument_string.workload_modify + " instance-id=" + \
-                str(self.vm_id2) + " instance-id=" + str(self.vm_id) + " " + str(self.wid)
+            workload_modify_command = command_argument_string.workload_modify + " --instance instance-id=" + \
+                str(self.vm_id2) + " --instance instance-id=" + str(self.vm_id) + " " + str(self.wid)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
