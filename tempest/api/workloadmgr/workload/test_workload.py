@@ -59,11 +59,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 if(self.getWorkloadStatus(self.wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
-                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    raise Exception("Create workload")
             else:
-                reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Create workload")
 
             # DB validations for workload before
             workload_validations_before = self.db_cleanup_workload_validations(self.wid)
@@ -84,6 +82,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
 
@@ -156,6 +155,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
+            if self.wid is None:
+                raise Exception("Create workload")
+
             self.wait_for_workload_tobe_available(self.wid)
             if(self.getWorkloadStatus(self.wid) == "available"):
                 reporting.add_test_step(
@@ -181,6 +183,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
 
