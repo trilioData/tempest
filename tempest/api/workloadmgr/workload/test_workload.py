@@ -40,7 +40,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(self.vm_id)
+                " instance-id=" + str(self.vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -135,7 +135,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
-            workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(self.vm_id)\
+            workload_create = command_argument_string.workload_create + " instance-id=" + str(self.vm_id)\
                 + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_2.strip())\
                 + "' --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
                 + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)\
@@ -829,7 +829,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.backupuser_password
 
             ### create workload ###
-            workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(vm_id)
+            workload_create = command_argument_string.workload_create + " instance-id=" + str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(

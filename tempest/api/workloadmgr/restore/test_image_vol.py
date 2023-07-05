@@ -133,7 +133,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                       str(md5sums_before_full))
 
             workload_create = command_argument_string.workload_create + \
-                              " --instance instance-id=" + str(vm_id) + " --jobschedule enabled=False"
+                              " instance-id=" + str(vm_id) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
