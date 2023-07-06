@@ -2640,10 +2640,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to get tenant chargeback API
     '''
 
-    def getTenantChargeback(self):
+    def getTenantChargeback(self, project_id=CONF.identity.tenant_id):
         try:
             resp, body = self.wlm_client.client.get(
-                "/workloads/metrics/tenants_chargeback")
+                "/workloads/metrics/tenants_chargeback?project_id="+project_id)
             LOG.debug("Chargeback API Response:" + str(resp.content))
             LOG.debug("Chargeback API Body:" + str(body))
             if (resp.status_code != 200):
