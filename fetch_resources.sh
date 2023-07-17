@@ -222,33 +222,13 @@ function configure_tempest
     
     declare -a images
 
-    echo "Fetching image details\n"
-    while read -r IMAGE_NAME IMAGE_UUID; do
-        if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
-            image_uuid="$IMAGE_UUID"
-            image_uuid_alt="$IMAGE_UUID"
-        fi
-        images+=($IMAGE_UUID)
-    done < <($OPENSTACK_CMD image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
-
-    case "${#images[*]}" in
-        0)
-            echo "Found no valid images to use!\n"
-            exit 1
-            ;;
-        1)
-            if [ -z "$image_uuid" ]; then
-                image_uuid=${images[0]}
-                image_uuid_alt=${images[0]}
-            fi
-            ;;
-        *)
-            if [ -z "$image_uuid" ]; then
-                image_uuid=${images[0]}
-                image_uuid_alt=${images[1]}
-            fi
-            ;;
-    esac
+    echo "Fetching image details"
+    image_uuid=`($OPENSTACK_CMD image list --property status=active | grep "$TEST_IMAGE_NAME " | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    if [ "$image_uuid" == "" ]
+    then
+        echo "image not found, exiting"
+        exit 1
+    fi
 
     cnt=0
     for name in ${FVM_IMAGE_NAMES[@]}; do
