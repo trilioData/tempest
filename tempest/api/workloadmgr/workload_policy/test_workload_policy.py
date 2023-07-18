@@ -1282,8 +1282,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("final snapshot list is " + str(snapshots_list))
 
             # get snapshot count and snapshot_details
-            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
-            LOG.debug("snapshot list of workload retrieved using API is : " +
+            snapshot_list_of_workload = self.getSnapshotListWithNoError(self.workload_id)
+            LOG.debug("Available snapshot list of workload retrieved using API is : " +
                       str(snapshot_list_of_workload))
 
             # verify that numbers of snapshot created persist
