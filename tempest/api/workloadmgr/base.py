@@ -83,6 +83,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.identity_client = cls.os_primary.identity_client
         else:
             cls.identity_client = cls.os_primary.identity_v3_client
+            cls.token_v3_client = cls.os_primary.token_v3_client
 
     @classmethod
     def resource_setup(cls):
@@ -4606,4 +4607,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error(f"Exception in update_wlm_service: {e}")
             return False
+
+
+    '''
+    Generate OpenStack token
+    '''
+    def get_os_token(self):
+        try:
+            token_id, body = self.token_v3_client.get_token(
+                    username=CONF.identity.username,
+                    user_domain_name=CONF.identity.domain_name,
+                    password=CONF.identity.password,
+                    project_name=CONF.identity.project_name,
+                    project_domain_name=CONF.identity.domain_name,
+                    auth_data=True)
+            return token_id
+        except Exception as e:
+            LOG.error(f"Exception in get_os_token: {e}")
+            return None
 

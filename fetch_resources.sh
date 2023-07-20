@@ -123,14 +123,13 @@ function configure_tempest
     echo "Setting cloud admin credentials, to fetch openstack details\n"
     export OS_USERNAME=$CLOUDADMIN_USERNAME
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
+    export OS_AUTH_TYPE=password
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$CLOUDADMIN_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$CLOUDADMIN_PROJECT_NAME
-    export OS_PROJECT_ID=$CLOUDADMIN_PROJECT_ID
     unset OS_TENANT_ID
     unset OS_TENANT_NAME
     export OS_AUTH_URL=$AUTH_URL
-    export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
     export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE
     export OS_INTERFACE=$ENDPOINT_TYPE
@@ -169,9 +168,6 @@ function configure_tempest
     else
 	iniset $TEMPEST_CONFIG service_available key_manager True
     fi
-
-    unset OS_PROJECT_DOMAIN_NAME
-    export OS_PROJECT_DOMAIN_ID=$admin_domain_id
 
     if [[ "$wlm_endpoint" =~ "https" ]]
     then
@@ -365,22 +361,6 @@ function configure_tempest
 ssh -t $CANONICAL_NODE_IP << EOF
 juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
 EOF
-
-    elif [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
-    then
-        cd /root
-        eval "$(<env.sh)"
-        cd -
-        wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
-        conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
-        mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
-        datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
-        command_prefix="kubectl -n triliovault exec $datamover_pod -- <command>"
-        command_prefix_wlm="kubectl -n triliovault exec $wlm_pod -- <command>"
-        echo "sql_connection: "$conn_str
-        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
 	cmd="ssh heat-admin@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
@@ -410,24 +390,19 @@ EOF
 
     #Set test user credentials
     echo "Set test user credentials\n"
-    unset OS_PROJECT_ID
-    unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
-    export OS_PROJECT_DOMAIN_ID=$test_domain_id
+    export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
-    export OS_PROJECT_ID=$test_project_id
     env | grep OS_
 
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
-    sed -i "2i export OS_PROJECT_ID=$test_project_id" run_tempest.sh
     sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
-    sed -i "2i export OS_PROJECT_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
-    sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh

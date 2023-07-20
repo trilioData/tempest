@@ -870,7 +870,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                                                      self.temp_tenant_name_1))
 
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
-            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id_1
             os.environ['OS_USERNAME'] = CONF.identity.username
             os.environ['OS_PASSWORD'] = CONF.identity.password
 

@@ -282,7 +282,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Workload reassign from tenant 1 to 2 failed")
 
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
-            os.environ['OS_PROJECT_ID'] = tenant_id_1
 
             snapshot_id = snapshot_ids[0]
 
@@ -402,7 +401,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
-            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
             reporting.test_case_to_write()
 
     def test_6_cleanup(self):
