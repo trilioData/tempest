@@ -154,6 +154,7 @@ function configure_tempest
 
     #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
+    admin_project_id=$($OPENSTACK_CMD project list | awk "/ $CLOUDADMIN_PROJECT_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
@@ -309,7 +310,7 @@ function configure_tempest
     # Identity
     iniset $TEMPEST_CONFIG identity auth_version v3
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
-    iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
+    iniset $TEMPEST_CONFIG identity admin_tenant_id $admin_project_id
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity tenant_name_1 $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
