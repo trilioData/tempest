@@ -121,6 +121,7 @@ function configure_tempest
 
     # Set cloud admin credentials
     echo "Setting cloud admin credentials, to fetch openstack details\n"
+    unset OS_TOKEN
     export OS_USERNAME=$CLOUDADMIN_USERNAME
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
     export OS_AUTH_TYPE=password
