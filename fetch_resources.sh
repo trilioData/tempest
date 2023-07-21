@@ -125,7 +125,7 @@ function configure_tempest
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
     export OS_AUTH_TYPE=password
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
-    export OS_USER_DOMAIN_NAME=$CLOUDADMIN_USER_DOMAIN_NAME
+    export OS_USER_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
     export OS_PROJECT_NAME=$CLOUDADMIN_PROJECT_NAME
     unset OS_TENANT_ID
     unset OS_TENANT_NAME
@@ -401,8 +401,8 @@ EOF
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
-    sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
+    sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
