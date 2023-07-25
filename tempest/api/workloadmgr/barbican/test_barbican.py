@@ -2923,8 +2923,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # now edit the workload with workload_modify cli and try to attach vm with encrypted volume...
             try:
-                workload_modify_command = command_argument_string.workload_modify + "instance-id=" + \
-                                          str(vm_id1) + " instance-id=" + str(vm_id) + " " + str(wid)
+                workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
+                                          str(vm_id1) + " --instance instance-id=" + str(vm_id) + " " + str(wid)
 
                 error = cli_parser.cli_error(workload_modify_command)
                 if error:
