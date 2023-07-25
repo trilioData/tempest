@@ -757,7 +757,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-delete command with database_only False",
                     tvaultconf.PASS)
 
-            time.sleep(5)
+            time.sleep(10)
             wc = query_data.get_deleted_workload(self.wid)
             LOG.debug("Workload status: " + str(wc))
             if wc:
