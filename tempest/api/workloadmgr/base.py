@@ -3864,7 +3864,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "Network details before and after restore: {0}, {1}".format(
                         nt_bf, nt_af))
 
-            if sbnt_bf == sbnt_af:
+            klist = sorted([*sbnt_bf])
+            sbnt_bf_sorted = {}
+            sbnt_af_sorted = {}
+            for sbnt in klist:
+                sbnt_bf[sbnt]['allocation_pools'] = sorted(eval(sbnt_bf[sbnt]['allocation_pools']), key=lambda x:x['start'])
+                sbnt_af[sbnt]['allocation_pools'] = sorted(eval(sbnt_af[sbnt]['allocation_pools']), key=lambda x:x['start'])
+                sbnt_bf_sorted[sbnt] = sbnt_bf[sbnt]
+                sbnt_af_sorted[sbnt] = sbnt_af[sbnt]
+
+            if sbnt_bf_sorted == sbnt_af_sorted:
                 reporting.add_test_step(
                     "Verify subnet details after network restore",
                     tvaultconf.PASS)
