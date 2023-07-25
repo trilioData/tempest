@@ -379,6 +379,15 @@ EOF
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
 	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
 	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	command_prefix_rbac=""
+	container_names=(triliovault_wlm_api triliovault_wlm_workloads triliovault_wlm_scheduler triliovault-wlm-cron-podman-0)
+	for hst in "${controller_hostname[@]}"
+	do
+	    for cont in "${container_names[@]}"
+	    do
+	        command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$hst 'sudo podman exec -it $cont <command>'';"
+	    done
+	done
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
@@ -628,6 +637,7 @@ EOF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_rbac = "'$command_prefix_rbac'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 

@@ -2411,7 +2411,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
         commands = role_add_command + rule_assign_command
         LOG.debug("Commands to add role: %s", commands)
-        cmd = (tvaultconf.command_prefix).replace("<command>",commands)
+        cmd = (tvaultconf.command_prefix_rbac).replace("<command>",commands)
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2450,7 +2450,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   role_delete_command, rule_reassign_command)
         commands = role_delete_command + rule_reassign_command
         LOG.debug("Commands to revert policy changes: %s", commands)
-        cmd = (tvaultconf.command_prefix).replace("<command>", commands)
+        cmd = (tvaultconf.command_prefix_rbac).replace("<command>", commands)
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
