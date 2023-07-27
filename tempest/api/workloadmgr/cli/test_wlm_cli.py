@@ -494,3 +494,60 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_10_token(self):
+        reporting.add_test_script(str(__name__) + "_token")
+        try:
+            os.environ.pop('OS_USERNAME', None)
+            os.environ.pop('OS_PASSWORD', None)
+            env_vars = os.environ
+            LOG.debug(f"Environment variables: {env_vars}")
+            os_token = self.get_os_token()
+            LOG.debug(f"Token created: {os_token}")
+            os.environ['OS_AUTH_TYPE'] = 'token'
+            os.environ['OS_TOKEN'] = os_token
+            os.environ.pop('OS_USER_DOMAIN_NAME', None)
+
+            rc = cli_parser.cli_returncode(
+                    command_argument_string.workload_list)
+            if rc == 0:
+                reporting.add_test_step(
+                    "Execute WLM cli command for workload-list", 
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Execute WLM cli command for workload-list", 
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            rc = cli_parser.cli_returncode(
+                    command_argument_string.os_server_list)
+            if rc == 0:
+                reporting.add_test_step(
+                    "Execute OpenStack cli command for server list",
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Execute OpenStack cli command for server list",
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            rc = cli_parser.cli_returncode(
+                    command_argument_string.os_workload_list)
+            if rc == 0:
+                reporting.add_test_step(
+                    "Execute OpenStack cli command for workload-list", 
+                    tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Execute OpenStack cli command for workload-list", 
+                    tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
