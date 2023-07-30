@@ -2289,6 +2289,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             fvm_ssh_user = "centos"
         elif "ubuntu" in fvm_image:
             fvm_ssh_user = "ubuntu"
+        elif "rhel" in fvm_image:
+            fvm_ssh_user = "cloud-user"
         LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
@@ -2366,6 +2368,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             fvm_ssh_user = "centos"
         elif "ubuntu" in fvm_image:
             fvm_ssh_user = "ubuntu"
+        elif "rhel" in fvm_image:
+            fvm_ssh_user = "cloud-user"
         LOG.debug("validate that snapshot is unmounted from FVM")
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
