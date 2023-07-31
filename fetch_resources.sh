@@ -121,16 +121,16 @@ function configure_tempest
 
     # Set cloud admin credentials
     echo "Setting cloud admin credentials, to fetch openstack details\n"
+    unset OS_TOKEN
     export OS_USERNAME=$CLOUDADMIN_USERNAME
     export OS_PASSWORD=$CLOUDADMIN_PASSWORD
+    export OS_AUTH_TYPE=password
     export OS_PROJECT_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
-    export OS_USER_DOMAIN_NAME=$CLOUDADMIN_USER_DOMAIN_NAME
+    export OS_USER_DOMAIN_NAME=$CLOUDADMIN_DOMAIN_NAME
     export OS_PROJECT_NAME=$CLOUDADMIN_PROJECT_NAME
-    export OS_PROJECT_ID=$CLOUDADMIN_PROJECT_ID
     unset OS_TENANT_ID
     unset OS_TENANT_NAME
     export OS_AUTH_URL=$AUTH_URL
-    export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION
     export OS_REGION_NAME=$REGION_NAME
     export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE
     export OS_INTERFACE=$ENDPOINT_TYPE
@@ -155,6 +155,7 @@ function configure_tempest
 
     #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
+    admin_project_id=$($OPENSTACK_CMD project list | awk "/ $CLOUDADMIN_PROJECT_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
     test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
     test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
@@ -169,9 +170,6 @@ function configure_tempest
     else
 	iniset $TEMPEST_CONFIG service_available key_manager True
     fi
-
-    unset OS_PROJECT_DOMAIN_NAME
-    export OS_PROJECT_DOMAIN_ID=$admin_domain_id
 
     if [[ "$wlm_endpoint" =~ "https" ]]
     then
@@ -222,33 +220,13 @@ function configure_tempest
     
     declare -a images
 
-    echo "Fetching image details\n"
-    while read -r IMAGE_NAME IMAGE_UUID; do
-        if [ "$IMAGE_NAME" = "$TEST_IMAGE_NAME" ]; then
-            image_uuid="$IMAGE_UUID"
-            image_uuid_alt="$IMAGE_UUID"
-        fi
-        images+=($IMAGE_UUID)
-    done < <($OPENSTACK_CMD image list --property status=active | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3,$2 }')
-
-    case "${#images[*]}" in
-        0)
-            echo "Found no valid images to use!\n"
-            exit 1
-            ;;
-        1)
-            if [ -z "$image_uuid" ]; then
-                image_uuid=${images[0]}
-                image_uuid_alt=${images[0]}
-            fi
-            ;;
-        *)
-            if [ -z "$image_uuid" ]; then
-                image_uuid=${images[0]}
-                image_uuid_alt=${images[1]}
-            fi
-            ;;
-    esac
+    echo "Fetching image details"
+    image_uuid=`($OPENSTACK_CMD image list --property status=active | grep "$TEST_IMAGE_NAME " | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    if [ "$image_uuid" == "" ]
+    then
+        echo "image not found, exiting"
+        exit 1
+    fi
 
     cnt=0
     for name in ${FVM_IMAGE_NAMES[@]}; do
@@ -264,7 +242,7 @@ function configure_tempest
 
     echo "Fetching flavor details\n"
     available_flavors=$($OPENSTACK_CMD flavor list)
-    if [[ ! ( $available_flavors =~ $TEST_IMAGE_NAME ) ]] ; then
+    if [[ ! ( $available_flavors =~ "$TEST_IMAGE_NAME " ) ]] ; then
         if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
             $OPENSTACK_CMD flavor create --ram 64 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
         else
@@ -333,7 +311,7 @@ function configure_tempest
     # Identity
     iniset $TEMPEST_CONFIG identity auth_version v3
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
-    iniset $TEMPEST_CONFIG identity admin_tenant_id $CLOUDADMIN_PROJECT_ID
+    iniset $TEMPEST_CONFIG identity admin_tenant_id $admin_project_id
     iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity tenant_name_1 $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
@@ -385,22 +363,6 @@ function configure_tempest
 ssh -t $CANONICAL_NODE_IP << EOF
 juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"create user '${dbusername}'@'%' identified by '${mysql_wlm_pwd}';grant select on ${dbname}.* to '${dbusername}'@'%';flush privileges;\""
 EOF
-
-    elif [[ ${OPENSTACK_DISTRO,,} == 'mosk'* ]]
-    then
-        cd /root
-        eval "$(<env.sh)"
-        cd -
-        wlm_pod=`kubectl -n triliovault get pods | grep triliovault-wlm-api | cut -d ' ' -f 1  | head -1`
-        conn_str=`kubectl -n triliovault exec $wlm_pod -- grep sql_connection "/etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f 2`
-        mysql_ip=`kubectl get pods -n openstack -o wide | grep mariadb-server | head -1 | xargs | cut -d ' ' -f 6`
-        datamover_pod=`kubectl -n triliovault get pods | grep triliovault-datamover-openstack | cut -d ' ' -f 1  | head -1`
-        command_prefix="kubectl -n triliovault exec $datamover_pod -- <command>"
-        command_prefix_wlm="kubectl -n triliovault exec $wlm_pod -- <command>"
-        echo "sql_connection: "$conn_str
-        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
-        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
-        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
 	cmd="ssh heat-admin@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
@@ -417,6 +379,16 @@ EOF
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
 	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
 	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	command_prefix_rbac=""
+	container_names=(triliovault_wlm_api triliovault_wlm_workloads triliovault_wlm_scheduler triliovault-wlm-cron-podman-0)
+	for hst in "${controller_hostname[@]}"
+	do
+	    for cont in "${container_names[@]}"
+	    do
+	        command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$hst 'sudo podman exec -it $cont <command>'';"
+		command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$hst 'sudo podman restart $cont'';"
+	    done
+	done
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
@@ -430,24 +402,18 @@ EOF
 
     #Set test user credentials
     echo "Set test user credentials\n"
-    unset OS_PROJECT_ID
-    unset OS_PROJECT_DOMAIN_ID
     export OS_USERNAME=$TEST_USERNAME
     export OS_PASSWORD=$TEST_PASSWORD
-    export OS_PROJECT_DOMAIN_ID=$test_domain_id
+    export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME
     export OS_PROJECT_NAME=$TEST_PROJECT_NAME
-    export OS_PROJECT_ID=$test_project_id
     env | grep OS_
 
     echo "Add wlm rc parameters to run_tempest.sh\n"
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
-    sed -i "2i export OS_PROJECT_ID=$test_project_id" run_tempest.sh
-    sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
-    sed -i "2i export OS_PROJECT_DOMAIN_ID=$test_domain_id" run_tempest.sh
+    sed -i "2i export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
-    sed -i "2i export OS_IDENTITY_API_VERSION=$IDENTITY_API_VERSION" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
     sed -i "2i export OS_INTERFACE=$ENDPOINT_TYPE" run_tempest.sh
@@ -492,8 +458,8 @@ EOF
               if [ -z "$router_id" ]; then
                   router_id=${routers[0]}
               fi
-              gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
-              interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }')`
+              gateway_info=`($OPENSTACK_CMD router show $router_id | grep external_gateway_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }' | xargs)`
+              interface_info=`($OPENSTACK_CMD router show $router_id | grep interfaces_info | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $3 }' | xargs)`
               
               if [[ "$gateway_info" == *"None"* ]] | [ "$gateway_info" == "null" ]
               then
@@ -502,7 +468,7 @@ EOF
                   echo $output
                   if [[ $output =~ .*"No more IP addresses available".* ]]
                   then
-                    echo "Relaesing Floating Ips and retry gateway creation"
+                    echo "Releasing Floating Ips and retry gateway creation"
                     floating_ip_cnt1=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
                     if [ $floating_ip_cnt1 -le 1 ]
                     then
@@ -581,9 +547,17 @@ EOF
         floating_ip_cnt=$(( $floating_ip_cnt + 1 ))
     done
     $OPENSTACK_CMD floating ip list --project $test_project_id
+    #Check if atleast tvaultconf.vm_count floating ips are available in the project, else stop the execution
+    floating_cnt=`$OPENSTACK_CMD floating ip list --project $test_project_id | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }' | wc -l`
+    tvaultconf_vm_count=`grep vm_count $TEMPEST_TVAULTCONF | cut -d '=' -f2 | xargs`
+    if [ $floating_cnt -lt $tvaultconf_vm_count ]
+    then
+        echo "Sufficient floating ips not available, exiting the execution"
+	exit 1
+    fi
 
     #Update default security group rules
-    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep default | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
+    def_secgrp_id=`($OPENSTACK_CMD security group list --project $test_project_id | grep 'default ' | awk -F'|' '!/^(+--)|ID|aki|ari/ { print $2 }')`
     echo $def_secgrp_id
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
@@ -663,6 +637,7 @@ EOF
     sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_rbac = "'$command_prefix_rbac'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 

@@ -83,6 +83,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             cls.identity_client = cls.os_primary.identity_client
         else:
             cls.identity_client = cls.os_primary.identity_v3_client
+            cls.token_v3_client = cls.os_primary.token_v3_client
 
     @classmethod
     def resource_setup(cls):
@@ -2288,6 +2289,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             fvm_ssh_user = "centos"
         elif "ubuntu" in fvm_image:
             fvm_ssh_user = "ubuntu"
+        elif "rhel" in fvm_image:
+            fvm_ssh_user = "cloud-user"
         LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
@@ -2365,6 +2368,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             fvm_ssh_user = "centos"
         elif "ubuntu" in fvm_image:
             fvm_ssh_user = "ubuntu"
+        elif "rhel" in fvm_image:
+            fvm_ssh_user = "cloud-user"
         LOG.debug("validate that snapshot is unmounted from FVM")
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
             floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
@@ -2410,7 +2415,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("role_add_command: %s ;\n rule_assign_command: %s", role_add_command, rule_assign_command)
         commands = role_add_command + rule_assign_command
         LOG.debug("Commands to add role: %s", commands)
-        cmd = (tvaultconf.command_prefix).replace("<command>",commands)
+        cmd = (tvaultconf.command_prefix_rbac).replace("<command>",commands)
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2449,7 +2454,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                   role_delete_command, rule_reassign_command)
         commands = role_delete_command + rule_reassign_command
         LOG.debug("Commands to revert policy changes: %s", commands)
-        cmd = (tvaultconf.command_prefix).replace("<command>", commands)
+        cmd = (tvaultconf.command_prefix_rbac).replace("<command>", commands)
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
@@ -2640,10 +2645,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to get tenant chargeback API
     '''
 
-    def getTenantChargeback(self):
+    def getTenantChargeback(self, project_id=CONF.identity.tenant_id):
         try:
             resp, body = self.wlm_client.client.get(
-                "/workloads/metrics/tenants_chargeback")
+                "/workloads/metrics/tenants_chargeback?project_id="+project_id)
             LOG.debug("Chargeback API Response:" + str(resp.content))
             LOG.debug("Chargeback API Body:" + str(body))
             if (resp.status_code != 200):
@@ -3863,7 +3868,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     "Network details before and after restore: {0}, {1}".format(
                         nt_bf, nt_af))
 
-            if sbnt_bf == sbnt_af:
+            klist = sorted([*sbnt_bf])
+            sbnt_bf_sorted = {}
+            sbnt_af_sorted = {}
+            for sbnt in klist:
+                sbnt_bf[sbnt]['allocation_pools'] = sorted(eval(sbnt_bf[sbnt]['allocation_pools']), key=lambda x:x['start'])
+                sbnt_af[sbnt]['allocation_pools'] = sorted(eval(sbnt_af[sbnt]['allocation_pools']), key=lambda x:x['start'])
+                sbnt_bf_sorted[sbnt] = sbnt_bf[sbnt]
+                sbnt_af_sorted[sbnt] = sbnt_af[sbnt]
+
+            if sbnt_bf_sorted == sbnt_af_sorted:
                 reporting.add_test_step(
                     "Verify subnet details after network restore",
                     tvaultconf.PASS)
@@ -4417,7 +4431,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        if str(stderr).find('No such file or directory') != -1:
+        if str(stdout).find('No such file or directory') != -1:
             return False
         else:
             return True
@@ -4606,4 +4620,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         except Exception as e:
             LOG.error(f"Exception in update_wlm_service: {e}")
             return False
+
+
+    '''
+    Generate OpenStack token
+    '''
+    def get_os_token(self):
+        try:
+            token_id, body = self.token_v3_client.get_token(
+                    username=CONF.identity.username,
+                    user_domain_name=CONF.identity.domain_name,
+                    password=CONF.identity.password,
+                    project_name=CONF.identity.project_name,
+                    project_domain_name=CONF.identity.domain_name,
+                    auth_data=True)
+            return token_id
+        except Exception as e:
+            LOG.error(f"Exception in get_os_token: {e}")
+            return None
 

@@ -2421,7 +2421,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
             LOG.debug("WORKLOAD CMD - " + str(workload_create_with_encryption))
             error = cli_parser.cli_error(workload_create_with_encryption)
@@ -2471,7 +2471,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI with no sceret uuid
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id)
+                                              " instance-id=" + str(self.vm_id)
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload with encryption creation unsuccessful for no secret")
@@ -2509,7 +2509,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + "invalid"
             error = cli_parser.cli_error(workload_create_with_encryption)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
@@ -2582,7 +2582,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with policy by CLI command
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid) + \
                                               " --policy-id " + str(policy_id)
             LOG.debug("workload_create_with_encryption : " + workload_create_with_encryption)
@@ -3233,7 +3233,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             workload_create = \
                     command_argument_string.workload_create_with_encryption +\
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(vm_id) + " --jobschedule enabled=False" + \
                 " --secret-uuid " + str(secret_uuid)
             rc = cli_parser.cli_returncode(workload_create)
@@ -3366,7 +3366,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI
             workload_create_with_encryption = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid)
 
             error = cli_parser.cli_error(workload_create_with_encryption)
@@ -4782,7 +4782,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[1][0])
             # Create workload with CLI to pass secret uuid.
             workload_create_cmd = command_argument_string.workload_create_with_encryption + \
-                                              " --instance instance-id=" + str(self.vm_id) + \
+                                              " instance-id=" + str(self.vm_id) + \
                                               " --secret-uuid " + str(self.secret_uuid) + " --jobschedule enabled=False"
 
             error = cli_parser.cli_error(workload_create_cmd)
