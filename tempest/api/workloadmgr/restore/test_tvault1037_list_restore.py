@@ -109,6 +109,7 @@ class RestoreTest(base.BaseWorkloadmgrTest):
 
             wc = query_data.get_available_restores(CONF.identity.tenant_id)
             out = cli_parser.cli_output(command_argument_string.restore_list)
+            LOG.debug(f"CLI response: {out}, DB response: {wc}")
             if (int(wc) == int(out)):
                 reporting.add_test_step(
                     "Verification with DB", tvaultconf.PASS)

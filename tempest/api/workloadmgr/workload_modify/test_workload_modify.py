@@ -71,7 +71,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
-            workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
+            workload_modify_command = command_argument_string.workload_modify + " --instance instance-id=" + \
                 str(self.vm_id2) + " --instance instance-id=" + str(self.vm_id) + " " + str(self.wid)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
@@ -262,7 +262,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(self.vm_id) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:

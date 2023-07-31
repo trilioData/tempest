@@ -528,7 +528,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with policy by CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
@@ -612,7 +612,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
-            workload_modify_command = command_argument_string.workload_modify + "--instance instance-id=" + \
+            workload_modify_command = command_argument_string.workload_modify + " --instance instance-id=" + \
                 str(self.vm_id2) + " --instance instance-id=" + str(vm_id) + " " + str(workload_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
@@ -656,7 +656,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global policy_id
             # Create workload with policy by CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
@@ -867,7 +867,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(vm_id) + " --jobschedule enabled=True"
             LOG.debug("WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
@@ -938,7 +938,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + \
+                " instance-id=" + \
                 str(self.vm_id2) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
@@ -1282,8 +1282,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("final snapshot list is " + str(snapshots_list))
 
             # get snapshot count and snapshot_details
-            snapshot_list_of_workload = self.getSnapshotList(self.workload_id)
-            LOG.debug("snapshot list of workload retrieved using API is : " +
+            snapshot_list_of_workload = self.getSnapshotListWithNoError(self.workload_id)
+            LOG.debug("Available snapshot list of workload retrieved using API is : " +
                       str(snapshot_list_of_workload))
 
             # verify that numbers of snapshot created persist

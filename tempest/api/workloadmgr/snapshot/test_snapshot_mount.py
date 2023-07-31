@@ -368,6 +368,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 self.frm_ssh_user = "centos"
             elif "ubuntu" in self.frm_image:
                 self.frm_ssh_user = "ubuntu"
+            elif "rhel" in self.frm_image:
+                self.frm_ssh_user = "cloud-user"
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             LOG.debug("FRM Instance uername: " + str(self.frm_ssh_user))
             self.set_floating_ip(fip[1], self.frm_id)

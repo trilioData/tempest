@@ -256,6 +256,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+            # Revert admin credentials
+            os.environ['OS_USERNAME'] = CONF.identity.username
+            os.environ['OS_PASSWORD'] = CONF.identity.password
 
     @decorators.attr(type='workloadmgr_api')
     def test_6_wlm_service(self):

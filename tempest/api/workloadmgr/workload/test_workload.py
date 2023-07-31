@@ -40,7 +40,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance instance-id=" + str(self.vm_id)
+                " instance-id=" + str(self.vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -59,11 +59,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 if(self.getWorkloadStatus(self.wid) == "available"):
                     reporting.add_test_step("Create workload", tvaultconf.PASS)
                 else:
-                    reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
+                    raise Exception("Create workload")
             else:
-                reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
+                raise Exception("Create workload")
 
             # DB validations for workload before
             workload_validations_before = self.db_cleanup_workload_validations(self.wid)
@@ -84,6 +82,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
 
@@ -136,11 +135,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
-            workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(self.vm_id)\
+            workload_create = command_argument_string.workload_create + " instance-id=" + str(self.vm_id)\
                 + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_2.strip())\
                 + "' --jobschedule interval='" + str(interval) + "' --jobschedule retention_policy_type='"\
                 + str(retention_policy_type) + "' --jobschedule retention_policy_value=" + str(retention_policy_value)\
                 + " --jobschedule enabled=True"
+            LOG.debug(f"workload create command: {workload_create}")
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -155,6 +155,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(10)
             self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Workload ID: " + str(self.wid))
+            if self.wid is None:
+                raise Exception("Create workload")
+
             self.wait_for_workload_tobe_available(self.wid)
             if(self.getWorkloadStatus(self.wid) == "available"):
                 reporting.add_test_step(
@@ -180,6 +183,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
 
@@ -580,7 +584,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.interval = tvaultconf.interval
             self.retention_policy_type = tvaultconf.retention_policy_type
             self.retention_policy_value = tvaultconf.retention_policy_value
-            self.wid = self.workload_create([self.vm_id], 
+            try:
+                self.wid = self.workload_create([self.vm_id], 
                                     jobschedule={"start_date": now_date.strip(),
                                                  "start_time": now_time_plus_2.strip(),
                                                  "interval": self.interval,
@@ -590,15 +595,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                      self.retention_policy_value,
                                                  "enabled": "True",
                                                  "workload_cleanup": "False"})
-            LOG.debug("Workload ID: " + str(self.wid))
-            self.wait_for_workload_tobe_available(self.wid)
-            if(self.getWorkloadStatus(self.wid) == "available"):
-                reporting.add_test_step(
-                    "Create scheduled workload", tvaultconf.PASS)
-            else:
-                reporting.add_test_step(
-                    "Create scheduled workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
+                LOG.debug("Workload ID: " + str(self.wid))
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step(
+                        "Create scheduled workload", tvaultconf.PASS)
+                else:
+                    reporting.add_test_step(
+                        "Create scheduled workload", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
+            except Exception as e:
+                raise Exception(f"Create scheduled workload API with error {e}")
 
             self.schedule = self.getSchedulerStatus(self.wid)
             LOG.debug("Workload schedule: " + str(self.schedule))
@@ -627,6 +634,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
@@ -749,7 +757,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-delete command with database_only False",
                     tvaultconf.PASS)
 
-            time.sleep(5)
+            time.sleep(10)
             wc = query_data.get_deleted_workload(self.wid)
             LOG.debug("Workload status: " + str(wc))
             if wc:
@@ -821,7 +829,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.backupuser_password
 
             ### create workload ###
-            workload_create = command_argument_string.workload_create + " --instance instance-id=" + str(vm_id)
+            workload_create = command_argument_string.workload_create + " instance-id=" + str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -862,7 +870,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                                                                      self.temp_tenant_name_1))
 
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
-            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id_1
             os.environ['OS_USERNAME'] = CONF.identity.username
             os.environ['OS_PASSWORD'] = CONF.identity.password
 
@@ -889,30 +896,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verification with workload name", tvaultconf.FAIL)
                 raise Exception(
                     "workload_get_orphaned_workloads_list command did not list available workloads correctly from cmd: " + str(out))
-
-            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
-            os.environ['OS_PROJECT_ID'] = CONF.identity.tenant_id
-
-            # delete the current created user.
-            resp = self.deleteUser(self.temp_user_id_1)
-            if resp:
-                LOG.debug(f"temp User1 {self.temp_user_name_1} deleted successfully")
-                reporting.add_test_step(
-                    "temp User1 {} deletion".format(self.temp_user_name_1), tvaultconf.PASS)
-
-            else:
-                LOG.error(f"temp User1 {self.temp_user_name_1} is not deleted successfully")
-                raise Exception("temp User1 {} deletion".format(self.temp_user_name_1))
-
-            # delete the current created project.
-            resp = self.delete_project(self.temp_tenant_id_1)
-            if resp:
-                LOG.debug(f"temp Project1 {self.temp_tenant_name_1} deleted successfully")
-                reporting.add_test_step(
-                    "temp Project1 {} deletion".format(self.temp_tenant_name_1), tvaultconf.PASS)
-            else:
-                LOG.error(f"temp Project1 {self.temp_tenant_name_1} is not deleted successfully")
-                raise Exception("temp Project1 {} deletion".format(self.temp_tenant_name_1))
 
             # Cleanup
             # Delete workload
