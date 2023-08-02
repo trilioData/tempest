@@ -413,6 +413,7 @@ EOF
     sed -i "2i export OS_USERNAME=$TEST_USERNAME" run_tempest.sh
     sed -i "2i export OS_PASSWORD=$TEST_PASSWORD" run_tempest.sh
     sed -i "2i export OS_PROJECT_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
+    sed -i "2i export OS_USER_DOMAIN_NAME=$TEST_USER_DOMAIN_NAME" run_tempest.sh
     sed -i "2i export OS_AUTH_URL=$AUTH_URL" run_tempest.sh
     sed -i "2i export OS_REGION_NAME=$REGION_NAME" run_tempest.sh
     sed -i "2i export OS_ENDPOINT_TYPE=$ENDPOINT_TYPE" run_tempest.sh
