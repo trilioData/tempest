@@ -1386,7 +1386,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         # ssh.load_system_host_keys()
         flag = False
         for i in range(0, 30, 1):
-            LOG.debug("Trying to connect to " + str(ipAddress))
+            LOG.debug(f"Trying to connect to {ipAddress} with username {username}")
             if (flag):
                 break
             try:
