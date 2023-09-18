@@ -4713,7 +4713,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     f"/migration_plans/{plan_id}")
             if resp.status_code != 200:
                 resp.raise_for_status()
-            LOG.debug("Response of delete_migration_plan: {resp}")
+            LOG.debug("Response of delete_migration_plan: {resp.status_code}")
             return True
         except Exception as e:
             LOG.error(f"Exception in delete_migration_plan: {e}")

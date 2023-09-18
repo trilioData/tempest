@@ -41,7 +41,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #DB verification
             self.plan_db = query_data.get_migration_plan(self.plan_id)
             LOG.debug(f"Plan details from DB: {self.plan_db}")
-            if self.plan_db[0] == tvaultconf.migration_plan_name and
+            if self.plan_db[0] == tvaultconf.migration_plan_name and \
                 self.plan_db[1] == "available":
                 reporting.add_test_step("DB verification", tvaultconf.PASS)
             else:
