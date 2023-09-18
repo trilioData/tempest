@@ -778,3 +778,19 @@ def get_service_status(host):
         cursor.close()
         conn.close()
 
+
+def get_migration_plan(plan_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_plan = (f"select name, status from migration_plans where id='{plan_id}'")
+        cursor.execute(get_plan)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plan: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+

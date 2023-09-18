@@ -167,3 +167,8 @@ snapshot_reset_err_msg = "ERROR:workloadmgr:Please check service status on the H
 
 create_license_expected_str = "End User License Agreement"
 create_license_send_str = "y"
+
+migration_vms = ["Automation_Centos8", "Automation_Ubuntu"]
+migration_plan_name = "tempest_migration_plan"
+migration_plan_desc = "tempest migration plan description"
+
