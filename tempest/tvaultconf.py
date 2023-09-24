@@ -171,4 +171,8 @@ create_license_send_str = "y"
 migration_vms = ["Automation_Centos8", "Automation_Ubuntu"]
 migration_plan_name = "tempest_migration_plan"
 migration_plan_desc = "tempest migration plan description"
+migration_filename = "/opt/migration.json"
+migration_name = "tempest_migration"
+
+
 
