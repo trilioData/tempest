@@ -4713,9 +4713,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     f"/migration_plans/{plan_id}")
             if resp.status_code != 200:
                 resp.raise_for_status()
-            LOG.debug("Response of delete_migration_plan: {resp}")
+            LOG.debug(f"Response of delete_migration_plan: {resp.status_code}")
             return True
         except Exception as e:
             LOG.error(f"Exception in delete_migration_plan: {e}")
             return False
 
+    '''
+    Discover vms for a migration plan
+    '''
+
+    def discover_vms(self, plan_id):
+        try:
+            resp, body = self.wlm_client.client.post(
+                    f"/migration_plans/{plan_id}/discovervms")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            LOG.debug(f"Response of discover_vms: {resp.status_code}; {body}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in discover_vms: {e}")
+            return False
