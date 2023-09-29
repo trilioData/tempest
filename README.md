@@ -13,12 +13,10 @@ Repo for automation build, test etc.
     - Ubuntu 18.04 with Python 3.6
     - Ubuntu 20.04 with Python 3.8
     
-* Please note that Python2.7 support has been deprecated.
-
 * Download tempest:
     - Download TrilioData tempest framework from GitHub using command:
       ```
-      git clone -b stable/5.0 https://github.com/trilioData/tempest.git
+      git clone -b stable/5.1 https://github.com/trilioData/tempest.git
       cd tempest/
       ```
       
@@ -35,7 +33,7 @@ Repo for automation build, test etc.
            cat > /etc/yum.repos.d/trilio.repo <<-EOF
            [trilio]
            name=Trilio Repository
-           baseurl=http://{TVAULT_IP}:8085/yum-repo/queens/
+           baseurl=https://yum.fury.io/trilio-5-1/
            enabled=1
            gpgcheck=0
            EOF
@@ -58,7 +56,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-5-0/ /
+           deb [trusted=yes] https://apt.fury.io/trilio-5-1/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -79,7 +77,7 @@ Repo for automation build, test etc.
          - Install WLM client
            ```
            cat > /etc/apt/sources.list.d/trilio.list <<-EOF
-           deb [trusted=yes] https://apt.fury.io/triliodata-5-0/ /
+           deb [trusted=yes] https://apt.fury.io/trilio-5-1/ /
            EOF
            apt-get update
            apt-get install python3-workloadmgrclient -y
@@ -142,20 +140,26 @@ Repo for automation build, test etc.
 
 * Test Coverage:
 
-    - Licensing tests
-    - Workload tests
-    - Snapshot tests
-    - Restore tests (Note - This needs min. 2 Floating IPs configureed on Openstack)
+    - Licensing
+    - Workload
+    - Snapshot
+    - Restore (Note - This needs min. 2 Floating IPs configureed on Openstack)
         - One click restore
         - Selective restore
         - In-place restore
-    - File search tests
-    - Workload Policy tests
+        - Security group restore
+        - Network restore
+    - File search
+    - Workload Policy
     - Workload Modify
-    - Chargeback tests
-    - Sanity tests
-    - RBAC tests
-    - Network restore tests
+    - Chargeback
+    - Trust
+    - Email settings
+    - Workload reassign
+    - Sanity 
+    - RBAC 
+    - CLI 
+    - VM Migration
 
 * NOTES
 
