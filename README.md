@@ -159,7 +159,6 @@ Repo for automation build, test etc.
     - Sanity 
     - RBAC 
     - CLI 
-    - VM Migration
 
 * NOTES
 
