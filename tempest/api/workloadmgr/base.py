@@ -1386,7 +1386,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         # ssh.load_system_host_keys()
         flag = False
         for i in range(0, 30, 1):
-            LOG.debug("Trying to connect to " + str(ipAddress))
+            LOG.debug(f"Trying to connect to {ipAddress} with username {username}")
             if (flag):
                 break
             try:
@@ -4621,7 +4621,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in update_wlm_service: {e}")
             return False
 
-
     '''
     Generate OpenStack token
     '''
@@ -4639,3 +4638,99 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in get_os_token: {e}")
             return None
 
+    '''
+    List VMs from vCenter
+    '''
+
+    def get_vcenter_vms(self):
+        try:
+            vm_list = []
+            resp, body = self.wlm_client.client.get(
+                    "/migration_plans/metrics/get_vcenter_vms")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            vm_list = body['vcenter_vms']
+            LOG.debug(f"vCenter VM list returned: {vm_list}")
+        except Exception as e:
+            LOG.error(f"Exception in get_vcenter_vms: {e}")
+        finally:
+            return vm_list
+
+    '''
+    Get automation test vms for migration
+    '''
+
+    def get_migration_test_vms(self, vm_list, 
+                               vm_names=tvaultconf.migration_vms):
+        try:
+            vm_ids = []
+            for name in vm_names:
+                for vm in vm_list:
+                    if vm['vm_name'] == name:
+                        vm_ids.append(vm['vm_id'])
+            LOG.debug(f"VM IDs: {vm_ids}")
+        except Exception as e:
+            LOG.error(f"Exception in get_migration_test_vms: {e}")
+        finally:
+            return vm_ids
+
+    '''
+    Create migration plan
+    '''
+
+    def create_migration_plan(self, vms, plan_cleanup=True):
+        try:
+            vm_list = []
+            for vm in vms:
+                vm_list.append({"vm-id": vm})
+            payload = { "migration_plan": 
+                            { "name": tvaultconf.migration_plan_name, 
+                              "description": tvaultconf.migration_plan_desc, 
+                              "vms": vm_list, 
+                              "metadata": {}, 
+                              "source_platform": "vmware" 
+                             }
+                       }
+            resp, body = self.wlm_client.client.post(
+                    "/migration_plans", json=payload)
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            plan_id = body['migration_plan']['id']
+            if (tvaultconf.cleanup and plan_cleanup):
+                self.addCleanup(self.delete_migration_plan, plan_id)
+            return plan_id
+        except Exception as e:
+            LOG.error(f"Exception in create_migration_plan: {e}")
+            return None
+
+    '''
+    Delete migration plan
+    '''
+
+    def delete_migration_plan(self, plan_id):
+        try:
+            resp, body = self.wlm_client.client.delete(
+                    f"/migration_plans/{plan_id}")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            LOG.debug(f"Response of delete_migration_plan: {resp.status_code}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in delete_migration_plan: {e}")
+            return False
+
+    '''
+    Discover vms for a migration plan
+    '''
+
+    def discover_vms(self, plan_id):
+        try:
+            resp, body = self.wlm_client.client.post(
+                    f"/migration_plans/{plan_id}/discovervms")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            LOG.debug(f"Response of discover_vms: {resp.status_code}; {body}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in discover_vms: {e}")
+            return False

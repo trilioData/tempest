@@ -29,7 +29,7 @@ restore_name = "test-oneclick-restore"
 selective_restore_name = "test-selective-restore"
 security_group_restore_name = "Security Groups Restore"
 restore_filename = "/opt/restore.json"
-vm_license_filename = "test_licenses/tvault_license_20VM.txt"
+vm_license_filename = "test_licenses/tvault_license_10VM.txt"
 compute_license_filename = "test_licenses/tvault_license_10compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"
@@ -167,3 +167,12 @@ snapshot_reset_err_msg = "ERROR:workloadmgr:Please check service status on the H
 
 create_license_expected_str = "End User License Agreement"
 create_license_send_str = "y"
+
+migration_vms = ["Automation_Centos8", "Automation_Ubuntu"]
+migration_plan_name = "tempest_migration_plan"
+migration_plan_desc = "tempest migration plan description"
+migration_filename = "/opt/migration.json"
+migration_name = "tempest_migration"
+
+
+
