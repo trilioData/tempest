@@ -61,9 +61,17 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create_Cold_Migration")
 
             #Delete migration
+            if self.delete_migration(self.migration_id):
+                LOG.debug("Delete migration successful")
+            else:
+                result_json['Delete_Migration'] = tvaultconf.FAIL
 
             #Delete migration plan
-
+            self.wait_for_migrationplan_tobe_available(self.plan_id)
+            if self.delete_migration_plan(self.plan_id):
+                LOG.debug("Delete migration plan successful")
+            else:
+                result_json['Delete_Migration_Plan'] = tvaultconf.FAIL
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
