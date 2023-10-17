@@ -25,6 +25,7 @@ import base64
 import io
 import subprocess
 import shlex
+import yaml
 
 from oslo_log import log as logging
 from tempest import config
@@ -4660,13 +4661,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Get automation test vms for migration
     '''
 
-    def get_migration_test_vms(self, vm_list, 
+    def get_migration_test_vms(self, vm_list,
                                vm_names=tvaultconf.migration_vms):
         try:
             vm_ids = []
             for name in vm_names:
                 for vm in vm_list:
-                    if vm['vm_name'] == name:
+                    if vm['vm_name'] == name['name']:
                         vm_ids.append(vm['vm_id'])
             LOG.debug(f"VM IDs: {vm_ids}")
         except Exception as e:
@@ -4683,25 +4684,28 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             vm_list = []
             for vm in vms:
                 vm_list.append({"vm-id": vm})
-            payload = { "migration_plan": 
-                            { "name": tvaultconf.migration_plan_name, 
-                              "description": tvaultconf.migration_plan_desc, 
-                              "vms": vm_list, 
-                              "metadata": {}, 
-                              "source_platform": "vmware" 
+            payload = { "migration_plan":
+                            { "name": tvaultconf.migration_plan_name,
+                              "description": tvaultconf.migration_plan_desc,
+                              "vms": vm_list,
+                              "metadata": {},
+                              "source_platform": "vmware"
                              }
                        }
-            resp, body = self.wlm_client.client.post(
+            try:
+                resp, body = self.wlm_client.client.post(
                     "/migration_plans", json=payload)
-            if resp.status_code != 200:
-                resp.raise_for_status()
+                if resp.status_code != 200:
+                    resp.raise_for_status()
+            except Exception as e:
+                return False, str(e)
             plan_id = body['migration_plan']['id']
             if (tvaultconf.cleanup and plan_cleanup):
                 self.addCleanup(self.delete_migration_plan, plan_id)
-            return plan_id
+            return plan_id, None
         except Exception as e:
             LOG.error(f"Exception in create_migration_plan: {e}")
-            return None
+            return None, None
 
     '''
     Delete migration plan
@@ -4733,4 +4737,183 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return True
         except Exception as e:
             LOG.error(f"Exception in discover_vms: {e}")
+            return str(e)
+
+    '''
+    Create migration
+    '''
+
+    def create_migration(self, plan_id, migration_options, 
+                         migration_cleanup=True):
+        try:
+            payload = {"migration": {"migration_plan_id": plan_id,
+                                     "options": json.loads(migration_options)}
+                      }
+            LOG.debug(f"Payload for create_migration: {payload}")
+            resp, body = self.wlm_client.client.post("/migrations", 
+                                                     json=payload)
+            if resp.status_code != 202:
+                resp.raise_for_status()
+            LOG.debug(f"Response of create_migration: {resp.status_code}; "\
+                    f"{body}")
+            migration_id = body['migration']['id']
+            if (tvaultconf.cleanup and migration_cleanup):
+                self.addCleanup(self.delete_migration, migration_id)
+            return migration_id, None
+        except Exception as e:
+            LOG.error(f"Exception in create_migration: {e}")
+            return None, str(e)
+
+    '''
+    Delete migration
+    '''
+
+    def delete_migration(self, migration_id):
+        try:
+            resp, body = self.wlm_client.client.delete(
+                    f"/migrations/{migration_id}")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            LOG.debug(f"Response of delete_migration: {resp.status_code}; "\
+                    f"{body}")
+            return True
+        except Exception as e:
+            LOG.error(f"Exception in delete_migration: {e}")
             return False
+
+    '''
+    Create json for migration
+    '''
+
+    def create_migration_json(self, vm_details, migration_type, 
+                              migration_name=tvaultconf.migration_name):
+        self.instance_details = []
+        self.storage_details = []
+        self.flavor_details = {"id": CONF.compute.flavor_ref_alt,
+                               "vcpus": 2,
+                               "ram": 2048,
+                               "disk": 20,
+                               "ephemeral": 0,
+                               "swap": ""}
+        for vm in vm_details:
+            self.instance_details.append({"id": vm['id'],
+                                 "include": True,
+                                 "name": vm['name'],
+                                 "flavor": self.flavor_details,
+                                 "image_source": "",
+                                 "availability_zone": "nova",
+                                 "nics": [],
+                                 "use_cinder_boot_volume": True,
+                                 "glance_image_id": 
+                                    "72d37462-12f5-4b0d-a341-af0080c0182f",
+                                 "vdisks": [
+                                    {
+                                     "id": 
+                                        "6000C294-e703-72a8-d3f9-a26128805640",
+                                     "new_volume_type": 
+                                        CONF.volume.volume_type,
+                                     "availability_zone": 
+                                        CONF.volume.volume_availability_zone
+                                     }]
+                                 })
+        self.net_name = self.get_net_name(CONF.network.internal_network_id)
+        self.subnet_id = self.get_subnet_id(CONF.network.internal_network_id)
+        self.network_details = [{"vmware_network": {"id": "None"},
+                                 "target_network":
+                                     {"id": CONF.network.internal_network_id,
+                                      "name": self.net_name,
+                                      "subnet": 
+                                        {"id": self.subnet_id}
+                                     }
+                                }]
+        for vm in vm_details:
+            self.storage_details.append({"vmware_datastore": vm['datastore'],
+                                 "storage_type": CONF.volume.volume_type})
+        payload = {"name": migration_name + "_" + migration_type,
+                   "description": "Migration",
+                   "migration_type": migration_type,
+                   "power_off_vm_post_migrate": False,
+                   "target": "openstack",
+                   "openstack":
+                        {"vms": self.instance_details,
+                         "networks_mapping": {"networks": 
+                                                    self.network_details},
+                         "storage_mapping": self.storage_details
+                        }
+                   }
+
+        migration_json = json.dumps(payload)
+        LOG.debug(f"migration.json for migration: {migration_json}")
+        return migration_json
+
+    '''
+    Method returns the current status of a given migration plan
+    '''
+
+    def getMigrationPlanStatus(self, plan_id):
+        resp, body = self.wlm_client.client.get(f"/migration_plans/{plan_id}")
+        plan_status = body['migration_plan']['status']
+        LOG.debug(f"plan id: {plan_id}, show_migration_plan Response: "\
+                f"{resp.content}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return plan_status
+
+    '''
+    Method to wait until the migration plan is available
+    '''
+
+    def wait_for_migrationplan_tobe_available(self, plan_id, timeout=7200):
+        status = "available"
+        start_time = int(time.time())
+        LOG.debug('Checking migration plan status')
+        while (status != self.getMigrationPlanStatus(plan_id)):
+            if (self.getMigrationPlanStatus(plan_id) == 'error'):
+                LOG.debug('Migration plan status is: %s' %
+                          self.getMigrationPlanStatus(plan_id))
+                return False
+            if time.time() - start_time > timeout:
+                LOG.error("Timeout Waiting for migration plan to be available")
+                return False
+            LOG.debug('migration plan status is: %s , sleeping for 30 sec' %
+                      self.getMigrationPlanStatus(plan_id))
+            time.sleep(30)
+        LOG.debug('Migration plan status of plan %s: %s' %
+                  (plan_id, self.getMigrationPlanStatus(plan_id)))
+        return True
+
+    '''
+    Method returns the current status of a given migration for specific plan
+    '''
+
+    def getMigrationStatus(self, plan_id, migration_id):
+        resp, body = self.wlm_client.client.get("/migrations/detail?"\
+                f"migration_plan_id={plan_id}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        migrations = body['migrations']
+        migration_status = None
+        for mig in migrations:
+            if mig['id'] == migration_id:
+                migration_status = mig['status']
+        LOG.debug(f"plan id: {plan_id}, migration_id: {migration_id}; "\
+                f"migration status: {migration_status}")
+        return migration_status
+
+    '''
+    Method returns the details of specific migration
+    '''
+
+    def getMigrationDetails(self, plan_id, migration_id):
+        resp, body = self.wlm_client.client.get("/migrations/detail?"\
+                f"migration_plan_id={plan_id}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        migrations = body['migrations']
+        LOG.debug(f"plan id: {plan_id}, migration_id: {migration_id}; "\
+                f"migrations: {migrations}")
+        migration = [x for x in migrations if x['id'] == migration_id]
+        LOG.debug(f"migration data: {migration}")
+        return migration
+
+
