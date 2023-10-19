@@ -31,7 +31,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "_create_migration_plan_api")
             self.vms = self.get_migration_test_vms(vm_list= \
                             self.get_vcenter_vms())
-            self.plan_id = self.create_migration_plan(self.vms)
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
             LOG.debug(f"Plan ID returned from API: {self.plan_id}")
             if self.plan_id:
                 reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
@@ -39,6 +39,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Create Migration Plan")
 
             #DB verification
+            self.wait_for_migrationplan_tobe_available(self.plan_id)
             self.plan_db = query_data.get_migration_plan(self.plan_id)
             LOG.debug(f"Plan details from DB: {self.plan_db}")
             if self.plan_db[0] == tvaultconf.migration_plan_name and \
