@@ -81,7 +81,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         finally:
             # Add results to sanity report
             LOG.debug("Finally Result json: " + str(result_json))
-            reporting.add_result_json(result_json)
+            reporting.add_result_json(result_json, test_type="migration")
             for k, v in result_json.items():
                 reporting.add_sanity_results(k, v)
 
