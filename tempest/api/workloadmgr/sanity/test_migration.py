@@ -50,7 +50,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             LOG.debug(f"Migration ID returned from API: {self.migration_id}")
             if self.migration_id:
                 self.wait_for_migrationplan_tobe_available(self.plan_id)
-                self.mig_data = self.getMigrationDetails(self.plan_id, self.migration_id)
+                self.mig_data = self.getMigrationDetails(self.plan_id, self.migration_id)[0]
                 self.mig_status = self.getMigrationStatus(self.plan_id, self.migration_id)
                 if self.mig_status == 'available':
                     result_json['Create_Cold_Migration'] = tvaultconf.PASS
