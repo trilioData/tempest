@@ -228,9 +228,12 @@ def add_sanity_stats(workload_type, name, data):
     with open(sanity_stats_file, "a") as f:
         f.write(str(workload_type) + " " + str(name) + " " + str(data) + "\n")
 
-def add_result_json(result):
-    with open(result_json_file, "w") as f:
-        f.write("result_json: " + json.dumps(result))
+def add_result_json(result, test_type=""):
+    with open(result_json_file, "a") as f:
+        if test_type != "":
+            f.write("result_json_" + test_type + ": " + json.dumps(result) + "\n")
+        else:
+            f.write("result_json: " + json.dumps(result) + "\n")
 
 def add_sanity_stats_to_tempest_report():
     stat_table = """ <table border="1"><tr><th>WorkloadType</th>
