@@ -365,9 +365,9 @@ juju ssh ${mysql_leader_pod} "sudo mysql -p${mysql_root_pwd} ${dbname} -e \"crea
 EOF
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhosp'* ]]
     then
-	cmd="ssh heat-admin@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
+	cmd="ssh $OVERCLOUD_USER@$controller_hostname 'sudo grep -A1 mysql /var/lib/config-data/puppet-generated/haproxy/etc/haproxy/haproxy.cfg'"
 	mysql_ip=`ssh stack@$UNDERCLOUD_IP $cmd | cut -d " " -f 4 | tail -1 | cut -d ":" -f 1`
-	cmd="ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api cat /etc/triliovault-wlm/triliovault-wlm.conf'"
+	cmd="ssh $OVERCLOUD_USER@$controller_hostname 'sudo podman exec -it triliovault_wlm_api cat /etc/triliovault-wlm/triliovault-wlm.conf'"
 	conn_str=`ssh stack@$UNDERCLOUD_IP $cmd | grep sql_connection | cut -d "=" -f 2`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
@@ -377,16 +377,16 @@ EOF
         echo "mysql_ip: "$mysql_ip
         echo "dbname: "$dbname
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
-	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
-	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
+	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
 	command_prefix_rbac=""
 	container_names=(triliovault_wlm_api triliovault_wlm_workloads triliovault_wlm_scheduler triliovault-wlm-cron-podman-0)
 	for hst in "${controller_hostname[@]}"
 	do
 	    for cont in "${container_names[@]}"
 	    do
-	        command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$hst 'sudo podman exec -it $cont <command>'';"
-		command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh heat-admin@$hst 'sudo podman restart $cont'';"
+	        command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$hst 'sudo podman exec -it $cont <command>'';"
+		command_prefix_rbac+="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$hst 'sudo podman restart $cont'';"
 	    done
 	done
     elif [[ ${OPENSTACK_DISTRO,,} == 'kolla'* ]]
