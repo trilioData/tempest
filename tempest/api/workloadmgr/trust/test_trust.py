@@ -255,7 +255,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Create the trust again using API
-            trust_id = self.create_trust(tvaultconf.trustee_role)
+            role = ','.join(tvaultconf.trustee_role)
+            trust_id = self.create_trust(role)
             if trust_id:
                 reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
             else:
@@ -361,7 +362,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Create the trust again using API
-            trust_id = self.create_trust(tvaultconf.trustee_role)
+            role = ','.join(tvaultconf.trustee_role)
+            trust_id = self.create_trust(role)
             if trust_id:
                 reporting.add_test_step("Create user trust on project", tvaultconf.PASS)
             else:
