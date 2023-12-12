@@ -142,15 +142,26 @@ function configure_tempest
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $NEWADMIN_PWD --description $NEWADMIN_USERNAME --enable $NEWADMIN_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email test@trilio.io --password $BACKUP_PWD --description $BACKUP_USERNAME --enable $BACKUP_USERNAME
     $OPENSTACK_CMD user create --domain $TEST_DOMAIN_NAME --email $ADMIN2_MAILID --password $ADMIN2_PWD --description $ADMIN2_USERNAME --enable $ADMIN2_USERNAME
-    $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
-    $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
-    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
-    $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $TRUSTEE_ROLE
-    $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
+    cnt=0
+    for trole in ${TRUSTEE_ROLE[@]}; do 
+        $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $trole
+        $OPENSTACK_CMD role add --user $TEST_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $trole
+        $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $trole
+        $OPENSTACK_CMD role add --user $NONADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_ALT_PROJECT_NAME $trole
+        $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $trole
+	$OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $trole
+	$OPENSTACK_CMD role add --user $ADMIN2_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $trole
+	if [ $cnt -eq 0 ]
+        then
+            roles=[\"$trole\"
+        else
+            roles+=,\"$trole\"
+        fi
+        cnt=$((cnt+1))
+    done
+    roles+=]
     $OPENSTACK_CMD role add --user $NEWADMIN_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME newadmin
-    $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $BACKUP_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME backup
-    $OPENSTACK_CMD role add --user $ADMIN2_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME $TRUSTEE_ROLE
     $OPENSTACK_CMD role add --user $ADMIN2_USERNAME --user-domain $TEST_DOMAIN_NAME --project $TEST_PROJECT_NAME admin
 
     #Fetch identity data
@@ -644,7 +655,7 @@ EOF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i "/user_data_vm = /c user_data_vm = \"$TEMPEST_VM_DATA_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
-    sed -i '/trustee_role = /c trustee_role = "'$TRUSTEE_ROLE'"' $TEMPEST_TVAULTCONF
+    sed -i '/trustee_role = /c trustee_role = '$roles'' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_rbac = "'$command_prefix_rbac'"' >> $TEMPEST_TVAULTCONF
