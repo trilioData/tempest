@@ -812,18 +812,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_tenant_id_1 = project_details_1["id"]
             self.temp_tenant_name_1 = project_details_1["name"]
 
-            # assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
-            # assign role to user1 and current project1.
-            if self.assign_role_to_user_project(self.temp_tenant_id_1,
+                # assign role to user1 and current project1.
+                if self.assign_role_to_user_project(self.temp_tenant_id_1,
                                                 self.temp_user_id_1, role_id[0], False):
-                LOG.debug("Role assigned to user1 and project1")
-                reporting.add_test_step("Role assignment to user1 and project1", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user1 and project1 failed")
+                    LOG.debug(f"Role {role} assigned to user1 and project1")
+                    reporting.add_test_step(f"Role {role} assignment to user1 and project1", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user1 and project1 failed")
 
             os.environ['OS_USERNAME'] = CONF.identity.backupuser
             os.environ['OS_PASSWORD'] = CONF.identity.backupuser_password
