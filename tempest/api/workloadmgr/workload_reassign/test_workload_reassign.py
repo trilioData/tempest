@@ -304,18 +304,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
 
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
-            #assign role to user and current project.
-            if self.assign_role_to_user_project(CONF.identity.tenant_id,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project")
-                reporting.add_test_step("Role assignment to user and project", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project failed")
+                # assign role to user and current project.
+                if self.assign_role_to_user_project(CONF.identity.tenant_id,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project")
+                    reporting.add_test_step(f"Role {role} assignment to user and project", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project failed")
 
             ### Create vm and workload ###
             self.created = False
@@ -413,18 +414,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
 
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
-            #assign role to user and current project.
-            if self.assign_role_to_user_project(CONF.identity.tenant_id,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project")
-                reporting.add_test_step("Role assignment to user and project", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project failed")
+                # assign role to user and current project.
+                if self.assign_role_to_user_project(CONF.identity.tenant_id,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project")
+                    reporting.add_test_step(f"Role {role} assignment to user and project", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project failed")
 
             ### Create vm and workload ###
             self.created = False
@@ -521,25 +523,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
 
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
-
             #create temp project
             project_details = self.create_project()
             LOG.debug("Project created details - {}".format(project_details["name"]))
             self.temp_tenant_id = project_details["id"]
             self.temp_tenant_name = project_details["name"]
 
-            #assign role to user and current project.
-            if self.assign_role_to_user_project(self.temp_tenant_id,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project")
-                reporting.add_test_step("Role assignment to user and project", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project failed")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
+                # assign role to user and current project.
+                if self.assign_role_to_user_project(self.temp_tenant_id,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project")
+                    reporting.add_test_step(f"Role {role} assignment to user and project", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project failed")
 
             ### Create vm and workload ###
             self.created = False
@@ -635,12 +637,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
-    
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
-
+  
             #create temp project 1
             project_details = self.create_project()
             LOG.debug("Project created details - {}".format(project_details["name"]))
@@ -653,22 +650,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_tenant_id_1 = project_details1["id"]
             self.temp_tenant_name_1 = project_details1["name"]
 
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
-            #assign role to user and current project 1.
-            if self.assign_role_to_user_project(self.temp_tenant_id,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project 1")
-                reporting.add_test_step("Role assignment to user and project 1", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project 1 failed")
+                # assign role to user and current project1.
+                if self.assign_role_to_user_project(self.temp_tenant_id,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project1")
+                    reporting.add_test_step(f"Role {role} assignment to user and project1", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project1 failed")
 
-            #assign role to user and current project 2.
-            if self.assign_role_to_user_project(self.temp_tenant_id_1,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project 2")
-                reporting.add_test_step("Role assignment to user and project 2", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project 2 failed")
+                # assign role to user and current project2.
+                if self.assign_role_to_user_project(self.temp_tenant_id_1,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project2")
+                    reporting.add_test_step(f"Role {role} assignment to user and project2", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project2 failed")
 
             ### Create vm and workload ###
             self.created = False
@@ -765,25 +767,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_user_id = user_details['id']
             self.temp_user_name = user_details['name']
 
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
-
             #create temp project
             project_details = self.create_project()
             LOG.debug("Project created details - {}".format(project_details["name"]))
             self.temp_tenant_id = project_details["id"]
             self.temp_tenant_name = project_details["name"]
 
-            #assign role to user and current project.
-            if self.assign_role_to_user_project(self.temp_tenant_id,
-                    self.temp_user_id, role_id[0], False):
-                LOG.debug("Role assigned to user and project")
-                reporting.add_test_step("Role assignment to user and project", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user and project failed")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
+                # assign role to user and current project.
+                if self.assign_role_to_user_project(self.temp_tenant_id,
+                                                self.temp_user_id, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user and project")
+                    reporting.add_test_step(f"Role {role} assignment to user and project", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user and project failed")
 
             ### Create vm and workload ###
             self.created = False
@@ -911,26 +913,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.temp_tenant_id_2 = project_details_2["id"]
             self.temp_tenant_name_2 = project_details_2["name"]
 
-            #assign trustee role
-            role_id = self.get_role_id(tvaultconf.trustee_role)
-            if len(role_id) != 1:
-                raise Exception("Role ID not returned")
+            # assign trustee roles
+            for role in tvaultconf.trustee_role:
+                role_id = self.get_role_id(role)
+                if len(role_id) != 1:
+                    raise Exception(f"Role ID not returned for {role}")
 
-            #assign role to user1 and current project1.
-            if self.assign_role_to_user_project(self.temp_tenant_id_1,
-                    self.temp_user_id_1, role_id[0], False):
-                LOG.debug("Role assigned to user1 and project1")
-                reporting.add_test_step("Role assignment to user1 and project1", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user1 and project1 failed")
+                # assign role to user1 and current project1.
+                if self.assign_role_to_user_project(self.temp_tenant_id_1,
+                                                self.temp_user_id_1, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user1 and project1")
+                    reporting.add_test_step(f"Role {role} assignment to user1 and project1", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user1 and project1 failed")
 
-            #assign role to user2 and current project2.
-            if self.assign_role_to_user_project(self.temp_tenant_id_2,
-                    self.temp_user_id_2, role_id[0], False):
-                LOG.debug("Role assigned to user2 and project2")
-                reporting.add_test_step("Role assignment to user2 and project2", tvaultconf.PASS)
-            else:
-                raise Exception("Role assignment to user2 and project2 failed")
+                # assign role to user2 and current project2.
+                if self.assign_role_to_user_project(self.temp_tenant_id_2,
+                                                self.temp_user_id_2, role_id[0], False):
+                    LOG.debug(f"Role {role} assigned to user2 and project2")
+                    reporting.add_test_step(f"Role {role} assignment to user2 and project2", tvaultconf.PASS)
+                else:
+                    raise Exception(f"Role {role} assignment to user2 and project2 failed")
 
             ### Create vm and workload ###
             self.created = False

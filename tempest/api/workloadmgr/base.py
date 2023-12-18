@@ -741,7 +741,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 resp.raise_for_status()
             return True
         except Exception as e:
-            LOG.error("Exception in workload_reassign: " + str(e))
+            LOG.error("Exception in workload_reset: " + str(e))
             return False
 
     '''
@@ -4450,7 +4450,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             u_password = data_utils.rand_password()
             user_body = self.users_client.create_user(
                 name=u_name, description=u_desc, password=u_password,
-                email=u_email, enabled=True)['user']
+                email=u_email, domain_id=CONF.identity.domain_id, 
+                enabled=True)['user']
 
             LOG.debug(f"createUser response is : {user_body['id']} and user name is {user_body['name']}")
 
