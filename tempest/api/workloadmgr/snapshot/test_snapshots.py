@@ -194,15 +194,52 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
-    @decorators.attr(type='workloadmgr_cli')
-    def test_4_delete_snapshot(self):
+    '''
+    Test Case Link
+    http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2110
+    '''
+    @decorators.attr(type='workloadmgr_api')
+    def test_4_snapshot_instance_delete(self):
         try:
             global workload_id
             global snapshot_id
             global volume_id
             global vm_id
+            reporting.add_test_script(str(__name__) + "_snapshot_instance_delete")
+            err_msg_expected = f"Unable to find Virtual Machine \'{vm_id}\' in nova inventory"
+
+            #Delete the instance
+            self.delete_vm(vm_id)
+
+            #Trigger snapshot
+            self.snapshot_id = self.workload_snapshot(workload_id, False)
+            self.snapshot_status = self.getSnapshotStatus(workload_id,
+                                                          self.snapshot_id)
+            if self.snapshot_status == 'error':
+                self.snap_err_msg = self.getSnapshotDetails(
+                        workload_id, self.snapshot_id)['error_msg']
+                if self.snap_err_msg == err_msg_expected:
+                    reporting.add_test_step(
+                            "Snapshot errored with correct message",
+                            tvaultconf.PASS)
+                else:
+                    raise Exception("Error message does not match")
+            else:
+                raise Exception("Snapshot did not error")
+
+        except Exception as e:
+            LOG.error(f"Exception: {e}")
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_5_delete_snapshot(self):
+        try:
+            global workload_id
+            global snapshot_id
+            global volume_id
 
             reporting.add_test_script(str(__name__) + "_delete_snapshot")
 
@@ -263,9 +300,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step("db cleanup validations for workload", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
-
-            # Delete vm
-            self.delete_vm(vm_id)
 
             # Delete volume
             self.delete_volume(volume_id)
