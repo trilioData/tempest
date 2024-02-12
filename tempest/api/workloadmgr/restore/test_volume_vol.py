@@ -390,8 +390,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             reporting.add_test_script(tests[2][0])
 
-            self.detach_volume(vm_id, volume_id)
-
             # Delete the original instance
             self.delete_vm(vm_id)
             LOG.debug(
