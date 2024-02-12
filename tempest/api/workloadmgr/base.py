@@ -2239,7 +2239,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                  "options": {}}}
             resp, body = self.wlm_client.client.post(
                 "/snapshots/" + snapshot_id + "/mount", json=payload)
-            LOG.debug("#### Mounting of snapshot is initiated: ")
+            LOG.debug(f"Snapshot mount is initiated for {snapshot_id} on {vm_id}")
             if (resp.status_code != 200):
                 resp.raise_for_status()
             is_successful = self.wait_for_snapshot_tobe_mounted(workload_id,snapshot_id,timeout=timeout)
