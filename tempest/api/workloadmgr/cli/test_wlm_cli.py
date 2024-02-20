@@ -578,8 +578,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_list = self.list_vms()
             LOG.debug("\nVM lists are : {}\n".format(str(vm_list)))
 
-            # Fetch protected VMs : First We need to fetch the instances frrm WL list and then remove them who are not in the vm_list so
-            # WL VMs who are deleted from OpenStack but they still part of WL will get excluded
+            #Fetch protected VMs : First We need to fetch the instances from WL list and then remove them who are not in the vm_list so WL VMs who are deleted from OpenStack but they still part of WL will get excluded
             wl_list = self.getWorkloadList()
             LOG.debug("\nWL lists are : {}\n".format(str(wl_list)))
             wl_instance_id = []
@@ -596,8 +595,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     protected_vm_list.append(vm)
             LOG.debug("\nProtected VMs are: " +str(protected_vm_list))
 
-            
-            # Get tenanat usage CLI command
+            # Get tenant usage CLI command
             get_tenant_usage = command_argument_string.get_tenant_usage
             LOG.debug("Get tenant usage command: {}".format(get_tenant_usage))
             rc = cli_parser.cli_returncode(get_tenant_usage)
@@ -625,10 +623,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             protected_vm = json.loads(usage)
             if int(protected_vm['vms_protected']) == len(protected_vm_list):
                 reporting.add_test_step(
-                    "VMs_protected vs CLI ouput", tvaultconf.PASS)
+                    "Verify VMs_protected vs CLI ouput", tvaultconf.PASS)
             else:
                 reporting.add_test_step(
-                    "VMs_protected vs CLI ouput", tvaultconf.FAIL)
+                    "Verify VMs_protected vs CLI ouput", tvaultconf.FAIL)
             
         except Exception as e:
             LOG.error("Exception: " + str(e))
