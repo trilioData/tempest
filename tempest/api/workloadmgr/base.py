@@ -4819,7 +4819,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                  })
         self.net_name = self.get_net_name(CONF.network.internal_network_id)
         self.subnet_id = self.get_subnet_id(CONF.network.internal_network_id)
-        self.network_details = [{"vmware_network": {"id": "None"},
+        self.network_details = [{"vmware_network": {"id": "internal-network"},
                                  "target_network":
                                      {"id": CONF.network.internal_network_id,
                                       "name": self.net_name,
