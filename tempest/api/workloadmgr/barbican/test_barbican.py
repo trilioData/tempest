@@ -827,7 +827,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             reporting.add_test_step(
                                 "Verification of volume2 file's existance "\
                                         "on mounted snapshot", tvaultconf.FAIL)
+                LOG.debug(f"Flag: {flag}")
                 for k,v in flag.items():
+                    LOG.debug(f"k: {k}")
                     if v == 0:
                         reporting.add_test_step("Verify that mountpoint "\
                                 "mounted is shown on FVM instance",
@@ -909,7 +911,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             reporting.add_test_step(
                                 "Verification of volume2 file's existance on "\
                                         "mounted snapshot", tvaultconf.FAIL)
+                LOG.debug(f"flag: {flag}")
                 for k,v in flag.items():
+                    LOG.debug(f"k: {k}")
                     if v == 0:
                         reporting.add_test_step("Verify that mountpoint "\
                                 "mounted is shown on FVM instance",
