@@ -583,6 +583,7 @@ EOF
     $OPENSTACK_CMD security group show $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 1:65535 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol tcp --dst-port 1:65535 $def_secgrp_id
+    $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol tcp --dst-port 22 $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --ingress --protocol icmp $def_secgrp_id
     $OPENSTACK_CMD security group rule create --ethertype IPv4 --egress --protocol icmp $def_secgrp_id
     

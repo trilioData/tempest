@@ -733,6 +733,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 6)
             md5sums_before_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             ssh.close()
 
