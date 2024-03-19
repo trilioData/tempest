@@ -733,6 +733,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(tests[2][0])
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 6)
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 6)
             md5sums_before_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             ssh.close()
 
@@ -827,7 +829,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             reporting.add_test_step(
                                 "Verification of volume2 file's existance "\
                                         "on mounted snapshot", tvaultconf.FAIL)
+                LOG.debug(f"Flag: {flag}")
                 for k,v in flag.items():
+                    LOG.debug(f"k: {k}")
                     if v == 0:
                         reporting.add_test_step("Verify that mountpoint "\
                                 "mounted is shown on FVM instance",
@@ -909,7 +913,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                             reporting.add_test_step(
                                 "Verification of volume2 file's existance on "\
                                         "mounted snapshot", tvaultconf.FAIL)
+                LOG.debug(f"flag: {flag}")
                 for k,v in flag.items():
+                    LOG.debug(f"k: {k}")
                     if v == 0:
                         reporting.add_test_step("Verify that mountpoint "\
                                 "mounted is shown on FVM instance",
