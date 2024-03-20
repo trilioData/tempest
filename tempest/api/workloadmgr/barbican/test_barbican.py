@@ -960,6 +960,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.addCustomfilesOnLinuxVM(ssh, "/opt", 7)
+            for mp in tvaultconf.mount_points:
+                self.addCustomfilesOnLinuxVM(ssh, mp, 7)
             md5sums_after_incr = self._get_md5sum(ssh, ["/opt", "volumes"])
             LOG.debug(f"md5sums_after_incr: {md5sums_after_incr}")
             ssh.close()
@@ -3129,7 +3131,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             exception = self.exception
 
             # Create scheduled encrypted workload
-            self.secret_uuid = self.create_secret(secret_cleanup=True)
+            self.secret_uuid = self.create_secret(secret_cleanup=False)
             secret_uuid = self.secret_uuid
 
             # Modify workload scheduler to enable and set the start date, time
