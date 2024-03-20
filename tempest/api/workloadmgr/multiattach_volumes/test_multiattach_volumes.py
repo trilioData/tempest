@@ -838,7 +838,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             retention = int(tvaultconf.retention_policy_value)
             start_date = time.strftime("%m/%d/%Y")
-            start_time = (datetime.now() + timedelta(minutes=5)
+            start_time = (datetime.now() + timedelta(hours=2)
                           ).strftime("%I:%M %p")
             self.schedule = {
                 "fullbackup_interval": "0",
