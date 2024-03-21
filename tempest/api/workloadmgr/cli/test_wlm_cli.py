@@ -557,7 +557,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_get_tenants_usage_cli")
         try:
             
-            self.created = False
             self.vm_id = self.create_vm()
                   
             # Create workload with CLI command
@@ -582,11 +581,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             wl_list = self.getWorkloadList()
             LOG.debug("\nWL lists are : {}\n".format(str(wl_list)))
             wl_instance_id = []
-            for i in wl_list:
-                body = self.getWorkloadDetails(i)
+            for workload in wl_list:
+                body = self.getWorkloadDetails(workload)
                 LOG.debug("Body from WorkloadDetails:" + str(body))
-                for i in range(0, len(body['instances'])):
-                    wl_instance_id.append(body['instances'][i]['id'])
+                for count in range(0, len(body['instances'])):
+                    wl_instance_id.append(body['instances'][count]['id'])
                 LOG.debug("\nWL instances are: " +str(wl_instance_id))
 
             protected_vm_list = []
@@ -617,9 +616,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Verify total VMs on OpenStack and CLI ouput", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
             
             # Compare the vms_protected vs CLI ouput
-            usage = cli_parser.cli_response_parser(out,'trilio-test-project-1')
+            usage = cli_parser.cli_response_parser(out, CONF.identity.tenant_name)
             protected_vm = json.loads(usage)
             if int(protected_vm['vms_protected']) == len(protected_vm_list):
                 reporting.add_test_step(
@@ -627,6 +627,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 reporting.add_test_step(
                     "Verify VMs_protected vs CLI ouput", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
             
         except Exception as e:
             LOG.error("Exception: " + str(e))
