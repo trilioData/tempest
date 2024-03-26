@@ -572,6 +572,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-create command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload")
+            else:
+                raise Exception("Create workload")
              
             # List VMs 
             vm_list = self.list_vms()
