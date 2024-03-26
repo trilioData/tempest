@@ -629,6 +629,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify VMs_protected vs CLI ouput", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)
             
+            # Delete workload
+            self.workload_delete(self.wid)
+            LOG.debug("Workload deleted successfully")
+            
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
