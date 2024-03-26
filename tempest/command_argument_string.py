@@ -29,7 +29,8 @@ trust_list = "workloadmgr trust-list -f json"
 trust_show = "workloadmgr trust-show -f json "
 trust_delete = "workloadmgr trust-delete "
 
-get_storage_usage = "workloadmgr workload-get-storage-usage" 
+get_storage_usage = "workloadmgr workload-get-storage-usage"
+get_tenant_usage = "workloadmgr get-tenants-usage"
 get_import_workloads_list = "workloadmgr workload-get-importworkloads-list" 
 workload_disable_global_job_scheduler = "workloadmgr disable-global-job-scheduler"
 workload_enable_global_job_scheduler = "workloadmgr enable-global-job-scheduler"
@@ -50,7 +51,7 @@ snapshot_reset = "workloadmgr snapshot-reset --snapshot_id "
 snapshot_mount = "workloadmgr snapshot-mount "
 snapshot_dismount = "workloadmgr snapshot-dismount "
 snapshot_mounted_list = "workloadmgr snapshot-mounted-list "
-snapshot_show = "workloadmgr --insecure snapshot-show --output metadata "
+snapshot_show = "workloadmgr snapshot-show --output metadata "
 
 #Restore commands
 restore_list = "workloadmgr restore-list | grep available | wc -l"
@@ -64,9 +65,9 @@ restore_security_groups = "workloadmgr restore-security-groups "
 network_restore = "workloadmgr restore-network-topology "
 
 #Restore commands with blank names.
-oneclick_restore_with_blank_name = "workloadmgr --insecure snapshot-oneclick-restore --display-name \" \" --display-description \" \" "
-inplace_restore_with_blank_name = "workloadmgr --insecure snapshot-inplace-restore --display-name \" \" --display-description \" \" --filename "
-selective_restore_with_blank_name = "workloadmgr --insecure snapshot-selective-restore --display-name \" \" --display-description \" \" --filename "
+oneclick_restore_with_blank_name = "workloadmgr snapshot-oneclick-restore --display-name \" \" --display-description \" \" "
+inplace_restore_with_blank_name = "workloadmgr snapshot-inplace-restore --display-name \" \" --display-description \" \" --filename "
+selective_restore_with_blank_name = "workloadmgr snapshot-selective-restore --display-name \" \" --display-description \" \" --filename "
 
 #openstack secret commands
 openstack_create_secret_with_empty_payload = "openstack secret store -p \"\" -f json "

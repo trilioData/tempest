@@ -362,9 +362,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug('DeletedVms: %s' % instances)
 
     '''
-    Method creates a new volume and returns Volume ID
+    Methon to get the VMs list
     '''
 
+    def list_vms(self):
+        try:
+            vm_list = []
+            body = self.servers_client.list_servers(all_tenants=True)
+            LOG.debug('Body from list_servers :' +str(body))
+            servers = body['servers']
+            for i in servers:
+                vm_list.append(i['id'])
+        except Exception as e:
+            LOG.error(f"Exception in vm_lists: {e}")
+        finally:
+            return vm_list
+
+    '''
+    Method creates a new volume and returns Volume ID
+    '''
+  
     def create_volume(
             self,
             size=CONF.volume.volume_size,
@@ -4583,7 +4600,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
         backing_chain = stdout.decode('UTF-8')
         return backing_chain
-
+   
     '''
     List WLM nodes
     '''
