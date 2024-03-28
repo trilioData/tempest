@@ -2,7 +2,7 @@ import os
 import sys
 import time
 import random
-
+import json
 from oslo_log import log as logging
 
 from tempest import command_argument_string
@@ -548,6 +548,103 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_11_get_tenants_usage(self):
+        reporting.add_test_script(str(__name__) + "_get_tenants_usage_cli")
+        try:
+            
+            self.vm_id = self.create_vm()
+                  
+            # Create workload with CLI command
+            workload_create = command_argument_string.workload_create + \
+                " instance-id=" + str(self.vm_id)
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+            time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step("Create workload", tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload")
+            else:
+                raise Exception("Create workload")
+             
+            # List VMs 
+            vm_list = self.list_vms()
+            LOG.debug("\nVM lists are : {}\n".format(str(vm_list)))
+
+            #Fetch protected VMs : First We need to fetch the instances from WL list and then remove them who are not in the vm_list so WL VMs who are deleted from OpenStack but they still part of WL will get excluded
+            wl_list = self.getWorkloadList()
+            LOG.debug("\nWL lists are : {}\n".format(str(wl_list)))
+            wl_instance_id = []
+            for workload in wl_list:
+                body = self.getWorkloadDetails(workload)
+                LOG.debug("Body from WorkloadDetails:" + str(body))
+                for count in range(0, len(body['instances'])):
+                    wl_instance_id.append(body['instances'][count]['id'])
+                LOG.debug("\nWL instances are: " +str(wl_instance_id))
+
+            protected_vm_list = []
+            for vm in wl_instance_id:
+                if vm in vm_list:
+                    protected_vm_list.append(vm)
+            LOG.debug("\nProtected VMs are: " +str(protected_vm_list))
+
+            # Get tenant usage CLI command
+            get_tenant_usage = command_argument_string.get_tenant_usage
+            LOG.debug("Get tenant usage command: {}".format(get_tenant_usage))
+            rc = cli_parser.cli_returncode(get_tenant_usage)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute get-tenants-usage command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute get-tenants-usage command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+            
+            # Compare total VMs hosted on a cloud vs total_vms showing in CLI output
+            out = cli_parser.cli_output(get_tenant_usage)
+            total_vm = cli_parser.cli_response_parser(out,'total_vms')
+            if (len(vm_list) == int(total_vm)):
+                reporting.add_test_step(
+                    "Verify total VMs on OpenStack and CLI ouput", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify total VMs on OpenStack and CLI ouput", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
+            # Compare the vms_protected vs CLI ouput
+            usage = cli_parser.cli_response_parser(out, CONF.identity.tenant_name)
+            protected_vm = json.loads(usage)
+            if int(protected_vm['vms_protected']) == len(protected_vm_list):
+                reporting.add_test_step(
+                    "Verify VMs_protected vs CLI ouput", tvaultconf.PASS)
+            else:
+                reporting.add_test_step(
+                    "Verify VMs_protected vs CLI ouput", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+            
+            # Delete workload
+            self.workload_delete(self.wid)
+            LOG.debug("Workload deleted successfully")
+            
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
