@@ -3190,7 +3190,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             'ip_version': 6,
             'network_id': net['network']['id'],
             'name': "IPV6-PS",
-            'cidr': 'fdf8:f53b:82e4::53/125'}
+            'cidr': 'fdf8:f53b:82e4::53/124'}
         subnet = self.subnets_client.create_subnet(**subnetconfig)
         subnets[subnet['subnet']['name']] = subnet['subnet']['id']
         LOG.debug("Created ipv6 network")
