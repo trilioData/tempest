@@ -3204,7 +3204,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     **{'name': "Router-{}".format(x), 'admin_state_up': 'False'})
             routers[router['router']['name']] = router['router']['id']
 
-        networkslist = self.networks_client.list_networks()['networks']
+        networkslist = self.networks_client.list_networks(project_id=CONF.identity.tenant_id)['networks']
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-1'])
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-2'])
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
@@ -3235,56 +3235,54 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''
     Get network topology details
-    Here only specific values which are fixed are extracted out because for network topology comparison we can't compare values which are dynamic for ex. ids, created_at, updated_at etc.
+    Here only specific values which are fixed are extracted out because for 
+    network topology comparison we can't compare values which are dynamic 
+    for ex. ids, created_at, updated_at etc.
     '''
 
     def get_topology_details(self):
-        networkslist = self.networks_client.list_networks()['networks']
+        networkslist = self.networks_client.list_networks(
+                project_id=CONF.identity.tenant_id)['networks']
         nws = [x['id'] for x in networkslist]
-        nt = [{str(i): str(j) for i,
-                                  j in list(x.items()) if i not in ('network_id',
-                                                                    'subnets',
-                                                                    'created_at',
-                                                                    'updated_at',
-                                                                    'id',
-                                                                    'revision_number',
-                                                                    'provider:segmentation_id')} for x in networkslist]
+        nt = [{str(i): str(j) for i,j in list(x.items()) 
+                if i not in ('network_id', 'subnets', 'created_at',
+                             'updated_at', 'id', 'revision_number', 
+                             'provider:segmentation_id')} \
+                                     for x in networkslist]
         networks = {}
         for each_network in nt:
             networks[each_network['name']] = each_network
 
-        sbnt = self.subnets_client.list_subnets()['subnets']
-        sbnts = [{str(i): str(j) for i, j in list(x.items()) if i not in (
-            'network_id', 'created_at', 'updated_at', 'id', 'revision_number')} for x in sbnt]
+        sbnt = self.subnets_client.list_subnets(
+                project_id=CONF.identity.tenant_id)['subnets']
+        sbnts = [{str(i): str(j) for i, j in list(x.items()) 
+                    if i not in ('network_id', 'created_at', 'updated_at', 
+                                 'id', 'revision_number')} for x in sbnt]
         subnets = {}
         for each_subnet in sbnts:
             subnets[each_subnet['name']] = each_subnet
 
-        rs = self.routers_client.list_routers()['routers']
-        rts = [{str(i): str(j) for i,
-                                   j in list(x.items()) if i not in ('external_gateway_info',
-                                                                     'created_at',
-                                                                     'updated_at',
-                                                                     'id',
-                                                                     'revision_number')} for x in rs]
+        rs = self.routers_client.list_routers(
+                project_id=CONF.identity.tenant_id)['routers']
+        rts = [{str(i): str(j) for i, j in list(x.items()) 
+                if i not in ('external_gateway_info', 'created_at', 
+                             'updated_at', 'id', 'revision_number')} \
+                                     for x in rs]
         routers = {}
         for each_router in rts:
             routers[each_router['name']] = each_router
 
         interfaces = {}
         for router in self.get_router_ids():
-            interfaceslist = self.ports_client.list_ports()['ports']
-            intrfs = [{str(i): str(j) for i,
-                                          j in list(x.items()) if i not in ('network_id',
-                                                                            'created_at',
-                                                                            'updated_at',
-                                                                            'mac_address',
-                                                                            'fixed_ips',
-                                                                            'id',
-                                                                            'device_id',
-                                                                            'security_groups',
-                                                                            'port_security_enabled',
-                                                                            'revision_number')} for x in interfaceslist]
+            interfaceslist = self.ports_client.list_ports(
+                    project_id=CONF.identity.tenant_id)['ports']
+            intrfs = [{str(i): str(j) for i, j in list(x.items()) 
+                       if i not in ('network_id', 'created_at', 'updated_at',
+                                    'mac_address', 'fixed_ips', 'id', 
+                                    'device_id', 'security_groups', 
+                                    'port_security_enabled', 
+                                    'revision_number')} \
+                                            for x in interfaceslist]
             interfaces[self.routers_client.show_router(
                 router)['router']['name']] = intrfs
         return (networks, subnets, routers, interfaces)
