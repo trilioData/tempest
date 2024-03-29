@@ -283,6 +283,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
 
+            self.delete_network_topology(tenant_id_1)
             snapshot_id = snapshot_ids[0]
 
             payload = {"type": "openstack",
