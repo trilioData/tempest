@@ -3160,7 +3160,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Here specific network topology will be created in order to test the possible scenarios for network restore
     '''
 
-    def create_network(self):
+    def create_network(self, tenant_id=CONF.identity.tenant_id):
         routers = {}
         subnets = {}
         nets = {}
@@ -3204,7 +3204,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     **{'name': "Router-{}".format(x), 'admin_state_up': 'False'})
             routers[router['router']['name']] = router['router']['id']
 
-        networkslist = self.networks_client.list_networks(project_id=CONF.identity.tenant_id)['networks']
+        networkslist = self.networks_client.list_networks(project_id=tenant_id)['networks']
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-1'])
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-2'])
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
