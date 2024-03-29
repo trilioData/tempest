@@ -3240,9 +3240,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     for ex. ids, created_at, updated_at etc.
     '''
 
-    def get_topology_details(self):
+    def get_topology_details(self, tenant_id=CONF.identity.tenant_id):
         networkslist = self.networks_client.list_networks(
-                project_id=CONF.identity.tenant_id)['networks']
+                project_id=tenant_id)['networks']
         nws = [x['id'] for x in networkslist]
         nt = [{str(i): str(j) for i,j in list(x.items()) 
                 if i not in ('network_id', 'subnets', 'created_at',
@@ -3254,7 +3254,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             networks[each_network['name']] = each_network
 
         sbnt = self.subnets_client.list_subnets(
-                project_id=CONF.identity.tenant_id)['subnets']
+                project_id=tenant_id)['subnets']
         sbnts = [{str(i): str(j) for i, j in list(x.items()) 
                     if i not in ('network_id', 'created_at', 'updated_at', 
                                  'id', 'revision_number')} for x in sbnt]
@@ -3263,7 +3263,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             subnets[each_subnet['name']] = each_subnet
 
         rs = self.routers_client.list_routers(
-                project_id=CONF.identity.tenant_id)['routers']
+                project_id=tenant_id)['routers']
         rts = [{str(i): str(j) for i, j in list(x.items()) 
                 if i not in ('external_gateway_info', 'created_at', 
                              'updated_at', 'id', 'revision_number')} \
@@ -3275,7 +3275,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         interfaces = {}
         for router in self.get_router_ids():
             interfaceslist = self.ports_client.list_ports(
-                    project_id=CONF.identity.tenant_id)['ports']
+                    project_id=tenant_id)['ports']
             intrfs = [{str(i): str(j) for i, j in list(x.items()) 
                        if i not in ('network_id', 'created_at', 'updated_at',
                                     'mac_address', 'fixed_ips', 'id', 
