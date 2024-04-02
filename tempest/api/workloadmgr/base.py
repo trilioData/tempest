@@ -3887,6 +3887,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             klist = sorted([*sbnt_bf])
             sbnt_bf_sorted = {}
             sbnt_af_sorted = {}
+            LOG.debug(f"sbnt_bf: {sbnt_bf} && sbnt_af: {sbnt_af} && klist: {klist}")
             for sbnt in klist:
                 sbnt_bf[sbnt]['allocation_pools'] = sorted(eval(sbnt_bf[sbnt]['allocation_pools']), key=lambda x:x['start'])
                 sbnt_af[sbnt]['allocation_pools'] = sorted(eval(sbnt_af[sbnt]['allocation_pools']), key=lambda x:x['start'])
@@ -3968,6 +3969,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         except Exception as e:
             LOG.error("Exception in verify_network_restore: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
 
     '''
     download test image
