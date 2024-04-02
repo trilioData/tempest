@@ -394,7 +394,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute snapshot-delete command", tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
             start_time = time.time()
-            time.sleep(5)
+            time.sleep(15)
             wc = 0
             while (str(wc) == "0" and (time.time() - start_time < 600)):
                 wc = query_data.get_workload_snapshot_delete_status(
