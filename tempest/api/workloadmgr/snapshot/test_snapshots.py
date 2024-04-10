@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import datetime
 
 from oslo_log import log as logging
 
@@ -448,5 +449,104 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         except Exception as e:
             LOG.error("Exception: " + str(e))
             reporting.set_test_script_status(tvaultconf.FAIL)
+            reporting.test_case_to_write()
+
+    '''
+    Test Case Link
+    http://192.168.15.51/testlink/linkto.php?tprojectPrefix=OS&item=testcase&id=OS-2176
+    '''
+    @decorators.attr(type='workloadmgr_cli')
+    def test_7_snapshot_workload_with_extra_quotes_while_creation(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_workload_with_extra_quotes_while_creation")
+            self.vm_id = self.create_vm()
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_10 = now + datetime.timedelta(minutes=10)
+            now_time_plus_10 = datetime.datetime.strftime(
+                now_time_plus_10, "%I:%M %p")
+            interval = tvaultconf.interval
+            retention_policy_type = tvaultconf.retention_policy_type
+            retention_policy_value = tvaultconf.retention_policy_value
+            workload_create = command_argument_string.workload_create + \
+                    ' instance-id=' + str(self.vm_id) + ' --jobschedule ' +\
+                    '"start_date=' + str(now_date.strip()) + '" --jobschedule ' +\
+                    '"start_time=' + str(now_time_plus_10.strip()) + \
+                    '" --jobschedule interval="' + str(interval) + \
+                    '" --jobschedule "retention_policy_type=\'' + \
+                    str(retention_policy_type) + '\'" --jobschedule '+ \
+                    '"retention_policy_value="' + str(retention_policy_value) + \
+                    '"" --jobschedule enabled=True'
+            LOG.debug(f"workload create command: {workload_create}")
+
+            rc = cli_parser.cli_returncode(workload_create)
+            if rc != 0:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.FAIL)
+                raise Exception("Command did not execute correctly")
+            else:
+                reporting.add_test_step(
+                    "Execute workload-create command", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+
+            time.sleep(10)
+            self.wid = query_data.get_workload_id_in_creation(
+                    tvaultconf.workload_name)
+            LOG.debug("Workload ID: " + str(self.wid))
+            if(self.wid is not None):
+                self.wait_for_workload_tobe_available(self.wid)
+                if(self.getWorkloadStatus(self.wid) == "available"):
+                    reporting.add_test_step("Create workload", 
+                                            tvaultconf.PASS)
+                else:
+                    raise Exception("Create workload")
+            else:
+                raise Exception("Create workload")
+
+            #Trigger snapshot
+            self.snapshot_id = self.workload_snapshot(self.wid, True, 
+                                                      snapshot_cleanup=False)
+            self.wait_for_workload_tobe_available(self.wid)
+            self.snapshot_status = self.getSnapshotStatus(self.wid,
+                                                          self.snapshot_id)
+            if(self.snapshot_status == "available"):
+                reporting.add_test_step("Create full snapshot", 
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Create full snapshot", 
+                                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.workload_status = self.getWorkloadStatus(self.wid)
+            if(self.workload_status == "available"):
+                reporting.add_test_step("Workload status updated to " +\
+                        f"{self.workload_status}", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Workload status updated to " +\
+                        f"{self.workload_status}", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.mount_path = self.get_mountpoint_path()
+            self.snapshot_exist = self.check_snapshot_exist_on_backend(
+                                       self.mount_path, self.wid, 
+                                       self.snapshot_id)
+            if(self.snapshot_exist):
+                reporting.add_test_step("Snapshot exist on backend", 
+                                        tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Snapshot does not exist on backend", 
+                                        tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.snapshot_delete(self.wid, self.snapshot_id)
+            self.workload_delete(self.wid)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+
+        finally:
             reporting.test_case_to_write()
 
