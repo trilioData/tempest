@@ -103,6 +103,11 @@ rbac_create_secgroup = "openstack network rbac create --target-project "
 #OpenStack WLM CLI Commands
 os_workload_list = "openstack workload list"
 
-
 #OpenStack CLI Commands
 os_server_list = "openstack server list"
+
+#VM Migration commands
+migration_plan_create = "workloadmgr migration-plan-create --display-name " + \
+        tvaultconf.migration_plan_name + " --display-description '" + \
+        tvaultconf.migration_plan_desc + "' --source-platform vmware -f json "
+
