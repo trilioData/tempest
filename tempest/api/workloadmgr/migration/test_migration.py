@@ -74,13 +74,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             mp_create = command_argument_string.migration_plan_create +\
                     vm_str
             out = cli_parser.cli_output(mp_create)
-            self.plan_id = json.loads(out)[0]['ID']
-            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
-            if self.plan_id:
-                reporting.add_test_step("Create Migration Plan", 
-                                        tvaultconf.PASS)
+            if out:
+                self.plan_id = json.loads(out)[0]['ID']
+                LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+                if self.plan_id:
+                    reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+                else:
+                    raise Exception("Create Migration Plan")
             else:
-                raise Exception("Create Migration Plan")
+                raise Exception("Execute migration-plan-create CLI command")
 
             #DB verification
             self.wait_for_migrationplan_tobe_available(self.plan_id)
