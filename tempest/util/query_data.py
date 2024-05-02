@@ -794,3 +794,18 @@ def get_migration_plan(plan_id):
         cursor.close()
         conn.close()
 
+def get_last_created_migration_planid():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        plan_id = (f"select id from migration_plans order by created_at desc limit 1")
+        cursor.execute(plan_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(f"Exception in get_last_created_migration_planid: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+

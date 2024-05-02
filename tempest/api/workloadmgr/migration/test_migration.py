@@ -64,10 +64,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             reporting.add_test_script(str(__name__) + \
                     "_create_migration_plan_cli")
-            self.vms = self.get_migration_test_vms(vm_list= \
-                            self.get_vcenter_vms())
             vm_str = ""
             self.plan_id = None
+            cli_error_str = "is already part of another migration plan"
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
             for vm in self.vms:
                 vm_str += " " + vm
 
@@ -93,6 +94,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step("DB verification", tvaultconf.PASS)
             else:
                 raise Exception("DB verification")
+
+            cli_err = cli_parser.cli_error(mp_create)
+            LOG.debug("cli error: {}".format(cli_err))
+            if (cli_err and cli_error_str in cli_err):
+                reporting.add_test_step(
+                    "Proper error message for migration plan create if VM already part of any migration plan", tvaultconf.PASS)
+                LOG.debug("Command executed correctly")
+            else:
+                reporting.add_test_step(
+                    "Proper error message for migration plan create if VM already part of any migration plan", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.plan_id_1 = query_data.get_last_created_migration_planid()[0]
+            LOG.debug(f"Latest migration plan id from DB: {self.plan_id_1}")
+            if self.plan_id != self.plan_id_1:
+                LOG.error("New migration plan created")
+                self.plan_db_1 = query_data.get_migration_plan(self.plan_id_1)
+                LOG.debug(f"self.plan_db_1: {self.plan_db_1}")
+                if self.plan_db_1[0] == tvaultconf.migration_plan_name:
+                    reporting.add_test_step(f"New migration plan got created with status {self.plan_db_1[1]}", tvaultconf.FAIL)
+                    reporting.set_test_script_status(tvaultconf.FAIL)
 
             #Delete migration plan
             self.delete_migration_plan(self.plan_id)
