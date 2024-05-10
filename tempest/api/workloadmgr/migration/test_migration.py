@@ -125,3 +125,73 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_api')
+    def test_03_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_list_migration_plans_api")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            self.wait_for_migrationplan_tobe_available(self.plan_id)
+            self.plans_db = query_data.get_migration_plans()
+            LOG.debug(f"Migration plans from DB: {self.plans_db}")
+
+            self.plans_api = self.getMigrationPlansList()
+            LOG.debug(f"Migration plans from API: {self.plans_api}")
+
+            if self.plans_db.sort() == self.plans_api.sort():
+                reporting.add_test_step("DB verification", tvaultconf.PASS)
+            else:
+                raise Exception("DB verification")
+
+        except Exception as e:
+            LOG.error(f"Exception: {e}")
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_04_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_list_migration_plans_cli")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            self.wait_for_migrationplan_tobe_available(self.plan_id)
+            self.plans_db = query_data.get_migration_plans()
+            LOG.debug(f"Migration plans from DB: {self.plans_db}")
+
+            out = cli_parser.cli_output(command_argument_string.migration_plan_list)
+            self.plans_cli = [x['ID'] for x in json.loads(out)]
+            LOG.debug(f"Migration plans from CLI: {self.plans_cli}")
+
+            if self.plans_db.sort() == self.plans_cli.sort():
+                reporting.add_test_step("DB verification", tvaultconf.PASS)
+            else:
+                raise Exception("DB verification")
+
+        except Exception as e:
+            LOG.error(f"Exception: {e}")
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+

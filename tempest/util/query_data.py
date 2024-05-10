@@ -809,3 +809,20 @@ def get_last_created_migration_planid():
         cursor.close()
         conn.close()
 
+def get_migration_plans():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        plans = (f"select id from migration_plans")
+        cursor.execute(plans)
+        rows = cursor.fetchall()
+        plan_ids = []
+        if len(rows):
+            plan_ids = [x[0] for x in rows]
+        return plan_ids
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plans: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+

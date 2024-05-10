@@ -4935,4 +4935,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(f"migration data: {migration}")
         return migration
 
+    '''
+    Method returns the list of migration plans
+    '''
+
+    def getMigrationPlansList(self):
+        resp, body = self.wlm_client.client.get("/migration_plans")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        plans = body['migration_plans']
+        LOG.debug(f"migration plans: {plans}")
+        plan_ids = []
+        if len(plans):
+            plan_ids = [x['id'] for x in plans]
+        return plan_ids
 
