@@ -77,7 +77,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             out = cli_parser.cli_output(mp_create)
             if out:
                 self.plan_id = json.loads(out)[0]['ID']
-                LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+                LOG.debug(f"Plan ID returned from CLI: {self.plan_id}")
                 if self.plan_id:
                     reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
                 else:
@@ -188,11 +188,60 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("DB verification")
 
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_alt_name
+            vm_str = ""
+            for vm in self.vms:
+                vm_str += " " + vm
+
+            mp_create = command_argument_string.migration_plan_create +\
+                    vm_str
+            out = cli_parser.cli_output(mp_create)
+            if out:
+                self.plan_id_1 = json.loads(out)[0]['ID']
+                LOG.debug(f"Plan ID returned from CLI: {self.plan_id_1}")
+                if self.plan_id_1:
+                    reporting.add_test_step("Create Migration Plan on other project", tvaultconf.PASS)
+                else:
+                    raise Exception("Create Migration Plan on other project")
+            else:
+                raise Exception("Execute migration-plan-create CLI command on other project")
+
+            os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+            self.cmd_1 = command_argument_string.migration_plan_list + " --all True"
+            out = cli_parser.cli_output(self.cmd_1)
+            LOG.debug(f"CLI response for migration plan list with all True: {out}")
+            self.plans_cli = [x['ID'] for x in json.loads(out)]
+            LOG.debug(f"Migration plans from CLI: {self.plans_cli}")
+
+            if self.plan_id_1 in self.plans_cli:
+                LOG.debug("Migration plan of other project listed in CLI")
+                reporting.add_test_step("Migration plan list with --all True option", tvaultconf.PASS)
+            else:
+                LOG.error("Migration plan of other project not listed in CLI")
+                reporting.add_test_step("Migration plan list with --all True option", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            self.cmd_1 = command_argument_string.migration_plan_list + " --all False"
+            out = cli_parser.cli_output(self.cmd_1)
+            LOG.debug(f"CLI response for migration plan list with all True: {out}")
+            self.plans_cli = [x['ID'] for x in json.loads(out)]
+            LOG.debug(f"Migration plans from CLI: {self.plans_cli}")
+
+            if self.plan_id_1 not in self.plans_cli:
+                LOG.debug("Migration plan of other project not listed in CLI")
+                reporting.add_test_step("Migration plan list with --all False option", tvaultconf.PASS)
+            else:
+                LOG.error("Migration plan of other project listed in CLI")
+                reporting.add_test_step("Migration plan list with --all False option", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #cleanup migration plan on other project
+            self.delete_migration_plan(self.plan_id_1)
+
         except Exception as e:
             LOG.error(f"Exception: {e}")
             reporting.add_test_step(str(e), tvaultconf.FAIL)
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
-
 
