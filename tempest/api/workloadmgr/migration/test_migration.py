@@ -245,3 +245,42 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_05_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_delete_migration_plan_api")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            #Delete migration plan
+            self.plan_delete = self.delete_migration_plan(self.plan_id)
+            if self.plan_delete:
+                reporting.add_test_step("Delete migration plan", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Delete migration plan", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+            #DB verification
+            self.plan_db = query_data.get_migration_plan(self.plan_id)
+            LOG.debug(f"Plan details from DB: {self.plan_db}")
+            if self.plan_db is None:
+                reporting.add_test_step("DB verification", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("DB verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+

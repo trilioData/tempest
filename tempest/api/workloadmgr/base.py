@@ -4733,7 +4733,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.delete(
                     f"/migration_plans/{plan_id}")
-            if resp.status_code != 200:
+            if resp.status_code != 202:
                 resp.raise_for_status()
             LOG.debug(f"Response of delete_migration_plan: {resp.status_code}")
             self.wait_for_migrationplan_tobe_available(plan_id)
