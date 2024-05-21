@@ -112,5 +112,5 @@ migration_plan_create = "workloadmgr migration-plan-create --display-name " + \
         tvaultconf.migration_plan_desc + "' --source-platform vmware -f json "
 migration_plan_list = "workloadmgr migration-plans-list -c ID -f json"
 migration_plan_delete = "workloadmgr migration-plan-delete "
-
+migration_plan_show = "workloadmgr migration-plan-show -f json "
 

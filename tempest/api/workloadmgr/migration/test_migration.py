@@ -327,3 +327,38 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_07_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_show_migration_plan_api")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            self.plan_api = self.getMigrationPlanDetails(self.plan_id)
+            self.plan_api_vms = [x['id'] for x in self.plan_api['vms']]
+            if self.plan_api['id'] == self.plan_id and \
+                self.plan_api['name'] == tvaultconf.migration_plan_name and \
+                self.plan_api['description'] == tvaultconf.migration_plan_desc and\
+                self.plan_api_vms.sort() == self.vms.sort() and\
+                self.plan_api['status'] == 'available':
+                reporting.add_test_step("Verification", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+
