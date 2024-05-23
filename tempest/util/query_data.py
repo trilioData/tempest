@@ -826,3 +826,34 @@ def get_migration_plans():
         cursor.close()
         conn.close()
 
+def get_migration_plan_details(plan_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_plan = (f"select id, name, display_description, status from migration_plans where id='{plan_id}'")
+        cursor.execute(get_plan)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plan_details: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_migration_plan_vms(plan_id):
+    try:
+        conn = db_handler.dbHandler()
+        vms = []
+        cursor = conn.cursor()
+        get_plan = (f"select vm_id from migration_plan_vms where migration_plan_id='{plan_id}'")
+        cursor.execute(get_plan)
+        rows = cursor.fetchall()
+        vms = [x[0] for x in rows]
+        return vms
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plan_vms: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+

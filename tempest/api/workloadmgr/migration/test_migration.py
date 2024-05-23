@@ -361,4 +361,45 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_cli')
+    def test_08_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_show_migration_plan_cli")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            #Show migration plan
+            mp_show = command_argument_string.migration_plan_show + self.plan_id
+            out = cli_parser.cli_output(mp_show)
+            LOG.debug(f"CLI response for migration plan show: {out}")
+
+            #DB verification
+            self.plan_db = query_data.get_migration_plan_details(self.plan_id)
+            self.plan_vms_db = query_data.get_migration_plan_vms(self.plan_id)
+            LOG.debug(f"Plan details from DB: {self.plan_db}, VMs from DB: {self.plan_vms_db}")
+            if self.plan_db[0] == self.plan_id and \
+                self.plan_db[1] == tvaultconf.migration_plan_name and \
+                self.plan_db[2] == tvaultconf.migration_plan_desc and\
+                self.plan_vms_db.sort() == self.vms.sort() and\
+                self.plan_db[3] == 'available':
+                reporting.add_test_step("DB verification", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("DB verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
 
