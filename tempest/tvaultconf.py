@@ -175,5 +175,5 @@ migration_plan_desc = "tempest migration plan description"
 migration_filename = "/opt/migration.json"
 migration_name = "tempest_migration"
 
-
+discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
 

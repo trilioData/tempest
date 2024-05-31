@@ -402,4 +402,65 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         finally:
             reporting.test_case_to_write()
 
+    @decorators.attr(type='workloadmgr_api')
+    def test_09_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_discover_vms_api")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            self.err_str = self.discover_vms(self.plan_id)
+            if self.err_str:
+                reporting.add_test_step("Discover VMs", tvaultconf.PASS)
+            else:
+                raise Exception("Discover VMs")
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
+
+    @decorators.attr(type='workloadmgr_cli')
+    def test_10_migration(self):
+        try:
+            reporting.add_test_script(str(__name__) + \
+                    "_discover_vms_cli")
+            self.vms = self.get_migration_test_vms(vm_list= \
+                            self.get_vcenter_vms())
+            self.plan_id, self.err_str = self.create_migration_plan(self.vms)
+            LOG.debug(f"Plan ID returned from API: {self.plan_id}")
+            LOG.error(f"Error: {self.err_str}")
+            if self.plan_id:
+                reporting.add_test_step("Create Migration Plan", tvaultconf.PASS)
+            else:
+                raise Exception("Create Migration Plan")
+
+            #Discover VMs
+            discover_vms = command_argument_string.migration_discover_vms + self.plan_id
+            out = cli_parser.cli_output(discover_vms)
+            LOG.debug(f"CLI response for discover vms: {out}")
+
+            #Verification
+            if out.find(tvaultconf.discover_success_str) != -1:
+                reporting.add_test_step("Discover VMs Verification", tvaultconf.PASS)
+            else:
+                reporting.add_test_step("Discover VMs Verification", tvaultconf.FAIL)
+                reporting.set_test_script_status(tvaultconf.FAIL)
+
+        except Exception as e:
+            LOG.error("Exception: " + str(e))
+            reporting.add_test_step(str(e), tvaultconf.FAIL)
+            reporting.set_test_script_status(tvaultconf.FAIL)
+        finally:
+            reporting.test_case_to_write()
 
