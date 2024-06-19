@@ -3160,7 +3160,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Here specific network topology will be created in order to test the possible scenarios for network restore
     '''
 
-    def create_network(self):
+    def create_network(self, tenant_id=CONF.identity.tenant_id):
         routers = {}
         subnets = {}
         nets = {}
@@ -3204,7 +3204,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     **{'name': "Router-{}".format(x), 'admin_state_up': 'False'})
             routers[router['router']['name']] = router['router']['id']
 
-        networkslist = self.networks_client.list_networks()['networks']
+        networkslist = self.networks_client.list_networks(project_id=tenant_id)['networks']
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-1'])
         self.routers_client.add_router_interface(routers['Router-1'], subnet_id=subnets['PS-2'])
         self.routers_client.add_router_interface(routers['Router-3'], subnet_id=subnets['PS-3'])
@@ -3235,56 +3235,54 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     '''
     Get network topology details
-    Here only specific values which are fixed are extracted out because for network topology comparison we can't compare values which are dynamic for ex. ids, created_at, updated_at etc.
+    Here only specific values which are fixed are extracted out because for 
+    network topology comparison we can't compare values which are dynamic 
+    for ex. ids, created_at, updated_at etc.
     '''
 
-    def get_topology_details(self):
-        networkslist = self.networks_client.list_networks()['networks']
+    def get_topology_details(self, tenant_id=CONF.identity.tenant_id):
+        networkslist = self.networks_client.list_networks(
+                project_id=tenant_id)['networks']
         nws = [x['id'] for x in networkslist]
-        nt = [{str(i): str(j) for i,
-                                  j in list(x.items()) if i not in ('network_id',
-                                                                    'subnets',
-                                                                    'created_at',
-                                                                    'updated_at',
-                                                                    'id',
-                                                                    'revision_number',
-                                                                    'provider:segmentation_id')} for x in networkslist]
+        nt = [{str(i): str(j) for i,j in list(x.items()) 
+                if i not in ('network_id', 'subnets', 'created_at',
+                             'updated_at', 'id', 'revision_number', 
+                             'provider:segmentation_id')} \
+                                     for x in networkslist]
         networks = {}
         for each_network in nt:
             networks[each_network['name']] = each_network
 
-        sbnt = self.subnets_client.list_subnets()['subnets']
-        sbnts = [{str(i): str(j) for i, j in list(x.items()) if i not in (
-            'network_id', 'created_at', 'updated_at', 'id', 'revision_number')} for x in sbnt]
+        sbnt = self.subnets_client.list_subnets(
+                project_id=tenant_id)['subnets']
+        sbnts = [{str(i): str(j) for i, j in list(x.items()) 
+                    if i not in ('network_id', 'created_at', 'updated_at', 
+                                 'id', 'revision_number')} for x in sbnt]
         subnets = {}
         for each_subnet in sbnts:
             subnets[each_subnet['name']] = each_subnet
 
-        rs = self.routers_client.list_routers()['routers']
-        rts = [{str(i): str(j) for i,
-                                   j in list(x.items()) if i not in ('external_gateway_info',
-                                                                     'created_at',
-                                                                     'updated_at',
-                                                                     'id',
-                                                                     'revision_number')} for x in rs]
+        rs = self.routers_client.list_routers(
+                project_id=tenant_id)['routers']
+        rts = [{str(i): str(j) for i, j in list(x.items()) 
+                if i not in ('external_gateway_info', 'created_at', 
+                             'updated_at', 'id', 'revision_number')} \
+                                     for x in rs]
         routers = {}
         for each_router in rts:
             routers[each_router['name']] = each_router
 
         interfaces = {}
         for router in self.get_router_ids():
-            interfaceslist = self.ports_client.list_ports()['ports']
-            intrfs = [{str(i): str(j) for i,
-                                          j in list(x.items()) if i not in ('network_id',
-                                                                            'created_at',
-                                                                            'updated_at',
-                                                                            'mac_address',
-                                                                            'fixed_ips',
-                                                                            'id',
-                                                                            'device_id',
-                                                                            'security_groups',
-                                                                            'port_security_enabled',
-                                                                            'revision_number')} for x in interfaceslist]
+            interfaceslist = self.ports_client.list_ports(
+                    project_id=tenant_id)['ports']
+            intrfs = [{str(i): str(j) for i, j in list(x.items()) 
+                       if i not in ('network_id', 'created_at', 'updated_at',
+                                    'mac_address', 'fixed_ips', 'id', 
+                                    'device_id', 'security_groups', 
+                                    'port_security_enabled', 
+                                    'revision_number')} \
+                                            for x in interfaceslist]
             interfaces[self.routers_client.show_router(
                 router)['router']['name']] = intrfs
         return (networks, subnets, routers, interfaces)
@@ -3889,6 +3887,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             klist = sorted([*sbnt_bf])
             sbnt_bf_sorted = {}
             sbnt_af_sorted = {}
+            LOG.debug(f"sbnt_bf: {sbnt_bf} && sbnt_af: {sbnt_af} && klist: {klist}")
             for sbnt in klist:
                 sbnt_bf[sbnt]['allocation_pools'] = sorted(eval(sbnt_bf[sbnt]['allocation_pools']), key=lambda x:x['start'])
                 sbnt_af[sbnt]['allocation_pools'] = sorted(eval(sbnt_af[sbnt]['allocation_pools']), key=lambda x:x['start'])
@@ -3970,6 +3969,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
         except Exception as e:
             LOG.error("Exception in verify_network_restore: " + str(e))
+            reporting.set_test_script_status(tvaultconf.FAIL)
 
     '''
     download test image
@@ -4731,9 +4731,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def delete_migration_plan(self, plan_id):
         try:
+            self.wait_for_migrationplan_tobe_available(plan_id)
             resp, body = self.wlm_client.client.delete(
                     f"/migration_plans/{plan_id}")
-            if resp.status_code != 200:
+            if resp.status_code != 202:
                 resp.raise_for_status()
             LOG.debug(f"Response of delete_migration_plan: {resp.status_code}")
             return True
@@ -4934,4 +4935,44 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(f"migration data: {migration}")
         return migration
 
+    '''
+    Method returns the list of migration plans
+    '''
+
+    def getMigrationPlansList(self):
+        resp, body = self.wlm_client.client.get("/migration_plans")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        plans = body['migration_plans']
+        LOG.debug(f"migration plans: {plans}")
+        plan_ids = []
+        if len(plans):
+            plan_ids = [x['id'] for x in plans]
+        return plan_ids
+
+    '''
+    Method returns the details of a given migration plan
+    '''
+
+    def getMigrationPlanDetails(self, plan_id):
+        resp, body = self.wlm_client.client.get(f"/migration_plans/{plan_id}")
+        plan_data = body['migration_plan']
+        LOG.debug(f"plan id: {plan_id}, show_migration_plan Response: "\
+                f"{resp.content}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return plan_data
+
+    '''
+    Method returns the details of a given migration plan
+    '''
+
+    def getMigrationPlanDetails(self, plan_id):
+        resp, body = self.wlm_client.client.get(f"/migration_plans/{plan_id}")
+        plan_data = body['migration_plan']
+        LOG.debug(f"plan id: {plan_id}, show_migration_plan Response: "\
+                f"{resp.content}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return plan_data
 

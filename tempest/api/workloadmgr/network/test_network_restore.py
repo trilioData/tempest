@@ -325,7 +325,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Network topology restore from CLI failed")
 
-            nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details()
+            nt_af, sbnt_af, rt_af, intf_af = self.get_topology_details(tenant_id_1)
             LOG.debug(
                 "Interface details before and after restore: {0}, {1}".format(
                     intf_bf, intf_af))

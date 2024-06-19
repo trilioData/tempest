@@ -629,7 +629,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
             
             # Compare the vms_protected vs CLI ouput
-            usage = cli_parser.cli_response_parser(out, CONF.identity.tenant_name)
+            usage = cli_parser.cli_response_parser(out, CONF.identity.project_name)
             protected_vm = json.loads(usage)
             if int(protected_vm['vms_protected']) == len(protected_vm_list):
                 reporting.add_test_step(

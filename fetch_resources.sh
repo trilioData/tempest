@@ -323,8 +323,6 @@ function configure_tempest
     iniset $TEMPEST_CONFIG identity auth_version v3
     iniset $TEMPEST_CONFIG identity admin_domain_id $admin_domain_id
     iniset $TEMPEST_CONFIG identity admin_tenant_id $admin_project_id
-    iniset $TEMPEST_CONFIG identity tenant_name $TEST_PROJECT_NAME
-    iniset $TEMPEST_CONFIG identity tenant_name_1 $TEST_ALT_PROJECT_NAME
     iniset $TEMPEST_CONFIG identity password $TEST_PASSWORD
     iniset $TEMPEST_CONFIG identity username $TEST_USERNAME
     iniset $TEMPEST_CONFIG identity project_name $TEST_PROJECT_NAME

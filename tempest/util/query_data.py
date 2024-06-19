@@ -794,3 +794,66 @@ def get_migration_plan(plan_id):
         cursor.close()
         conn.close()
 
+def get_last_created_migration_planid():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        plan_id = (f"select id from migration_plans order by created_at desc limit 1")
+        cursor.execute(plan_id)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(f"Exception in get_last_created_migration_planid: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_migration_plans():
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        plans = (f"select id from migration_plans")
+        cursor.execute(plans)
+        rows = cursor.fetchall()
+        plan_ids = []
+        if len(rows):
+            plan_ids = [x[0] for x in rows]
+        return plan_ids
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plans: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_migration_plan_details(plan_id):
+    try:
+        conn = db_handler.dbHandler()
+        cursor = conn.cursor()
+        get_plan = (f"select id, name, display_description, status from migration_plans where id='{plan_id}'")
+        cursor.execute(get_plan)
+        rows = cursor.fetchall()
+        for row in rows:
+            return row
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plan_details: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
+def get_migration_plan_vms(plan_id):
+    try:
+        conn = db_handler.dbHandler()
+        vms = []
+        cursor = conn.cursor()
+        get_plan = (f"select vm_id from migration_plan_vms where migration_plan_id='{plan_id}'")
+        cursor.execute(get_plan)
+        rows = cursor.fetchall()
+        vms = [x[0] for x in rows]
+        return vms
+    except Exception as e:
+        LOG.error(f"Exception in get_migration_plan_vms: {e}")
+    finally:
+        cursor.close()
+        conn.close()
+
