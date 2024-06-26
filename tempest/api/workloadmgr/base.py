@@ -608,11 +608,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            jobschedule={"enabled": False},
+            jobschedule={"enabled": False, "hourly": {}, "daily": {}, \
+                    "weekly": {}, "monthly": {}, "yearly": {}, "manual": {}},
             workload_name="",
             workload_cleanup=True,
             encryption=False,
             secret_uuid="",
+            backup_target_type=None,
             description='test'):
         if (tvaultconf.workloads_from_file):
             flag = 0
@@ -632,6 +634,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                         'metadata': {},
                                         'description': description,
                                         'encryption': encryption,
+                                        'backup_target_types': backup_target_type,
                                         'secret_uuid': secret_uuid}}
 
                 resp, body = self.wlm_client.client.post(
@@ -657,6 +660,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                                     'metadata': {},
                                     'description': description,
                                     'encryption': encryption,
+                                    'backup_target_types': backup_target_type,
                                     'secret_uuid': secret_uuid}}
 
             resp, body = self.wlm_client.client.post(
