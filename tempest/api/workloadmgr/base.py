@@ -4968,15 +4968,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return plan_data
 
     '''
-    Method returns the details of a given migration plan
+    Method returns the list of backup targets
     '''
 
-    def getMigrationPlanDetails(self, plan_id):
-        resp, body = self.wlm_client.client.get(f"/migration_plans/{plan_id}")
-        plan_data = body['migration_plan']
-        LOG.debug(f"plan id: {plan_id}, show_migration_plan Response: "\
-                f"{resp.content}")
+    def listBackupTargets(self):
+        resp, body = self.wlm_client.client.get(f"/backup_targets")
+        bts = body['backup_targets']
+        LOG.debug(f"get_backup_targets Response: {resp.content}")
         if resp.status_code != 200:
             resp.raise_for_status()
-        return plan_data
+        return bts
+
+    '''
+    Method returns the list of backup target types
+    '''
+
+    def listBackupTargetTypes(self):
+        resp, body = self.wlm_client.client.get(f"/backup_target_types")
+        btts = body['backup_target_types']
+        LOG.debug(f"get_backup_targets Response: {resp.content}")
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return btts
 
