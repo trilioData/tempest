@@ -166,7 +166,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns the Retention Policy Value of a given workload
     '''
 
-    ####### import pdb; pdb.set_trace()
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
@@ -4990,4 +4989,25 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         if resp.status_code != 200:
             resp.raise_for_status()
         return btts
+
+    '''
+    Method returns the backup target of given mount path
+    '''
+
+    def getBackupTargetFromMountPath(self, mount_path):
+        bts = self.listBackupTargets()
+        bt = [x['id'] for x in bts if x['nfs_export_mount_path'] == mount_path]
+        LOG.debug(f"Backup target corresponding to mount_path {mount_path} : {bt[0]}")
+        return bt[0]
+
+    '''
+    Method returns the backup target type of given backup target
+    '''
+
+    def getBackupTargetType(self, backup_target_id):
+        btts = self.listBackupTargetTypes()
+        btt = [x['id'] for x in btts if x['backup_targets_id'] == backup_target_id]
+        LOG.debug(f"Backup target type corresponding to backup target ID {backup_target_id} : {btt[0]}")
+        return btt[0]
+
 

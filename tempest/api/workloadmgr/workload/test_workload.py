@@ -639,18 +639,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__) +\
                     "_delete_workload_db-only-true_cli")
             global vm_id
-            global vol_id
             # Prerequisites
             self.vm_id = self.create_vm(vm_cleanup=False)
-            self.volume_id = self.create_volume(volume_cleanup=False)
-            self.attach_volume(self.volume_id, self.vm_id,
-                    attach_cleanup=False)
             vm_id = self.vm_id
-            vol_id = self.volume_id
+
+            self.mount_path = self.get_mountpoint_path()
+            self.bt_id = self.getBackupTargetFromMountPath(self.mount_path)
+            self.btt_id = self.getBackupTargetType(self.bt_id)
 
             # Create workload
             self.wid = self.workload_create(
-                [self.vm_id], workload_cleanup=False)
+                [self.vm_id], backup_target_type=self.btt_id, 
+                workload_cleanup=False)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
 
@@ -664,7 +664,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Create full snapshot")
 
-            self.mount_path = self.get_mountpoint_path()
             self.snapshot_found = self.check_snapshot_exist_on_backend(
                         self.mount_path, self.wid, self.snapshot_id)
             LOG.debug(f"snapshot_found: {self.snapshot_found}")
@@ -719,13 +718,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__) +\
                     "_delete_workload_db-only-false_cli")
             global vm_id
-            global vol_id
             self.vm_id = vm_id
-            self.volume_id = vol_id
+
+            self.mount_path = self.get_mountpoint_path()
+            self.bt_id = self.getBackupTargetFromMountPath(self.mount_path)
+            self.btt_id = self.getBackupTargetType(self.bt_id)
 
             # Create workload
             self.wid = self.workload_create(
-                [self.vm_id], workload_cleanup=False)
+                [self.vm_id], backup_target_type=self.btt_id,
+                workload_cleanup=False)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
 
@@ -778,7 +780,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
             #Cleanup instance and volume
             self.delete_vm(self.vm_id)
-            self.delete_volume(self.volume_id)
 
     @decorators.attr(type='workloadmgr_api')
     def test_15_workload_get_orphaned_workloads_list(self):
