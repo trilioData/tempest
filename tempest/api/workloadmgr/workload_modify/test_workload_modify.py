@@ -28,8 +28,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_1_modify_workload_tvault1045_add_instance(self):
         reporting.add_test_script(str(__name__) + "_tvault1045_add_instance")
@@ -42,14 +40,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.vm_id = self.create_vm()
             LOG.debug("VM ID: " + str(self.vm_id))
 
-            # Create volume
-            self.volume_id = self.create_volume()
-            LOG.debug("Volume ID: " + str(self.volume_id))
-
-            # Attach volume to the instance
-            self.attach_volume(self.volume_id, self.vm_id)
-            LOG.debug("Volume attached")
-
             # Create workload with scheduler enabled
             self.workload_instances.append(self.vm_id)
             self.wid = self.workload_create(
@@ -61,14 +51,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Launch second instance
             self.vm_id2 = self.create_vm()
             LOG.debug("VM ID2: " + str(self.vm_id2))
-
-            # Create volume
-            self.volume_id2 = self.create_volume()
-            LOG.debug("Volume ID2: " + str(self.volume_id2))
-
-            # Attach volume to the instance
-            self.attach_volume(self.volume_id2, self.vm_id2)
-            LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
             workload_modify_command = command_argument_string.workload_modify + " --instance instance-id=" + \
@@ -104,8 +86,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
             reporting.test_case_to_write()
 
-    @decorators.attr(type='smoke')
-    @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_cli')
     def test_2_modify_workload_scheduler_disable(self):
         reporting.add_test_script(str(__name__) + "_scheduler_disable")
@@ -117,14 +97,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Launch instance
             self.vm_id = self.create_vm()
             LOG.debug("VM ID-2: " + str(self.vm_id))
-
-            # Create volume
-            self.volume_id = self.create_volume()
-            LOG.debug("Volume ID-2: " + str(self.volume_id))
-
-            # Attach volume to the instance
-            self.attach_volume(self.volume_id, self.vm_id)
-            LOG.debug("Volume attached-2")
 
             # Create workload with scheduler enabled
             self.workload_instances.append(self.vm_id)
@@ -150,7 +122,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Get workload scheduler details
             schedule_details = self.getSchedulerDetails(self.wid)
             scheduled_start_time = schedule_details['start_time']
-            interval = schedule_details['interval']
+            interval = schedule_details['hourly']['interval']
 
             # Change global job scheduler to disable
             LOG.debug("Change Global job scheduler to disable")
@@ -216,7 +188,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify interval value and nest_snapshot_run values
             schedule_details = self.getSchedulerDetails(self.wid)
-            interval_after_disable = schedule_details['interval']
+            interval_after_disable = schedule_details['hourly']['interval']
 
             if interval == interval_after_disable and 'nextrun' not in schedule_details:
                 reporting.add_test_step(
@@ -251,14 +223,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Launch instance
             self.vm_id = self.create_vm()
             LOG.debug("VM ID-3: " + str(self.vm_id))
-
-            # Create volume
-            self.volume_id = self.create_volume()
-            LOG.debug("Volume ID-3: " + str(self.volume_id))
-
-            # Attach volume to the instance
-            self.attach_volume(self.volume_id, self.vm_id)
-            LOG.debug("Volume attached-3")
 
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + \
@@ -387,7 +351,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify interval value and nest_snapshot_run values
             schedule_details = self.getSchedulerDetails(self.wid)
-            interval_after_enable = schedule_details['interval']
+            interval_after_enable = schedule_details['hourly']['interval']
             next_run_time_after_enable = schedule_details['nextrun']
             next_run_time_after_enable = int(next_run_time_after_enable)
             start_date = schedule_details['start_date']
