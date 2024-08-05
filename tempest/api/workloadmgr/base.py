@@ -613,7 +613,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             workload_cleanup=True,
             encryption=False,
             secret_uuid="",
-            backup_target_type=None,
+            backup_target_type=tvaultconf.default_bt_id,
             description='test'):
         if (tvaultconf.workloads_from_file):
             flag = 0
@@ -2900,22 +2900,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Method returns mountpoint path of backup target media
-    '''
-
-    def get_mountpoint_path(self):
-        cmd = (tvaultconf.command_prefix).replace("<command>","mount")
-        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE)
-        stdout, stderr = p.communicate()
-        mountpoint_path = None
-        for line in stdout.splitlines():
-            if str(line).find('triliovault-mounts') != -1:
-                mountpoint_path = str(line).split()[2]
-        LOG.debug("mountpoint path is : " + str(mountpoint_path))
-        return str(mountpoint_path)
-
-    '''
     Method returns True if snapshot dir is exists on backup target media
     '''
 
@@ -4997,7 +4981,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getBackupTargetFromMountPath(self, mount_path):
         bts = self.listBackupTargets()
         bt = [x['id'] for x in bts if x['nfs_export_mount_path'] == mount_path]
-        LOG.debug(f"Backup target corresponding to mount_path {mount_path} : {bt[0]}")
+        LOG.debug("Backup target corresponding to mount_path "\
+                  f"{mount_path} : {bt[0]}")
         return bt[0]
 
     '''
@@ -5007,7 +4992,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getBackupTargetType(self, backup_target_id):
         btts = self.listBackupTargetTypes()
         btt = [x['id'] for x in btts if x['backup_targets_id'] == backup_target_id]
-        LOG.debug(f"Backup target type corresponding to backup target ID {backup_target_id} : {btt[0]}")
+        LOG.debug("Backup target type corresponding to backup target ID "\
+                  f"{backup_target_id} : {btt[0]}")
         return btt[0]
 
+    '''
+    Method returns mountpoint path of backup target media
+    '''
 
+    def get_mountpoint_path(self, backup_target=tvaultconf.default_bt_id):
+        mount_path = None
+        bts = self.listBackupTargets()
+        for bt in bts:
+            if bt['id'] == backup_target:
+                mount_path = bt['nfs_export_mount_path']
+        return mount_path
