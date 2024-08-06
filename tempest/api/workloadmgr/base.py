@@ -613,7 +613,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             workload_cleanup=True,
             encryption=False,
             secret_uuid="",
-            backup_target_type=tvaultconf.default_bt_id,
+            backup_target_type=tvaultconf.default_btt_id,
             description='test'):
         if (tvaultconf.workloads_from_file):
             flag = 0
@@ -5000,7 +5000,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method returns mountpoint path of backup target media
     '''
 
-    def get_mountpoint_path(self, backup_target=tvaultconf.default_bt_id):
+    def get_mountpoint_path(self, backup_target=tvaultconf.default_btt_id):
         mount_path = None
         bts = self.listBackupTargets()
         for bt in bts:

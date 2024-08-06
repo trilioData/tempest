@@ -417,7 +417,7 @@ EOF
     fi
 
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
-    default_bt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" --sort-descending | grep -v "^\(|\s*ID\|+--\)" | head -1 | cut -d'|' -f4 | xargs`
+    default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" --sort-descending | grep -v "^\(|\s*ID\|+--\)" | head -1 | cut -d'|' -f2 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
@@ -655,7 +655,7 @@ EOF
     sed -i "/user_frm_data = /c user_frm_data = \"$TEMPEST_FRM_FILE\"" $TEMPEST_TVAULTCONF
     sed -i "/user_data_vm = /c user_data_vm = \"$TEMPEST_VM_DATA_FILE\"" $TEMPEST_TVAULTCONF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
-    sed -i '/default_bt_id = /c default_bt_id = "'$default_bt_id'"' $TEMPEST_TVAULTCONF
+    sed -i '/default_btt_id = /c default_btt_id = "'$default_btt_id'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = '$roles'' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
