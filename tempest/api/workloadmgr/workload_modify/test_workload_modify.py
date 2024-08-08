@@ -276,8 +276,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Get workload scheduler details
             schedule_details = self.getSchedulerDetails(self.wid)
-            scheduled_start_time = schedule_details['start_time']
-            interval = schedule_details['interval']
+            # interval = schedule_details['interval']
 
             # Change global job scheduler to disable
             LOG.debug("Change Global job scheduler to disable")
