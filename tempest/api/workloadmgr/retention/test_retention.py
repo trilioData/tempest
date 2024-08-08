@@ -23,26 +23,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @classmethod
     def setup_clients(cls):
         super(WorkloadTest, cls).setup_clients()
-        reporting.add_test_script(str(__name__))
 
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     @decorators.attr(type='workloadmgr_api')
     def test_retention(self):
         try:
+            reporting.add_test_script(str(__name__) + "_manual")
             vm_id = self.create_vm(vm_cleanup=True)
             LOG.debug("VM ID : " + str(vm_id))
             i = 1
 
-            jobschedule = {
-                'retention_policy_type': 'Number of Snapshots to Keep',
-                'retention_policy_value': '3',
-                'full_backup_interval': '2',
-                'enabled': False}
-            rpv = int(jobschedule['retention_policy_value'])
             workload_id = self.workload_create(
-                [vm_id],
-                jobschedule=jobschedule,
-                workload_cleanup=True)
+                [vm_id])
             LOG.debug("Workload ID: " + str(workload_id))
             if(workload_id is not None):
                 self.wait_for_workload_tobe_available(workload_id)
@@ -52,11 +44,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     reporting.add_test_step("Create workload", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
-                reporting.add_test_step("Create workload", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Workload creation failed")
 
             snapshot_ids = []
+            rpv = self.getSchedulerDetails(workload_id)['manual']['retention']
             for i in range(0, (rpv + 1)):
                 snapshot_id = self.workload_snapshot(
                     workload_id, True, snapshot_cleanup=False)
