@@ -642,15 +642,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Prerequisites
             self.vm_id = self.create_vm(vm_cleanup=False)
             vm_id = self.vm_id
-
             self.mount_path = self.get_mountpoint_path()
-            self.bt_id = self.getBackupTargetFromMountPath(self.mount_path)
-            self.btt_id = self.getBackupTargetType(self.bt_id)
 
             # Create workload
             self.wid = self.workload_create(
-                [self.vm_id], backup_target_type=self.btt_id, 
-                workload_cleanup=False)
+                [self.vm_id], workload_cleanup=False)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
 
@@ -719,15 +715,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "_delete_workload_db-only-false_cli")
             global vm_id
             self.vm_id = vm_id
-
             self.mount_path = self.get_mountpoint_path()
-            self.bt_id = self.getBackupTargetFromMountPath(self.mount_path)
-            self.btt_id = self.getBackupTargetType(self.bt_id)
-
+            
             # Create workload
             self.wid = self.workload_create(
-                [self.vm_id], backup_target_type=self.btt_id,
-                workload_cleanup=False)
+                [self.vm_id], workload_cleanup=False)
             LOG.debug("Workload ID: " + str(self.wid))
             time.sleep(5)
 
