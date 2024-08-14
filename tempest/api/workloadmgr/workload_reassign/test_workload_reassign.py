@@ -601,10 +601,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #use same deleted temp project for workload reassign.
             rc = self.workload_reassign(self.temp_tenant_id, workload_id, self.temp_user_id)
             if rc == 0:
-                LOG.debug("Workload reassign with same temp project and temp user is successful. Test case failed.")
+                LOG.error("Workload reassign with same temp project and temp user is successful. Test case failed.")
                 raise Exception("Workload reassign with temp project and temp user")
             else:
-                LOG.error("Workload reassign on deleted temp project failed. Test case Passed")
+                LOG.debug("Workload reassign on deleted temp project failed. Test case Passed")
                 reporting.add_test_step(
                     "Workload reassign on deleted temp project failed.", tvaultconf.PASS)
 
@@ -1021,6 +1021,3 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         finally:
             reporting.test_case_to_write()
-
-
-

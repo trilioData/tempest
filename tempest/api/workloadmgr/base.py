@@ -4968,7 +4968,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def listBackupTargetTypes(self):
         resp, body = self.wlm_client.client.get(f"/backup_target_types")
         btts = body['backup_target_types']
-        LOG.debug(f"get_backup_targets Response: {resp.content}")
+        LOG.debug(f"get_backup_target_types Response: {resp.content}")
         if resp.status_code != 200:
             resp.raise_for_status()
         return btts
@@ -4996,13 +4996,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return btt[0]
 
     '''
+    Method returns the backup target id of given backup target type
+    '''
+
+    def getBackupTargetFromType(self, backup_target_type_id):
+        btts = self.listBackupTargetTypes()
+        bt = [x['backup_targets_id'] for x in btts if x['id'] == backup_target_type_id]
+        LOG.debug("Backup target corresponding to backup target type ID "\
+                  f"{backup_target_type_id} : {bt[0]}")
+        return bt[0]
+
+    '''
     Method returns mountpoint path of backup target media
     '''
 
     def get_mountpoint_path(self, backup_target=tvaultconf.default_btt_id):
         mount_path = None
+        bt_id = self.getBackupTargetFromType(backup_target)
         bts = self.listBackupTargets()
         for bt in bts:
-            if bt['id'] == backup_target:
+            if bt['id'] == bt_id:
                 mount_path = bt['nfs_export_mount_path']
+        LOG.debug(f"mount_path: {mount_path}")
         return mount_path

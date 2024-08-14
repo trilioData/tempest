@@ -4,11 +4,13 @@ from tempest import tvaultconf
 workload_list = "workloadmgr workload-list | grep available | wc -l"
 workload_create = "workloadmgr workload-create "\
                   " --display-name "+tvaultconf.workload_name+\
-                  " --source-platform "+tvaultconf.source_platform
+                  " --source-platform "+tvaultconf.source_platform+\
+                  " --backup-target-type " + tvaultconf.default_btt_id
 workload_create_with_encryption = "workloadmgr workload-create "\
                   " --display-name "+tvaultconf.workload_name+ \
                   " --encryption True" + \
-                  " --source-platform "+tvaultconf.source_platform
+                  " --source-platform "+tvaultconf.source_platform+\
+                  " --backup-target-type " + tvaultconf.default_btt_id
 workload_delete = "workloadmgr workload-delete "
 workload_delete_db = "workloadmgr workload-delete --database_only "
 workload_modify = "workloadmgr workload-modify "
