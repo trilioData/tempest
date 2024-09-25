@@ -417,7 +417,7 @@ EOF
     fi
 
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
-    default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" --sort-descending | grep -v "^\(|\s*ID\|+--\)" | head -1 | cut -d'|' -f2 | xargs`
+    default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" -f value | tail -1 | cut -d' ' -f1 | xargs`
 
     #Set test user credentials
     echo "Set test user credentials\n"
