@@ -424,6 +424,11 @@ EOF
        default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" -f value | tail -1 | cut -d' ' -f1 | xargs`
     fi
     echo $default_btt_id, $BACKUP_TARGET_TYPE_NAME
+    if [[ -z $default_btt_id ]]
+    then
+        echo "Incorrect BTT name provided, exiting"
+        exit 1
+    fi
 
     #Set test user credentials
     echo "Set test user credentials\n"
