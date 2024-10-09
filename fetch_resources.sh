@@ -417,7 +417,13 @@ EOF
     fi
 
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
-    default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" -f value | tail -1 | cut -d' ' -f1 | xargs`
+    if [[ ! -z $BACKUP_TARGET_TYPE_NAME ]]
+    then
+        default_btt_id=`workloadmgr --insecure backup-target-type-list -f value | grep $BACKUP_TARGET_TYPE_NAME | cut -d ' ' -f1 | xargs`
+    else
+       default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" -f value | tail -1 | cut -d' ' -f1 | xargs`
+    fi
+    echo $default_btt_id, $BACKUP_TARGET_TYPE_NAME
 
     #Set test user credentials
     echo "Set test user credentials\n"
