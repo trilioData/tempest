@@ -4979,7 +4979,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getBackupTargetFromMountPath(self, mount_path):
         bts = self.listBackupTargets()
-        bt = [x['id'] for x in bts if x['nfs_export_mount_path'] == mount_path]
+        bt = [x['id'] for x in bts if x['filesystem_export_mount_path'] == mount_path]
         LOG.debug("Backup target corresponding to mount_path "\
                   f"{mount_path} : {bt[0]}")
         return bt[0]
@@ -5016,6 +5016,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         bts = self.listBackupTargets()
         for bt in bts:
             if bt['id'] == bt_id:
-                mount_path = bt['nfs_export_mount_path']
+                mount_path = bt['filesystem_export_mount_path']
         LOG.debug(f"mount_path: {mount_path}")
         return mount_path
