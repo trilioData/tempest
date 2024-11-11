@@ -773,7 +773,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         "migrate_cloud": False,
                         "old_tenant_ids": [],
                         "user_id": user_id,
-                        "new_tenant_id": new_tenant_id}]
+                        "new_tenant_id": new_tenant_id,
+                        "source_btt": [], 
+                        "source_btt_all": False}]
             resp, body = self.wlm_client.client.post(
                 "/workloads/reasign_workloads", json=payload)
             reassignstatus = body['workloads']['reassigned_workloads'][0]['status']
