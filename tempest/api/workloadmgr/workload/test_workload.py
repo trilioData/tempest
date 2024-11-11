@@ -874,6 +874,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             out = cli_parser.cli_output(command_argument_string.workload_get_orphaned_workloads_list)
+            LOG.debug(f"CLI response: {out}")
             if (tvaultconf.workload_name in str(out)):
                 reporting.add_test_step(
                     "Verification with workload name", tvaultconf.PASS)
