@@ -127,14 +127,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # and timezone
             now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
-            now_time_plus_2 = now + datetime.timedelta(minutes=2)
-            now_time_plus_2 = datetime.datetime.strftime(
-                now_time_plus_2, "%I:%M %p")
+            now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            now_time_plus_12 = datetime.datetime.strftime(
+                now_time_plus_12, "%I:%M %p")
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
             workload_create = command_argument_string.workload_create + " instance-id=" + str(self.vm_id)\
-                + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_2.strip())\
+                + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_12.strip())\
                 + "' --hourly snapshot_type='incremental' retention=2 interval=1 --jobschedule enabled=True"
             LOG.debug(f"workload create command: {workload_create}")
             rc = cli_parser.cli_returncode(workload_create)
@@ -572,13 +572,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # and timezone
             now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
-            now_time_plus_2 = now + datetime.timedelta(minutes=2)
-            now_time_plus_2 = datetime.datetime.strftime(
-                now_time_plus_2, "%I:%M %p")
+            now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            now_time_plus_12 = datetime.datetime.strftime(
+                now_time_plus_12, "%I:%M %p")
             try:
                 self.wid = self.workload_create([self.vm_id], 
                                     jobschedule={"start_date": now_date.strip(),
-                                                 "start_time": now_time_plus_2.strip(),
+                                                 "start_time": now_time_plus_12.strip(),
                                                  "hourly": {"snapshot_type": "incremental",
                                                             "retention": 2,
                                                             "interval": 1},
