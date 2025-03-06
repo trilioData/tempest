@@ -579,16 +579,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.wid = self.workload_create([self.vm_id], 
                                     jobschedule={"start_date": now_date.strip(),
                                                  "start_time": now_time_plus_12.strip(),
-                                                 "hourly": {"snapshot_type": "incremental",
-                                                            "retention": 2,
-                                                            "interval": 1},
+                                                 "hourly": tvaultconf.hourly_scheduler,
                                                  "daily": {},
                                                  "weekly": {},
                                                  "monthly": {},
                                                  "yearly": {},
-                                                 "manual": {},
-                                                 "enabled": "True",
-                                                 "workload_cleanup": "False"})
+                                                 "manual": tvaultconf.manual_retention,
+                                                 "enabled": "True"},
+                                    workload_cleanup=False)
                 LOG.debug("Workload ID: " + str(self.wid))
                 self.wait_for_workload_tobe_available(self.wid)
                 if(self.getWorkloadStatus(self.wid) == "available"):
@@ -875,14 +873,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             out = cli_parser.cli_output(command_argument_string.workload_get_orphaned_workloads_list)
             LOG.debug(f"CLI response: {out}")
-            if (tvaultconf.workload_name in str(out)):
+            if (self.wid in str(out)):
                 reporting.add_test_step(
-                    "Verification with workload name", tvaultconf.PASS)
+                    "Verification with workload id", tvaultconf.PASS)
                 LOG.debug(
                     "workload_get_orphaned_workloads_list command listed available workloads correctly")
             else:
                 reporting.add_test_step(
-                    "Verification with workload name", tvaultconf.FAIL)
+                    "Verification with workload id", tvaultconf.FAIL)
                 raise Exception(
                     "workload_get_orphaned_workloads_list command did not list available workloads correctly from cmd: " + str(out))
 

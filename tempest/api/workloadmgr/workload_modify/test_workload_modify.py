@@ -104,7 +104,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 self.workload_instances,
                 workload_name=tvaultconf.workload_name,
                 workload_cleanup=True,
-                jobschedule={"enabled": True})
+                jobschedule={"hourly": tvaultconf.hourly_scheduler,
+                             "manual": tvaultconf.manual_retention,
+                             "enabled": "True",
+                             "start_date": "",
+                             "start_time": ""})
             LOG.debug("Workload ID-2: " + str(self.wid))
 
             # Verify workload created with scheduler enable
@@ -188,9 +192,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify interval value and nest_snapshot_run values
             schedule_details = self.getSchedulerDetails(self.wid)
-            interval_after_disable = schedule_details['hourly']['interval']
 
-            if interval == interval_after_disable and 'nextrun' not in schedule_details:
+            if 'hourly' not in schedule_details and 'nextrun' not in schedule_details:
                 reporting.add_test_step(
                     "Verify Interval and Next snapshot run time values are correct",
                     tvaultconf.PASS)

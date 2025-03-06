@@ -30,7 +30,7 @@ selective_restore_name = "test-selective-restore"
 security_group_restore_name = "Security Groups Restore"
 restore_filename = "/opt/restore.json"
 vm_license_filename = "test_licenses/tvault_license_20VM.txt"
-compute_license_filename = "test_licenses/tvault_license_10compute.txt"
+compute_license_filename = "test_licenses/tvault_license_compute.txt"
 invalid_license_filename = "test_licenses/tvault_license_invalid.txt"
 expired_license_filename = "test_licenses/tvault_license_expired.txt"
 triliovault_vol_snapshot_name = "TrilioVaultSnapshot"
@@ -177,4 +177,5 @@ migration_name = "tempest_migration"
 
 discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
 default_btt_id = None
-
+hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
+manual_retention = {"retention": 5}
