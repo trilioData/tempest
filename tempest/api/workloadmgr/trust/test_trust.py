@@ -299,7 +299,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + \
-                " instance-id=" + \
+                " --instance " + \
                 str(vm_id) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:

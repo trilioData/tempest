@@ -35,12 +35,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             self.created = False
             self.vm_id = self.create_vm()
-            self.volume_id = self.create_volume()
-            self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
-                " instance-id=" + str(self.vm_id)
+                " --instance " + str(self.vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
@@ -93,8 +91,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Prerequisites
             self.created = False
             self.vm_id = self.create_vm()
-            self.volume_id = self.create_volume()
-            self.attach_volume(self.volume_id, self.vm_id)
 
             # Create workload with API
             self.wid = self.workload_create([self.vm_id])
@@ -133,7 +129,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             interval = tvaultconf.interval
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
-            workload_create = command_argument_string.workload_create + " instance-id=" + str(self.vm_id)\
+            workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id)\
                 + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_12.strip())\
                 + "' --hourly snapshot_type='incremental' retention=2 interval=1 --jobschedule enabled=True"
             LOG.debug(f"workload create command: {workload_create}")
@@ -815,7 +811,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.backupuser_password
 
             ### create workload ###
-            workload_create = command_argument_string.workload_create + " instance-id=" + str(vm_id)
+            workload_create = command_argument_string.workload_create + " --instance " + str(vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(

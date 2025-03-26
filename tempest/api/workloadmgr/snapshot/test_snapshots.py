@@ -470,7 +470,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             retention_policy_type = tvaultconf.retention_policy_type
             retention_policy_value = tvaultconf.retention_policy_value
             workload_create = command_argument_string.workload_create + \
-                    ' instance-id=' + str(self.vm_id) + ' --jobschedule ' +\
+                    ' --instance ' + str(self.vm_id) + ' --jobschedule ' +\
                     '"start_date=' + str(now_date.strip()) + '" --jobschedule ' +\
                     '"start_time=' + str(now_time_plus_10.strip()) + \
                     '" --jobschedule interval="' + str(interval) + \

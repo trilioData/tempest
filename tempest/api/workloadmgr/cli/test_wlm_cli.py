@@ -561,7 +561,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                   
             # Create workload with CLI command
             workload_create = command_argument_string.workload_create + \
-                " instance-id=" + str(self.vm_id)
+                " --instance " + str(self.vm_id)
             rc = cli_parser.cli_returncode(workload_create)
             if rc != 0:
                 reporting.add_test_step(
