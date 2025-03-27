@@ -2344,15 +2344,9 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             i = 1
             self.snapshots = []
 
-            jobschedule = {
-                'retention_policy_type': 'Number of Snapshots to Keep',
-                'retention_policy_value': '3',
-                'full_backup_interval': '2'}
-            rpv = int(jobschedule['retention_policy_value'])
             self.secret_uuid = self.create_secret()
             workload_id = self.workload_create(
                 [vm_id],
-                jobschedule=jobschedule,
                 encryption=True,
                 secret_uuid=self.secret_uuid,
                 workload_cleanup=True)
@@ -2372,6 +2366,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 reporting.set_test_script_status(tvaultconf.FAIL)
                 raise Exception("Encrypted Workload creation failed")
 
+            rpv = self.getSchedulerDetails(workload_id)['manual']['retention']
             for i in range(0, (rpv + 1)):
                 snapshot_id = self.workload_snapshot(
                     workload_id, True, snapshot_cleanup=True)
