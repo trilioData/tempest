@@ -407,6 +407,17 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
 	command_prefix="ssh root@$KOLLA_IP 'ssh $compute_hostname 'docker exec -t triliovault_datamover <command>''"
+    elif [[ ${OPENSTACK_DISTRO,,} == 'os-helm'* ]]
+    then
+        wlm_api_pod=`ssh $HELM_USER@$HELM_IP "kubectl get pods | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
+        conn_str=`ssh $HELM_USER@$HELM_IP "kubectl exec -t $wlm_api_pod -- grep sql_connection /etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f2 | xargs`
+        mysql_ip=$HELM_IP
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+        mysql_port=`ssh $HELM_USER@$HELM_IP "kubectl get svc -n openstack | grep mariadb-server" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
+        echo 'wlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
