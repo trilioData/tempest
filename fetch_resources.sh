@@ -418,6 +418,7 @@ EOF
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
         mysql_port=`ssh $HELM_USER@$HELM_IP "kubectl get svc -n openstack | grep mariadb-server" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
         echo 'wlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
+	command_prefix="ssh $HELM_USER@$HELM_IP '<command>'"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
