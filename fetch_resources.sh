@@ -430,8 +430,8 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
         mysql_port=`ssh $BASTION_USER@$BASTION_IP "oc get svc -n openstack | grep galera-nodeport" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
-        echo 'wlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
-        command_prefix="ssh $BASTION_USER@$BASTION_IP \"ssh $COMPUTE_USER@$COMPUTE_IP '<command>'\""
+        echo 'wlm_dbport = "'$mysql_port'"' >> $TEMPEST_TVAULTCONF
+	command_prefix="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@$COMPUTE_IP '<command>''"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`

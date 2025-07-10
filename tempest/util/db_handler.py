@@ -15,8 +15,10 @@ def dbHandler():
                                        password=tvaultconf.wlm_dbpasswd,
                                        host=tvaultconf.wlm_dbhost,
                                        database=tvaultconf.tvault_dbname)
+        print(conn)
         return conn
     except mysql.connector.Error as err:
+        print(err)
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print("Something is wrong with your user name or password")
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
