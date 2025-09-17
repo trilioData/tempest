@@ -166,11 +166,11 @@ function configure_tempest
 
     #Fetch identity data
     admin_domain_id=$($OPENSTACK_CMD domain list | awk "/ $CLOUDADMIN_DOMAIN_NAME / { print \$2 }")
-    admin_project_id=$($OPENSTACK_CMD project list | awk "/ $CLOUDADMIN_PROJECT_NAME / { print \$2 }")
+    admin_project_id=$($OPENSTACK_CMD project list --domain $CLOUDADMIN_DOMAIN_NAME | awk "/ $CLOUDADMIN_PROJECT_NAME / { print \$2 }")
     test_domain_id=$($OPENSTACK_CMD domain list | awk "/ $TEST_DOMAIN_NAME / { print \$2 }")
-    test_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
-    test_alt_project_id=$($OPENSTACK_CMD project list | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
-    service_project_id=$($OPENSTACK_CMD project list | awk "/service*/ { print \$2 }")
+    test_project_id=$($OPENSTACK_CMD project list --domain $TEST_DOMAIN_NAME | awk "/ $TEST_PROJECT_NAME / { print \$2 }")
+    test_alt_project_id=$($OPENSTACK_CMD project list --domain $TEST_DOMAIN_NAME | awk "/ $TEST_ALT_PROJECT_NAME / { print \$2 }")
+    service_project_id=$($OPENSTACK_CMD project list --domain Default | awk "/service*/ { print \$2 }")
     test_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $TEST_USERNAME / { print \$2 }")
     test_alt_user_id=$($OPENSTACK_CMD user list --domain $TEST_DOMAIN_NAME | awk "/ $NONADMIN_USERNAME / { print \$2 }")
     wlm_endpoint=$($OPENSTACK_CMD endpoint list |  awk "/workloads/" | awk "/public/ { print \$14 }")
