@@ -255,7 +255,7 @@ function configure_tempest
     available_flavors=$($OPENSTACK_CMD flavor list)
     if [[ ! ( $available_flavors =~ "$TEST_IMAGE_NAME " ) ]] ; then
         if [[ $TEST_IMAGE_NAME =~ "cirros" ]] ; then
-            $OPENSTACK_CMD flavor create --ram 128 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
+            $OPENSTACK_CMD flavor create --ram 256 --disk 1 --vcpus 1 $TEST_IMAGE_NAME
         else
             $OPENSTACK_CMD flavor create --ram 2048 --disk 20 --vcpus 2 $TEST_IMAGE_NAME
         fi
