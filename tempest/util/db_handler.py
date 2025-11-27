@@ -4,7 +4,7 @@ from tempest import tvaultconf
 
 def dbHandler():
     try:
-        if tvaultconf.wlm_dbport:
+        if getattr(tvaultconf, "wlm_dbport", None):
             conn = mysql.connector.connect(user=tvaultconf.wlm_dbusername,
                                        password=tvaultconf.wlm_dbpasswd,
                                        host=tvaultconf.wlm_dbhost,
@@ -15,7 +15,6 @@ def dbHandler():
                                        password=tvaultconf.wlm_dbpasswd,
                                        host=tvaultconf.wlm_dbhost,
                                        database=tvaultconf.tvault_dbname)
-        print(conn)
         return conn
     except mysql.connector.Error as err:
         print(err)
