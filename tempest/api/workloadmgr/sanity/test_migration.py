@@ -22,15 +22,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
         try:
             result_json = {}
             #Create Migration Plan
-            self.vms = self.get_migration_test_vms(vm_list= \
-                            self.get_vcenter_vms())
-            i = 1
-            self.plan_id, self.err_str = self.create_migration_plan([self.vms[i]], plan_cleanup=False)
+            self.vcenter_name = self.get_vcenter_name()[0]
+            self.plan_id, self.err_str = self.create_migration_plan(self.vcenter_name, plan_cleanup=False)
             LOG.debug(f"Plan ID returned from API: {self.plan_id}")
             if self.plan_id and not(self.err_str):
                 result_json['Create_Migration_Plan'] = tvaultconf.PASS
             else:
                 raise Exception("Create_Migration_Plan")
+
+            #Fetch vm list and add to migration plan
+            self.vms = self.get_vcenter_vms(self.vcenter_name)
+
+
 
             #Discover VMs
             self.err_str = self.discover_vms(self.plan_id)

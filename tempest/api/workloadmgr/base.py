@@ -4661,11 +4661,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     List VMs from vCenter
     '''
 
-    def get_vcenter_vms(self):
+    def get_vcenter_vms(self, vc_name):
         try:
             vm_list = []
             resp, body = self.wlm_client.client.get(
-                    "/migration_plans/metrics/get_vcenter_vms")
+                    f"/migration_plans/metrics/get_vcenter_vms?name={vc_name}")
             if resp.status_code != 200:
                 resp.raise_for_status()
             vm_list = body['vcenter_vms']
@@ -4674,6 +4674,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.error(f"Exception in get_vcenter_vms: {e}")
         finally:
             return vm_list
+
+    '''
+    Fetch vcenter names
+    '''
+
+    def get_vcenter_name(self):
+        try:
+            vlist = []
+            resp, body = self.wlm_client.client.get(
+                    "/migration_plans/metrics/vcenters")
+            if resp.status_code != 200:
+                resp.raise_for_status()
+            vlist = body['vcenters']
+            LOG.debug(f"vCenter list returned: {vlist}")
+        except Exception as e:
+            LOG.error(f"Exception in get_vcenter_name: {e}")
+        finally:
+            return vlist
 
     '''
     Get automation test vms for migration
@@ -4697,16 +4715,13 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Create migration plan
     '''
 
-    def create_migration_plan(self, vms, plan_cleanup=True):
+    def create_migration_plan(self, vcenter_name, plan_cleanup=True):
         try:
-            vm_list = []
-            for vm in vms:
-                vm_list.append({"vm-id": vm})
             payload = { "migration_plan":
                             { "name": tvaultconf.migration_plan_name,
                               "description": tvaultconf.migration_plan_desc,
-                              "vms": vm_list,
-                              "metadata": {},
+                              "vms": [],
+                              "metadata": {"vcenter_name": vcenter_name},
                               "source_platform": "vmware"
                              }
                        }
