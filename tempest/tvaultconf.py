@@ -168,8 +168,8 @@ snapshot_reset_err_msg = "ERROR:workloadmgr:Please check service status on the H
 create_license_expected_str = "End User License Agreement"
 create_license_send_str = "y"
 
-migration_vms = [{"name": "Automation_Centos8", "datastore": "datastore2_(9)" },
-                 {"name": "Automation_Ubuntu", "datastore": "datastore2_(9)"}]
+migration_vms = [{"name": "Migration_Rhel8_lvs", "datastore": ""},
+                 {"name": "Migration_C_80.5", "datastore": "datastore2_(9)"}]
 migration_plan_name = "tempest_migration_plan"
 migration_plan_desc = "tempest migration plan description"
 migration_filename = "/opt/migration.json"

@@ -4816,6 +4816,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
+    Modify migration plan
+    '''
+
+    def modify_migration_plan(self, plan_id, vms):
+        try:
+            vm_list = []
+            for vm in vms:
+                vm_list.append({"vm-id": vm})
+            payload = {"migration_plan": {"vms": vm_list}}
+            resp, body = self.wlm_client.client.put(f"/migration_plans/{plan_id}",
+                    json=payload)
+            if resp.status_code != 202:
+                resp.raise_for_status()
+        except Exception as e:
+            LOG.error(f"Exception in modify_migration_plan: {e}")
+            return str(e)
+
+    '''
     Create json for migration
     '''
 
