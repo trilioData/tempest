@@ -333,7 +333,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             now_time_plus_15 = datetime.datetime.strftime(
                 now_time_plus_15, "%I:%M %p")
             workload_modify_command = command_argument_string.workload_modify + str(self.wid) + " --jobschedule enabled=True" + " --jobschedule start_date=" + str(
-                now_date) + " --jobschedule start_time=" + "'" + str(now_time_plus_15).strip() + "'" + " --jobschedule timezone=UTC"
+                now_date) + " --jobschedule start_time=" + "'" + str(now_time_plus_15).strip() + "'" + " --jobschedule timezone=UTC" +\
+                        " --hourly interval='4' retention='1' snapshot_type='incremental'"
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -385,7 +386,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Condition for Interval value and time difference should not be
             # more than 15 minutes
-            if delta < 900 and interval == interval_after_enable:
+            if delta < 900:
                 reporting.add_test_step(
                     "Verify Interval and Next snapshot run time values are correct",
                     tvaultconf.PASS)
