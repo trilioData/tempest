@@ -103,7 +103,7 @@ quota_delete = "workloadmgr project-allowed-quota-delete "
 rbac_create_secgroup = "openstack network rbac create --target-project "
 
 #OpenStack WLM CLI Commands
-os_workload_list = "openstack workload list"
+os_workload_list = "openstack workloadmgr workload list"
 
 #OpenStack CLI Commands
 os_server_list = "openstack server list"
