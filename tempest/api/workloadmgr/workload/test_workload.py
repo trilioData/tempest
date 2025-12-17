@@ -576,10 +576,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                     jobschedule={"start_date": now_date.strip(),
                                                  "start_time": now_time_plus_12.strip(),
                                                  "hourly": tvaultconf.hourly_scheduler,
-                                                 "daily": {},
-                                                 "weekly": {},
-                                                 "monthly": {},
-                                                 "yearly": {},
                                                  "manual": tvaultconf.manual_retention,
                                                  "enabled": "True"},
                                     workload_cleanup=False)
