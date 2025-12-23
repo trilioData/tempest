@@ -19,7 +19,7 @@ if [[ "$DISTRO" == "rhel" || "$DISTRO" == "centos" ]]; then
     else
       echo "centos8 image"
       sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-Linux-*
-      sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-Linux-*
+      sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
     fi
     sed -i 's/guest-file-open,//' /etc/sysconfig/qemu-ga
     sed -i 's/guest-file-write,//' /etc/sysconfig/qemu-ga
