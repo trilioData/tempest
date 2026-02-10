@@ -108,7 +108,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
 
     @decorators.attr(type='workloadmgr_cli')
-    def test_03_license_check_vms(self):
+    def license_check_vms(self):
         reporting.add_test_script(str(__name__) + "_check_vms")
         try:
             # Create license using CLI command
