@@ -13,6 +13,7 @@ from tempest.api.workloadmgr import base
 from tempest.lib import decorators
 from tempest.util import cli_parser
 from tempest.util import query_data
+from tempest import prerequisites
 
 sys.path.append(os.getcwd())
 
@@ -354,7 +355,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload policy not assigned to project by admin user")
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies
+            cmd = command_argument_string.list_assigned_policies + admin_project_id
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
                 reporting.add_test_step(
@@ -511,6 +512,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
                 raise Exception(str(self.exception))
             LOG.debug("pre req completed")
+            self.vm_id = self.create_vm()
             global vm_id
             global policy_id
             global volume_id

@@ -2729,11 +2729,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             policy_cleanup=True):
         payload = {"workload_policy": {
             "field_values": {
-                "fullbackup_interval": fullbackup_interval,
-                "retention_policy_type": retention_policy_type,
-                "interval": interval,
-                "retention_policy_value": retention_policy_value
-            },
+                "start_time": "10:30 PM",
+                  "hourly": {
+                    "interval": "4",
+                    "retention": "1",
+                    "snapshot_type": "incremental"
+                    },
+                     "daily": {},
+                      "weekly": {},
+                     "monthly": {},
+                       "yearly": {},
+                    "manual": {
+                     "retention": "30"
+                      },
+                 "retentionmanual": {
+                  "retentionmanual": "30"
+              },
+            },  
             "display_name": policy_name,
             "display_description": description,
             "metadata": {}
@@ -2768,6 +2780,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             description='description'):
         try:
             payload = {
+                    '''
                 "policy": {
                     "field_values": {
                         "fullbackup_interval": fullbackup_interval,
@@ -2775,7 +2788,52 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         "interval": interval,
                         "retention_policy_value": retention_policy_value},
                     "display_name": policy_name,
-                    "display_description": description}}
+                    "display_description": description}
+                    '''
+                    '''
+                "policy": {
+                        "display_name": "ABC",
+                        "field_values": {
+                          "hourly": {},
+                          "daily": {},
+                          "weekly": {},
+                          "monthly": {},
+                          "yearly": {},
+                          "manual": {"retention": 30},
+                          "retentionmanual": {"retentionmanual": 30}
+                        }
+                      }
+                    }
+                    '''
+            "policy": {
+                "display_name": "NEW-POLICY-UPDATED-API",
+                "field_values": {
+                "hourly": {
+
+                 },
+                "daily": {
+
+                },
+                "weekly": {
+
+                },
+                "monthly": {
+
+                },
+                "yearly": {
+
+                },
+                 "manual": {
+                 "retention": 30
+                 },
+                "retentionmanual": {
+                "retentionmanual": 30
+                 }
+                 }
+                 }
+            }
+
+            LOG.debug("POLICY_ID: %s" % policy_id) 
             resp, body = self.wlm_client.client.put(
                 "/workload_policy/" + policy_id, json=payload)
             LOG.debug("Response:" + str(resp.content))
