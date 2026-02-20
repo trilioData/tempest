@@ -35,6 +35,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
     @decorators.attr(type='workloadmgr_cli')
     def test_1_workload_policy_create(self):
+        LOG.debug("STARTING TEST 1")
         reporting.add_test_script(str(__name__) + "_create")
         try:
             global policy_id
@@ -90,9 +91,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 1")
 
     @decorators.attr(type='workloadmgr_cli')
     def test_2_workload_policy_update(self):
+        LOG.debug("STARTING TEST 2")
         reporting.add_test_script(str(__name__) + "_update")
         try:
             global policy_id
@@ -158,9 +161,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 2")
 
     @decorators.attr(type='workloadmgr_cli')
     def test_3_workload_policy_assign(self):
+        LOG.debug("STARTING TEST 3")
         reporting.add_test_script(str(__name__) + "_assign")
         try:
             global policy_id
@@ -230,7 +235,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Assigned workload policy has been updated")
             else:
                 reporting.add_test_step(
-                    "Update workload policy which is assigned to tenantr",
+                    "Update workload policy which is assigned to tenant",
                     tvaultconf.FAIL)
                 raise Exception(
                     "Assigned workload policy not updated by admin user")
@@ -332,9 +337,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 3")
 
     @decorators.attr(type='workloadmgr_cli')
     def test_4_list_assigned_policies(self):
+        LOG.debug("STARTING TEST 4")
         reporting.add_test_script(str(__name__) + "_list_assigned_policies")
         try:
             global policy_id
@@ -501,10 +508,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 4")
 
     @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
     def test_5_workload_modify(self):
+        LOG.debug("STARTING TEST 5")
         reporting.add_test_script(str(__name__) + "_workload_modify")
         try:
             if self.exception != "":
@@ -649,9 +658,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 5")
 
     @decorators.attr(type='workloadmgr_cli')
     def test_6_workload_policy_in_use(self):
+        LOG.debug("STARTING TEST 6")
         reporting.add_test_script(str(__name__) + "_in_use")
         try:
             global vm_id
@@ -751,9 +762,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 6")
 
     @decorators.attr(type='workloadmgr_cli')
     def test_7_workload_policy_delete(self):
+        LOG.debug("STARTING TEST 7")
         reporting.add_test_script(str(__name__) + "_delete")
         try:
             global policy_id
@@ -858,10 +871,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.set_test_script_status(tvaultconf.FAIL)
         finally:
             reporting.test_case_to_write()
+        LOG.debug("ENDING TEST 7")
 
     # Workload policy with scheduler and retension parameter
     @decorators.attr(type='workloadmgr_cli')
     def test_8_policywith_scheduler_retension(self):
+        LOG.debug("STARTING TEST 8")
         reporting.add_test_script(str(__name__) + "_with_scheduler_retention")
         try:
             global vm_id
@@ -1502,4 +1517,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # delete volume
             self.delete_volume(volume_id)
             LOG.debug("volume deleted successfully")
-
+        LOG.debug("ENDING TEST 8")
