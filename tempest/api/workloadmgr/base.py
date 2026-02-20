@@ -2759,7 +2759,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 202):
             resp.raise_for_status()
-        Log.debug("IN workload_policy_create")
+        LOG.debug("IN workload_policy_create")
         LOG.debug('PolicyCreated: %s' % policy_id)
         if (tvaultconf.cleanup and policy_cleanup):
             self.addCleanup(self.workload_policy_delete, policy_id)
