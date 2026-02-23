@@ -201,6 +201,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f value"
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("list_assigned_policies#### " + cmd)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute list_assigned_policies command is successful",
@@ -292,6 +293,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify unassigned policy is not listed in list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + admin_project_id
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Execute list_assigned_policies command::#### " + cmd)
             LOG.debug("Response from CLI: " + str(rc))
             if rc != 0:
                 reporting.add_test_step(
@@ -322,6 +324,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_assign_command = command_argument_string.policy_assign + \
                 str(project_id) + " " + str(policy_id)
             error = cli_parser.cli_error(policy_assign_command)
+            LOG.debug("Assign workload policy to tenant by nonadmin user" + policy_assign_command)
             if error and (str(error.strip('\n')).find(policy_assign_error_str) != -1):
                 reporting.add_test_step(
                     "Cannot assign workload policy by nonadmin user",
@@ -364,6 +367,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + admin_project_id
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Test 04 CLI: " + cmd)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute list_assigned_policies command with no project_id is successful",
@@ -386,6 +390,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c id"
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Test 04 CLI 2: " + cmd)
             if rc == 0:
                 reporting.add_test_step(
                     "Execute list_assigned_policies command with incorrect column is successful",
@@ -467,6 +472,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             out = cli_parser.cli_output(cmd)
             LOG.debug("Response from CLI: " + str(out))
+            LOG.debug("TABLE format output CMD: " + cmd)
             cli_output_table = out.strip()
             table_format = '| ' + policy_id + ' |'
 
@@ -542,6 +548,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance " + \
                 str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
+            LOG.debug("Test 05, create WL cmd: " + workload_create)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-create with policy command",
@@ -720,6 +727,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Test 06 cmd " + cmd)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute list_assigned_policies command is successful",
@@ -781,6 +789,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_delete_command = command_argument_string.policy_delete + \
                 str(policy_id)
             error = cli_parser.cli_error(policy_delete_command)
+            LOG.debug("Test 7, delete policy cmd :" + policy_delete_command)
             if error and (str(error.strip('\n')).find(policy_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not delete workload policy by nonadmin user",
@@ -828,6 +837,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
             rc = cli_parser.cli_returncode(cmd)
+            LOG.debug("Test 7 List_assigned_policies cmd :" + cmd)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute list_assigned_policies command is successful",
@@ -886,7 +896,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_create = command_argument_string.workload_create + \
                 " --instance " + \
                 str(vm_id) + " --jobschedule enabled=True"
-            LOG.debug("WORKLOAD CMD - " + str(workload_create))
+            LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
                 LOG.debug("workload creation unsuccessful : " + error)
@@ -958,6 +968,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance " + \
                 str(self.vm_id2) + " --jobschedule enabled=False"
             rc = cli_parser.cli_returncode(workload_create)
+            LOG.debug("TEST 8 WORKLOAD CMD 2nd - " + str(workload_create))
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-create command with scheduler disable",
