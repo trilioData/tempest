@@ -173,6 +173,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects by admin user
             admin_project_id = CONF.identity.admin_tenant_id
+            project_id = CONF.identity.tenant_id  # Getting project id
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[admin_project_id], remove_project_ids_list=[])
             if status:
@@ -199,7 +200,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload policy not assigned to project by admin user unsuccessfully")
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f value"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f value"
+            cmd = command_argument_string.list_assigned_policies + project_id
             rc = cli_parser.cli_returncode(cmd)
             LOG.debug("list_assigned_policies#### " + cmd)
             if rc != 0:
@@ -291,7 +293,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload policy not unassigned by admin user unsuccessfully")
 
             # Verify unassigned policy is not listed in list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id
+            # cmd = command_argument_string.list_assigned_policies + admin_project_id
+            cmd = command_argument_string.list_assigned_policies + project_id
             rc = cli_parser.cli_returncode(cmd)
             LOG.debug("Execute list_assigned_policies command::#### " + cmd)
             LOG.debug("Response from CLI: " + str(rc))
@@ -348,6 +351,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_list_assigned_policies")
         try:
             global policy_id
+            project_id = CONF.identity.tenant_id  # Getting project id
             cli_error_string = tvaultconf.wl_assigned_policy_error_string
             cli_error_string_noprojectid = tvaultconf.wl_assigned_policy_no_projectid_error_string
             # Assign workload policy to projects by admin user
@@ -388,7 +392,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify list_assigned_policy throws proper error", tvaultconf.FAIL)
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c id"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c id"
+            cmd = command_argument_string.list_assigned_policies + project_id + " -c id"
             rc = cli_parser.cli_returncode(cmd)
             LOG.debug("Test 04 CLI 2: " + cmd)
             if rc == 0:
@@ -411,7 +416,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify list_assigned_policy command with incorrect column throws proper error", tvaultconf.FAIL)
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c ID -f value"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c ID -f value"
+            cmd = command_argument_string.list_assigned_policies + project_id + " -c ID -f value"
             LOG.debug("cli command: {}".format(cmd))
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
@@ -434,7 +440,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify list_assigned_policy shows policy_id only", tvaultconf.FAIL)
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c Name -f value"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -c Name -f value"
+            cmd = command_argument_string.list_assigned_policies + project_id + " -c Name -f value"
             LOG.debug("cli command: {}".format(cmd))
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
@@ -457,7 +464,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify list_assigned_policy shows policy_name only", tvaultconf.FAIL)
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f table"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f table"
+            cmd = command_argument_string.list_assigned_policies + project_id + " -f table"
             LOG.debug("cli command: {}".format(cmd))
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
@@ -472,7 +480,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             out = cli_parser.cli_output(cmd)
             LOG.debug("Response from CLI: " + str(out))
-            LOG.debug("TABLE format output CMD: " + cmd)
+            LOG.debug("TABLE format CMD: " + cmd)
             cli_output_table = out.strip()
             table_format = '| ' + policy_id + ' |'
 
@@ -484,7 +492,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Verify list_assigned_policy shows output in table format", tvaultconf.FAIL)
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f json"
+            #cmd = command_argument_string.list_assigned_policies + admin_project_id + " -f json"
+            cmd = command_argument_string.list_assigned_policies + project_id + " -f json"
             LOG.debug("cli command: {}".format(cmd))
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
@@ -725,7 +734,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Workload policy has not been updated while in use")
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            #cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            project_id = CONF.identity.tenant_id
+            cmd = command_argument_string.list_assigned_policies + project_id
             rc = cli_parser.cli_returncode(cmd)
             LOG.debug("Test 06 cmd " + cmd)
             if rc != 0:
@@ -779,11 +790,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global policy_id
             policy_delete_error_str = "Policy doesn't allow workload:policy_delete to be performed."
+            '''New error msg
+            bash-5.1$ workloadmgr policy-delete d7f64ccf-4554-42d3-8e64-2216b180a057
+            ERROR:workloadmgr:Can not delete policy: d7f64ccf-4554-42d3-8e64-2216b180a057. It's assigned to workloads. 
+            (HTTP 400) (Request-ID: req-52eec3c5-d0b1-4bec-95c0-5610bd3509ed)
+            '''
+            policy_delete_error_str = "workloadmgr: Can not delete policy"
             failed = False
 
             # Use non-admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.nonadmin_user
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
+
+            project_id = CONF.identity.tenant_id
 
             # Delete workload policy by nonadmin user using CLI
             policy_delete_command = command_argument_string.policy_delete + \
@@ -835,7 +854,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     LOG.debug("Policy deleted passed")
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
-            cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            #cmd = command_argument_string.list_assigned_policies + CONF.identity.tenant_id
+            cmd = command_argument_string.list_assigned_policies + project_id
             rc = cli_parser.cli_returncode(cmd)
             LOG.debug("Test 7 List_assigned_policies cmd :" + cmd)
             if rc != 0:
@@ -893,9 +913,17 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volume_id
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
+            '''
             workload_create = command_argument_string.workload_create + \
                 " --instance " + \
                 str(vm_id) + " --jobschedule enabled=True"
+            '''
+            workload_create = command_argument_string.workload_create + \
+                " --instance " + \
+                str(vm_id) + " --jobschedule enabled=True" + \
+                "--jobschedule start_date='24/03/2026' "+ \
+                "--jobschedule start_time='3:00 PM'"
+
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
             if error and (str(error.strip('\n')).find('ERROR') != -1):
