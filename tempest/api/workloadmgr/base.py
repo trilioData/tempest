@@ -2833,7 +2833,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                  }
             }
 
-            LOG.debug("POLICY_ID: %s" % policy_id) 
+            LOG.debug("Updating POLICY_ID: %s" % policy_id)
             resp, body = self.wlm_client.client.put(
                 "/workload_policy/" + policy_id, json=payload)
             LOG.debug("Response:" + str(resp.content))
@@ -2915,7 +2915,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.get(
                 "/workload_policy/" + policy_id)
-            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("get_policy_details Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             list_of_project_assigned = []
