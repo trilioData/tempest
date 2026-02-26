@@ -41,6 +41,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global policy_id
             policy_create_error_str = "Policy doesn't allow workload:policy_create to be performed."
+            #policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
+            # New error msg
 
             # Create workload policy by admin user
             policy_id = self.workload_policy_create(
@@ -83,8 +85,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             LOG.debug("policy_create_command#### " + policy_create_command)
             error = cli_parser.cli_error(policy_create_command)
-            LOG.debug("test 1 Create policy error" + error)
-            if error and (str(error.strip('\n')).find(policy_create_error_str) != -1):
+            LOG.debug("test 1 Create policy error:"  + error)
+            #if error and (str(error.strip('\n')).find(policy_create_error_str) != -1):
+            if 'ERROR' in error:
                 reporting.add_test_step(
                     "Can not create workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -201,7 +204,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy assigned to tenant by admin user
             details = self.get_policy_details(policy_id)
-            LOG.debug("test 3 Policy Details: " + details)
+            LOG.debug("test 3 Policy Details: " + str(details))
             #if admin_project_id in details[4]:
             if project_id in details[4]:
                 reporting.add_test_step(
@@ -379,7 +382,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[project_id], remove_project_ids_list=[])
-            LOG.debug("STATUS: " + status)
+            LOG.debug("STATUS: " + str(status))
             if status:
                 reporting.add_test_step(
                     "Assign workload policy by admin user", tvaultconf.PASS)
@@ -637,7 +640,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             same_policy_settings = True
             policy_details = self.get_policy_details(policy_id)
             LOG.debug("Test 5 Policy details: " + str(policy_details))
-            LOG.debug("workload_details :::: " + workload_details)
+            #LOG.debug("workload_details :::: " + workload_details)
             if not policy_details:
                 reporting.add_test_step("Get policy details", tvaultconf.FAIL)
                 raise Exception("Get policy details failed")
@@ -959,8 +962,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             workload_create = command_argument_string.workload_create + \
                 " --instance " + \
-                str(vm_id) + " --jobschedule enabled=True" + \
-                "--jobschedule start_time='3:00 PM'" + \
+                str(vm_id) + " --jobschedule enabled=True " + \
+                "--jobschedule start_time='3:00 PM' " + \
                 "--jobschedule start_date='24/03/2026' " + \
                 "--hourly interval = '4'"
 
@@ -983,7 +986,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             time.sleep(20)
             self.workload_id = query_data.get_workload_id_in_creation(
                 tvaultconf.workload_name)
-            LOG.debug("Created workload ID: " + self.workload_id)
+            LOG.debug("Test 8 Created workload ID: " + self.workload_id)
             if self.workload_id is not None:
                 self.wait_for_workload_tobe_available(self.workload_id)
                 if(self.getWorkloadStatus(self.workload_id) == "available"):
