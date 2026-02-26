@@ -41,6 +41,7 @@ from tempest.util import cli_parser
 from tempest.util import query_data
 from tempest import reporting
 from tempest.lib.common.utils import data_utils
+from tempest.lib.services.compute import base_compute_client as api_version
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -5021,3 +5022,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 mount_path = bt['filesystem_export_mount_path']
         LOG.debug(f"mount_path: {mount_path}")
         return mount_path
+    
+    '''
+    Add file recovery manager tag to the instance
+    '''
+    def add_fvm_tag(self, vm_id):
+        api_version.COMPUTE_MICROVERSION = '2.60'
+        resp = self.servers_client.update_tag(vm_id, "tvault_recovery_manager")
+        LOG.debug(f"add_fvm_tag: {resp}")
+
