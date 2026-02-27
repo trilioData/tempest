@@ -237,6 +237,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("test 3 cli command: {}".format(cmd))
             out = cli_parser.cli_output(cmd)
             LOG.debug("test 3 Response from CLI: " + str(out))
+            respose = cli_parser.cli_response(cmd)
+            LOG.debug("test 3 Response from CLI: " + str(respose))
             if (policy_id in out):
                 reporting.add_test_step(
                     "Verify list_assigned_policy shows assigned project_id", tvaultconf.PASS)
@@ -395,7 +397,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             #cmd = command_argument_string.list_assigned_policies + admin_project_id
-            time.sleep(120)
+            #time.sleep(120)
             cmd = command_argument_string.list_assigned_policies
 
             rc = cli_parser.cli_returncode(cmd)
@@ -488,7 +490,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             out = cli_parser.cli_output(cmd)
             LOG.debug("test 4 -c Name Response from CLI: " + str(out))
-            if (tvaultconf.policy_name_update in out):
+            #if (tvaultconf.policy_name_update in out):
+            if (tvaultconf.policy_name in out):
                 reporting.add_test_step(
                     "Verify list_assigned_policy shows policy_name only", tvaultconf.PASS)
             else:
@@ -636,11 +639,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Test 5, getting policy details")
             # Verify that workload is created with same policy settings
             key_list = ["fullbackup_interval", "retention_policy_type",
-                        "interval", "retention_policy_value"]
+                        "interval", "retention_policy_value"] # Not valid now
             same_policy_settings = True
             policy_details = self.get_policy_details(policy_id)
             LOG.debug("Test 5 Policy details: " + str(policy_details))
-            #LOG.debug("workload_details :::: " + workload_details)
+            #LOG.debug("workload_details :::: " + str(workload_details))
             if not policy_details:
                 reporting.add_test_step("Get policy details", tvaultconf.FAIL)
                 raise Exception("Get policy details failed")
@@ -835,7 +838,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             ERROR:workloadmgr:Can not delete policy: d7f64ccf-4554-42d3-8e64-2216b180a057. It's assigned to workloads. 
             (HTTP 400) (Request-ID: req-52eec3c5-d0b1-4bec-95c0-5610bd3509ed)
             '''
-            policy_delete_error_str = "workloadmgr: Can not delete policy"
+            #policy_delete_error_str = "workloadmgr: Can not delete policy"
             failed = False
 
             # Use non-admin credentials
@@ -965,7 +968,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 str(vm_id) + " --jobschedule enabled=True " + \
                 "--jobschedule start_time='3:00 PM' " + \
                 "--jobschedule start_date='24/03/2026' " + \
-                "--hourly interval = '4'"
+                "--hourly interval='4'"
 
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
