@@ -560,7 +560,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               str(self.wid)
             snapshot_mounted_list_mount_csv = cli_parser.cli_output(snapshot_mounted_list_mount_csv)
             LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_csv}")
-            csv_format = '"snapshot_id","snapshot_name","workload_id","mounturl","status"'
+            csv_format = '"snapshot_id","snapshot_name","workload_id","status"'
 
             if csv_format in snapshot_mounted_list_mount_csv.strip() and self.snapshot_id in snapshot_mounted_list_mount_csv:
                 reporting.add_test_step(
