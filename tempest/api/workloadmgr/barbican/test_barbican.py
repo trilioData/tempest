@@ -139,6 +139,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -654,6 +655,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -1254,6 +1256,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -1786,6 +1789,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -3610,6 +3614,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
