@@ -363,6 +363,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
             self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
+            self.add_fvm_tag(self.frm_id)
             self.frm_ssh_user = ""
             if "centos" in self.frm_image:
                 self.frm_ssh_user = "centos"
