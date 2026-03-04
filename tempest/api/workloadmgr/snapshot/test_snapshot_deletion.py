@@ -116,7 +116,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
 
             self.mount_path = self.get_mountpoint_path()
 
-            retention = int(tvaultconf.retention_policy_value)
             self.schedule = {"start_date": now_date.strip(),
                              "start_time": now_time_plus_12.strip(),
                              "hourly": tvaultconf.hourly_scheduler,
