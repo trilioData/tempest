@@ -117,12 +117,12 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.mount_path = self.get_mountpoint_path()
 
             retention = int(tvaultconf.retention_policy_value)
-            self.schedule = {
-                "fullbackup_interval": "1",
-                "enabled": False,
-                "retention_policy_type": tvaultconf.retention_policy_type,
-                "retention_policy_value": retention}
-            rpv = int(self.schedule['retention_policy_value'])
+            self.schedule = {"start_date": now_date.strip(),
+                             "start_time": now_time_plus_12.strip(),
+                             "hourly": tvaultconf.hourly_scheduler,
+                             "manual": tvaultconf.manual_retention,
+                             "enabled": "True"}
+            rpv = int(self.schedule['manual'])
             workload_id = self.workload_create(
                 [self.vm_id],
                 jobschedule=self.schedule,
