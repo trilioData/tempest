@@ -1,4 +1,5 @@
 import json
+import datetime
 from tempest.api.workloadmgr import base
 from tempest import config
 from tempest.lib import decorators
@@ -105,6 +106,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.frm_id)
             self._set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -115,13 +117,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             ssh.close()
 
             self.mount_path = self.get_mountpoint_path()
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            now_time_plus_12 = datetime.datetime.strftime(
+                now_time_plus_12, "%I:%M %p")
 
             self.schedule = {"start_date": now_date.strip(),
                              "start_time": now_time_plus_12.strip(),
                              "hourly": tvaultconf.hourly_scheduler,
                              "manual": tvaultconf.manual_retention,
                              "enabled": "True"}
-            rpv = int(self.schedule['manual'])
+            rpv = int(self.schedule['manual']['retention'])
             workload_id = self.workload_create(
                 [self.vm_id],
                 jobschedule=self.schedule,
