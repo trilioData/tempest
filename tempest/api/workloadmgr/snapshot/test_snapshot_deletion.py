@@ -127,7 +127,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                              "start_time": now_time_plus_12.strip(),
                              "hourly": tvaultconf.hourly_scheduler,
                              "manual": tvaultconf.manual_retention,
-                             "enabled": "True"}
+                             "enabled": "False"}
             rpv = int(self.schedule['manual']['retention'])
             workload_id = self.workload_create(
                 [self.vm_id],
