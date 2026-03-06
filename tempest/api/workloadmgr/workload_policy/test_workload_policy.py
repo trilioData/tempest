@@ -642,7 +642,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         "interval", "retention_policy_value"] # Not valid now
             same_policy_settings = True
             policy_details = self.get_policy_details(policy_id)
-            LOG.debug("Test 5 Policy details: " + str(policy_details))
+            #LOG.debug("Test 5 Policy details: " + str(policy_details))
             #LOG.debug("workload_details :::: " + str(workload_details))
             if not policy_details:
                 reporting.add_test_step("Get policy details", tvaultconf.FAIL)

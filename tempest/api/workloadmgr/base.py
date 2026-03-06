@@ -2546,12 +2546,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_data = body['workload']
         wl = json.loads(workload_data)
-        LOG.debug("get_workload_details Body: {}".format(body))
-        LOG.debug("get_workload_details, workload data: {}".format(wl))
+        #LOG.debug("get_workload_details Body: {}".format(body))
+        #LOG.debug("get_workload_details, workload data: {}".format(wl))
 
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
-        LOG.debug("get_workload_details Response:" + str(resp.content))
+        #LOG.debug("get_workload_details Response:" + str(resp.content))
         if (resp.status_code != 200):
             resp.raise_for_status()
         return workload_data
