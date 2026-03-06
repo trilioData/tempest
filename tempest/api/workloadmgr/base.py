@@ -2545,7 +2545,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_workload_details(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_data = body['workload']
-        wl = json.loads(workload_data)
+        #wl = json.loads(workload_data)
         #LOG.debug("get_workload_details Body: {}".format(body))
         #LOG.debug("get_workload_details, workload data: {}".format(wl))
 

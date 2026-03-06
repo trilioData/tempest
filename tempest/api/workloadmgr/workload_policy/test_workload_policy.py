@@ -577,6 +577,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volume_id
             volume_id = self.volume_id
             vm_id = self.vm_id
+            LOG.debug("VM CREATED" + vm_id)
 
             # Use admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.username
@@ -624,6 +625,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Verify that workload is created with same policy ID
             workload_details = self.get_workload_details(workload_id)
             policyid_from_workload_metadata = workload_details["metadata"]["policy_id"]
+            LOG.debug("Workload policyid_from_workload_metadata: " + str(policyid_from_workload_metadata))
             if policyid_from_workload_metadata == policy_id:
                 reporting.add_test_step(
                     "Verfiy that same policy id is assigned in workload-metadata",
@@ -649,6 +651,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Get policy details failed")
             else:
                 field_values = policy_details[1]
+                LOG.debug("Comparing policy details")
                 LOG.debug("Test 5 field_values: " + str(field_values))
             for i in key_list:
                 if workload_details["jobschedule"][i] != field_values[i]:
