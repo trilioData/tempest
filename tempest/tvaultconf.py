@@ -146,7 +146,7 @@ snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snap
 restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
 workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
 # workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
-workload_policy_fields = ['daily', 'hourly', 'manual', 'monthly', 'retentionmanual', 'start_time', 'weekly', 'yearly']
+workload_policy_fields = ["daily", "hourly", "manual", "monthly", "retentionmanual", "start_time", "weekly", "yearly"]
 # Updating please cross-check
 
 #error strings
