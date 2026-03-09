@@ -640,8 +640,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             LOG.debug("Test 5, getting policy details")
             # Verify that workload is created with same policy settings
-            key_list = ["fullbackup_interval", "retention_policy_type",
-                        "interval", "retention_policy_value"] # Not valid now
+            #key_list = ["fullbackup_interval", "retention_policy_type",
+            #            "interval", "retention_policy_value"] # Not valid now
+            key_list = ["hourly", "daily", "weekly", "monthly", "manual"]
             same_policy_settings = True
             policy_details = self.get_policy_details(policy_id)
             #LOG.debug("Test 5 Policy details: " + str(policy_details))
