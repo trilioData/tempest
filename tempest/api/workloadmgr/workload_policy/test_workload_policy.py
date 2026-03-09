@@ -685,6 +685,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_modify_command = command_argument_string.workload_modify + " --instance " + \
                 str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
+            LOG.debug("CMD Workload_modify: " + str(workload_modify_command))
+            LOG.debug("CMD Workload_modify RC: " + str(rc))
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-modify command to add one more vm",
@@ -699,6 +701,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.wait_for_workload_tobe_available(workload_id)
             workload_vm_count = query_data.get_available_vms_of_workload(
                 workload_id)
+            LOG.debug("TEST 5 Available VMs: " + str(workload_vm_count))
             if (workload_vm_count == 2):
                 reporting.add_test_step(
                     "Verify vm added to policy assigned workload with DB",
