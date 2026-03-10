@@ -148,7 +148,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             self.snapshots = []
             self.full_snapshot_sizes = []
             self.incr_snapshot_sizes = []
-            for i in range(0, rpv-1):
+            for i in range(0, rpv):
                 if i == 0:
                     is_full = True
                     snapshot_type = "full"
@@ -184,6 +184,19 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Delete full snapshot")
 
+            # Check full snapshot is not deleted from backup target
+            is_snapshot_exist = self.check_snapshot_exist_on_backend(
+                self.mount_path, workload_id, self.snapshots[0])
+            LOG.debug("Snapshot exist : %s" % is_snapshot_exist)
+            if is_snapshot_exist:
+                LOG.debug("Full snapshot is not deleted from backup target")
+                reporting.add_test_step(
+                    "Full snapshot is not deleted from backup target",
+                    tvaultconf.PASS)
+            else:
+                raise Exception(
+                    "Full snapshot is deleted from backup target")
+
             snapshotlist = self.getSnapshotList(workload_id=workload_id)
             LOG.debug(f"Snapshots created in test: {self.snapshots}, " \
                       f"Snapshots returned in snapshot_list: {snapshotlist}")
@@ -207,18 +220,18 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             else:
                 raise Exception("Verify snapshot existence on target backend")
 
-            # Check first snapshot is not deleted from backup target
+            # Check first snapshot is deleted from backup target
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
                 self.mount_path, workload_id, self.snapshots[0])
             LOG.debug("Snapshot exist : %s" % is_snapshot_exist)
-            if is_snapshot_exist:
-                LOG.debug("Full snapshot is not deleted from backup target")
+            if not is_snapshot_exist:
+                LOG.debug("Full snapshot is deleted from backup target")
                 reporting.add_test_step(
-                    "Full snapshot is not deleted from backup target",
+                    "Full snapshot is deleted from backup target",
                     tvaultconf.PASS)
             else:
                 raise Exception(
-                    "Full snapshot is deleted from backup target")
+                    "Full snapshot is not deleted from backup target")
 
             # DB validations for full snapshot after cleanup
             snapshot_validations_after_deletion = \

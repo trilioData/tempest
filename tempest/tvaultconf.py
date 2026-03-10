@@ -178,4 +178,4 @@ migration_name = "tempest_migration"
 discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
 default_btt_id = None
 hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
-manual_retention = {"retention": 5}
+manual_retention = {"retention": 2}
