@@ -699,7 +699,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-modify command to add one more vm",
                     tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-
+            time.sleep(90) # Newly added vm is taking time to list
             self.wait_for_workload_tobe_available(workload_id)
             workload_vm_count = query_data.get_available_vms_of_workload(
                 workload_id)
