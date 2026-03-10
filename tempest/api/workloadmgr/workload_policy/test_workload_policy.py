@@ -560,7 +560,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
         LOG.debug("ENDING TEST 4")
 
-    @test.pre_req({'type': 'small_workload'})
+    #@test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
     def test_5_workload_modify(self):
         LOG.debug("STARTING TEST 5")
@@ -736,6 +736,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance " + \
                 str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
+            LOG.debug("Test 6 CMD Workload_create: " + str(workload_create))
+            LOG.debug("Test 6 CMD Workload_create RC: " + str(rc))
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-create with policy command",
