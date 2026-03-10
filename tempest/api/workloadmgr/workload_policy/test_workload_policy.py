@@ -682,8 +682,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Modify workload to add new instance using CLI command
-            workload_modify_command = command_argument_string.workload_modify + " --instance " + \
-                str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
+            #workload_modify_command = command_argument_string.workload_modify + " --instance " + \
+            #    str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
+            workload_modify_command = command_argument_string.workload_modify + " " + str(workload_id) + \
+                                      " --instance " + str(self.vm_id2) + " " + str(vm_id)  # Jira no
             rc = cli_parser.cli_returncode(workload_modify_command)
             LOG.debug("CMD Workload_modify: " + str(workload_modify_command))
             LOG.debug("CMD Workload_modify RC: " + str(rc))
