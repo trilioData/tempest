@@ -18,14 +18,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
 
-    def _set_frm_user(self):
-        self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
-        self.frm_ssh_user = ""
-        if "centos" in self.frm_image:
-            self.frm_ssh_user = "centos"
-        elif "ubuntu" in self.frm_image:
-            self.frm_ssh_user = "ubuntu"
-
     def _create_snapshot(self, workload_id, is_full, snapshot_cleanup):
         snapshot_id = self.workload_snapshot(workload_id, is_full,
                 snapshot_cleanup=snapshot_cleanup)
@@ -107,7 +99,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
             self.add_fvm_tag(self.frm_id)
-            self._set_frm_user()
+            self.frm_ssh_user = self.set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[1], self.frm_id)
 

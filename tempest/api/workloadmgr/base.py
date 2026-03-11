@@ -5031,3 +5031,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         resp = self.servers_client.update_tag(vm_id, "tvault_recovery_manager")
         LOG.debug(f"add_fvm_tag: {resp}")
 
+
+    '''
+    Set username for FRM instance 
+    '''
+    def set_frm_user(self, frm_image=list(CONF.compute.fvm_image_ref.keys())[0]):
+        frm_ssh_user = ""
+        if "centos" in frm_image:
+            frm_ssh_user = "centos"
+        elif "ubuntu" in frm_image:
+            frm_ssh_user = "ubuntu"
+        return frm_ssh_user
