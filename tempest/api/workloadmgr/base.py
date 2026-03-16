@@ -55,6 +55,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
+        LOG.debug("IN SETUP_CLIENTS")
         cls.subnets_client = cls.os_primary.subnets_client
         cls.wlm_client = cls.os_primary.wlm_client
         cls.servers_client = cls.os_primary.servers_client

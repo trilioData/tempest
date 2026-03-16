@@ -560,7 +560,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
         LOG.debug("ENDING TEST 4")
 
-    #@test.pre_req({'type': 'small_workload'})
+    @test.pre_req({'type': 'small_workload'})
     @decorators.attr(type='workloadmgr_cli')
     def test_5_workload_modify(self):
         LOG.debug("STARTING TEST 5")
@@ -570,7 +570,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("pre req failed")
                 reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
                 raise Exception(str(self.exception))
-            LOG.debug("pre req completed")
+            LOG.debug("pre req completed for test_5_workload_modify")
             self.vm_id = self.create_vm()
             global vm_id
             global policy_id
@@ -698,7 +698,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Execute workload-modify command to add one more vm",
                     tvaultconf.PASS)
-                LOG.debug("Command executed correctly")
+                LOG.debug("Command executed correctly test 5")
             time.sleep(90) # Newly added vm is taking time to list
             self.wait_for_workload_tobe_available(workload_id)
             workload_vm_count = query_data.get_available_vms_of_workload(

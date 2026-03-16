@@ -16,6 +16,7 @@ CONF = config.CONF
 def small_workload(self):
     try:
         self.exception = ""
+        LOG.debug("In prerequisites-small workload")
         LOG.debug("Running prerequisites for : small_workload")
 
         # Create volume
