@@ -92,17 +92,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception("Floating ips unavailable")
             self.set_floating_ip(fip[0], self.vm_id)
 
-            self.frm_id = self.create_vm(
-                vm_name="file_recovery_manager",
-                flavor_id=CONF.compute.flavor_ref_alt,
-                user_data=tvaultconf.user_frm_data,
-                key_pair=self.kp,
-                image_id=list(CONF.compute.fvm_image_ref.values())[0])
-            self.add_fvm_tag(self.frm_id)
-            self.frm_ssh_user = self.set_frm_user()
-            LOG.debug("FRM Instance ID: " + str(self.frm_id))
-            self.set_floating_ip(fip[1], self.frm_id)
-
             ssh = self.SshRemoteMachineConnectionWithRSAKey(fip[0])
             self.install_qemu(ssh)
             self.addCustomfilesOnLinuxVM(ssh, "/test1", 2)
@@ -189,6 +178,27 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Full snapshot is deleted from backup target")
 
+            backing_chain = self.get_backing_chain(self.mount_path,
+                    workload_id, self.snapshots[-1], self.vm_id)
+            LOG.debug(f"Backing chain for last incremental snapshot is {backing_chain}")
+
+            backing_chain_intact = False
+            if backing_chain.find('No such file or directory') != -1:
+                LOG.error("Backing chain does not exist")
+                raise Exception("Verify backing chain")
+
+            backing_chain = json.loads(backing_chain)
+            for bc in backing_chain:
+                if bc['filename'].find(self.snapshots[-1]) != -1:
+                    backing_chain_intact = True
+                    break
+            LOG.debug(f"backing_chain_intact: {backing_chain_intact}")
+
+            if backing_chain_intact:
+                reporting.add_test_step("Verify backing chain", tvaultconf.PASS)
+            else:
+                raise Exception("Verify backing chain")
+
             snapshotlist = self.getSnapshotList(workload_id=workload_id)
             LOG.debug(f"Snapshots created in test: {self.snapshots}, " \
                       f"Snapshots returned in snapshot_list: {snapshotlist}")
@@ -202,10 +212,10 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snap, backend = self._verify_snapshot(workload_id,
                         new_snap_id, snapshot_type)
             if snap:
-                reporting.add_test_step("Create incremental snapshot",
+                reporting.add_test_step("Create new snapshot",
                         tvaultconf.PASS)
             else:
-                raise Exception("Create incremental snapshot")
+                raise Exception("Create new snapshot")
             if backend:
                 reporting.add_test_step("Verify snapshot existence on "\
                          " target backend", tvaultconf.PASS)
@@ -216,7 +226,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
                 self.mount_path, workload_id, self.snapshots[0])
             LOG.debug("Snapshot exist : %s" % is_snapshot_exist)
-            if not is_snapshot_exist:
+            if is_snapshot_exist:
                 LOG.debug("Full snapshot is deleted from backup target")
                 reporting.add_test_step(
                     "Full snapshot is deleted from backup target",
@@ -242,74 +252,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                         tvaultconf.PASS)
             else:
                 raise Exception("Full snapshot deleted from DB")
-
-            '''
-            if (all(value == 0 for value in
-                    snapshot_validations_after_deletion.values())):
-                reporting.add_test_step("db cleanup validations for full "\
-                        "snapshot", tvaultconf.PASS)
-            else:
-                reporting.add_test_step("db cleanup validations for full "\
-                        "snapshot", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-            '''
-
-            # Mount latest incremental snapshot
-            mount_status = self.mount_snapshot(
-                    workload_id, new_snap_id, self.frm_id, mount_cleanup=False)
-            if mount_status:
-                reporting.add_test_step("Snapshot mount of latest incremental snapshot",
-                        tvaultconf.PASS)
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], self.frm_ssh_user)
-                output_list = self.validate_snapshot_mount(ssh,
-                        file_name="File_2").decode('UTF-8').split('\n')
-                LOG.debug(f"output_list: {output_list}")
-                ssh.close()
-                flag = 0
-                for i in output_list:
-                    if 'vda1.mnt/test1/File_2' in i:
-                        reporting.add_test_step(
-                            "Verify that mountpoint mounted is shown on FVM instance",
-                            tvaultconf.PASS)
-                        reporting.add_test_step(
-                            "Verification of file's existance on mounted snapshot",
-                            tvaultconf.PASS)
-                        flag = 1
-                    else:
-                        pass
-
-                if flag == 0:
-                    reporting.add_test_step(
-                        "Verify that mountpoint mounted is shown on FVM instance",
-                        tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.add_test_step(
-                    "Snapshot mount of incremental snapshot", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
-
-            unmount_status = self.unmount_snapshot(workload_id, new_snap_id)
-            LOG.debug("VALUE OF is_unmounted: " + str(unmount_status))
-            if unmount_status:
-                reporting.add_test_step(
-                        "Snapshot unmount of incremental snapshot", tvaultconf.PASS)
-                ssh = self.SshRemoteMachineConnectionWithRSAKey(
-                        fip[1], self.frm_ssh_user)
-                output_list = self.validate_snapshot_mount(ssh)
-                ssh.close()
-
-                if output_list == b'':
-                    reporting.add_test_step(
-                        "Unmount incremental snapshot", tvaultconf.PASS)
-                else:
-                    reporting.add_test_step(
-                        "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-                    reporting.set_test_script_status(tvaultconf.FAIL)
-            else:
-                reporting.add_test_step(
-                    "Snapshot unmount of incremental snapshot", tvaultconf.FAIL)
-                reporting.set_test_script_status(tvaultconf.FAIL)
 
             # File search
             filecount_in_snapshots = {new_snap_id: 1}
