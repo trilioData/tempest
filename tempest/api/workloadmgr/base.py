@@ -5018,11 +5018,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Set username for FRM instance 
     '''
     def set_frm_user(self, frm_image=list(CONF.compute.fvm_image_ref.keys())[0]):
-        frm_ssh_user = ""
-        if "centos" in frm_image:
-            frm_ssh_user = "centos"
-        elif "ubuntu" in frm_image:
-            frm_ssh_user = "ubuntu"
-        elif "rhel" in self.frm_image:
-                self.frm_ssh_user = "cloud-user"
-        return frm_ssh_user
+        image_user_map = {
+            "centos": "centos",
+            "ubuntu": "ubuntu",
+            "rhel": "cloud-user",
+            "rocky": "cloud-user",
+        }
+
+        for keyword, user in image_user_map.items():
+            if keyword in frm_image:
+                return user
+
+        return ""  # or raise ValueError(f"Unknown image: '{frm_image}'")
