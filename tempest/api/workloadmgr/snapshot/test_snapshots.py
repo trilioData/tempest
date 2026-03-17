@@ -473,7 +473,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             interval = tvaultconf.interval
             workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id)\
                 + " --jobschedule start_date=" + str(now_date.strip()) + " --jobschedule start_time='" + str(now_time_plus_12.strip())\
-                + "' --hourly snapshot_type='incremental' retention=2 interval=1 --jobschedule enabled=True"
+                + "' --hourly snapshot_type='incremental' retention=2 interval=1 "+\
+                "''--jobschedule enabled=True"
             LOG.debug(f"workload create command: {workload_create}")
 
             rc = cli_parser.cli_returncode(workload_create)
