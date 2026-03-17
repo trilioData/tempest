@@ -2302,21 +2302,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to verify mount snapshot and return the status
     '''
 
-    def verify_snapshot_mount(
-            self,
-            floating_ip,
-            fvm_image):
+    def verify_snapshot_mount(self, floating_ip, frm_image):
         is_successful = False
-        fvm_ssh_user = ""
-        if "centos" in fvm_image:
-            fvm_ssh_user = "centos"
-        elif "ubuntu" in fvm_image:
-            fvm_ssh_user = "ubuntu"
-        elif "rhel" in fvm_image:
-            fvm_ssh_user = "cloud-user"
-        LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
+        self.frm_ssh_user = self.set_frm_user(frm_image)
+        LOG.debug("validate that snapshot is mounted on FVM " + self.frm_ssh_user)
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+            floating_ip, self.frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
         ssh.close()
         flag = 0
@@ -2381,21 +2372,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to verify unmount snapshot and return the status
     '''
 
-    def verify_snapshot_unmount(
-            self,
-            floating_ip,
-            fvm_image):
+    def verify_snapshot_unmount(self, floating_ip, frm_image):
         is_successful = False
-        fvm_ssh_user = ""
-        if "centos" in fvm_image:
-            fvm_ssh_user = "centos"
-        elif "ubuntu" in fvm_image:
-            fvm_ssh_user = "ubuntu"
-        elif "rhel" in fvm_image:
-            fvm_ssh_user = "cloud-user"
+        self.frm_ssh_user = self.set_frm_user(frm_image)
         LOG.debug("validate that snapshot is unmounted from FVM")
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+            floating_ip, self.frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh)
         ssh.close()
 
@@ -5041,4 +5023,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             frm_ssh_user = "centos"
         elif "ubuntu" in frm_image:
             frm_ssh_user = "ubuntu"
+        elif "rhel" in self.frm_image:
+                self.frm_ssh_user = "cloud-user"
         return frm_ssh_user
