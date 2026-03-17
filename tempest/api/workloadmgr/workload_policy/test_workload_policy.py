@@ -681,6 +681,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             self.attach_volume(self.volume_id2, self.vm_id2)
             LOG.debug("Volume2 attached")
 
+            time.sleep(60)
             # Modify workload to add new instance using CLI command
             #workload_modify_command = command_argument_string.workload_modify + " --instance " + \
             #    str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
@@ -978,7 +979,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 " --instance " + \
                 str(vm_id) + " --jobschedule enabled=True " + \
                 "--jobschedule start_time='3:00 PM' " + \
-                "--jobschedule start_date='24/03/2026' " + \
+                "--jobschedule start_date='03/24/2026' " + \
                 "--hourly interval='4'"
 
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
