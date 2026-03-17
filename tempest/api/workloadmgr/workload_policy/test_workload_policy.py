@@ -571,13 +571,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(str(self.exception), tvaultconf.FAIL)
                 raise Exception(str(self.exception))
             LOG.debug("pre req completed for test_5_workload_modify")
-            self.vm_id = self.create_vm()
+            #self.vm_id = self.create_vm()
             global vm_id
             global policy_id
             global volume_id
             volume_id = self.volume_id
             vm_id = self.vm_id
-            LOG.debug("VM CREATED" + vm_id)
+            LOG.debug("VM CREATED " + vm_id)
 
             # Use admin credentials
             os.environ['OS_USERNAME'] = CONF.identity.username
@@ -685,7 +685,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #workload_modify_command = command_argument_string.workload_modify + " --instance " + \
             #    str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
             workload_modify_command = command_argument_string.workload_modify + " " + str(workload_id) + \
-                                      " --instance " + str(self.vm_id2) + " " + str(vm_id)  # Jira no
+                                      " --instance "  + str(vm_id)  + " " + str(self.vm_id2) # Jira no
             rc = cli_parser.cli_returncode(workload_modify_command)
             LOG.debug("CMD Workload_modify: " + str(workload_modify_command))
             LOG.debug("CMD Workload_modify RC: " + str(rc))
