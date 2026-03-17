@@ -226,7 +226,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             is_snapshot_exist = self.check_snapshot_exist_on_backend(
                 self.mount_path, workload_id, self.snapshots[0])
             LOG.debug("Snapshot exist : %s" % is_snapshot_exist)
-            if is_snapshot_exist:
+            if not is_snapshot_exist:
                 LOG.debug("Full snapshot is deleted from backup target")
                 reporting.add_test_step(
                     "Full snapshot is deleted from backup target",
@@ -239,45 +239,25 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_validations_after_deletion = \
                     self.db_cleanup_snapshot_validations(self.snapshots[0])
 
-            # For full snapshot, new entry is added in table
-            # "vm_recent_snapshot". For incr, same entry is updated. However,
-            # when we delete incr snapshot, this entry is removed.
-            # vm_recent_snapshot table has FK with Snapshot having
-            # ondelete="CASCADE" effect, so whenever the snapshot is deleted
-            # it's respective entry from this table would get removed.
             LOG.debug("Print values for {}".format(
                     snapshot_validations_after_deletion))
-            if snapshot_validations_after_deletion['snapshots'] == 1:
-                reporting.add_test_step("Full snapshot exists in DB",
+            if snapshot_validations_after_deletion['snapshots'] == 0:
+                reporting.add_test_step("Full snapshot is deleted from DB",
                         tvaultconf.PASS)
             else:
-                raise Exception("Full snapshot deleted from DB")
+                raise Exception("Full snapshot is not deleted from DB")
 
             # File search
             filecount_in_snapshots = {new_snap_id: 1}
             search_path = "/test1/File_2"
             self._filesearch(self.vm_id, filecount_in_snapshots, search_path)
 
-            backing_chain = self.get_backing_chain(self.mount_path, 
-                    workload_id, new_snap_id, self.vm_id)
-            LOG.debug(f"Backing chain for snapshot {new_snap_id} is {backing_chain}")
-
-            backing_chain_intact = False
-            if backing_chain.find('No such file or directory') != -1:
-                LOG.error("Backing chain does not exist")
-                raise Exception("Verify backing chain")
-
-            backing_chain = json.loads(backing_chain)
-            for bc in backing_chain:
-                if bc['filename'].find(self.snapshots[0]) != -1:
-                    backing_chain_intact = True
-                    break
-            LOG.debug(f"backing_chain_intact: {backing_chain_intact}")
-
-            if backing_chain_intact:
-                reporting.add_test_step("Verify backing chain", tvaultconf.PASS)
+            new_snap_data = self.getSnapshotDetails(workload_id, new_snap_id)
+            if new_snap_data['snapshot_type'].lower() == 'full':
+                reporting.add_test_step("New snapshot chain created",
+                        tvaultconf.PASS)
             else:
-                raise Exception("Verify backing chain")
+                raise Exception("New snapshot chain not created")
 
         except Exception as e:
             LOG.error("Exception: " + str(e))
