@@ -1477,7 +1477,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              str(size),
                              "w",
                              "sudo fdisk -l {0}{1}".format(volume, partition)])
-            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
+            # "yes | sudo mkfs -t ext4 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing fdisk: " + str(command))
@@ -1490,7 +1490,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(str(output))
         time.sleep(10)
         for volume in volumes:
-            cmd = "sudo mkfs -t ext3 {0}{1}".format(volume, partition)
+            cmd = "sudo mkfs -t ext4 {0}{1}".format(volume, partition)
             LOG.debug("Executing mkfs : " + str(cmd))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             time.sleep(5)
