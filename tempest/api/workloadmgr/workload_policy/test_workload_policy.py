@@ -1186,8 +1186,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy of scheduler enabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                "--policy-id " + str(self.policy_id) + \
-                " " + str(self.workload_id)
+                " " + str(self.workload_id) + " " + \
+                "--policy-id " + str(self.policy_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1202,8 +1202,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy of scheduler disabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                "--policy-id " + str(self.policy_id) + \
-                " " + str(self.workload_id2)
+                " " + str(self.workload_id2) + " " + \
+                "--policy-id " + str(self.policy_id)
+                #" " + str(self.workload_id2)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1292,8 +1293,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy1 to policy2 of scheduler enabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                "--policy-id " + str(self.policy_id2) + \
-                " " + str(self.workload_id)
+                " " + str(self.workload_id) + " " + \
+                "--policy-id " + str(self.policy_id2)
+                #" " + str(self.workload_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1309,8 +1311,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy1 to policy2  of scheduler disabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                "--policy-id " + str(self.policy_id2) + \
-                " " + str(self.workload_id2)
+                " " + str(self.workload_id2) + " " + \
+                "--policy-id " + str(self.policy_id2)
+                #" " + str(self.workload_id2)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1369,7 +1372,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Scheduler disabled workload not modified policy_1 to policy_2")
 
-            # Retension meets as mentioned value in the workload policy
+            # Retention meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
             for i in range(0, int(retention_policy_value_w1)):
                 snapshot_id = self.workload_snapshot(
@@ -1420,24 +1423,24 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Number of snapshots created not equal to retention_policy_value")
 
-            # Check first snapshot is deleted or not after retension value
+            # Check first snapshot is deleted or not after retention value
             # exceed
             deleted_snapshot_id = snapshots_list[0]
             LOG.debug("snapshot id of first snapshot is : " +
                       str(deleted_snapshot_id))
             if deleted_snapshot_id in snapshot_list_of_workload:
                 reporting.add_test_step(
-                    "Verify first snapshot deleted after retension value exceeds",
+                    "Verify first snapshot deleted after retention value exceeds",
                     tvaultconf.FAIL)
                 raise Exception(
-                    "first snapshot not deleted after retension value exceeds")
+                    "first snapshot not deleted after retention value exceeds")
             else:
                 reporting.add_test_step(
-                    "Verify first snapshot deleted after retension value exceeds",
+                    "Verify first snapshot deleted after retention value exceeds",
                     tvaultconf.PASS)
-                LOG.debug("first snapshot deleted after retension value exceeds")
+                LOG.debug("first snapshot deleted after retention value exceeds")
 
-            # Check first snapshot is deleted from backup target when retension
+            # Check first snapshot is deleted from backup target when retention
             # value exceed
             mount_path = self.get_mountpoint_path()
             LOG.debug("Backup target mount_path is : " + mount_path)
@@ -1506,7 +1509,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify workload scheduler to disable using CLI command
             workload_modify_command = command_argument_string.workload_modify + \
-                "--jobschedule enabled=False " + str(self.workload_id)
+                 str(self.workload_id) + " --jobschedule enabled=False "
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1536,7 +1539,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify workload with policy scheduler to enable
             workload_modify_command = command_argument_string.workload_modify + \
-                "--jobschedule enabled=True " + str(self.workload_id2)
+                str(self.workload_id2) + " --jobschedule enabled=True "
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1611,7 +1614,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
             # Delete vm
             self.delete_vm(vm_id)
-            LOG.debug("vm deleted succesfully")
+            LOG.debug("vm deleted successfully")
 
             # delete volume
             self.delete_volume(volume_id)

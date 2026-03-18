@@ -171,7 +171,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
+        #retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
+        retention_policy_value = body['workload']['jobschedule']['hourly']['retention']
+        LOG.debug("IN getRetentionPolicyValueStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
         LOG.debug("Response:" + str(resp.content))
@@ -185,7 +187,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getFullBackupIntervalStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
+        #Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
+        Full_Backup_Interval_Value = body['workload']['jobschedule']['hourly']['snapshot_type']
+        LOG.debug("IN getFullBackupIntervalStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
         LOG.debug("Response:" + str(resp.content))
