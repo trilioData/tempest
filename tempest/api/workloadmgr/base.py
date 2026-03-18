@@ -2304,10 +2304,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def verify_snapshot_mount(self, floating_ip, frm_image):
         is_successful = False
-        self.frm_ssh_user = self.set_frm_user(frm_image)
-        LOG.debug("validate that snapshot is mounted on FVM " + self.frm_ssh_user)
+        frm_ssh_user = self.set_frm_user(frm_image)
+        LOG.debug("validate that snapshot is mounted on FVM " + frm_ssh_user)
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, self.frm_ssh_user)
+            floating_ip, frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
         ssh.close()
         flag = 0
@@ -2374,10 +2374,10 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def verify_snapshot_unmount(self, floating_ip, frm_image):
         is_successful = False
-        self.frm_ssh_user = self.set_frm_user(frm_image)
+        frm_ssh_user = self.set_frm_user(frm_image)
         LOG.debug("validate that snapshot is unmounted from FVM")
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, self.frm_ssh_user)
+            floating_ip, frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh)
         ssh.close()
 
