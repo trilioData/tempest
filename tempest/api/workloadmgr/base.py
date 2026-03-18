@@ -5025,8 +5025,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             "rocky": "cloud-user",
         }
 
-        for keyword, user in image_user_map.items():
-            if keyword in frm_image:
+        for k, user in image_user_map.items():
+            if k in frm_image:
                 return user
 
         return ""  # or raise ValueError(f"Unknown image: '{frm_image}'")
