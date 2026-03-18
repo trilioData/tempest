@@ -156,7 +156,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
+        #retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
+        retention_policy_type = body['workload']['jobschedule']['hourly']['interval']
+        LOG.debug("IN getRetentionPolicyTypeStatus")
         LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
                                                                     resp.content))
         if resp.status_code != 200:

@@ -686,7 +686,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #workload_modify_command = command_argument_string.workload_modify + " --instance " + \
             #    str(self.vm_id2) + " " + str(vm_id) + " " + str(workload_id)
             workload_modify_command = command_argument_string.workload_modify + " " + str(workload_id) + \
-                                      " --instance "  + str(vm_id)  + " " + str(self.vm_id2) # Jira no
+                                      " --instance "  + str(vm_id)  + " " + str(self.vm_id2) + \
+                                      " --policy-id " + str(policy_id)  # Jira no
             rc = cli_parser.cli_returncode(workload_modify_command)
             LOG.debug("CMD Workload_modify: " + str(workload_modify_command))
             LOG.debug("CMD Workload_modify RC: " + str(rc))
@@ -1030,7 +1031,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Workload has not been created with scheduler enabled")
 
-            # Get retension parameters values of wid wirh scheduler enabled
+            # Get retension parameters values of wid with scheduler enabled
             retention_policy_type_wid = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_wid = self.getRetentionPolicyValueStatus(
