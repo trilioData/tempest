@@ -608,7 +608,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            jobschedule={"enabled": False, "manual": {"retention": 5}},
+            jobschedule={"enabled": False, "manual": tvaultconf.manual_retention},
             workload_name="",
             workload_cleanup=True,
             encryption=False,
