@@ -3962,7 +3962,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def upload_image_data(self, image_id, filename=tvaultconf.image_filename):
-         try:
+        try:
             with open(filename, "rb") as fh:
                 upload_file = self.images_client.store_image_file(image_id, fh)
 
