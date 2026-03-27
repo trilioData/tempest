@@ -3961,18 +3961,11 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Store image file on glance
     '''
 
-    def upload_image_data(self, image_id, filename=tvaultconf.image_filename,
-                          chunk_size=8*1024*1024):
-        try:
-            def _reader():
-                with open(filename, "rb") as fh:
-                    while True:
-                        data = fh.read(chunk_size)
-                        if not data:
-                            break
-                        yield data
-            upload_file = self.images_client.store_image_file(
-                            image_id, _reader())
+    def upload_image_data(self, image_id, filename=tvaultconf.image_filename):
+         try:
+            with open(filename, "rb") as fh:
+                upload_file = self.images_client.store_image_file(image_id, fh)
+
             LOG.debug(f"upload_file response: {upload_file}")
             return True
         except Exception as e:
