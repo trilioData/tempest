@@ -112,12 +112,9 @@ disable_email_notification = {"smtp_email_enable" : 0}
 #Glance image data
 image_url = "https://cloud-images.ubuntu.com/focal/current/"
 image_filename = "focal-server-cloudimg-amd64.img"
-image_properties = {"hw_disk_busi": "scsi",
+image_properties = {"hw_disk_bus": "virtio",
                     "hw_qemu_guest_agent": "yes",
-                 #   "hw_scsi_model": "virtioscsi",
-                    "hw_video_model": "qxl",
-                    "hw_vif_model": "virtio",
-                    "hw_vif_multiqueue_enabled": "true",
+                    "stores": "default_backend",
                     "os_distro": "ubuntu",
                     "os_require_quiesce": "true"}
 

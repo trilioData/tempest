@@ -54,6 +54,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def data_ops_delete_files(self, flo_ip, mount_point, file_count):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
         self.deleteSomefilesOnLinux(ssh, mount_point, file_count)
+        ssh.close()
 
     def check_mount_cmd_status(self, floating_ip_addr, volumes, mount_point):
         max_retries = 0
