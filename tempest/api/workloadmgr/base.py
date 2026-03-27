@@ -2731,30 +2731,31 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_policy_create(
             self,
+            start_time,
             policy_name=tvaultconf.policy_name,
-            fullbackup_interval=tvaultconf.fullbackup_interval,
+            #fullbackup_interval=tvaultconf.fullbackup_interval,
             interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.retention_policy_value,
-            retention_policy_type=tvaultconf.retention_policy_type,
-            description='description',
+            #retention_policy_type=tvaultconf.retention_policy_type,
+            description=tvaultconf.policy_description,
             policy_cleanup=True):
         payload = {"workload_policy": {
             "field_values": {
-                "start_time": "10:30 PM",
-                  "hourly": {
-                    "interval": "4",
-                    "retention": "1",
+                "start_time": start_time,
+                "hourly": {
+                    "interval": interval,
+                    "retention": retention_policy_value,
                     "snapshot_type": "incremental"
                     },
-                     "daily": {},
-                      "weekly": {},
-                     "monthly": {},
-                       "yearly": {},
-                    "manual": {
-                     "retention": "30"
-                      },
-                 "retentionmanual": {
-                  "retentionmanual": "30"
+                "daily": {},
+                "weekly": {},
+                "monthly": {},
+                "yearly": {},
+                "manual": {
+                    "retention": retention_policy_value
+                },
+                "retentionmanual": {
+                    "retentionmanual": retention_policy_value
               },
             },  
             "display_name": policy_name,
@@ -2847,7 +2848,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Updating POLICY_ID: %s" % policy_id)
             resp, body = self.wlm_client.client.put(
                 "/workload_policy/" + policy_id, json=payload)
-            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("POLICY UPDATE Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)

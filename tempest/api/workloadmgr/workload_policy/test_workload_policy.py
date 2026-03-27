@@ -1,9 +1,11 @@
 import os
 import sys
 import time
+import datetime
 from time import sleep
 
 from oslo_log import log as logging
+from stestr.commands.history import start_times
 
 from tempest import command_argument_string
 from tempest import config
@@ -44,9 +46,23 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
             # New error msg
 
+            now = datetime.datetime.now(datetime.UTC)
+            now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
+            global  now_time_plus_12
+
             # Create workload policy by admin user
+            '''
             policy_id = self.workload_policy_create(
                 interval=tvaultconf.interval, policy_cleanup=False)
+            '''
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                # fullbackup_interval=tvaultconf.fullbackup_interval,
+                retention_policy_value=tvaultconf.retention_policy_value,
+                # retention_policy_type=tvaultconf.retention_policy_type,
+                policy_cleanup=True)
+
             if policy_id != "":
                 reporting.add_test_step(
                     "Create workload policy by admin user", tvaultconf.PASS)
@@ -590,8 +606,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with policy by CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance " + \
-                str(vm_id) + " --policy-id " + str(policy_id)
+                " --instance " + str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
             LOG.debug("Test 05, create WL cmd: " + workload_create)
             if rc != 0:
@@ -735,8 +750,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global policy_id
             # Create workload with policy by CLI command
             workload_create = command_argument_string.workload_create + \
-                " --instance " + \
-                str(vm_id) + " --policy-id " + str(policy_id)
+                " --instance " + str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
             LOG.debug("Test 6 CMD Workload_create: " + str(workload_create))
             LOG.debug("Test 6 CMD Workload_create RC: " + str(rc))
@@ -961,9 +975,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.test_case_to_write()
         LOG.debug("ENDING TEST 7")
 
-    # Workload policy with scheduler and retension parameter
+    # Workload policy with scheduler and retention parameter
     @decorators.attr(type='workloadmgr_cli')
-    def test_8_policywith_scheduler_retension(self):
+    def test_8_policywith_scheduler_retention(self):
         LOG.debug("STARTING TEST 8")
         reporting.add_test_script(str(__name__) + "_with_scheduler_retention")
         try:
@@ -971,17 +985,22 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global volume_id
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
-            '''
-            workload_create = command_argument_string.workload_create + \
-                " --instance " + \
-                str(vm_id) + " --jobschedule enabled=True"
-            '''
-            workload_create = command_argument_string.workload_create + \
-                " --instance " + \
-                str(vm_id) + " --jobschedule enabled=True " + \
-                "--jobschedule start_time='3:00 PM' " + \
-                "--jobschedule start_date='03/24/2026' " + \
-                "--hourly interval='4'"
+            now = datetime.datetime.now(datetime.UTC)
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            # now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            # now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
+
+            interval = tvaultconf.interval
+            retention_policy_type= tvaultconf.retention_policy_type,
+            retention_policy_value= int(tvaultconf.retention_policy_value)
+
+            workload_create = command_argument_string.workload_create + " --instance " + str(vm_id) + \
+                " --jobschedule start_date= " + str(now_date.strip())  + \
+                " --jobschedule start_time= " + str(now_time_plus_12.strip()) + \
+                '" --jobschedule interval= "' + str(interval) + \
+                '" --jobschedule "retention_policy_type= ' + str(retention_policy_type) +\
+                " --jobschedule " + '"retention_policy_value= "' + str(retention_policy_value) + \
+                " --jobschedule enabled=True "
 
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
@@ -1052,9 +1071,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("Volume2 attached")
 
             # Create workload with scheduler disabled using CLI
-            workload_create = command_argument_string.workload_create + \
-                " --instance " + \
-                str(self.vm_id2) + " --jobschedule enabled=False"
+            workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id2) + \
+                " --jobschedule start_date= " + str(now_date.strip()) + \
+                " --jobschedule start_time= " + str(now_time_plus_12.strip()) + \
+                '" --jobschedule interval= "' + str(interval) + \
+                '" --jobschedule "retention_policy_type= ' + str(retention_policy_type) + \
+                " --jobschedule " + '"retention_policy_value= "' + str(retention_policy_value) + \
+                " --jobschedule enabled=False"
+
             rc = cli_parser.cli_returncode(workload_create)
             LOG.debug("TEST 8 WORKLOAD CMD 2nd - " + str(workload_create))
             if rc != 0:
@@ -1113,13 +1137,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload policy
             self.policy_id = self.workload_policy_create(
-                fullbackup_interval=tvaultconf.fullbackup_interval,
+                start_time = str(now_time_plus_12.strip()),
+                #fullbackup_interval=tvaultconf.fullbackup_interval,
                 retention_policy_value=tvaultconf.retention_policy_value,
-                retention_policy_type=tvaultconf.retention_policy_type,
+                #retention_policy_type=tvaultconf.retention_policy_type,
                 policy_cleanup=True)
             if self.policy_id != "":
-                reporting.add_test_step(
-                    "Create workload policy", tvaultconf.PASS)
+                reporting.add_test_step("Create workload policy", tvaultconf.PASS)
                 LOG.debug("Workload policy id is " + str(self.policy_id))
             else:
                 reporting.add_test_step(
@@ -1186,8 +1210,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy of scheduler enabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                " " + str(self.workload_id) + " " + \
-                "--policy-id " + str(self.policy_id)
+                " " + str(self.workload_id) + " " + "--policy-id " + str(self.policy_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
                 reporting.add_test_step(
@@ -1202,8 +1225,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy of scheduler disabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                " " + str(self.workload_id2) + " " + \
-                "--policy-id " + str(self.policy_id)
+                " " + str(self.workload_id2) + " " + "--policy-id " + str(self.policy_id)
                 #" " + str(self.workload_id2)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
@@ -1218,8 +1240,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug("Command executed correctly")
 
             # Verify policy is reflected after workload policy modify
-            # Get retension parameters values of workload_id wirh scheduler
-            # disabled
+            # Get retention parameters values of workload_id with scheduler disabled
             retention_policy_type_w1 = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_w1 = self.getRetentionPolicyValueStatus(
@@ -1263,10 +1284,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload policy_2
             self.policy_id2 = self.workload_policy_create(
-                fullbackup_interval=tvaultconf.fullbackup_interval,
+                start_time = str(now_time_plus_12.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
-                retention_policy_type=tvaultconf.retention_policy_type,
-                policy_cleanup=False)
+                policy_cleanup=True)
             if self.policy_id2 != "":
                 reporting.add_test_step(
                     "Create workload policy to replace old one",
@@ -1293,8 +1313,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy1 to policy2 of scheduler enabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                " " + str(self.workload_id) + " " + \
-                "--policy-id " + str(self.policy_id2)
+                " " + str(self.workload_id) + " " + "--policy-id " + str(self.policy_id2)
                 #" " + str(self.workload_id)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:
@@ -1311,8 +1330,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify policy1 to policy2  of scheduler disabled workload
             workload_modify_command = command_argument_string.workload_modify + \
-                " " + str(self.workload_id2) + " " + \
-                "--policy-id " + str(self.policy_id2)
+                " " + str(self.workload_id2) + " " + "--policy-id " + str(self.policy_id2)
                 #" " + str(self.workload_id2)
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc != 0:

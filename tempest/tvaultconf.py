@@ -57,7 +57,7 @@ test_role = "backup"
 
 # Scheduler parameter
 
-interval="1 hr"
+interval="1"
 interval_update = "7 hrs"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
@@ -71,6 +71,7 @@ No_of_Backup=1
 
 # Scheduler policy parameters
 policy_name="policy2"
+policy_description="Creating policy 2"
 policy_name_update = "policy_update"
 fullbackup_interval="8"
 fullbackup_interval_update = "7"
