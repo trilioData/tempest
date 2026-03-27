@@ -46,7 +46,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
             # New error msg
 
-            now = datetime.datetime.now(datetime.UTC)
+            now = datetime.datetime.utcnow()
             now_time_plus_12 = now + datetime.timedelta(minutes=12)
             now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
             global  now_time_plus_12
