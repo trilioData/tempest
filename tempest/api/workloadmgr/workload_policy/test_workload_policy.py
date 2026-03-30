@@ -31,6 +31,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     vm_id = ""
     volume_id = ""
     policy_id = ""
+    now_time_plus_12 = ""
+
 
     @classmethod
     def setup_clients(cls):
@@ -42,6 +44,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_create")
         try:
             global policy_id
+            global now_time_plus_12
             policy_create_error_str = "Policy doesn't allow workload:policy_create to be performed."
             #policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
             # New error msg
@@ -49,7 +52,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             now = datetime.datetime.utcnow()
             now_time_plus_12 = now + datetime.timedelta(minutes=12)
             now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
-            global  now_time_plus_12
+            # global  now_time_plus_12
 
             # Create workload policy by admin user
             '''
@@ -983,6 +986,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global vm_id
             global volume_id
+            global now_time_plus_12
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
             now = datetime.datetime.now(datetime.UTC)
