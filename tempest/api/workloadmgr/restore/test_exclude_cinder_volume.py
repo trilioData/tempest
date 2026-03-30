@@ -334,6 +334,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_list = []
             vm_list = self.get_restored_vm_list(restore_id_2)
             LOG.debug("Restored vm(In-place) ID : " + str(vm_list))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ip_1)
+            self.execute_command_disk_mount(ssh, floating_ip_1, [volumes[0]], mount_point)
 
             time.sleep(60)
 
