@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import datetime
+from datetime import timezone
 from time import sleep
 
 from oslo_log import log as logging
@@ -93,10 +94,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload policy by nonadmin user using CLI
 
-            policy_create_command = command_argument_string.policy_create + "interval='" + tvaultconf.interval + "' --policy-fields retention_policy_type='"\
-                + tvaultconf.retention_policy_type + "' --policy-fields retention_policy_value='" + tvaultconf.retention_policy_value + \
-                "' --policy-fields fullbackup_interval='" + \
-                tvaultconf.fullbackup_interval + "' nonadmin_policy"
+            policy_create_command = (command_argument_string.policy_create +
+                                    " start_time=" + str(now_time_plus_12.strip()) + " --hourly interval=" + tvaultconf.interval +
+                                    ",retention=" +tvaultconf.interval + ",snapshot_type='incremental' " + " --manual retention=" +
+                                    tvaultconf.retention_policy_value + ",retention_days_to_keep="+
+                                    tvaultconf.retention_policy_value + " nonadmin_policy")
             '''
             # New cmd
             policy_create_command = command_argument_string.policy_create + "start_time=" + '10:30 AM' +"--hourly interval="+ '4'+ \
@@ -989,7 +991,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global now_time_plus_12
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
-            now = datetime.datetime.now(datetime.UTC)
+            now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
             # now_time_plus_12 = now + datetime.timedelta(minutes=12)
             # now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
