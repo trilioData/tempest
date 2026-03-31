@@ -198,6 +198,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return Full_Backup_Interval_Value
 
     '''
+    Method returns the Policy Hourly Schedule details
+    '''
+
+    def getPolicyHourlyScheduleDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
+        # retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
+        hourly_interval = body['workload']['jobschedule']['hourly']['interval']
+        hourly_retention = body['workload']['jobschedule']['hourly']['retention']
+        hourly_snapshot_type = body['workload']['jobschedule']['hourly']['snapshot_type']
+        LOG.debug("IN getPolicyHourlyScheduleDetails")
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
+                                                                    resp.content))
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return hourly_interval, hourly_retention, hourly_snapshot_type
+
+    '''
     Method raises exception if snapshot is not successful
     '''
 
@@ -2733,10 +2750,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self,
             start_time,
             policy_name=tvaultconf.policy_name,
-            #fullbackup_interval=tvaultconf.fullbackup_interval,
             interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.retention_policy_value,
-            #retention_policy_type=tvaultconf.retention_policy_type,
             description=tvaultconf.policy_description,
             policy_cleanup=True):
         payload = {"workload_policy": {
@@ -2782,72 +2797,40 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def workload_policy_update(
-            self,
-            policy_id,
-            policy_name='policy_update',
-            fullbackup_interval=tvaultconf.fullbackup_interval,
+            self, policy_id, start_time,
+            policy_name=tvaultconf.policy_name,
             interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.retention_policy_value,
-            retention_policy_type=tvaultconf.retention_policy_type,
-            description='description'):
+            description=tvaultconf.policy_description,
+            policy_cleanup=True):
         try:
-            payload = {
-                    '''
-                "policy": {
-                    "field_values": {
-                        "fullbackup_interval": fullbackup_interval,
-                        "retention_policy_type": retention_policy_type,
-                        "interval": interval,
-                        "retention_policy_value": retention_policy_value},
-                    "display_name": policy_name,
-                    "display_description": description}
-                    '''
-                    '''
-                "policy": {
-                        "display_name": "ABC",
-                        "field_values": {
-                          "hourly": {},
-                          "daily": {},
-                          "weekly": {},
-                          "monthly": {},
-                          "yearly": {},
-                          "manual": {"retention": 30},
-                          "retentionmanual": {"retentionmanual": 30}
-                        }
-                      }
-                    }
-                    '''
-            "policy": {
-                "display_name": "NEW-POLICY-UPDATED-API",
+            payload = {"workload_policy": {
                 "field_values": {
-                "hourly": {
-
-                 },
-                "daily": {
-
+                    "start_time": start_time,
+                    "hourly": {
+                        "interval": interval,
+                        "retention": retention_policy_value,
+                        "snapshot_type": "incremental"
+                    },
+                    "daily": {},
+                    "weekly": {},
+                    "monthly": {},
+                    "yearly": {},
+                    "manual": {
+                        "retention": retention_policy_value
+                    },
+                    "retentionmanual": {
+                        "retentionmanual": retention_policy_value
+                    },
                 },
-                "weekly": {
-
-                },
-                "monthly": {
-
-                },
-                "yearly": {
-
-                },
-                 "manual": {
-                 "retention": 30
-                 },
-                "retentionmanual": {
-                "retentionmanual": 30
-                 }
-                 }
-                 }
+                "display_name": policy_name,
+                "display_description": "Policy Updated using API",
+                "metadata": {}
             }
-
+            }
             LOG.debug("Updating POLICY_ID: %s" % policy_id)
             resp, body = self.wlm_client.client.put(
-                "/workload_policy/" + policy_id, json=payload)
+                    "/workload_policy/" + policy_id, json=payload)
             LOG.debug("POLICY UPDATE Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()

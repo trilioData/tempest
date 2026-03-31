@@ -2,8 +2,6 @@ import os
 import sys
 import time
 import datetime
-from datetime import timezone
-from time import sleep
 
 from oslo_log import log as logging
 from stestr.commands.history import start_times
@@ -62,9 +60,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             policy_id = self.workload_policy_create(
                 start_time=str(now_time_plus_12.strip()),
-                # fullbackup_interval=tvaultconf.fullbackup_interval,
                 retention_policy_value=tvaultconf.retention_policy_value,
-                # retention_policy_type=tvaultconf.retention_policy_type,
                 policy_cleanup=True)
 
             if policy_id != "":
@@ -95,7 +91,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload policy by nonadmin user using CLI
 
             policy_create_command = (command_argument_string.policy_create +
-                                    " start_time=" + str(now_time_plus_12.strip()) + " --hourly interval=" + tvaultconf.interval +
+                                    " start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + " --hourly interval=" + tvaultconf.interval +
                                     ",retention=" +tvaultconf.interval + ",snapshot_type='incremental' " + " --manual retention=" +
                                     tvaultconf.retention_policy_value + ",retention_days_to_keep="+
                                     tvaultconf.retention_policy_value + " nonadmin_policy")
@@ -131,15 +127,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_update")
         try:
             global policy_id
+            global now_time_plus_12
+            now_time_plus_12 = str(now_time_plus_12.strip())
             policy_update_error_str = "Policy doesn't allow workload:policy_update to be performed."
 
             # Update workload policy by admin user
             updated_status = self.workload_policy_update(
-                policy_id,
-                policy_name=tvaultconf.policy_name_update,
-                fullbackup_interval=tvaultconf.fullbackup_interval_update,
-                interval=tvaultconf.interval_update,
-                retention_policy_value=tvaultconf.retention_policy_value_update)
+                policy_id, now_time_plus_12,
+                policy_name = tvaultconf.policy_name_update,
+                interval = tvaultconf.interval_update,
+                retention_policy_value=tvaultconf.retention_policy_value)
             if updated_status:
                 reporting.add_test_step(
                     "Update workload policy by admin user", tvaultconf.PASS)
@@ -1001,12 +998,10 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             retention_policy_value= int(tvaultconf.retention_policy_value)
 
             workload_create = command_argument_string.workload_create + " --instance " + str(vm_id) + \
-                " --jobschedule start_date= " + str(now_date.strip())  + \
-                " --jobschedule start_time= " + str(now_time_plus_12.strip()) + \
-                '" --jobschedule interval= "' + str(interval) + \
-                '" --jobschedule "retention_policy_type= ' + str(retention_policy_type) +\
-                " --jobschedule " + '"retention_policy_value= "' + str(retention_policy_value) + \
-                " --jobschedule enabled=True "
+                " --jobschedule start_date=" + str(now_date.strip())  + \
+                " --jobschedule start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + \
+                " --hourly interval=" + interval + " retention=" + retention_policy_value + \
+                " snapshot_type=incremental" + " --jobschedule enabled=True"
 
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
             error = cli_parser.cli_error(workload_create)
@@ -1057,13 +1052,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload has not been created with scheduler enabled")
 
             # Get retension parameters values of wid with scheduler enabled
+            '''
             retention_policy_type_wid = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_wid = self.getRetentionPolicyValueStatus(
                 self.workload_id)
             Full_Backup_Interval_Value_wid = self.getFullBackupIntervalStatus(
                 self.workload_id)
-
+            '''
+            retention_policy_type_wid, retention_policy_value_wid, Full_Backup_Interval_Value_wid = self.getPolicyHourlyScheduleDetails(self.workload_id)
             # Launch second instance
             self.vm_id2 = self.create_vm()
             LOG.debug("VM ID2: " + str(self.vm_id2))
@@ -1079,11 +1076,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id2) + \
                 " --jobschedule start_date= " + str(now_date.strip()) + \
-                " --jobschedule start_time= " + str(now_time_plus_12.strip()) + \
-                '" --jobschedule interval= "' + str(interval) + \
-                '" --jobschedule "retention_policy_type= ' + str(retention_policy_type) + \
-                " --jobschedule " + '"retention_policy_value= "' + str(retention_policy_value) + \
-                " --jobschedule enabled=False"
+                " --jobschedule start_time= " + "'" + str(now_time_plus_12.strip()) + "'" + \
+                " --hourly interval=" + interval + " retention=" + retention_policy_value + \
+                " snapshot_type=incremental" + " --jobschedule enabled=False"
 
             rc = cli_parser.cli_returncode(workload_create)
             LOG.debug("TEST 8 WORKLOAD CMD 2nd - " + str(workload_create))
@@ -1134,12 +1129,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Get retension parameters values of workload_id2 wirh scheduler
             # disabled
+            '''
             retention_policy_type_wid2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_wid2 = self.getRetentionPolicyValueStatus(
                 self.workload_id2)
             Full_Backup_Interval_Value_wid2 = self.getFullBackupIntervalStatus(
                 self.workload_id2)
+            '''
+            retention_policy_type_wid2, retention_policy_value_wid2, Full_Backup_Interval_Value_wid2 = self.getPolicyHourlyScheduleDetails(self.workload_id)
 
             # Create workload policy
             self.policy_id = self.workload_policy_create(
@@ -1171,19 +1169,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify after policy assigned to tenant does not alter earlier workload retension parameters
             # Get retension parameters values of wid wirh scheduler enabled
+            '''
             retention_policy_type_w1 = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_w1 = self.getRetentionPolicyValueStatus(
                 self.workload_id)
             Full_Backup_Interval_Value_w1 = self.getFullBackupIntervalStatus(
                 self.workload_id)
+            '''
+            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(
+                self.workload_id)
 
             # Get retension parameters values of wid_2 wirh scheduler disabled
+            '''
             retention_policy_type_w2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_w2 = self.getRetentionPolicyValueStatus(
                 self.workload_id2)
             Full_Backup_Interval_Value_w2 = self.getFullBackupIntervalStatus(
+                self.workload_id2)
+            '''
+            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
             if retention_policy_type_w1 == retention_policy_type_wid and retention_policy_value_w1 == retention_policy_value_wid and Full_Backup_Interval_Value_w1\
@@ -1247,19 +1253,27 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy is reflected after workload policy modify
             # Get retention parameters values of workload_id with scheduler disabled
+            '''
             retention_policy_type_w1 = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_w1 = self.getRetentionPolicyValueStatus(
                 self.workload_id)
             Full_Backup_Interval_Value_w1 = self.getFullBackupIntervalStatus(
                 self.workload_id)
+            '''
+            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(
+                self.workload_id)
             # Get retension parameters values of workload_id2 wirh scheduler
             # disabled
+            '''
             retention_policy_type_w2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_w2 = self.getRetentionPolicyValueStatus(
                 self.workload_id2)
             Full_Backup_Interval_Value_w2 = self.getFullBackupIntervalStatus(
+                self.workload_id2)
+            '''
+            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
             if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
@@ -1353,12 +1367,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify after modify policy_1 to policy_2
             # Get retension parameters values of wid_2 wirh scheduler disabled
+            '''
             retention_policy_type_w1 = self.getRetentionPolicyTypeStatus(
                 self.workload_id)
             retention_policy_value_w1 = self.getRetentionPolicyValueStatus(
                 self.workload_id)
             Full_Backup_Interval_Value_w1 = self.getFullBackupIntervalStatus(
                 self.workload_id)
+            '''
+            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(self.workload_id)
 
             # Get retension parameters values of wid_2 wirh scheduler disabled
             retention_policy_type_w2 = self.getRetentionPolicyTypeStatus(
@@ -1366,6 +1383,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             retention_policy_value_w2 = self.getRetentionPolicyValueStatus(
                 self.workload_id2)
             Full_Backup_Interval_Value_w2 = self.getFullBackupIntervalStatus(
+                self.workload_id2)
+
+            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
             if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
