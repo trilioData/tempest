@@ -2829,7 +2829,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             }
             }
             LOG.debug("Updating POLICY_ID: %s" % policy_id)
-            LOG.debug("PAYLOAD for update policy", payload)
+            LOG.debug("PAYLOAD for update policy : " + str(payload))
             resp, body = self.wlm_client.client.put(
                     "/workload_policy/" + policy_id, json=payload)
             LOG.debug("POLICY UPDATE Response:" + str(resp.content))

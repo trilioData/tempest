@@ -206,6 +206,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global policy_id
             policy_assign_error_str = "User does not have admin privileges"
 
+            ## temp code as cleanup is called after test 1 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
+
             # Assign workload policy to projects by admin user
             admin_project_id = CONF.identity.admin_tenant_id
             project_id = CONF.identity.tenant_id  # Getting project id
@@ -1083,7 +1089,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id2) + \
                 " --jobschedule start_date= " + str(now_date.strip()) + \
                 " --jobschedule start_time= " + "'" + str(now_time_plus_12.strip()) + "'" + \
-                " --hourly interval=" + interval + " retention=" + retention_policy_value + \
+                " --hourly interval=" + str(interval) + " retention=" + str(retention_policy_value) + \
                 " snapshot_type=incremental" + " --jobschedule enabled=False"
 
             rc = cli_parser.cli_returncode(workload_create)
