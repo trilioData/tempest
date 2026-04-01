@@ -131,6 +131,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             now_time_plus_12 = str(now_time_plus_12.strip())
             policy_update_error_str = "Policy doesn't allow workload:policy_update to be performed."
 
+            ## temp code as cleanup is called after test 1 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
+
             # Update workload policy by admin user
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
@@ -1000,7 +1006,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             workload_create = command_argument_string.workload_create + " --instance " + str(vm_id) + \
                 " --jobschedule start_date=" + str(now_date.strip())  + \
                 " --jobschedule start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + \
-                " --hourly interval=" + interval + " retention=" + retention_policy_value + \
+                " --hourly interval=" + str(interval) + " retention=" + str(retention_policy_value) + \
                 " snapshot_type=incremental" + " --jobschedule enabled=True"
 
             LOG.debug("TEST 8 WORKLOAD CMD - " + str(workload_create))
