@@ -206,7 +206,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global policy_id
             policy_assign_error_str = "User does not have admin privileges"
 
-            ## temp code as cleanup is called after test 1 and policy getting deleted
+            ## temp code as cleanup is called after test 2 and policy getting deleted
             policy_id = self.workload_policy_create(
                 start_time=str(now_time_plus_12.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
@@ -278,11 +278,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Update workload policy which is assigned to tenant
             updated_status = self.workload_policy_update(
-                policy_id,
+                policy_id, now_time_plus_12,
                 policy_name=tvaultconf.policy_name_update,
-                fullbackup_interval=tvaultconf.fullbackup_interval_update,
                 interval=tvaultconf.interval_update,
-                retention_policy_value=tvaultconf.retention_policy_value_update)
+                retention_policy_value=tvaultconf.retention_policy_value)
+
             if updated_status:
                 reporting.add_test_step(
                     "Update workload policy which is assigned to tenant",
@@ -412,6 +412,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[admin_project_id], remove_project_ids_list=[])
             '''
+            ## temp code as cleanup is called after test 3 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
+
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[project_id], remove_project_ids_list=[])
             LOG.debug("STATUS: " + str(status))
@@ -615,6 +621,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
+            ## temp code as cleanup is called after test 4 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
+
             status = self.assign_unassign_workload_policy(
                 str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
 
@@ -763,6 +775,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global vm_id
             global policy_id
             # Create workload with policy by CLI command
+            ## temp code as cleanup is called after test 5 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
+
             workload_create = command_argument_string.workload_create + \
                 " --instance " + str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
@@ -887,6 +905,12 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
 
             project_id = CONF.identity.tenant_id
+
+            ## temp code as cleanup is called after test 6 and policy getting deleted
+            policy_id = self.workload_policy_create(
+                start_time=str(now_time_plus_12.strip()),
+                retention_policy_value=tvaultconf.retention_policy_value,
+                policy_cleanup=True)
 
             # Delete workload policy by nonadmin user using CLI
             policy_delete_command = command_argument_string.policy_delete + \
@@ -1087,8 +1111,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id2) + \
-                " --jobschedule start_date= " + str(now_date.strip()) + \
-                " --jobschedule start_time= " + "'" + str(now_time_plus_12.strip()) + "'" + \
+                " --jobschedule start_date=" + str(now_date.strip()) + \
+                " --jobschedule start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + \
                 " --hourly interval=" + str(interval) + " retention=" + str(retention_policy_value) + \
                 " snapshot_type=incremental" + " --jobschedule enabled=False"
 
@@ -1139,8 +1163,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.debug(
                     "Workload created with scheduler disabled successfully")
 
-            # Get retension parameters values of workload_id2 wirh scheduler
-            # disabled
+            # Get retention parameters values of workload_id2 with scheduler disabled
             '''
             retention_policy_type_wid2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
