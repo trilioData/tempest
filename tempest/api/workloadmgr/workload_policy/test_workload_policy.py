@@ -30,7 +30,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     vm_id = ""
     volume_id = ""
     policy_id = ""
-    now_time_plus_12 = ""
+    now_time_plus_55 = ""
 
 
     @classmethod
@@ -43,15 +43,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_create")
         try:
             global policy_id
-            global now_time_plus_12
+            global now_time_plus_55
             policy_create_error_str = "Policy doesn't allow workload:policy_create to be performed."
             #policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
             # New error msg
 
             now = datetime.datetime.utcnow()
-            now_time_plus_12 = now + datetime.timedelta(minutes=12)
-            now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
-            # global  now_time_plus_12
+            now_time_plus_55 = now + datetime.timedelta(minutes=55)
+            now_time_plus_55 = datetime.datetime.strftime(now_time_plus_55, "%I:%M %p")
+            # global  now_time_plus_55
 
             # Create workload policy by admin user
             '''
@@ -59,7 +59,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 interval=tvaultconf.interval, policy_cleanup=False)
             '''
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
@@ -91,7 +91,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload policy by nonadmin user using CLI
 
             policy_create_command = (command_argument_string.policy_create +
-                                    " start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + " --hourly interval=" + tvaultconf.interval +
+                                    " start_time=" + "'" + str(now_time_plus_55.strip()) + "'" + " --hourly interval=" + tvaultconf.interval +
                                     ",retention=" +tvaultconf.interval + ",snapshot_type='incremental' " + " --manual retention=" +
                                     tvaultconf.retention_policy_value + ",retention_days_to_keep="+
                                     tvaultconf.retention_policy_value + " nonadmin_policy")
@@ -127,19 +127,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_update")
         try:
             global policy_id
-            global now_time_plus_12
-            now_time_plus_12 = str(now_time_plus_12.strip())
+            global now_time_plus_55
+            now_time_plus_55 = str(now_time_plus_55.strip())
             policy_update_error_str = "Policy doesn't allow workload:policy_update to be performed."
 
             ## temp code as cleanup is called after test 1 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
             # Update workload policy by admin user
             updated_status = self.workload_policy_update(
-                policy_id, now_time_plus_12,
+                policy_id, now_time_plus_55,
                 policy_name = tvaultconf.policy_name_update,
                 interval = tvaultconf.interval_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
@@ -208,7 +208,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ## temp code as cleanup is called after test 2 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
@@ -278,7 +278,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Update workload policy which is assigned to tenant
             updated_status = self.workload_policy_update(
-                policy_id, now_time_plus_12,
+                policy_id, now_time_plus_55,
                 policy_name=tvaultconf.policy_name_update,
                 interval=tvaultconf.interval_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
@@ -414,7 +414,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             ## temp code as cleanup is called after test 3 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
@@ -623,7 +623,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             project_id = CONF.identity.tenant_id
             ## temp code as cleanup is called after test 4 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
@@ -777,7 +777,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload with policy by CLI command
             ## temp code as cleanup is called after test 5 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
             time.sleep(60)
@@ -799,7 +799,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             time.sleep(30)
             workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
-            LOG.debug("Created workload ID test 6 : " + str(workload_id))
+            # LOG.debug("Created workload ID test 6 : " + str(workload_id))
             if(workload_id != ""):
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
@@ -816,7 +816,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy can not be updated when it is in use
             updated_status = self.workload_policy_update(
-                policy_id, now_time_plus_12,
+                policy_id, now_time_plus_55,
                 policy_name=tvaultconf.policy_name_update,
                 interval=tvaultconf.interval_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
@@ -908,7 +908,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             ## temp code as cleanup is called after test 6 and policy getting deleted
             policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_12.strip()),
+                start_time=str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
 
@@ -1021,13 +1021,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global vm_id
             global volume_id
-            global now_time_plus_12
+            global now_time_plus_55
             snapshots_list = []
             # Create workload with scheduler enabled using CLI
             now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
-            # now_time_plus_12 = now + datetime.timedelta(minutes=12)
-            # now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
+            # now_time_plus_55 = now + datetime.timedelta(minutes=12)
+            # now_time_plus_55 = datetime.datetime.strftime(now_time_plus_55, "%I:%M %p")
 
             interval = tvaultconf.interval
             retention_policy_type= tvaultconf.retention_policy_type,
@@ -1035,7 +1035,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             workload_create = command_argument_string.workload_create + " --instance " + str(vm_id) + \
                 " --jobschedule start_date=" + str(now_date.strip())  + \
-                " --jobschedule start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + \
+                " --jobschedule start_time=" + "'" + str(now_time_plus_55.strip()) + "'" + \
                 " --hourly interval=" + str(interval) + " retention=" + str(retention_policy_value) + \
                 " snapshot_type=incremental" + " --jobschedule enabled=True"
 
@@ -1112,7 +1112,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload with scheduler disabled using CLI
             workload_create = command_argument_string.workload_create + " --instance " + str(self.vm_id2) + \
                 " --jobschedule start_date=" + str(now_date.strip()) + \
-                " --jobschedule start_time=" + "'" + str(now_time_plus_12.strip()) + "'" + \
+                " --jobschedule start_time=" + "'" + str(now_time_plus_55.strip()) + "'" + \
                 " --hourly interval=" + str(interval) + " retention=" + str(retention_policy_value) + \
                 " snapshot_type=incremental" + " --jobschedule enabled=False"
 
@@ -1176,7 +1176,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload policy
             self.policy_id = self.workload_policy_create(
-                start_time = str(now_time_plus_12.strip()),
+                start_time = str(now_time_plus_55.strip()),
                 #fullbackup_interval=tvaultconf.fullbackup_interval,
                 retention_policy_value=tvaultconf.retention_policy_value,
                 #retention_policy_type=tvaultconf.retention_policy_type,
@@ -1339,7 +1339,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Create workload policy_2
             self.policy_id2 = self.workload_policy_create(
-                start_time = str(now_time_plus_12.strip()),
+                start_time = str(now_time_plus_55.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
             if self.policy_id2 != "":

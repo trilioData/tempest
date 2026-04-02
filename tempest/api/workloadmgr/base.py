@@ -2804,7 +2804,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             description=tvaultconf.policy_description,
             policy_cleanup=True):
         try:
-            payload = {"workload_policy": {
+            payload = {"policy": {
                 "field_values": {
                     "start_time": start_time,
                     "hourly": {
