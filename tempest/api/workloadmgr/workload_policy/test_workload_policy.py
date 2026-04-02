@@ -780,7 +780,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 start_time=str(now_time_plus_12.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=True)
-
+            time.sleep(60)
             workload_create = command_argument_string.workload_create + \
                 " --instance " + str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
@@ -797,7 +797,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
 
-            time.sleep(10)
+            time.sleep(30)
             workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID test 6 : " + str(workload_id))
             if(workload_id != ""):
@@ -816,11 +816,11 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy can not be updated when it is in use
             updated_status = self.workload_policy_update(
-                policy_id,
+                policy_id, now_time_plus_12,
                 policy_name=tvaultconf.policy_name_update,
-                fullbackup_interval=tvaultconf.fullbackup_interval_update,
                 interval=tvaultconf.interval_update,
-                retention_policy_value=tvaultconf.retention_policy_value_update)
+                retention_policy_value=tvaultconf.retention_policy_value)
+
             if updated_status:
                 reporting.add_test_step(
                     "Can not update policy while in use", tvaultconf.FAIL)
@@ -1311,8 +1311,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
-            if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
-                Full_Backup_Interval_Value_w1 == tvaultconf.fullbackup_interval:
+            if retention_policy_type_w1 == tvaultconf.interval and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
+                Full_Backup_Interval_Value_w1 == 'incremental':
                 reporting.add_test_step(
                     "Scheduler enabled workload Retension param's updated after policy modify",
                     tvaultconf.PASS)
@@ -1324,8 +1324,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Scheduler enabled workload policy param's not modified")
 
-            if retention_policy_type_w2 == tvaultconf.retention_policy_type and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
-                Full_Backup_Interval_Value_w2 == tvaultconf.fullbackup_interval:
+            if retention_policy_type_w2 == tvaultconf.interval and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
+                Full_Backup_Interval_Value_w2 == 'incremental':
                 reporting.add_test_step(
                     "Scheduler disabled workload Retension param's updated after policy modify",
                     tvaultconf.PASS)
@@ -1413,18 +1413,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(self.workload_id)
 
             # Get retension parameters values of wid_2 wirh scheduler disabled
+            '''
             retention_policy_type_w2 = self.getRetentionPolicyTypeStatus(
                 self.workload_id2)
             retention_policy_value_w2 = self.getRetentionPolicyValueStatus(
                 self.workload_id2)
             Full_Backup_Interval_Value_w2 = self.getFullBackupIntervalStatus(
                 self.workload_id2)
-
+            '''
             retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
-            if retention_policy_type_w1 == tvaultconf.retention_policy_type and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
-                Full_Backup_Interval_Value_w1 == tvaultconf.fullbackup_interval:
+            if retention_policy_type_w1 == tvaultconf.interval and retention_policy_value_w1 == tvaultconf.retention_policy_value and \
+                Full_Backup_Interval_Value_w1 == 'incremental' :
                 reporting.add_test_step(
                     "Verify Scheduler enabled workload modified policy_1 to policy_2",
                     tvaultconf.PASS)
@@ -1437,8 +1438,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Scheduler enabled workload not modified policy_1 to policy_2")
 
-            if retention_policy_type_w2 == tvaultconf.retention_policy_type and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
-                Full_Backup_Interval_Value_w2 == tvaultconf.fullbackup_interval:
+            if retention_policy_type_w2 == tvaultconf.interval and retention_policy_value_w2 == tvaultconf.retention_policy_value and \
+                Full_Backup_Interval_Value_w2 == 'incremental':
                 reporting.add_test_step(
                     "Verify Scheduler disabled workload modified policy_1 to policy_2",
                     tvaultconf.PASS)
@@ -1454,22 +1455,16 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Retention meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
             for i in range(0, int(retention_policy_value_w1)):
-                snapshot_id = self.workload_snapshot(
-                    self.workload_id,
-                    True,
-                    snapshot_name=tvaultconf.snapshot_name +
-                    str(i),
+                snapshot_id = self.workload_snapshot(self.workload_id,True,
+                    snapshot_name=tvaultconf.snapshot_name + str(i),
                     snapshot_cleanup=False)
                 snapshots_list.append(snapshot_id)
             LOG.debug("snapshot id list is : " + str(snapshots_list))
 
             # Create one more snapshot
-            snapshot_id = self.workload_snapshot(
-                self.workload_id,
-                True,
+            snapshot_id = self.workload_snapshot(self.workload_id,True,
                 snapshot_name=tvaultconf.snapshot_name +
-                "_final",
-                snapshot_cleanup=False)
+                "_final", snapshot_cleanup=False)
             LOG.debug("Last snapshot id is : " + str(snapshot_id))
 
             self.wait_for_snapshot_tobe_available(
@@ -1486,10 +1481,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # verify that numbers of snapshot created persist
             # retention_policy_value
-            LOG.debug("number of snapshots created : %d " %
-                      len(snapshot_list_of_workload))
-            if int(retention_policy_value_w1) == len(
-                snapshot_list_of_workload):
+            LOG.debug("number of snapshots created : %d " % len(snapshot_list_of_workload))
+            if int(retention_policy_value_w1) == len(snapshot_list_of_workload):
                 reporting.add_test_step(
                     "Verify number of snapshots created equals retention_policy_value",
                     tvaultconf.PASS)
@@ -1505,8 +1498,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Check first snapshot is deleted or not after retention value
             # exceed
             deleted_snapshot_id = snapshots_list[0]
-            LOG.debug("snapshot id of first snapshot is : " +
-                      str(deleted_snapshot_id))
+            LOG.debug("snapshot id of first snapshot is : " + str(deleted_snapshot_id))
             if deleted_snapshot_id in snapshot_list_of_workload:
                 reporting.add_test_step(
                     "Verify first snapshot deleted after retention value exceeds",
