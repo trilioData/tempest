@@ -58,7 +58,7 @@ test_role = "backup"
 # Scheduler parameter
 
 interval="1"
-interval_update = "7"
+interval_update = "6"
 enabled='false'
 retention_policy_type="Number of Snapshots to Keep"
 retention_policy_type_update = "Number of days to retain Snapshots"

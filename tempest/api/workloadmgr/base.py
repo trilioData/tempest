@@ -156,8 +156,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        #retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
-        retention_policy_type = body['workload']['jobschedule']['hourly']['interval']
+        retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
         LOG.debug("IN getRetentionPolicyTypeStatus")
         LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
                                                                     resp.content))
@@ -171,8 +170,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        #retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
-        retention_policy_value = body['workload']['jobschedule']['hourly']['retention']
+        retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
         LOG.debug("IN getRetentionPolicyValueStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
@@ -187,8 +185,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getFullBackupIntervalStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        #Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
-        Full_Backup_Interval_Value = body['workload']['jobschedule']['hourly']['snapshot_type']
+        Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
         LOG.debug("IN getFullBackupIntervalStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
@@ -203,7 +200,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def getPolicyHourlyScheduleDetails(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
-        # retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
         hourly_interval = body['workload']['jobschedule']['hourly']['interval']
         hourly_retention = body['workload']['jobschedule']['hourly']['retention']
         hourly_snapshot_type = body['workload']['jobschedule']['hourly']['snapshot_type']
