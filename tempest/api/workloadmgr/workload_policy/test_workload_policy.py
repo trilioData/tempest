@@ -159,7 +159,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_interval = details[1]['hourly'].get('interval')
             policy_retention = details[1]['hourly'].get('retention')
             policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
-            LOG.debug("Policy values :" + policy_interval, policy_retention, policy_snapshot_type)
+            LOG.debug("Policy values :") # + policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
                     "Verify workload policy parameters updated",
@@ -311,7 +311,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_interval = details[1]['hourly'].get('interval')
             policy_retention = details[1]['hourly'].get('retention')
             policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
-            LOG.debug("Policy values :" + policy_interval, policy_retention, policy_snapshot_type)
+            LOG.debug("Policy values :") # + policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
                     "Verify workload policy parameters updated",
@@ -808,17 +808,21 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             time.sleep(10)
             workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
-            # LOG.debug("Created workload ID test 6 : " + str(workload_id))
+            LOG.debug("Created workload ID test 6")
             if(workload_id != ""):
+                LOG.debug("IN IF test 6")
                 self.wait_for_workload_tobe_available(workload_id)
                 if(self.getWorkloadStatus(workload_id) == "available"):
+                    LOG.debug("IN 2nd IF test 6")
                     reporting.add_test_step(
                         "Create workload with policy", tvaultconf.PASS)
                 else:
+                    LOG.debug("IN else test 6")
                     reporting.add_test_step(
                         "Create workload with policy", tvaultconf.FAIL)
                     reporting.set_test_script_status(tvaultconf.FAIL)
             else:
+                LOG.debug("IN 1st ELSE  test 6")
                 reporting.add_test_step(
                     "Create workload with policy", tvaultconf.FAIL)
                 reporting.set_test_script_status(tvaultconf.FAIL)

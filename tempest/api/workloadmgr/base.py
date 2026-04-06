@@ -55,7 +55,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     @classmethod
     def setup_clients(cls):
         super(BaseWorkloadmgrTest, cls).setup_clients()
-        LOG.debug("IN SETUP_CLIENTS")
         cls.subnets_client = cls.os_primary.subnets_client
         cls.wlm_client = cls.os_primary.wlm_client
         cls.servers_client = cls.os_primary.servers_client
@@ -157,7 +156,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getRetentionPolicyTypeStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_type = body['workload']['jobschedule']['retention_policy_type']
-        LOG.debug("IN getRetentionPolicyTypeStatus")
         LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
                                                                     resp.content))
         if resp.status_code != 200:
@@ -171,7 +169,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getRetentionPolicyValueStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         retention_policy_value = body['workload']['jobschedule']['retention_policy_value']
-        LOG.debug("IN getRetentionPolicyValueStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
         LOG.debug("Response:" + str(resp.content))
@@ -186,7 +183,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def getFullBackupIntervalStatus(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         Full_Backup_Interval_Value = body['workload']['jobschedule']['fullbackup_interval']
-        LOG.debug("IN getFullBackupIntervalStatus")
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
         LOG.debug("Response:" + str(resp.content))
@@ -203,7 +199,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         hourly_interval = body['workload']['jobschedule']['hourly']['interval']
         hourly_retention = body['workload']['jobschedule']['hourly']['retention']
         hourly_snapshot_type = body['workload']['jobschedule']['hourly']['snapshot_type']
-        LOG.debug("IN getPolicyHourlyScheduleDetails")
         LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
                                                                     resp.content))
         if resp.status_code != 200:
@@ -2565,9 +2560,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def get_workload_details(self, workload_id):
         resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
         workload_data = body['workload']
-        #wl = json.loads(workload_data)
-        #LOG.debug("get_workload_details Body: {}".format(body))
-        #LOG.debug("get_workload_details, workload data: {}".format(wl))
 
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
@@ -2782,7 +2774,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 202):
             resp.raise_for_status()
-        LOG.debug("IN workload_policy_create")
         LOG.debug('PolicyCreated: %s' % policy_id)
         if (tvaultconf.cleanup and policy_cleanup):
             self.addCleanup(self.workload_policy_delete, policy_id)
@@ -2832,7 +2823,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             if (resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)
-            LOG.debug("IN workload_policy_update")
             return True
         except Exception as e:
             LOG.error('Policyupdate failed: %s' % policy_id)
