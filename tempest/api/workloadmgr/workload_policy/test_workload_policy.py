@@ -142,7 +142,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 policy_id, now_time_plus_55,
                 policy_name = tvaultconf.policy_name_update,
                 interval = tvaultconf.interval_update,
-                retention_policy_value=tvaultconf.retention_policy_value)
+                retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:
                 reporting.add_test_step(
                     "Update workload policy by admin user", tvaultconf.PASS)
@@ -156,14 +156,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Below function returns list as [policy_name, {field_values},
             # policy_id, description, [list_of_project_assigned]]
             details = self.get_policy_details(policy_id)
+            policy_interval = details[1]['hourly'].get('interval')
+            policy_retention = details[1]['hourly'].get('retention')
+            policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
+            LOG.debug("Policy values :" + policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
                     "Verify workload policy parameters updated",
                     tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
-                if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == details[1]['interval'] and tvaultconf.retention_policy_value_update ==\
-                   details[1]['retention_policy_value'] and tvaultconf.fullbackup_interval_update == details[1]['fullbackup_interval']:
+                if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == policy_interval and tvaultconf.retention_policy_value_update ==\
+                   policy_retention and 'incremental' == policy_snapshot_type:
                     reporting.add_test_step(
                         "Verify workload policy parameters updated", tvaultconf.PASS)
                     LOG.debug("Policy updated successfully")
@@ -181,6 +185,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 tvaultconf.retention_policy_value_update + "' --policy-fields fullbackup_interval='" + tvaultconf.fullbackup_interval_update + \
                 "' --display-name 'policy_update' " + str(policy_id)
             error = cli_parser.cli_error(policy_update_command)
+            LOG.debug("test 2 error" + error)
             if error and (str(error.strip('\n')).find(policy_update_error_str) != -1):
                 reporting.add_test_step(
                     "Can not update workload policy by nonadmin user",
@@ -303,14 +308,18 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Below function returns list as [policy_name, {field_values},
             # policy_id, description, [list_of_project_assigned]]
             details = self.get_policy_details(policy_id)
+            policy_interval = details[1]['hourly'].get('interval')
+            policy_retention = details[1]['hourly'].get('retention')
+            policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
+            LOG.debug("Policy values :" + policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
                     "Verify workload policy parameters updated",
                     tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
-                if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == details[1]['interval'] and tvaultconf.retention_policy_value_update ==\
-                    details[1]['retention_policy_value'] and tvaultconf.fullbackup_interval_update == details[1]['fullbackup_interval']:
+                if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == policy_interval and tvaultconf.retention_policy_value_update ==\
+                    policy_retention and 'incremental' == policy_snapshot_type:
                     reporting.add_test_step(
                         "Verify workload policy parameters updated", tvaultconf.PASS)
                     LOG.debug("Policy updated successfully")
@@ -1548,7 +1557,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             LOG.debug("test 8 modify workload2 cmd: " + workload_modify_command)
             workload_details = self.get_workload_details(self.workload_id2)
             workload_schedule = workload_details["jobschedule"]["enabled"]
-            LOG.debug("test 8 workload schedule: " + workload_schedule)
+            # LOG.debug("test 8 workload schedule: " + str(workload_schedule))
             if rc != 0:
                 reporting.add_test_step(
                     "Execute policy assigned workload-modify scheduler enable",
@@ -1593,6 +1602,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # DB validations for workload policy after workload cleanup
             workload_policy_fields_data = query_data.get_workload_policy_fields()
+            LOG.debug("workload_policy_fields_data")
+            LOG.debug(workload_policy_fields_data)
             if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
                 LOG.debug("workload policy fields data is correct")
             else:
