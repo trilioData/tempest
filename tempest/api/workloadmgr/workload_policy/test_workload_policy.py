@@ -181,10 +181,13 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
 
             # Update workload policy by nonadmin user using CLI
-            policy_update_command = command_argument_string.policy_update + "interval='" + tvaultconf.interval_update + "' --policy-fields retention_policy_value='" +\
-                tvaultconf.retention_policy_value_update + "' --policy-fields fullbackup_interval='" + tvaultconf.fullbackup_interval_update + \
-                "' --display-name 'policy_update' " + str(policy_id)
+            policy_update_command = command_argument_string.policy_update + " --hourly interval='" + tvaultconf.interval_update + \
+                                    "',retention='" + tvaultconf.interval_update +  "' --manual retention='" + \
+                                    tvaultconf.retention_policy_value_update + "',retention_days_to_keep='"+ \
+                                    tvaultconf.retention_policy_value_update + "' --display-name  policy_update " + str(policy_id)
+
             error = cli_parser.cli_error(policy_update_command)
+            LOG.debug("CMD: " + policy_update_command)
             LOG.debug("test 2 error" + error)
             if error and (str(error.strip('\n')).find(policy_update_error_str) != -1):
                 reporting.add_test_step(
@@ -308,9 +311,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Below function returns list as [policy_name, {field_values},
             # policy_id, description, [list_of_project_assigned]]
             details = self.get_policy_details(policy_id)
-            policy_interval = details[1]['hourly'].get('interval')
-            policy_retention = details[1]['hourly'].get('retention')
-            policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
+            policy_interval = str(details[1]['hourly'].get('interval'))
+            policy_retention = str(details[1]['hourly'].get('retention'))
+            policy_snapshot_type = str(details[1]['hourly'].get('snapshot_type'))
             LOG.debug("Policy values :") # + policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
@@ -328,7 +331,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                         "Verify workload policy parameters updated", tvaultconf.FAIL)
                     raise Exception("Workload policy updated incorrect")
 
-            # Deassign workload policy to projects by admin user
+            # Unassign workload policy to projects by admin user
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[], remove_project_ids_list=[admin_project_id])
             if status:
@@ -795,6 +798,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             rc = cli_parser.cli_returncode(workload_create)
             LOG.debug("Test 6 CMD Workload_create: " + str(workload_create))
             LOG.debug("Test 6 CMD Workload_create RC: " + str(rc))
+            time.sleep(60)
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-create with policy command",

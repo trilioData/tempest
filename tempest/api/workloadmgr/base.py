@@ -2912,6 +2912,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             for i in range(len(body['policy']['policy_assignments'])):
                 list_of_projects_assigned1 = body['policy']['policy_assignments'][i]['project_id']
                 list_of_project_assigned.append(list_of_projects_assigned1)
+            LOG.debug("Policy return")
+            LOG.debug([policy_name,field_values,policy_id,description,list_of_project_assigned])
             return [
                 policy_name,
                 field_values,
