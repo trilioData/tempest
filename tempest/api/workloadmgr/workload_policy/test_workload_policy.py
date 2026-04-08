@@ -317,7 +317,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_retention = details[1]['hourly'].get('retention')
             policy_snapshot_type = details[1]['hourly'].get('snapshot_type')
             LOG.debug("Policy values :")
-            LOG.debug(policy_interval, policy_retention, policy_snapshot_type)
+            #LOG.debug(policy_interval, policy_retention, policy_snapshot_type)
             if not details:
                 reporting.add_test_step(
                     "Verify workload policy parameters updated",
@@ -544,7 +544,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             out = cli_parser.cli_output(cmd)
             LOG.debug("test 4 -c Name Response from CLI: " + str(out))
             #if (tvaultconf.policy_name_update in out):
-            if (tvaultconf.policy_name in out):
+            if (tvaultconf.policy_name_update in out):
                 reporting.add_test_step(
                     "Verify list_assigned_policy shows policy_name only", tvaultconf.PASS)
             else:
