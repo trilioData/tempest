@@ -2741,7 +2741,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.retention_policy_value,
             description=tvaultconf.policy_description,
-            policy_cleanup=True):
+            policy_cleanup=False):
         payload = {"workload_policy": {
             "field_values": {
                 "start_time": start_time,
