@@ -1456,8 +1456,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # DB validations for workload policy after workload cleanup
             workload_policy_fields_data = query_data.get_workload_policy_fields()
-            LOG.debug("workload_policy_fields_data")
-            LOG.debug(workload_policy_fields_data)
             if (tvaultconf.workload_policy_fields == workload_policy_fields_data):
                 LOG.debug("workload policy fields data is correct")
             else:
