@@ -146,9 +146,7 @@ workload_tables = ["workloads", "workload_vms", "workload_vm_metadata", "schedul
 snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources", "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps", "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata", "snap_network_resources", "snap_network_resource_metadata"]
 restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
 workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
-# workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
 workload_policy_fields = ["daily", "hourly", "manual", "monthly", "retentionmanual", "start_time", "weekly", "yearly"]
-# Updating please cross-check
 
 #error strings
 wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '

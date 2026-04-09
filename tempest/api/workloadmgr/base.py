@@ -2562,6 +2562,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         workload_data = body['workload']
         LOG.debug("#### workloadid: %s , operation:show_workload" %
                   workload_id)
+        LOG.debug("Response:" + str(resp.content))
         if (resp.status_code != 200):
             resp.raise_for_status()
         return workload_data
@@ -2814,11 +2815,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 "metadata": {}
             }
             }
-            LOG.debug("Updating POLICY_ID: %s" % policy_id)
-            LOG.debug("PAYLOAD for update policy : " + str(payload))
             resp, body = self.wlm_client.client.put(
                     "/workload_policy/" + policy_id, json=payload)
-            LOG.debug("POLICY UPDATE Response:" + str(resp.content))
+            LOG.debug("Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)
@@ -2896,7 +2895,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.get(
                 "/workload_policy/" + policy_id)
-            LOG.debug("get_policy_details Response:" + str(resp.content))
+            LOG.debug("Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             list_of_project_assigned = []
