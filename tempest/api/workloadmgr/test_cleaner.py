@@ -138,7 +138,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     @decorators.idempotent_id('9fe07175-912e-49a5-a629-5f52eeada4c9')
     def test_cleaner(self):
         try:
-            LOG.debug("In CLEANER WORKLOAD")
             self._delete_workloads()
             LOG.debug("\nworkloads deleted\n")
             self._delete_servers()
