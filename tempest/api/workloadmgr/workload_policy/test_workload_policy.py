@@ -131,14 +131,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             global now_time_plus_55
             now_time_plus_55 = str(now_time_plus_55.strip())
             policy_update_error_str = "Policy doesn't allow workload:policy_update to be performed."
-            '''
-            ## temp code as cleanup is called after test 1 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
-            '''
-
             # Update workload policy by admin user
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_55,
@@ -215,13 +207,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global policy_id
             policy_assign_error_str = "User does not have admin privileges"
-            '''
-            ## temp code as cleanup is called after test 2 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
-            '''
             # Assign workload policy to projects by admin user
             admin_project_id = CONF.identity.admin_tenant_id
             project_id = CONF.identity.tenant_id  # Getting project id
@@ -336,7 +321,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Unassign workload policy to projects by admin user
             status = self.assign_unassign_workload_policy(
-                policy_id, add_project_ids_list=[], remove_project_ids_list=[admin_project_id])
+                policy_id, add_project_ids_list=[], remove_project_ids_list=[project_id])
             if status:
                 reporting.add_test_step(
                     "Unassign workload policy by admin user", tvaultconf.PASS)
@@ -394,7 +379,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_assign_command = command_argument_string.policy_assign + \
                 str(project_id) + " " + str(policy_id)
             error = cli_parser.cli_error(policy_assign_command)
-            LOG.debug("Assign workload policy to tenant by nonadmin user" + policy_assign_command)
+            LOG.debug("Assign workload policy to tenant by nonadmin user :" + policy_assign_command)
             if error and (str(error.strip('\n')).find(policy_assign_error_str) != -1):
                 reporting.add_test_step(
                     "Cannot assign workload policy by nonadmin user",
@@ -426,13 +411,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             '''
             status = self.assign_unassign_workload_policy(
                 policy_id, add_project_ids_list=[admin_project_id], remove_project_ids_list=[])
-            '''
-            '''
-            ## temp code as cleanup is called after test 3 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
             '''
 
             status = self.assign_unassign_workload_policy(
@@ -638,13 +616,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            '''
-            ## temp code as cleanup is called after test 4 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
-            '''
+
             status = self.assign_unassign_workload_policy(
                 str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
 
@@ -792,15 +764,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global vm_id
             global policy_id
-            '''
-            # Create workload with policy by CLI command
-            ## temp code as cleanup is called after test 5 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
-            time.sleep(60)
-            '''
             workload_create = command_argument_string.workload_create + \
                 " --instance " + str(vm_id) + " --policy-id " + str(policy_id)
             rc = cli_parser.cli_returncode(workload_create)
@@ -809,7 +772,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             #LOG.debug("Test 6 CMD Workload_create RC: " + str(rc))
             LOG.debug(out)
             time.sleep(60)
-            '''
             if rc != 0:
                 reporting.add_test_step(
                     "Execute workload-create with policy command",
@@ -820,7 +782,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Execute workload-create with policy command",
                     tvaultconf.PASS)
                 LOG.debug("Command executed correctly")
-            '''
+
             time.sleep(10)
             workload_id = query_data.get_workload_id_in_creation(tvaultconf.workload_name)
             LOG.debug("Created workload ID test 6")
@@ -933,13 +895,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
 
             project_id = CONF.identity.tenant_id
-            '''
-            ## temp code as cleanup is called after test 6 and policy getting deleted
-            policy_id = self.workload_policy_create(
-                start_time=str(now_time_plus_55.strip()),
-                retention_policy_value=tvaultconf.retention_policy_value,
-                policy_cleanup=True)
-            '''
             # Delete workload policy by nonadmin user using CLI
             policy_delete_command = command_argument_string.policy_delete + \
                 str(policy_id)
