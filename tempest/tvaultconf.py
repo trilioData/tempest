@@ -60,7 +60,6 @@ test_role = "backup"
 interval="1"
 interval_update = "6"
 enabled='false'
-retention_policy_type="Number of Snapshots to Keep"
 retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
 retention_policy_value_update = "7"

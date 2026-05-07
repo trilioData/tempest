@@ -2738,24 +2738,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             start_time,
             policy_name=tvaultconf.policy_name,
             interval=tvaultconf.interval,
-            retention_policy_value=tvaultconf.retention_policy_value,
+            retention_policy_value=tvaultconf.manual_retention,
             description=tvaultconf.policy_description,
-            policy_cleanup=False):
+            policy_cleanup=True):
         payload = {"workload_policy": {
             "field_values": {
                 "start_time": start_time,
-                "hourly": {
-                    "interval": interval,
-                    "retention": retention_policy_value,
-                    "snapshot_type": "incremental"
-                    },
+                "hourly": tvaultconf.hourly_scheduler,
                 "daily": {},
                 "weekly": {},
                 "monthly": {},
                 "yearly": {},
-                "manual": {
-                    "retention": retention_policy_value
-                },
+                "manual": tvaultconf.manual_retention,
                 "retentionmanual": {
                     "retentionmanual": retention_policy_value
               },
@@ -2788,30 +2782,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             policy_name=tvaultconf.policy_name,
             interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.retention_policy_value,
-            description=tvaultconf.policy_description,
-            policy_cleanup=True):
+            description=tvaultconf.policy_description):
         try:
             payload = {"policy": {
                 "field_values": {
                     "start_time": start_time,
-                    "hourly": {
-                        "interval": interval,
-                        "retention": retention_policy_value,
-                        "snapshot_type": "incremental"
-                    },
+                    "hourly": tvaultconf.hourly_scheduler,
                     "daily": {},
                     "weekly": {},
                     "monthly": {},
                     "yearly": {},
-                    "manual": {
-                        "retention": retention_policy_value
-                    },
+                    "manual":  tvaultconf.manual_retention,
                     "retentionmanual": {
                         "retentionmanual": retention_policy_value
                     },
                 },
                 "display_name": policy_name,
-                "display_description": "Policy Updated using API",
+                "display_description": description,
                 "metadata": {}
             }
             }

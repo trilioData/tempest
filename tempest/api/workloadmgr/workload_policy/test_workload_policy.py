@@ -43,7 +43,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         try:
             global policy_id
             global now_time_plus_12
-            policy_create_error_str = "ERROR:workloadmgr:'manual.retention' is required and must not be empty"
+            policy_create_error_str = "Policy doesn't allow workload:policy_create to be performed."
 
             now = datetime.datetime.utcnow()
             now_time_plus_12 = now + datetime.timedelta(minutes=12)
@@ -89,7 +89,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                                     tvaultconf.retention_policy_value + ",retention_days_to_keep="+
                                     tvaultconf.retention_policy_value + " nonadmin_policy")
             error = cli_parser.cli_error(policy_create_command)
-            if 'ERROR' in error:
+            if error and (str(error.strip('\n')).find(policy_create_error_str) != -1):
                 reporting.add_test_step(
                     "Can not create workload policy by nonadmin user",
                     tvaultconf.PASS)
@@ -778,13 +778,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
         reporting.add_test_script(str(__name__) + "_delete")
         try:
             global policy_id
-            policy_delete_error_str = "Policy doesn't allow workload:policy_delete to be performed."
-            '''New error msg
-            bash-5.1$ workloadmgr policy-delete d7f64ccf-4554-42d3-8e64-2216b180a057
-            ERROR:workloadmgr:Can not delete policy: d7f64ccf-4554-42d3-8e64-2216b180a057. It's assigned to workloads. 
-            (HTTP 400) (Request-ID: req-52eec3c5-d0b1-4bec-95c0-5610bd3509ed)
-            '''
-            #policy_delete_error_str = "workloadmgr: Can not delete policy"
+            policy_delete_error_str = "workloadmgr: Can not delete policy"
             failed = False
 
             # Use non-admin credentials
