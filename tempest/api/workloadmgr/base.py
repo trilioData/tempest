@@ -2737,7 +2737,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             self,
             start_time,
             policy_name=tvaultconf.policy_name,
-            interval=tvaultconf.interval,
             retention_policy_value=tvaultconf.manual_retention,
             description=tvaultconf.policy_description,
             policy_cleanup=True):
@@ -2764,7 +2763,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         policy_id = body['policy']['id']
         LOG.debug(
             "#### policyid: %s , operation:workload_policy_create" % policy_id)
-        LOG.debug("Response:" + str(resp.content))
+        LOG.debug("workload_policy_create Response:" + str(resp.content))
         if (resp.status_code != 202):
             resp.raise_for_status()
 
@@ -2804,7 +2803,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             }
             resp, body = self.wlm_client.client.put(
                     "/workload_policy/" + policy_id, json=payload)
-            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("workload_policy_update Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)
@@ -2882,7 +2881,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.get(
                 "/workload_policy/" + policy_id)
-            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("get_policy_details Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             list_of_project_assigned = []
