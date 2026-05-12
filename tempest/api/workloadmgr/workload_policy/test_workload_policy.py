@@ -52,7 +52,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Create workload policy by admin user
             policy_id = self.workload_policy_create(
                 start_time=str(now_time_plus_12.strip()),
-                interval=tvaultconf.interval,
                 retention_policy_value=tvaultconf.retention_policy_value,
                 policy_cleanup=False)
 
