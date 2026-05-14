@@ -118,7 +118,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
                 policy_name = tvaultconf.policy_name_update,
-                description= tvaultconf.policy_description_update,
                 hourly_schedule = tvaultconf.hourly_scheduler_update,
                 retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:

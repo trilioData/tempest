@@ -72,7 +72,6 @@ No_of_Backup=1
 policy_name="policy2"
 policy_description="Creating policy 2"
 policy_name_update = "policy_update"
-policy_description_update = "Updating policy 2"
 fullbackup_interval="8"
 fullbackup_interval_update = "7"
 
