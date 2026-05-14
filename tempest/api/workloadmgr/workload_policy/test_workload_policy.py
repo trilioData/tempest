@@ -118,7 +118,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
                 policy_name = tvaultconf.policy_name_update,
-                interval = tvaultconf.interval_update,
+                description= tvaultconf.policy_description_update,
+                hourly_schedule = tvaultconf.hourly_scheduler_update,
                 retention_policy_value=tvaultconf.retention_policy_value_update)
             if updated_status:
                 reporting.add_test_step(
@@ -142,8 +143,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
-                if (tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == policy_interval and
-                        tvaultconf.retention_policy_value_update == policy_retention and 'incremental' == policy_snapshot_type):
+                if (tvaultconf.policy_name_update == details[0] and tvaultconf.hourly_scheduler_update['interval'] == policy_interval and
+                        tvaultconf.hourly_scheduler_update['retention'] == policy_retention and tvaultconf.hourly_scheduler_update['snapshot_type'] == policy_snapshot_type):
                     reporting.add_test_step(
                         "Verify workload policy parameters updated", tvaultconf.PASS)
                     LOG.debug("Policy updated successfully")
@@ -954,7 +955,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload has not been created with scheduler enabled")
 
             # Get retension parameters values of wid with scheduler enabled
-            retention_policy_type_wid, retention_policy_value_wid, Full_Backup_Interval_Value_wid = self.getPolicyHourlyScheduleDetails(self.workload_id)
+            hourly_interval_wid, hourly_retention_wid, hourly_snapshot_type_wid = self.getPolicyHourlyScheduleDetails(self.workload_id)
+
             # Launch second instance
             self.vm_id2 = self.create_vm()
             LOG.debug("VM ID2: " + str(self.vm_id2))
@@ -1021,7 +1023,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload created with scheduler disabled successfully")
 
             # Get retention parameters values of workload_id2 with scheduler disabled
-            retention_policy_type_wid2, retention_policy_value_wid2, Full_Backup_Interval_Value_wid2 = self.getPolicyHourlyScheduleDetails(self.workload_id)
+            hourly_interval_wid2, hourly_retention_wid2, hourly_snapshot_type_wid2 = self.getPolicyHourlyScheduleDetails(self.workload_id)
 
             # Create workload policy
             self.policy_id = self.workload_policy_create(
@@ -1051,15 +1053,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify after policy assigned to tenant does not alter earlier workload retention parameters
             # Get retention parameters values of wid with scheduler enabled
-            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(
+            hourly_interval_w1, hourly_retention_w1, hourly_snapshot_type_w1 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id)
 
-            # Get retention parameters values of wid_2 wirh scheduler disabled
-            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
+            # Get retention parameters values of wid_2 with scheduler disabled
+            hourly_interval_w2, hourly_retention_w2, hourly_snapshot_type_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
-            if retention_policy_type_w1 == retention_policy_type_wid and retention_policy_value_w1 == retention_policy_value_wid and Full_Backup_Interval_Value_w1\
-                == Full_Backup_Interval_Value_wid:
+            if hourly_interval_w1 == hourly_interval_wid and hourly_retention_w1 == hourly_retention_wid and hourly_snapshot_type_w1\
+                == hourly_snapshot_type_wid:
                 reporting.add_test_step(
                     "Scheduler enabled workload Retention param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
@@ -1072,8 +1074,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "workload with scheduler enabled Retention param's not preserved")
 
-            if retention_policy_type_w2 == retention_policy_type_wid2 and retention_policy_value_w2 == retention_policy_value_wid2 and Full_Backup_Interval_Value_w2\
-                == Full_Backup_Interval_Value_wid2:
+            if hourly_interval_w2 == hourly_interval_wid2 and hourly_retention_w2 == hourly_retention_wid2 and hourly_snapshot_type_w2\
+                == hourly_snapshot_type_wid2:
                 reporting.add_test_step(
                     "Scheduler disabled workload Retention param's preserve after policy assign to tenant",
                     tvaultconf.PASS)
@@ -1118,14 +1120,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy is reflected after workload policy modify
             # Get retention parameters values of workload_id with scheduler disabled
-            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(
+            hourly_interval_w1, hourly_retention_w1, hourly_snapshot_type_w1 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id)
             # Get retention parameters values of workload_id2 with scheduler disabled
-            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
+            hourly_interval_w2, hourly_retention_w2, hourly_snapshot_type_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
-            if retention_policy_type_w1 == tvaultconf.hourly_scheduler['interval'] and retention_policy_value_w1 == tvaultconf.hourly_scheduler['retention'] and \
-                Full_Backup_Interval_Value_w1 == tvaultconf.hourly_scheduler['snapshot_type']:
+            if hourly_interval_w1 == tvaultconf.hourly_scheduler['interval'] and hourly_retention_w1 == tvaultconf.hourly_scheduler['retention'] and \
+                hourly_snapshot_type_w1 == tvaultconf.hourly_scheduler['snapshot_type']:
                 reporting.add_test_step(
                     "Scheduler enabled workload Retention param's updated after policy modify",
                     tvaultconf.PASS)
@@ -1137,8 +1139,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Scheduler enabled workload policy param's not modified")
 
-            if retention_policy_type_w2 == tvaultconf.hourly_scheduler['interval'] and retention_policy_value_w2 == tvaultconf.hourly_scheduler['retention'] and \
-                Full_Backup_Interval_Value_w2 == tvaultconf.hourly_scheduler['snapshot_type']:
+            if hourly_interval_w2 == tvaultconf.hourly_scheduler['interval'] and hourly_retention_w2 == tvaultconf.hourly_scheduler['retention'] and \
+                hourly_snapshot_type_w2 == tvaultconf.hourly_scheduler['snapshot_type']:
                 reporting.add_test_step(
                     "Scheduler disabled workload Retention param's updated after policy modify",
                     tvaultconf.PASS)
@@ -1213,14 +1215,14 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify after modify policy_1 to policy_2
             # Get retention parameters values of wid_2 with scheduler disabled
-            retention_policy_type_w1, retention_policy_value_w1, Full_Backup_Interval_Value_w1 = self.getPolicyHourlyScheduleDetails(self.workload_id)
+            hourly_interval_w1, hourly_retention_w1, hourly_snapshot_type_w1 = self.getPolicyHourlyScheduleDetails(self.workload_id)
 
             # Get retention parameters values of wid_2 with scheduler disabled
-            retention_policy_type_w2, retention_policy_value_w2, Full_Backup_Interval_Value_w2 = self.getPolicyHourlyScheduleDetails(
+            hourly_interval_w2, hourly_retention_w2, hourly_snapshot_type_w2 = self.getPolicyHourlyScheduleDetails(
                 self.workload_id2)
 
-            if retention_policy_type_w1 == tvaultconf.hourly_scheduler['interval'] and retention_policy_value_w1 == tvaultconf.hourly_scheduler['retention'] and \
-                Full_Backup_Interval_Value_w1 == tvaultconf.hourly_scheduler['snapshot_type'] :
+            if hourly_interval_w1 == tvaultconf.hourly_scheduler['interval'] and hourly_retention_w1 == tvaultconf.hourly_scheduler['retention'] and \
+                hourly_snapshot_type_w1 == tvaultconf.hourly_scheduler['snapshot_type'] :
                 reporting.add_test_step(
                     "Verify Scheduler enabled workload modified policy_1 to policy_2",
                     tvaultconf.PASS)
@@ -1233,8 +1235,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception(
                     "Scheduler enabled workload not modified policy_1 to policy_2")
 
-            if retention_policy_type_w2 == tvaultconf.hourly_scheduler['interval'] and retention_policy_value_w2 == tvaultconf.hourly_scheduler['retention'] and \
-                Full_Backup_Interval_Value_w2 == tvaultconf.hourly_scheduler['snapshot_type']:
+            if hourly_interval_w2 == tvaultconf.hourly_scheduler['interval'] and hourly_retention_w2 == tvaultconf.hourly_scheduler['retention'] and \
+                hourly_snapshot_type_w2 == tvaultconf.hourly_scheduler['snapshot_type']:
                 reporting.add_test_step(
                     "Verify Scheduler disabled workload modified policy_1 to policy_2",
                     tvaultconf.PASS)
@@ -1249,7 +1251,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Retention meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
-            for i in range(0, int(retention_policy_value_w1)):
+            for i in range(0, int(hourly_retention_w1)):
                 snapshot_id = self.workload_snapshot(self.workload_id,True,
                     snapshot_name=tvaultconf.snapshot_name + str(i),
                     snapshot_cleanup=False)
@@ -1277,7 +1279,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # verify that numbers of snapshot created persist
             # retention_policy_value
             LOG.debug("number of snapshots created : %d " % len(snapshot_list_of_workload))
-            if int(retention_policy_value_w1) == len(snapshot_list_of_workload):
+            if int(hourly_retention_w1) + 1 == len(snapshot_list_of_workload):
                 reporting.add_test_step(
                     "Verify number of snapshots created equals retention_policy_value",
                     tvaultconf.PASS)

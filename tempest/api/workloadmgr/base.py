@@ -199,8 +199,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         hourly_interval = body['workload']['jobschedule']['hourly']['interval']
         hourly_retention = body['workload']['jobschedule']['hourly']['retention']
         hourly_snapshot_type = body['workload']['jobschedule']['hourly']['snapshot_type']
-        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id,
-                                                                    resp.content))
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id, resp.content))
         if resp.status_code != 200:
             resp.raise_for_status()
         return hourly_interval, hourly_retention, hourly_snapshot_type
@@ -2781,15 +2780,15 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_policy_update(
             self, policy_id, start_time,
-            policy_name=tvaultconf.policy_name,
-            interval=tvaultconf.interval,
-            retention_policy_value=tvaultconf.retention_policy_value,
-            description=tvaultconf.policy_description):
+            policy_name = tvaultconf.policy_name,
+            retention_policy_value = tvaultconf.retention_policy_value,
+            description = tvaultconf.policy_description,
+            hourly_schedule = tvaultconf.hourly_scheduler):
         try:
             payload = {"policy": {
                 "field_values": {
                     "start_time": start_time,
-                    "hourly": tvaultconf.hourly_scheduler,
+                    "hourly": hourly_schedule,
                     "daily": {},
                     "weekly": {},
                     "monthly": {},
