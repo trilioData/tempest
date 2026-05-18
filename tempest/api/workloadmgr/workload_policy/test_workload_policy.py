@@ -257,8 +257,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Assigned workload policy not updated by admin user")
 
             # DB validations for workload policy before
-            workload_policy_validations_before = self.db_cleanup_workload_policy_validations(policy_id)
-            LOG.debug("Workload policy table values before deletion: {}".format(workload_policy_validations_before))
+            # workload_policy_validations_before = self.db_cleanup_workload_policy_validations(policy_id)
+            # LOG.debug("Workload policy table values before deletion: {}".format(workload_policy_validations_before))
 
             # Verify workload policy which has assigned to tenant is updated with parameters
             # Below function returns list as [policy_name, {field_values},
@@ -1251,7 +1251,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # Retention meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
             #for i in range(0, int(hourly_retention_w1)):
-            for i in range(0, int(tvaultconf.manual_retention)):
+            for i in range(0, int(tvaultconf.manual_retention['retention'])):
                 snapshot_id = self.workload_snapshot(self.workload_id,True,
                     snapshot_name=tvaultconf.snapshot_name + str(i),
                     snapshot_cleanup=False)
@@ -1280,7 +1280,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # retention_policy_value
             LOG.debug("number of snapshots created : %d " % len(snapshot_list_of_workload))
             #if int(hourly_retention_w1) + 1 == len(snapshot_list_of_workload):
-            if int(tvaultconf.manual_retention) == len(snapshot_list_of_workload):
+            if int(tvaultconf.manual_retention['retention']) == len(snapshot_list_of_workload):
                 reporting.add_test_step(
                     "Verify number of snapshots created equals retention_policy_value",
                     tvaultconf.PASS)
