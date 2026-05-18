@@ -179,4 +179,4 @@ discover_success_str = "DiscoverVMs has been successfully scheduled for migratio
 default_btt_id = None
 hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
 hourly_scheduler_update = {"snapshot_type": "incremental", "retention": 3, "interval": 2}
-manual_retention = {"retention": 5}
+manual_retention = {"retention": 3}

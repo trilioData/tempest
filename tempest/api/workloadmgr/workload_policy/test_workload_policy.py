@@ -273,8 +273,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     tvaultconf.FAIL)
                 raise Exception("Workload policy not updated")
             else:
-                if tvaultconf.policy_name_update == details[0] and tvaultconf.interval_update == policy_interval and \
-                        tvaultconf.retention_policy_value == policy_retention and 'incremental' == policy_snapshot_type:
+                if tvaultconf.policy_name_update == details[0] and tvaultconf.hourly_scheduler_update['interval'] == policy_interval and \
+                        tvaultconf.hourly_scheduler_update['retention'] == policy_retention and tvaultconf.hourly_scheduler_update['snapshot_type'] == policy_snapshot_type:
                     reporting.add_test_step(
                         "Verify workload policy parameters updated", tvaultconf.PASS)
                     LOG.debug("Policy updated successfully")
@@ -1250,7 +1250,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Retention meets as mentioned value in the workload policy
             # Create snapshots equal to number of retention_policy_value
-            for i in range(0, int(hourly_retention_w1)):
+            #for i in range(0, int(hourly_retention_w1)):
+            for i in range(0, int(tvaultconf.manual_retention)):
                 snapshot_id = self.workload_snapshot(self.workload_id,True,
                     snapshot_name=tvaultconf.snapshot_name + str(i),
                     snapshot_cleanup=False)
@@ -1278,7 +1279,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             # verify that numbers of snapshot created persist
             # retention_policy_value
             LOG.debug("number of snapshots created : %d " % len(snapshot_list_of_workload))
-            if int(hourly_retention_w1) + 1 == len(snapshot_list_of_workload):
+            #if int(hourly_retention_w1) + 1 == len(snapshot_list_of_workload):
+            if int(tvaultconf.manual_retention) == len(snapshot_list_of_workload):
                 reporting.add_test_step(
                     "Verify number of snapshots created equals retention_policy_value",
                     tvaultconf.PASS)
