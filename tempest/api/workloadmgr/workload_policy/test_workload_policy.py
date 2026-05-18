@@ -241,7 +241,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
                 policy_name=tvaultconf.policy_name_update,
-                interval=tvaultconf.interval_update,
+                # interval=tvaultconf.interval_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
 
             if updated_status:
@@ -714,7 +714,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
                 policy_name=tvaultconf.policy_name_update,
-                interval=tvaultconf.interval_update,
+                #interval=tvaultconf.interval_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
 
             if updated_status:
