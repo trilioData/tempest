@@ -241,7 +241,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             updated_status = self.workload_policy_update(
                 policy_id, now_time_plus_12,
                 policy_name=tvaultconf.policy_name_update,
-                # interval=tvaultconf.interval_update,
+                hourly_schedule =tvaultconf.hourly_scheduler_update,
                 retention_policy_value=tvaultconf.retention_policy_value)
 
             if updated_status:
@@ -1407,6 +1407,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Modify workload with policy scheduler to enable
             # CLI not working Jira TVAULT-7216
+            # Jira is in Reopen state
             workload_modify_command = command_argument_string.workload_modify + \
                 str(self.workload_id2) + " --jobschedule enabled=True "
             rc = cli_parser.cli_returncode(workload_modify_command)
