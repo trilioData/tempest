@@ -336,7 +336,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to tenant by nonadmin user using CLI
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.tenant_id
+            admin_project_id = CONF.identity.admin_tenant_id
             policy_assign_command = command_argument_string.policy_assign + \
                 str(project_id) + " " + str(policy_id)
             error = cli_parser.cli_error(policy_assign_command)
@@ -550,7 +550,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_project_id
+            admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
                 str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
 
@@ -732,7 +732,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Verify policy assigned to tenant by admin user using list_assigned_policies cli
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_project_id
+            admin_project_id = CONF.identity.admin_tenant_id
             cmd = command_argument_string.list_assigned_policies + project_id
             rc = cli_parser.cli_returncode(cmd)
             if rc != 0:
@@ -792,7 +792,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_PASSWORD'] = CONF.identity.nonadmin_password
 
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_project_id
+            admin_project_id = CONF.identity.admin_tenant_id
             # Delete workload policy by nonadmin user using CLI
             policy_delete_command = command_argument_string.policy_delete + \
                 str(policy_id)
@@ -1175,7 +1175,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_project_id
+            admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
                 self.policy_id2, add_project_ids_list=[project_id], remove_project_ids_list=[])
             if status:
