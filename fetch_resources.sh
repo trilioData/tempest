@@ -421,15 +421,15 @@ EOF
 	command_prefix="ssh $HELM_USER@$HELM_IP '<command>'"
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhoso'* ]]
     then
-        wlm_api_pod=`ssh $BASTION_USER@$BASTION_IP "oc get pods -n trilio-openstack | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
-        conn_str=`ssh $BASTION_USER@$BASTION_IP "oc exec -t $wlm_api_pod -- grep sql_connection /tmp/pod-shared-triliovault-wlm-api/triliovault-wlm-dynamic.conf" | cut -d '=' -f2 | xargs`
-	mysql_node=`ssh $BASTION_USER@$BASTION_IP "oc get pods -n openstack -o wide  | grep openstack-galera | xargs | cut -d ' ' -f7"`
+        wlm_api_pod=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get pods | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
+        conn_str=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack exec -t $wlm_api_pod -- grep sql_connection /tmp/pod-shared-triliovault-wlm-api/triliovault-wlm-dynamic.conf" | cut -d '=' -f2 | xargs`
+	mysql_node=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get pods -o wide  | grep trilio-galera-cluster-galera-0 | xargs | cut -d ' ' -f7"`
         mysql_ip=`ssh $BASTION_USER@$BASTION_IP "oc get nodes -o wide | grep $mysql_node | xargs | cut -d ' ' -f6"`
         echo "sql_connection: "$conn_str
         dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
-        mysql_port=`ssh $BASTION_USER@$BASTION_IP "oc get svc -n openstack | grep galera-nodeport" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
+        mysql_port=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get svc | grep trilio-galera-lb" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
         echo 'wlm_dbport = "'$mysql_port'"' >> $TEMPEST_TVAULTCONF
 	command_prefix="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@$COMPUTE_IP '<command>''"
     else
@@ -444,9 +444,9 @@ EOF
     tvault_version=`workloadmgr --insecure workload-get-nodes -f yaml | grep -i version | cut -d ':' -f2 | head -1 | xargs`
     if [[ ! -z $BACKUP_TARGET_TYPE_NAME ]]
     then
-        default_btt_id=`workloadmgr --insecure backup-target-type-list -f value | grep $BACKUP_TARGET_TYPE_NAME | cut -d ' ' -f1 | xargs`
+        default_btt_id=`workloadmgr --insecure backup-target-type-list | grep "| $BACKUP_TARGET_TYPE_NAME " | awk '{print $2}'`
     else
-       default_btt_id=`workloadmgr --insecure backup-target-type-list --sort-column "Is Default" -f value | tail -1 | cut -d' ' -f1 | xargs`
+       default_btt_id=`workloadmgr --insecure backup-target-type-list | awk '$8 == "True" {print $2}'`
     fi
     echo $default_btt_id, $BACKUP_TARGET_TYPE_NAME
     if [[ -z $default_btt_id ]]
