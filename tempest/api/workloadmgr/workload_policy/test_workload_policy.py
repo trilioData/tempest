@@ -50,8 +50,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             now_time_plus_12 = datetime.datetime.strftime(now_time_plus_12, "%I:%M %p")
 
             # Create workload policy by admin user
-            LOG.info("Create Policy")
-            LOG.info(str(now_time_plus_12.strip()))
             policy_id = self.workload_policy_create(
                 start_time=str(now_time_plus_12.strip()),
                 retention_policy_value=tvaultconf.retention_policy_value,
@@ -550,7 +548,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
                 str(policy_id), add_project_ids_list=[project_id], remove_project_ids_list=[])
 
@@ -797,7 +794,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             policy_delete_command = command_argument_string.policy_delete + \
                 str(policy_id)
             error = cli_parser.cli_error(policy_delete_command)
-            LOG.debug(error)
             if error and (str(error.strip('\n')).find(policy_delete_error_str) != -1):
                 reporting.add_test_step(
                     "Can not delete workload policy by nonadmin user",
@@ -1044,7 +1040,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
                 self.policy_id, add_project_ids_list=[project_id], remove_project_ids_list=[])
             if status:
@@ -1175,7 +1170,6 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             # Assign workload policy to projects
             project_id = CONF.identity.tenant_id
-            admin_project_id = CONF.identity.admin_tenant_id
             status = self.assign_unassign_workload_policy(
                 self.policy_id2, add_project_ids_list=[project_id], remove_project_ids_list=[])
             if status:

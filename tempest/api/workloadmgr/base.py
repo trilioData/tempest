@@ -2757,9 +2757,6 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             "metadata": {}
         }
         }
-        LOG.debug("Create policy payload")
-        LOG.debug(str(payload))
-        LOG.debug(payload)
         resp, body = self.wlm_client.client.post(
             "/workload_policy/", json=payload)
         policy_id = body['policy']['id']
