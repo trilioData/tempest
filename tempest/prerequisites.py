@@ -1072,6 +1072,7 @@ def snapshot_mount(self):
                 image_id=fvm_image,
                 user_data=tvaultconf.user_frm_data,
                 flavor_id=CONF.compute.flavor_ref_alt)
+            self.add_fvm_tag(fvm_id)
             self.fvm_ids.append(fvm_id)
             time.sleep(10)
             self.set_floating_ip(floating_ips_list[num], fvm_id)
@@ -1153,6 +1154,7 @@ def snapshot_mount_bootfromvol(self):
                 user_data=tvaultconf.user_frm_data,
                 vm_name=fvm_name,
                 vm_cleanup=False)
+            self.add_fvm_tag(fvm_id)
             self.fvm_ids.append(fvm_id)
             time.sleep(10)
             self.set_floating_ip(floating_ips_list[num], fvm_id)

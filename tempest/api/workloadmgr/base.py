@@ -41,6 +41,7 @@ from tempest.util import cli_parser
 from tempest.util import query_data
 from tempest import reporting
 from tempest.lib.common.utils import data_utils
+from tempest.lib.services.compute import base_compute_client as api_version
 
 CONF = config.CONF
 LOG = logging.getLogger(__name__)
@@ -621,7 +622,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_create(
             self,
             instances,
-            jobschedule={"enabled": False, "manual": {"retention": 5}},
+            jobschedule={"enabled": False, "manual": tvaultconf.manual_retention},
             workload_name="",
             workload_cleanup=True,
             encryption=False,
@@ -1490,7 +1491,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                              str(size),
                              "w",
                              "sudo fdisk -l {0}{1}".format(volume, partition)])
-            # "yes | sudo mkfs -t ext3 {}1".format(volume)])
+            # "yes | sudo mkfs -t ext4 {}1".format(volume)])
 
         for command in commands:
             LOG.debug("Executing fdisk: " + str(command))
@@ -1503,7 +1504,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug(str(output))
         time.sleep(10)
         for volume in volumes:
-            cmd = "sudo mkfs -t ext3 {0}{1}".format(volume, partition)
+            cmd = "sudo mkfs -t ext4 {0}{1}".format(volume, partition)
             LOG.debug("Executing mkfs : " + str(cmd))
             stdin, stdout, stderr = ssh.exec_command(cmd)
             time.sleep(5)
@@ -2315,21 +2316,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to verify mount snapshot and return the status
     '''
 
-    def verify_snapshot_mount(
-            self,
-            floating_ip,
-            fvm_image):
+    def verify_snapshot_mount(self, floating_ip, frm_image):
         is_successful = False
-        fvm_ssh_user = ""
-        if "centos" in fvm_image:
-            fvm_ssh_user = "centos"
-        elif "ubuntu" in fvm_image:
-            fvm_ssh_user = "ubuntu"
-        elif "rhel" in fvm_image:
-            fvm_ssh_user = "cloud-user"
-        LOG.debug("validate that snapshot is mounted on FVM " + fvm_ssh_user)
+        frm_ssh_user = self.set_frm_user(frm_image)
+        LOG.debug("validate that snapshot is mounted on FVM " + frm_ssh_user)
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+            floating_ip, frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh).decode('UTF-8').split('\n')
         ssh.close()
         flag = 0
@@ -2394,21 +2386,12 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     Method to verify unmount snapshot and return the status
     '''
 
-    def verify_snapshot_unmount(
-            self,
-            floating_ip,
-            fvm_image):
+    def verify_snapshot_unmount(self, floating_ip, frm_image):
         is_successful = False
-        fvm_ssh_user = ""
-        if "centos" in fvm_image:
-            fvm_ssh_user = "centos"
-        elif "ubuntu" in fvm_image:
-            fvm_ssh_user = "ubuntu"
-        elif "rhel" in fvm_image:
-            fvm_ssh_user = "cloud-user"
+        frm_ssh_user = self.set_frm_user(frm_image)
         LOG.debug("validate that snapshot is unmounted from FVM")
         ssh = self.SshRemoteMachineConnectionWithRSAKey(
-            floating_ip, fvm_ssh_user)  # CONF.validation.fvm_ssh_user
+            floating_ip, frm_ssh_user)
         output_list = self.validate_snapshot_mount(ssh)
         ssh.close()
 
@@ -4004,8 +3987,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def upload_image_data(self, image_id, filename=tvaultconf.image_filename):
         try:
-            upload_file = self.images_client.store_image_file(
-                            image_id, io.open(filename,'rb'))
+            with open(filename, "rb") as fh:
+                upload_file = self.images_client.store_image_file(image_id, fh)
+
             LOG.debug(f"upload_file response: {upload_file}")
             return True
         except Exception as e:
@@ -5045,3 +5029,29 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 mount_path = bt['filesystem_export_mount_path']
         LOG.debug(f"mount_path: {mount_path}")
         return mount_path
+    
+    '''
+    Add file recovery manager tag to the instance
+    '''
+    def add_fvm_tag(self, vm_id):
+        api_version.COMPUTE_MICROVERSION = '2.60'
+        resp = self.servers_client.update_tag(vm_id, "tvault_recovery_manager")
+        LOG.debug(f"add_fvm_tag: {resp}")
+
+
+    '''
+    Set username for FRM instance 
+    '''
+    def set_frm_user(self, frm_image=list(CONF.compute.fvm_image_ref.keys())[0]):
+        image_user_map = {
+            "centos": "centos",
+            "ubuntu": "ubuntu",
+            "rhel": "cloud-user",
+            "rocky": "cloud-user",
+        }
+
+        for k, user in image_user_map.items():
+            if k in frm_image:
+                return user
+
+        return ""  # or raise ValueError(f"Unknown image: '{frm_image}'")

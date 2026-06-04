@@ -19,14 +19,6 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
     def setup_clients(cls):
         super(WorkloadsTest, cls).setup_clients()
 
-    def _set_frm_user(self):
-        self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
-        self.frm_ssh_user = ""
-        if "centos" in self.frm_image:
-            self.frm_ssh_user = "centos"
-        elif "ubuntu" in self.frm_image:
-            self.frm_ssh_user = "ubuntu"
-
     def _add_data_on_instance_and_volume(self, ip_list, full=True):
         md5sums_list = []
         file_count = 5
@@ -421,7 +413,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 user_data=tvaultconf.user_frm_data,
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
-            self._set_frm_user()
+            self.add_fvm_tag(self.frm_id)
+            self.frm_ssh_user = self.set_frm_user()
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             self.set_floating_ip(fip[6], self.frm_id)
 

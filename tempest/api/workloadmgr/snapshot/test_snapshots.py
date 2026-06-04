@@ -461,23 +461,25 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             reporting.add_test_script(str(__name__) + \
                     "_workload_with_extra_quotes_while_creation")
             self.vm_id = self.create_vm()
+
+            # Create workload with CLI command
+            # Modify workload scheduler to enable and set the start date, time
+            # and timezone
             now = datetime.datetime.utcnow()
             now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
-            now_time_plus_10 = now + datetime.timedelta(minutes=10)
-            now_time_plus_10 = datetime.datetime.strftime(
-                now_time_plus_10, "%I:%M %p")
+            now_time_plus_12 = now + datetime.timedelta(minutes=12)
+            now_time_plus_12 = datetime.datetime.strftime(
+                now_time_plus_12, "%I:%M %p")
             interval = tvaultconf.interval
-            retention_policy_type = tvaultconf.retention_policy_type
-            retention_policy_value = tvaultconf.retention_policy_value
-            workload_create = command_argument_string.workload_create + \
-                    ' --instance ' + str(self.vm_id) + ' --jobschedule ' +\
-                    '"start_date=' + str(now_date.strip()) + '" --jobschedule ' +\
-                    '"start_time=' + str(now_time_plus_10.strip()) + \
-                    '" --jobschedule interval="' + str(interval) + \
-                    '" --jobschedule "retention_policy_type=\'' + \
-                    str(retention_policy_type) + '\'" --jobschedule '+ \
-                    '"retention_policy_value="' + str(retention_policy_value) + \
-                    '"" --jobschedule enabled=True'
+            workload_create = command_argument_string.workload_create \
+                + " --instance " + str(self.vm_id) \
+                + " --jobschedule start_date=" + str(now_date.strip()) \
+                + " --jobschedule start_time='" + str(now_time_plus_12.strip())\
+                + "' --hourly snapshot_type='" \
+                + str(tvaultconf.hourly_scheduler['snapshot_type']) \
+                + "' retention=" + str(tvaultconf.hourly_scheduler['retention'])\
+                + " interval=" + str(tvaultconf.hourly_scheduler['interval']) \
+                + " ''--jobschedule enabled=True"
             LOG.debug(f"workload create command: {workload_create}")
 
             rc = cli_parser.cli_returncode(workload_create)

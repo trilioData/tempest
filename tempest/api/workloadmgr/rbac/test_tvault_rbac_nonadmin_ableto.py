@@ -50,6 +50,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 flavor_id=CONF.compute.flavor_ref_alt,
                 user_data=tvaultconf.user_frm_data,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
+            self.add_fvm_tag(self.recoveryinstances_id)
             LOG.debug("FRM Instance ID: " + str(self.recoveryinstances_id))
 
             # Create workload

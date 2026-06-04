@@ -236,7 +236,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             volumeslist = []
             vm_name = 'tempest_test_vm_'+str(vm_id)+'_selectively_restored'
             rest_details = {'id': str(vm_id),
-                            'availability_zone': CONF.volume.volume_availability_zone,
+                            'availability_zone': CONF.compute.vm_availability_zone,
                             'include': True,
                             'restore_boot_disk': True,
                             'name': vm_name,

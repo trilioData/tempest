@@ -54,6 +54,7 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
     def data_ops_delete_files(self, flo_ip, mount_point, file_count):
         ssh = self.SshRemoteMachineConnectionWithRSAKey(str(flo_ip))
         self.deleteSomefilesOnLinux(ssh, mount_point, file_count)
+        ssh.close()
 
     def check_mount_cmd_status(self, floating_ip_addr, volumes, mount_point):
         max_retries = 0
@@ -333,6 +334,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             vm_list = []
             vm_list = self.get_restored_vm_list(restore_id_2)
             LOG.debug("Restored vm(In-place) ID : " + str(vm_list))
+            ssh = self.SshRemoteMachineConnectionWithRSAKey(floating_ip_1)
+            self.execute_command_disk_mount(ssh, floating_ip_1, [volumes[0]], mount_point)
 
             time.sleep(60)
 

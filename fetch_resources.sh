@@ -653,24 +653,23 @@ EOF
     IMAGE_NAME=${TEST_IMAGE_NAME,,}
     case $IMAGE_NAME in
         *"ubuntu"*)
-                search_pattern="ubuntu"
-                res=${IMAGE_NAME#*$search_pattern}
-                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
-                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                TEST_USER_NAME="ubuntu"
 		BOOTVOL_SIZE=10
                 ;;
         *"centos"*)
-                search_pattern="centos"
-                res=${IMAGE_NAME#*$search_pattern}
-                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
-                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                TEST_USER_NAME="centos"
 		BOOTVOL_SIZE=10
                 ;;
+        *"rocky"*)
+                TEST_USER_NAME="cloud-user"
+                BOOTVOL_SIZE=10
+                ;;
+        *"rhel"*)
+                TEST_USER_NAME="cloud-user"
+                BOOTVOL_SIZE=10
+                ;;
         *"cirros"*)
-                search_pattern="cirros"
-                res=${IMAGE_NAME#*$search_pattern}
-                pos=$(( ${#IMAGE_NAME} - ${#res} - ${#search_pattern} ))
-                TEST_USER_NAME=${TEST_IMAGE_NAME:$pos:${#search_pattern}}
+                TEST_USER_NAME="cirros"
 		BOOTVOL_SIZE=4
                 ;;
         *)

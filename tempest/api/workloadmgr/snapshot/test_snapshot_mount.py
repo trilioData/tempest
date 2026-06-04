@@ -363,13 +363,8 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                 key_pair=self.kp,
                 image_id=list(CONF.compute.fvm_image_ref.values())[0])
             self.frm_image = list(CONF.compute.fvm_image_ref.keys())[0]
-            self.frm_ssh_user = ""
-            if "centos" in self.frm_image:
-                self.frm_ssh_user = "centos"
-            elif "ubuntu" in self.frm_image:
-                self.frm_ssh_user = "ubuntu"
-            elif "rhel" in self.frm_image:
-                self.frm_ssh_user = "cloud-user"
+            self.add_fvm_tag(self.frm_id)
+            self.frm_ssh_user = self.set_frm_user(self.frm_image)
             LOG.debug("FRM Instance ID: " + str(self.frm_id))
             LOG.debug("FRM Instance uername: " + str(self.frm_ssh_user))
             self.set_floating_ip(fip[1], self.frm_id)
@@ -560,7 +555,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
                                               str(self.wid)
             snapshot_mounted_list_mount_csv = cli_parser.cli_output(snapshot_mounted_list_mount_csv)
             LOG.debug(f"snapshot_mounted_list for mounted full snapshot: {snapshot_mounted_list_mount_csv}")
-            csv_format = '"snapshot_id","snapshot_name","workload_id","mounturl","status"'
+            csv_format = '"snapshot_id","snapshot_name","workload_id","status"'
 
             if csv_format in snapshot_mounted_list_mount_csv.strip() and self.snapshot_id in snapshot_mounted_list_mount_csv:
                 reporting.add_test_step(
