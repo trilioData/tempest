@@ -85,7 +85,7 @@ license_list = "workloadmgr license-list"
 
 #Workload policy commands
 policy_create = "workloadmgr policy-create --policy-fields "
-policy_update = "workloadmgr policy-update --policy-fields "
+policy_update = "workloadmgr policy-update "
 policy_assign = "workloadmgr policy-assign --add_project "
 policy_delete = "workloadmgr policy-delete "
 list_assigned_policies = "workloadmgr list-assigned-policies "

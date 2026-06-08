@@ -192,6 +192,20 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         return Full_Backup_Interval_Value
 
     '''
+    Method returns the Policy Hourly Schedule details
+    '''
+
+    def getPolicyHourlyScheduleDetails(self, workload_id):
+        resp, body = self.wlm_client.client.get("/workloads/" + workload_id)
+        hourly_interval = body['workload']['jobschedule']['hourly']['interval']
+        hourly_retention = body['workload']['jobschedule']['hourly']['retention']
+        hourly_snapshot_type = body['workload']['jobschedule']['hourly']['snapshot_type']
+        LOG.debug("workload id: %s , show_workload Response: %s" % (workload_id, resp.content))
+        if resp.status_code != 200:
+            resp.raise_for_status()
+        return hourly_interval, hourly_retention, hourly_snapshot_type
+
+    '''
     Method raises exception if snapshot is not successful
     '''
 
@@ -2703,20 +2717,24 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def workload_policy_create(
             self,
+            start_time,
             policy_name=tvaultconf.policy_name,
-            fullbackup_interval=tvaultconf.fullbackup_interval,
-            interval=tvaultconf.interval,
-            retention_policy_value=tvaultconf.retention_policy_value,
-            retention_policy_type=tvaultconf.retention_policy_type,
-            description='description',
+            retention_policy_value=tvaultconf.manual_retention,
+            description=tvaultconf.policy_description,
             policy_cleanup=True):
         payload = {"workload_policy": {
             "field_values": {
-                "fullbackup_interval": fullbackup_interval,
-                "retention_policy_type": retention_policy_type,
-                "interval": interval,
-                "retention_policy_value": retention_policy_value
-            },
+                "start_time": start_time,
+                "hourly": tvaultconf.hourly_scheduler,
+                "daily": {},
+                "weekly": {},
+                "monthly": {},
+                "yearly": {},
+                "manual": tvaultconf.manual_retention,
+                "retentionmanual": {
+                    "retentionmanual": retention_policy_value
+              },
+            },  
             "display_name": policy_name,
             "display_description": description,
             "metadata": {}
@@ -2727,7 +2745,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         policy_id = body['policy']['id']
         LOG.debug(
             "#### policyid: %s , operation:workload_policy_create" % policy_id)
-        LOG.debug("Response:" + str(resp.content))
+        LOG.debug("workload_policy_create Response:" + str(resp.content))
         if (resp.status_code != 202):
             resp.raise_for_status()
 
@@ -2741,27 +2759,33 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def workload_policy_update(
-            self,
-            policy_id,
-            policy_name='policy_update',
-            fullbackup_interval=tvaultconf.fullbackup_interval,
-            interval=tvaultconf.interval,
-            retention_policy_value=tvaultconf.retention_policy_value,
-            retention_policy_type=tvaultconf.retention_policy_type,
-            description='description'):
+            self, policy_id, start_time,
+            policy_name = tvaultconf.policy_name,
+            retention_policy_value = tvaultconf.retention_policy_value,
+            description = tvaultconf.policy_description,
+            hourly_schedule = tvaultconf.hourly_scheduler):
         try:
-            payload = {
-                "policy": {
-                    "field_values": {
-                        "fullbackup_interval": fullbackup_interval,
-                        "retention_policy_type": retention_policy_type,
-                        "interval": interval,
-                        "retention_policy_value": retention_policy_value},
-                    "display_name": policy_name,
-                    "display_description": description}}
+            payload = {"policy": {
+                "field_values": {
+                    "start_time": start_time,
+                    "hourly": hourly_schedule,
+                    "daily": {},
+                    "weekly": {},
+                    "monthly": {},
+                    "yearly": {},
+                    "manual":  tvaultconf.manual_retention,
+                    "retentionmanual": {
+                        "retentionmanual": retention_policy_value
+                    },
+                },
+                "display_name": policy_name,
+                "display_description": description,
+                "metadata": {}
+            }
+            }
             resp, body = self.wlm_client.client.put(
-                "/workload_policy/" + policy_id, json=payload)
-            LOG.debug("Response:" + str(resp.content))
+                    "/workload_policy/" + policy_id, json=payload)
+            LOG.debug("workload_policy_update Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             LOG.debug('PolicyUpdated: %s' % policy_id)
@@ -2839,7 +2863,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         try:
             resp, body = self.wlm_client.client.get(
                 "/workload_policy/" + policy_id)
-            LOG.debug("Response:" + str(resp.content))
+            LOG.debug("get_policy_details Response:" + str(resp.content))
             if (resp.status_code != 202):
                 resp.raise_for_status()
             list_of_project_assigned = []

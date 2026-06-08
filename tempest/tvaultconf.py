@@ -57,10 +57,9 @@ test_role = "backup"
 
 # Scheduler parameter
 
-interval="1 hr"
-interval_update = "7 hrs"
+interval="1"
+interval_update = "6"
 enabled='false'
-retention_policy_type="Number of Snapshots to Keep"
 retention_policy_type_update = "Number of days to retain Snapshots"
 retention_policy_value="3"
 retention_policy_value_update = "7"
@@ -71,6 +70,7 @@ No_of_Backup=1
 
 # Scheduler policy parameters
 policy_name="policy2"
+policy_description="Creating policy 2"
 policy_name_update = "policy_update"
 fullbackup_interval="8"
 fullbackup_interval_update = "7"
@@ -142,7 +142,7 @@ workload_tables = ["workloads", "workload_vms", "workload_vm_metadata", "schedul
 snapshot_tables = ["snapshots", "snapshot_metadata", "vm_recent_snapshot", "snapshot_vm_resources", "snapshot_vms", "snapshot_vm_metadata", "snapshot_vm_resources", "vm_disk_resource_snaps", "vm_disk_resource_snap_metadata", "vm_network_resource_snaps", "vm_network_resource_snap_metadata", "snap_network_resources", "snap_network_resource_metadata"]
 restore_tables = ["restores", "restore_metadata", "restored_vms", "restored_vm_metadata", "restored_vm_resources", "restored_vm_resource_metadata"]
 workload_policy_tables = ["workload_policy", "workload_policy_assignments", "workload_policy_metadata", "workload_policy_values"]
-workload_policy_fields = ["fullbackup_interval", "interval", "retention_policy_type", "retention_policy_value"]
+workload_policy_fields = ["daily", "hourly", "manual", "monthly", "retentionmanual", "start_time", "weekly", "yearly"]
 
 #error strings
 wl_setting_cli_error_string = 'workloadmgr setting-create: error: the following arguments are required: '
@@ -175,4 +175,6 @@ migration_name = "tempest_migration"
 discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
 default_btt_id = None
 hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
-manual_retention = {"retention": 2}
+
+hourly_scheduler_update = {"snapshot_type": "incremental", "retention": 3, "interval": 2}
+manual_retention = {"retention": 3}
