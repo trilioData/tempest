@@ -71,8 +71,8 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Delete existing setting", tvaultconf.FAIL)
             else:
-                self.wlm_client.client.get(
-                        "/workloads/email/test_email?" + urlencode(tvaultconf.setting_data))
+                self.wlm_client.client.post("/workloads/email/test_email",
+                                            json=tvaultconf.setting_data)
                 cmd = 'curl  -u ' + tvaultconf.setting_data["smtp_default_recipient"] + ':' + \
                         tvaultconf.smtp_password + ' --silent "https://mail.google.com/mail/feed/atom"'
                 op = subprocess.check_output(cmd, shell=True)
