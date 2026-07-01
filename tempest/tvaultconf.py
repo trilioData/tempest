@@ -178,3 +178,4 @@ hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 
 
 hourly_scheduler_update = {"snapshot_type": "incremental", "retention": 3, "interval": 2}
 manual_retention = {"retention": 3}
+
