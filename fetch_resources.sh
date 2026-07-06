@@ -417,7 +417,7 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
         mysql_port=`ssh $HELM_USER@$HELM_IP "kubectl get svc -n openstack | grep mariadb-server" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
-        echo 'wlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
+        echo '\nwlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
 	command_prefix="ssh $HELM_USER@$HELM_IP '<command>'"
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhoso'* ]]
     then
