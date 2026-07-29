@@ -42,6 +42,9 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
+#job-id used for dms-mount, incremented after every mount_s3_backup_target_dms call
+dms_mount_job_id = 10001
+
 tvault_ip = []
 tvault_version = "4.1.124"
 tvault_username = "root"

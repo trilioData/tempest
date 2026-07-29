@@ -789,7 +789,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                         "old_tenant_ids": [],
                         "user_id": user_id,
                         "new_tenant_id": new_tenant_id,
-                        "source_btt": [], 
+                        "source_btt": [tvaultconf.default_btt_id], 
                         "source_btt_all": False}]
             resp, body = self.wlm_client.client.post(
                 "/workloads/reasign_workloads", json=payload)
@@ -5029,7 +5029,94 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 mount_path = bt['filesystem_export_mount_path']
         LOG.debug(f"mount_path: {mount_path}")
         return mount_path
-    
+
+    '''
+    Method to fetch the backend mountpath and secret ref for a given
+    backup target id via the /backup_targets WLM API, needed to
+    dms-mount an S3 backup target
+    '''
+
+    def get_backup_target_dms_details(self, target_id):
+        bts = self.listBackupTargets()
+        mountpath = None
+        secret_ref = None
+        filesystem_export = None
+        target_type = None
+        for bt in bts:
+            if bt['id'] == target_id:
+                mountpath = bt.get('filesystem_export_mount_path')
+                secret_ref = bt.get('secret_ref')
+                filesystem_export = bt.get('filesystem_export')
+                target_type = bt.get('vault_storage_type')
+                break
+        LOG.debug(f"backup target dms details for {target_id} -> "
+                  f"mountpath: {mountpath}, secret_ref: {secret_ref}, "
+                  f"filesystem_export: {filesystem_export}, "
+                  f"target_type: {target_type}")
+        return {
+            'target_id': target_id,
+            'mountpath': mountpath,
+            'secret_ref': secret_ref,
+            'filesystem_export': filesystem_export,
+            'target_type': target_type,
+        }
+
+    '''
+    Method to persist the incremented dms_mount_job_id back into
+    tvaultconf.py so subsequent calls/runs use a fresh job-id
+    '''
+
+    def increment_dms_mount_job_id(self):
+        tvaultconf.dms_mount_job_id += 5
+        tvaultconf_file = tvaultconf.__file__
+        with open(tvaultconf_file, 'r') as f:
+            lines = f.readlines()
+        with open(tvaultconf_file, 'w') as f:
+            for line in lines:
+                if line.startswith('dms_mount_job_id'):
+                    f.write(f"dms_mount_job_id = {tvaultconf.dms_mount_job_id}\n")
+                else:
+                    f.write(line)
+
+    '''
+    Method to mount a backup target (s3 or nfs) via DMS
+    '''
+
+    def mount_backup_target_dms(
+            self, backup_target_type=tvaultconf.default_btt_id):
+        job_id = tvaultconf.dms_mount_job_id
+        target_id = self.getBackupTargetFromType(backup_target_type)
+        if not target_id:
+            raise Exception("Could not determine target_id for backup "
+                             f"target type {backup_target_type}")
+        details = self.get_backup_target_dms_details(target_id)
+        target_type = details['target_type']
+        if target_type == 's3':
+            if not (details['mountpath'] and details['secret_ref']):
+                raise Exception(
+                        f"Could not determine backup target details: {details}")
+            extra_arg = "--secret-ref {0}".format(details['secret_ref'])
+        elif target_type == 'nfs':
+            if not (details['mountpath'] and details['filesystem_export']):
+                raise Exception(
+                        f"Could not determine backup target details: {details}")
+            extra_arg = "--filesystem-export {0}".format(
+                    details['filesystem_export'])
+        else:
+            raise Exception(f"Unsupported target_type: {target_type}")
+        token = self.get_os_token()
+        if not token:
+            raise Exception("Could not fetch a keystone token for dms-mount")
+        command = (command_argument_string.dms_mount +
+                   "--job-id {0} --target-id {1} --target-type {2} "
+                   "--token {3} --mount-path {4} {5}").format(
+                job_id, target_id, target_type, token, details['mountpath'],
+                extra_arg)
+        output = cli_parser.cli_output(command)
+        LOG.debug(f"dms-mount output: {output}")
+        self.increment_dms_mount_job_id()
+        return output
+
     '''
     Add file recovery manager tag to the instance
     '''

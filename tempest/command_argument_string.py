@@ -99,14 +99,15 @@ quota_list = "workloadmgr project-allowed-quota-list -f json "
 quota_show = "workloadmgr project-allowed-quota-show -f value "
 quota_delete = "workloadmgr project-allowed-quota-delete "
 
-#RBAC commands
+#Backup target commands
+dms_mount = "workloadmgr dms-mount "
+
+#OpenStack commands
 rbac_create_secgroup = "openstack network rbac create --target-project "
+os_server_list = "openstack server list"
 
 #OpenStack WLM CLI Commands
 os_workload_list = "openstack workloadmgr workload list"
-
-#OpenStack CLI Commands
-os_server_list = "openstack server list"
 
 #VM Migration commands
 migration_plan_create = "workloadmgr migration-plan-create --display-name " + \
