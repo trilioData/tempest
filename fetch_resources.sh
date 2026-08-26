@@ -432,6 +432,17 @@ EOF
         mysql_port=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get svc | grep trilio-galera-lb" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
         echo 'wlm_dbport = "'$mysql_port'"' >> $TEMPEST_TVAULTCONF
 	command_prefix="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@$COMPUTE_IP '<command>''"
+    elif [[ ${OPENSTACK_DISTRO,,} == 'sunbeam'* ]]
+    then
+        wlm_pod=`ssh $SUNBEAM_NODE_USER@$SUNBEAM_NODE_IP "kubectl get pods -n $SUNBEAM_NAMESPACE | grep trilio-wlm-k8s | head -1" | cut -d ' ' -f1 | xargs`
+        conn_str=`ssh $SUNBEAM_NODE_USER@$SUNBEAM_NODE_IP "kubectl exec -n $SUNBEAM_NAMESPACE $wlm_pod -c trilio-wlm -- grep sql_connection /etc/triliovault-wlm/triliovault-wlm.conf" | cut -d '=' -f2 | xargs`
+        echo "sql_connection: "$conn_str
+        dbusername=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 1`
+        mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
+        mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
+        dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
+	command_prefix="ssh $SUNBEAM_NODE_USER@$SUNBEAM_NODE_IP juju ssh -m $SUNBEAM_MACHINES_MODEL trilio-data-mover/leader -- <command>"
+	command_prefix_wlm="ssh $SUNBEAM_NODE_USER@$SUNBEAM_NODE_IP kubectl exec -n $SUNBEAM_NAMESPACE $wlm_pod -c trilio-wlm -- setsid <command>"
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
