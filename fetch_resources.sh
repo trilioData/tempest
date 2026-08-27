@@ -407,6 +407,8 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
 	command_prefix="ssh root@$KOLLA_IP 'ssh $compute_hostname 'docker exec -t triliovault_datamover <command>''"
+	rabbitmq_url=`ssh root@$KOLLA_IP "grep rabbitmq_url /etc/kolla/triliovault-wlm-api/triliovault-dms-client.conf" | cut -d '=' -f 2 | xargs`
+	db_url=`echo $conn_str | cut -d '=' -f 2 | xargs`
     elif [[ ${OPENSTACK_DISTRO,,} == 'os-helm'* ]]
     then
         wlm_api_pod=`ssh $HELM_USER@$HELM_IP "kubectl get pods | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
@@ -695,6 +697,8 @@ EOF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_rbac = "'$command_prefix_rbac'"' >> $TEMPEST_TVAULTCONF
+    echo 'rabbitmq_url = "'$rabbitmq_url'"' >> $TEMPEST_TVAULTCONF
+    echo 'db_url = "'$db_url'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 

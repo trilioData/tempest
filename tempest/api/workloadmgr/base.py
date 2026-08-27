@@ -96,6 +96,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         super(BaseWorkloadmgrTest, cls).resource_cleanup()
 
     '''
+    Method to set environment variables of the cloud admin user using
+    credentials from etc/tempest.conf
+    '''
+
+    def set_cloudadmin_env(self):
+        os.environ['OS_USERNAME'] = CONF.auth.admin_username
+        os.environ['OS_PASSWORD'] = CONF.auth.admin_password
+        os.environ['OS_PROJECT_DOMAIN_NAME'] = CONF.auth.admin_domain_name
+        os.environ['OS_USER_DOMAIN_NAME'] = CONF.auth.admin_domain_name
+        os.environ['OS_PROJECT_NAME'] = CONF.auth.admin_project_name
+        LOG.debug('Set cloud admin environment variables for user: %s' %
+                  CONF.auth.admin_username)
+
+    '''
+    Method to set environment variables of the test user using
+    credentials from etc/tempest.conf
+    '''
+
+    def set_testuser_env(self):
+        os.environ['OS_USERNAME'] = CONF.identity.username
+        os.environ['OS_PASSWORD'] = CONF.identity.password
+        os.environ['OS_PROJECT_DOMAIN_NAME'] = CONF.identity.domain_name
+        os.environ['OS_USER_DOMAIN_NAME'] = CONF.identity.domain_name
+        os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+        LOG.debug('Set test user environment variables for user: %s' %
+                  CONF.identity.username)
+
+    '''
     Method returns the current status of a given workload
     '''
 
@@ -2913,6 +2941,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_exist_on_backend(self, mount_path,
             workload_id, snapshot_id):
+        self.mount_backup_target_dms()
         cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip())
@@ -5047,7 +5076,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 mountpath = bt.get('filesystem_export_mount_path')
                 secret_ref = bt.get('secret_ref')
                 filesystem_export = bt.get('filesystem_export')
-                target_type = bt.get('vault_storage_type')
+                target_type = bt.get('type')
                 break
         LOG.debug(f"backup target dms details for {target_id} -> "
                   f"mountpath: {mountpath}, secret_ref: {secret_ref}, "
@@ -5107,12 +5136,17 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         token = self.get_os_token()
         if not token:
             raise Exception("Could not fetch a keystone token for dms-mount")
-        command = (command_argument_string.dms_mount +
+        cmd = (command_argument_string.dms_mount +
                    "--job-id {0} --target-id {1} --target-type {2} "
-                   "--token {3} --mount-path {4} {5}").format(
+                   "--token {3} --mount-path {4} --rabbitmq-url {5} "
+                   "--db-url {6} {7}").format(
                 job_id, target_id, target_type, token, details['mountpath'],
-                extra_arg)
-        output = cli_parser.cli_output(command)
+                tvaultconf.rabbitmq_url, tvaultconf.db_url, extra_arg)
+        LOG.debug(f"cmd: {cmd}")
+        self.set_cloudadmin_env()
+        LOG.debug(f"Environment variables before dms-mount: {os.environ}")
+        output = cli_parser.cli_output(cmd)
+        self.set_testuser_env()
         LOG.debug(f"dms-mount output: {output}")
         self.increment_dms_mount_job_id()
         return output
