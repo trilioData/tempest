@@ -407,6 +407,7 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
 	command_prefix="ssh root@$KOLLA_IP 'ssh $compute_hostname 'docker exec -t triliovault_datamover <command>''"
+	command_prefix_wlm="ssh root@$KOLLA_IP 'ssh $controller_hostname 'docker exec -t triliovault_wlm_api <command>''"
 	rabbitmq_url=`ssh root@$KOLLA_IP "grep rabbitmq_url /etc/kolla/triliovault-wlm-api/triliovault-dms-client.conf" | cut -d '=' -f 2 | xargs`
 	db_url=`echo $conn_str | cut -d '=' -f 2 | xargs`
     elif [[ ${OPENSTACK_DISTRO,,} == 'os-helm'* ]]

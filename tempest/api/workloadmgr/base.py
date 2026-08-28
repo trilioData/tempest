@@ -2942,7 +2942,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def check_snapshot_exist_on_backend(self, mount_path,
             workload_id, snapshot_id):
         self.mount_backup_target_dms()
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
@@ -4668,14 +4668,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Generate OpenStack token
     '''
-    def get_os_token(self):
+    def get_os_token(self, admin=False):
         try:
+            if admin:
+                username = CONF.auth.admin_username
+                user_domain_name = CONF.auth.admin_domain_name
+                password = CONF.auth.admin_password
+                project_name = CONF.auth.admin_project_name
+                project_domain_name = CONF.auth.admin_domain_name
+            else:
+                username = CONF.identity.username
+                user_domain_name = CONF.identity.domain_name
+                password = CONF.identity.password
+                project_name = CONF.identity.project_name
+                project_domain_name = CONF.identity.domain_name
             token_id, body = self.token_v3_client.get_token(
-                    username=CONF.identity.username,
-                    user_domain_name=CONF.identity.domain_name,
-                    password=CONF.identity.password,
-                    project_name=CONF.identity.project_name,
-                    project_domain_name=CONF.identity.domain_name,
+                    username=username,
+                    user_domain_name=user_domain_name,
+                    password=password,
+                    project_name=project_name,
+                    project_domain_name=project_domain_name,
                     auth_data=True)
             return token_id
         except Exception as e:
@@ -5133,7 +5145,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                     details['filesystem_export'])
         else:
             raise Exception(f"Unsupported target_type: {target_type}")
-        token = self.get_os_token()
+        token = self.get_os_token(admin=True)
         if not token:
             raise Exception("Could not fetch a keystone token for dms-mount")
         cmd = (command_argument_string.dms_mount +
@@ -5146,8 +5158,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         self.set_cloudadmin_env()
         LOG.debug(f"Environment variables before dms-mount: {os.environ}")
         output = cli_parser.cli_output(cmd)
-        self.set_testuser_env()
         LOG.debug(f"dms-mount output: {output}")
+        self.set_testuser_env()
+        LOG.debug(f"Environment variables after dms-mount: {os.environ}")
         self.increment_dms_mount_job_id()
         return output
 
