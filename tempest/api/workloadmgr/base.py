@@ -4468,13 +4468,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def check_workload_exist_on_backend(self, mount_path, workload_id):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() +\
+        self.mount_backup_target_dms()
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() +\
                 "/workload_" + str(workload_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        if str(stdout).find('No such file or directory') != -1:
+        if (str(stderr).find('No such file or directory') != -1) or (str(stdout).find('No such file or directory') != -1):
             return False
         else:
             return True
