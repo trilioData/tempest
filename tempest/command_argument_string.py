@@ -101,7 +101,8 @@ quota_show = "workloadmgr project-allowed-quota-show -f value "
 quota_delete = "workloadmgr project-allowed-quota-delete "
 
 #Backup target commands
-dms_mount = "workloadmgr dms-mount "
+dms_mount = "workloadmgr dms-mount --rabbitmq-url " + \
+        tvaultconf.rabbitmq_url + " --db-url " + tvaultconf.db_url + " "
 
 #OpenStack commands
 rbac_create_secgroup = "openstack network rbac create --target-project "

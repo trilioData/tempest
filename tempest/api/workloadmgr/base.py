@@ -826,12 +826,23 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             LOG.debug("Response:" + str(resp.content))
             if (resp.status_code != 200):
                 resp.raise_for_status()
-            for jobid in body['workloads']['jobid_list']:
+            self.reassign_jobids = body['workloads']['jobid_list']
+            for jobid in self.reassign_jobids:
                 if not self.wait_for_job_status(jobid):
                     return None
             return (0)
         except Exception as e:
             LOG.error("Exception in workload_reassign: " + str(e))
+
+    '''
+    Method to fetch full details (including per-workload status) for a
+    DMS job, as shown by "workloadmgr job-detail-show"
+    '''
+
+    def get_job_details(self, jobid):
+        resp, body = self.wlm_client.client.post(
+            "/workloads/job_details", json={"jobid": jobid})
+        return body
 
     '''
     Method to poll a DMS job (as shown by "workloadmgr job-detail-show")
@@ -841,8 +852,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def wait_for_job_status(self, jobid, timeout=1800):
         start_time = int(time.time())
         while True:
-            resp, body = self.wlm_client.client.post(
-                "/workloads/job_details", json={"jobid": jobid})
+            body = self.get_job_details(jobid)
             status = body.get('status')
             LOG.debug(f"Job {jobid} status: {status}")
             if str(status).lower() == "completed":
@@ -855,6 +865,31 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 return False
             time.sleep(10)
         return True
+
+    '''
+    Method to verify, via job-detail-show, that a workload_reassign job
+    actually reassigned the given workload. The job-level status can be
+    "completed" even though the individual workload's reassignment
+    within it failed (e.g. corrupt/missing backend directory), so this
+    checks the per-workload entry's workload_id and status instead of
+    just trusting workload_reassign()'s return value.
+    '''
+
+    def verify_workload_reassign(self, workload_id, jobid=None):
+        if jobid is None:
+            jobid = self.reassign_jobids[-1]
+        job_details = self.get_job_details(jobid)
+        LOG.debug(f"job {jobid} details: {job_details}")
+        for entry in job_details.get('workload_update_list', []):
+            if workload_id in entry.get('workload_to_update', []):
+                status = entry.get('status')
+                LOG.debug(f"workload {workload_id} status in job {jobid}: "
+                          f"{status}, updated_workloads: "
+                          f"{entry.get('updated_workloads')}")
+                return (workload_id in entry.get('updated_workloads', [])
+                        and str(status).lower() == "completed")
+        LOG.error(f"workload {workload_id} not found in job {jobid} details")
+        return False
 
     '''
     Method to wait until the workload is available
@@ -5176,10 +5211,9 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             raise Exception("Could not fetch a keystone token for dms-mount")
         cmd = (command_argument_string.dms_mount +
                    "--job-id {0} --target-id {1} --target-type {2} "
-                   "--token {3} --mount-path {4} --rabbitmq-url {5} "
-                   "--db-url {6} {7}").format(
+                   "--token {3} --mount-path {4} {5}").format(
                 job_id, target_id, target_type, token, details['mountpath'],
-                tvaultconf.rabbitmq_url, tvaultconf.db_url, extra_arg)
+                extra_arg)
         LOG.debug(f"cmd: {cmd}")
         self.set_cloudadmin_env()
         LOG.debug(f"Environment variables before dms-mount: {os.environ}")
