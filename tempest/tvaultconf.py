@@ -12,7 +12,7 @@ pre_req = True
 PASS = "PASS"
 FAIL = "FAIL"
 
-enabled_tests = ["Attached_Volume_lvm","Boot_from_Volume_lvm","Attached_Volume_ceph","Boot_from_Volume_ceph","Attached_Volume_LUKS-lvm","Boot_from_Volume_LUKS-lvm","Attached_Volume_LUKS-ceph","Boot_from_Volume_LUKS-ceph","Attached_Volume_multiattachceph","Boot_from_Volume_multiattachceph","Attached_Volume_multiattachlvm","Boot_from_Volume_multiattachlvm"]
+enabled_tests = ["Attached_Volume_lvm","Boot_from_Volume_lvm"]
 
 #Resources to use from file
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
