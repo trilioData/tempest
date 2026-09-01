@@ -17,6 +17,7 @@ import time
 import json
 import paramiko
 import os
+import signal
 import stat
 import requests
 import re
@@ -59,6 +60,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cls.subnets_client = cls.os_primary.subnets_client
         cls.wlm_client = cls.os_primary.wlm_client
         cls.servers_client = cls.os_primary.servers_client
+        cls.hypervisor_client = cls.os_primary.hypervisor_client
         cls.interfaces_client = cls.os_primary.interfaces_client
         cls.flavors_client = cls.os_primary.flavors_client
         cls.floating_ips_client = cls.os_primary.floating_ips_client
@@ -1369,6 +1371,345 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         # ssh.load_system_host_keys()
         ssh.connect(hostname=ipAddress, username=userName, password=password)
         return ssh
+
+    '''
+    Method to check the Dynamic Mount Service (DMS) mount state for a given
+    backup target on a given OpenStack node (identified by its nova host
+    attribute, e.g. OS-EXT-SRV-ATTR:host): whether the target's mount path
+    shows up in the host's mount table, and - for S3 targets specifically -
+    whether the S3 FUSE process is running for it (see get_dms_mount_state's
+    target_kind param and get_backup_target_kind() below: NFS targets are
+    plain kernel mounts with no such process, so that half of the check is
+    skipped rather than always reading "not running" for them). Reuses the
+    same distro-aware nested-SSH command_prefix pattern
+    check_snapshot_exist_on_backend() above already uses (see
+    tvaultconf.command_prefix), rather than a new SSH implementation or a
+    hardcoded docker command: fetch_resources.sh generates
+    command_prefix_dms_host/_exec per OPENSTACK_DISTRO (docker exec on
+    KOLLA, podman exec on RHOSP/RHOSO, etc.) from openstack-setup.conf, with
+    a <node> placeholder (alongside <command>) since - unlike the other
+    command_prefix* variants, which target one fixed host - DMS needs
+    whichever node the VM under test actually landed on.
+    _host runs directly on the bare node (e.g. findmnt - the DMS container
+    bind-mounts /var/trilio with shared host propagation, so the mount is
+    visible without entering the container); _exec runs inside the DMS
+    container itself (e.g. the s3vaultfuse process check, which lives in
+    the container's own PID namespace). _exec may be unset for a distro
+    where that path isn't established/verified yet (see fetch_resources.sh)
+    - the process check is skipped in that case rather than guessed at.
+    Returns (mount_present, fuse_running).
+    '''
+
+    def _run_on_dms_node(self, template, node_host, command, timeout=30):
+        if not template:
+            return None
+        cmd = template.replace("<node>", node_host).replace(
+            "<command>", command)
+        # start_new_session so a timeout can kill the whole process group
+        # (the nested ssh/docker-exec chain), not just the outer ssh.
+        p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE, start_new_session=True)
+        try:
+            stdout, stderr = p.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            LOG.warning(f"DMS node command timed out after {timeout}s, "
+                    f"killing it: {cmd}")
+            try:
+                os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            p.communicate()
+            return None
+        LOG.debug(f"cmd: {cmd}; stdout: {stdout}; stderr: {stderr}")
+        return stdout
+
+    '''
+    Method to determine whether a given backup target type (e.g.
+    tvaultconf.default_btt_id, or any value passed as workload_create()'s
+    backup_target_type) is an 's3' or 'nfs' target. DMS's mount check needs
+    to know this: S3 targets have a distinguishable FUSE process to check
+    for; NFS targets are plain kernel mounts with no process at all, so
+    checking for one there always reads as "not running", regardless of
+    whether DMS actually mounted it correctly.
+    '''
+
+    def get_backup_target_kind(self, backup_target_type_id):
+        backup_target_id = self.getBackupTargetFromType(backup_target_type_id)
+        bts = self.listBackupTargets()
+        bt = [b for b in bts if b['id'] == backup_target_id]
+        kind = bt[0]['type'] if bt else None
+        LOG.debug(f"Backup target type ID {backup_target_type_id} -> "
+                 f"backup target {backup_target_id} -> kind: {kind}")
+        return kind
+
+    def get_dms_mount_state(self, node_host, mount_path, target_kind='s3'):
+        mount_out = self._run_on_dms_node(
+            getattr(tvaultconf, "command_prefix_dms_host", ""),
+            node_host, f"findmnt {mount_path}")
+        mount_present = bool(mount_out and mount_out.strip())
+
+        if target_kind != 's3':
+            # Non-S3 targets (NFS today) are plain kernel mounts - DMS
+            # doesn't spawn any separate process for them, so the
+            # mount-table result is the whole signal. Checking for an
+            # S3-only process here would always read "not running" even
+            # when DMS mounted it correctly (confirmed against a real NFS
+            # backup: mount_present was True throughout the upload, but a
+            # process check would have reported it as failed).
+            LOG.debug(f"DMS mount state on {node_host} for {mount_path} "
+                     f"(kind={target_kind}): mount_present={mount_present}")
+            return mount_present, mount_present
+
+        # NOTE: server.conf's s3vaultfuse_bin says "s3vaultfuse.py", but
+        # trilio-dms-server actually execs /usr/bin/s3vaultfuse (no .py)
+        # per trilio-dms-server.log - match on that.
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if exec_template:
+            fuse_out = self._run_on_dms_node(
+                exec_template, node_host,
+                "ps -ef | grep s3vaultfuse | grep -v grep")
+            fuse_running = bool(fuse_out and fuse_out.strip())
+        else:
+            LOG.warning("tvaultconf.command_prefix_dms_exec is not "
+                    "configured for this environment's OPENSTACK_DISTRO "
+                    "(see fetch_resources.sh); skipping S3 FUSE process "
+                    "check and falling back to the mount-table result")
+            fuse_running = mount_present
+
+        LOG.debug(f"DMS mount state on {node_host} for {mount_path}: "
+                 f"mount_present={mount_present}, fuse_running={fuse_running}")
+        return mount_present, fuse_running
+
+    '''
+    Method to count how many S3 FUSE processes are currently running on a
+    given node. Used to verify DMS reuses a single shared mount/process for
+    concurrent jobs against the same backup target rather than spawning one
+    per job. Returns None (rather than 0) when command_prefix_dms_exec isn't
+    configured for this distro, so callers can tell "not checkable" apart
+    from "checked, found zero".
+    '''
+
+    def get_dms_s3_process_count(self, node_host):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            LOG.warning("tvaultconf.command_prefix_dms_exec is not "
+                    "configured for this environment's OPENSTACK_DISTRO; "
+                    "cannot count S3 FUSE processes")
+            return None
+        fuse_out = self._run_on_dms_node(
+            exec_template, node_host,
+            "ps -ef | grep s3vaultfuse | grep -v grep")
+        lines = [l for l in fuse_out.decode(errors="replace").splitlines()
+                if l.strip()] if fuse_out else []
+        return len(lines)
+
+    '''
+    Method to invoke trilio-dms-cli directly (mount/unmount) for low-level
+    DMS ledger/reference-counting tests - this bypasses the normal
+    snapshot/restore-driven mount flow entirely, talking to trilio-dms
+    over the same RabbitMQ RPC path a real job's mount/unmount request
+    would use, but under our own control. Needs --rabbitmq-url/--db-url
+    passed explicitly (see tvaultconf.rabbitmq_url) since
+    /etc/triliovault-dms/client.conf ships as an unconfigured template on
+    at least this environment. Returns the CLI's stdout (its human-readable
+    ✓/status lines are the actual signal these tests check, e.g. "new
+    physical mount" vs "reused existing mount" - confirmed live against a
+    real environment before relying on this wording in tests).
+    '''
+
+    def run_dms_cli(self, node_host, action, job_id, target_id, target_type,
+                    mount_path, filesystem_export=None, secret_ref=None,
+                    token=None):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            raise Exception(
+                "tvaultconf.command_prefix_dms_exec is not configured for "
+                "this environment's OPENSTACK_DISTRO; cannot invoke "
+                "trilio-dms-cli")
+        # command_argument_string.dms_cli already bakes in
+        # --rabbitmq-url/--db-url from tvaultconf (auto-derived by
+        # fetch_resources.sh for KOLLA). No quoting around these values
+        # (matching get_dms_mount_state's findmnt/ps-ef commands above)
+        # - command_prefix_dms_exec's own nested single-quote structure
+        # means an inner value containing single quotes would corrupt
+        # the outer parsing; none of these values (URLs, IDs, the
+        # base64-suffixed mount path) contain spaces or shell
+        # metacharacters, so plain unquoted works and avoids that risk.
+        parts = [
+            command_argument_string.dms_cli.strip(),
+            f"--node-id {node_host}",
+            action,
+            f"--job-id {job_id}",
+            f"--target-id {target_id}",
+            f"--target-type {target_type}",
+            f"--host {node_host}",
+            f"--mount-path {mount_path}",
+        ]
+        if filesystem_export:
+            parts.append(f"--filesystem-export {filesystem_export}")
+        if secret_ref:
+            parts.append(f"--secret-ref {secret_ref}")
+        if token:
+            parts.append(f"--token {token}")
+        command = " ".join(parts)
+        out = self._run_on_dms_node(exec_template, node_host, command,
+                                    timeout=60)
+        output = out.decode(errors="replace") if out else ""
+        LOG.debug(f"trilio-dms-cli {action} (job_id={job_id}) output: "
+                 f"{output}")
+        return output
+
+    '''
+    Method to persist the incremented dms_mount_job_id back into
+    tvaultconf.py so subsequent calls/runs use a fresh job-id
+    '''
+
+    def increment_dms_mount_job_id(self):
+        tvaultconf.dms_mount_job_id += 5
+        tvaultconf_file = tvaultconf.__file__
+        with open(tvaultconf_file, 'r') as f:
+            lines = f.readlines()
+        with open(tvaultconf_file, 'w') as f:
+            for line in lines:
+                if line.startswith('dms_mount_job_id'):
+                    f.write(f"dms_mount_job_id = {tvaultconf.dms_mount_job_id}\n")
+                else:
+                    f.write(line)
+
+    '''
+    Method to get a valid, enabled/up compute node's hostname (matching
+    Nova's OS-EXT-SRV-ATTR:host / DMS server.conf's node_id) directly from
+    Nova's hypervisor list - for DMS tests that just need *some* real node
+    to target (e.g. direct trilio-dms-cli calls), booting a VM just to read
+    its scheduled host back is unnecessary overhead when Nova can already
+    report every compute node's name with no VM involved at all.
+    '''
+
+    def get_enabled_compute_node(self):
+        hypervisors = self.hypervisor_client.list_hypervisors()['hypervisors']
+        enabled = [h['hypervisor_hostname'] for h in hypervisors
+                  if h.get('state') == 'up' and h.get('status') == 'enabled']
+        if not enabled:
+            raise Exception(
+                "No enabled/up compute node found via hypervisor-list")
+        return enabled[0]
+
+    '''
+    Method to read the PID DMS itself recorded for a given S3 target's
+    s3vaultfuse process, from its PID file at /run/dms/s3/<target_id>.pid
+    (confirmed against the real S3VaultFuseManager source -
+    PID_DIR = '/run/dms/s3') - used by fault-recovery tests to identify
+    the exact process to crash, and later to confirm a *new* PID shows
+    up after DMS self-heals. Returns None if the file doesn't exist or
+    isn't a valid integer, rather than raising, so callers can treat
+    "no PID file" as a normal (if noteworthy) outcome instead of an
+    error.
+    '''
+
+    def get_dms_s3_pid(self, node_host, target_id):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            return None
+        out = self._run_on_dms_node(
+            exec_template, node_host, f"cat /run/dms/s3/{target_id}.pid")
+        text = out.decode(errors="replace").strip() if out else ""
+        try:
+            return int(text)
+        except ValueError:
+            return None
+
+    '''
+    Method to send SIGKILL (default) or SIGTERM to a specific PID inside
+    the DMS container - used to simulate a crashed s3vaultfuse process
+    for fault-recovery testing. Only ever called with a PID read from
+    DMS's own PID file for the target under test (get_dms_s3_pid()), so
+    this stays scoped to our own test's process rather than touching
+    anything else running in the shared container.
+    '''
+
+    def kill_process_on_dms_node(self, node_host, pid, force=True):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            raise Exception(
+                "tvaultconf.command_prefix_dms_exec is not configured for "
+                "this environment's OPENSTACK_DISTRO; cannot kill a "
+                "process inside the DMS container")
+        sig = "-9" if force else "-15"
+        self._run_on_dms_node(exec_template, node_host, f"kill {sig} {pid}")
+
+    '''
+    Method to check the exact errno a fresh os.stat() on mount_path
+    raises inside the DMS container - mirrors is_stale_mount()'s own
+    check (trilio_dms/utils.py, confirmed against the real source)
+    exactly, so this reports the same ground truth DMS itself would see
+    rather than a proxy signal like a process count. Returns the errno
+    as an int (e.g. 107 for ENOTCONN, 116 for ESTALE), or None if the
+    stat succeeds (path is healthy/not stale).
+    '''
+
+    def get_dms_mount_errno(self, node_host, mount_path):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            return None
+        # A multi-line Python one-liner doesn't survive the nested
+        # ssh/docker-exec quoting layers command_prefix_dms_exec goes
+        # through (confirmed live - newlines get passed through
+        # literally rather than executed), so this matches plain
+        # `stat`'s own stderr text against the well-known strerror()
+        # strings for the two errnos DMS's is_stale_mount() checks for,
+        # instead of trying to run Python remotely for it.
+        out = self._run_on_dms_node(
+            exec_template, node_host, f"stat {mount_path} 2>&1")
+        text = out.decode(errors="replace") if out else ""
+        if "Transport endpoint is not connected" in text:
+            return 107  # ENOTCONN
+        if "Stale file handle" in text:
+            return 116  # ESTALE
+        if "No such file or directory" in text:
+            return None
+        if "File:" in text:
+            return None  # healthy stat output
+        return None
+
+    '''
+    Method to get the current line count of trilio-dms-server.log inside
+    the DMS container - used as a marker so a later check
+    (get_dms_server_log_since()) can look at only the log lines written
+    *after* this point, rather than possibly matching on unrelated older
+    activity for the same target. Reads from inside the container
+    (server.conf's own log_file path) rather than the bare host, since
+    the host-side bind-mount source directory name is Kolla-specific and
+    wouldn't be portable to other distros the way the in-container path
+    is.
+    '''
+
+    def get_dms_server_log_marker(self, node_host):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            return 0
+        out = self._run_on_dms_node(
+            exec_template, node_host,
+            "wc -l < /var/log/triliovault/trilio-dms-server.log")
+        text = out.decode(errors="replace").strip() if out else ""
+        try:
+            return int(text)
+        except ValueError:
+            return 0
+
+    '''
+    Method to fetch trilio-dms-server.log lines written after a given
+    marker (see get_dms_server_log_marker()).
+    '''
+
+    def get_dms_server_log_since(self, node_host, marker):
+        exec_template = getattr(tvaultconf, "command_prefix_dms_exec", "")
+        if not exec_template:
+            return ""
+        out = self._run_on_dms_node(
+            exec_template, node_host,
+            f"tail -n +{marker + 1} "
+            f"/var/log/triliovault/trilio-dms-server.log")
+        return out.decode(errors="replace") if out else ""
 
     '''
     Method to list all floating ips
@@ -4637,16 +4978,37 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
             return False
 
     '''
-    Generate OpenStack token
+    Generate OpenStack token. Pass admin=True to scope it to CONF.auth's
+    admin identity (admin_username/admin_password/admin_project_name/
+    admin_domain_name) instead of the primary test identity - needed for
+    e.g. an S3 trilio-dms-cli mount, which fetches its secret from
+    Barbican and requires a token scoped to whichever project actually
+    owns that secret. Confirmed live: the primary test identity does NOT
+    have Barbican access to it ("Access denied to secret") - only this
+    admin identity does. That CONF.auth.admin_* group is otherwise
+    unused here (only meaningful when use_dynamic_credentials=True,
+    which this suite has off), so repurposing it for this is safe.
     '''
-    def get_os_token(self):
+    def get_os_token(self, admin=False):
         try:
+            if admin:
+                username = CONF.auth.admin_username
+                user_domain_name = CONF.auth.admin_domain_name
+                password = CONF.auth.admin_password
+                project_name = CONF.auth.admin_project_name
+                project_domain_name = CONF.auth.admin_domain_name
+            else:
+                username = CONF.identity.username
+                user_domain_name = CONF.identity.domain_name
+                password = CONF.identity.password
+                project_name = CONF.identity.project_name
+                project_domain_name = CONF.identity.domain_name
             token_id, body = self.token_v3_client.get_token(
-                    username=CONF.identity.username,
-                    user_domain_name=CONF.identity.domain_name,
-                    password=CONF.identity.password,
-                    project_name=CONF.identity.project_name,
-                    project_domain_name=CONF.identity.domain_name,
+                    username=username,
+                    user_domain_name=user_domain_name,
+                    password=password,
+                    project_name=project_name,
+                    project_domain_name=project_domain_name,
                     auth_data=True)
             return token_id
         except Exception as e:

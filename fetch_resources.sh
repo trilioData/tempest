@@ -388,6 +388,21 @@ EOF
         echo "mysql_wlm_pwd: "$mysql_wlm_pwd
 	command_prefix="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$compute_hostname 'sudo podman exec -it triliovault_datamover <command>''"
 	command_prefix_wlm="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@$controller_hostname 'sudo podman exec -it triliovault_wlm_api <command>''"
+	# Dynamic Mount Service (DMS) checks target whichever controller/compute
+	# node a given VM landed on (Nova's OS-EXT-SRV-ATTR:host), so unlike the
+	# fixed-host prefixes above these take a <node> placeholder the test
+	# fills in at run time, alongside <command>. _host runs directly on the
+	# bare node (e.g. findmnt - the DMS container bind-mounts /var/trilio
+	# with shared propagation so it's visible without entering the
+	# container); _exec runs inside the DMS container itself (e.g. checking
+	# the s3vaultfuse process, which lives in the container's own PID
+	# namespace).
+	command_prefix_dms_host="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@<node> '<command>''"
+	command_prefix_dms_exec="ssh stack@$UNDERCLOUD_IP 'ssh $OVERCLOUD_USER@<node> 'sudo podman exec triliovault_dms <command>''"
+	# Not yet auto-derived for this distro (only confirmed on KOLLA so
+	# far, see the KOLLA branch below) - left empty rather than guessed.
+	rabbitmq_url=""
+	db_url=""
 	command_prefix_rbac=""
 	container_names=(triliovault_wlm_api triliovault_wlm_workloads triliovault_wlm_scheduler triliovault-wlm-cron-podman-0)
 	for hst in "${controller_hostname[@]}"
@@ -407,6 +422,20 @@ EOF
         mysql_wlm_pwd=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 1`
         dbname=`echo $conn_str | cut -d '/' -f 4 | cut -d '?' -f 1`
 	command_prefix="ssh root@$KOLLA_IP 'ssh $compute_hostname 'docker exec -t triliovault_datamover <command>''"
+	# See the RHOSP branch above for why DMS needs a <node> placeholder
+	# instead of a fixed host, and the _host/_exec split.
+	command_prefix_dms_host="ssh root@$KOLLA_IP 'ssh <node> '<command>''"
+	command_prefix_dms_exec="ssh root@$KOLLA_IP 'ssh <node> 'docker exec triliovault_dms <command>''"
+	# trilio-dms-cli needs an explicit --rabbitmq-url since
+	# /etc/triliovault-dms/client.conf ships as an unconfigured template
+	# on the DMS nodes themselves - read the real broker URL from the
+	# wlm-api container's own DMS client config instead, same value
+	# trilio-dms-server itself connects to.
+	rabbitmq_url=`ssh root@$KOLLA_IP "grep rabbitmq_url /etc/kolla/triliovault-wlm-api/triliovault-dms-client.conf" | cut -d '=' -f 2- | xargs`
+	# trilio-dms-cli also needs an explicit --db-url - reuse the same
+	# sql_connection value already fetched above for the other wlm_db*
+	# fields, rather than deriving it a second time.
+	db_url=`echo $conn_str | cut -d '=' -f 2- | xargs`
     elif [[ ${OPENSTACK_DISTRO,,} == 'os-helm'* ]]
     then
         wlm_api_pod=`ssh $HELM_USER@$HELM_IP "kubectl get pods | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
@@ -419,6 +448,16 @@ EOF
         mysql_port=`ssh $HELM_USER@$HELM_IP "kubectl get svc -n openstack | grep mariadb-server" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
         echo 'wlm_dbport = '$mysql_port'' >> $TEMPEST_TVAULTCONF
 	command_prefix="ssh $HELM_USER@$HELM_IP '<command>'"
+	# NOTE: the existing datamover command_prefix above runs directly on
+	# $HELM_IP with no per-node targeting at all, so there's no established
+	# pattern here to mirror for reaching an arbitrary compute/controller
+	# node's DMS container - this needs confirming against a real OS-HELM
+	# cluster's topology before it can be relied on. Left unset rather than
+	# guessed; get_dms_s3_mount_state() degrades gracefully when unset.
+	command_prefix_dms_host=""
+	command_prefix_dms_exec=""
+	rabbitmq_url=""
+	db_url=""
     elif [[ ${OPENSTACK_DISTRO,,} == 'rhoso'* ]]
     then
         wlm_api_pod=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get pods | grep wlm-api | head -1" | cut -d ' ' -f1 | xargs`
@@ -432,6 +471,18 @@ EOF
         mysql_port=`ssh $BASTION_USER@$BASTION_IP "oc -n trilio-openstack get svc | grep trilio-galera-lb" | xargs | cut -d ' ' -f5 | cut -d ':' -f2 | cut -d '/' -f1`
         echo 'wlm_dbport = "'$mysql_port'"' >> $TEMPEST_TVAULTCONF
 	command_prefix="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@$COMPUTE_IP '<command>''"
+	# See the RHOSP branch above for the <node>/_host/_exec split. Modeled
+	# on the datamover command_prefix's own bastion->compute-node hop
+	# (EDPM compute nodes run podman containers directly, reachable via
+	# SSH from the bastion) - unlike datamover this isn't pinned to the
+	# single $COMPUTE_IP, so confirm against a real RHOSO cluster that
+	# other compute nodes are reachable the same way before relying on it.
+	command_prefix_dms_host="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@<node> '<command>''"
+	command_prefix_dms_exec="ssh $BASTION_USER@$BASTION_IP 'ssh $COMPUTE_USER@<node> 'sudo podman exec triliovault_dms <command>''"
+	# Not yet auto-derived for this distro (only confirmed on KOLLA so
+	# far, see the KOLLA branch above) - left empty rather than guessed.
+	rabbitmq_url=""
+	db_url=""
     else
         conn_str=`workloadmgr --insecure setting-list --get_hidden True -f value | grep sql_connection`
         mysql_ip=`echo $conn_str | cut -d '/' -f 3 | cut -d ':' -f 2 | cut -d '@' -f 2`
@@ -692,9 +743,24 @@ EOF
     sed -i '/tvault_version = /c tvault_version = "'$tvault_version'"' $TEMPEST_TVAULTCONF
     sed -i '/default_btt_id = /c default_btt_id = "'$default_btt_id'"' $TEMPEST_TVAULTCONF
     sed -i '/trustee_role = /c trustee_role = '$roles'' $TEMPEST_TVAULTCONF
+    # These aren't in the tracked tvaultconf.py template, so there's no
+    # existing line for `sed -i '/key = /c ...'` to replace like above -
+    # delete any line from a previous run before appending, so re-running
+    # this script doesn't keep duplicating them.
+    sed -i '/^command_prefix = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^command_prefix_wlm = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^command_prefix_rbac = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^command_prefix_dms_host = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^command_prefix_dms_exec = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^rabbitmq_url = /d' $TEMPEST_TVAULTCONF
+    sed -i '/^db_url = /d' $TEMPEST_TVAULTCONF
     echo 'command_prefix = "'$command_prefix'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_wlm = "'$command_prefix_wlm'"' >> $TEMPEST_TVAULTCONF
     echo 'command_prefix_rbac = "'$command_prefix_rbac'"' >> $TEMPEST_TVAULTCONF
+    echo 'rabbitmq_url = "'$rabbitmq_url'"' >> $TEMPEST_TVAULTCONF
+    echo 'db_url = "'$db_url'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_dms_host = "'$command_prefix_dms_host'"' >> $TEMPEST_TVAULTCONF
+    echo 'command_prefix_dms_exec = "'$command_prefix_dms_exec'"' >> $TEMPEST_TVAULTCONF
     sed -i 's/\r//g' $TEMPEST_TVAULTCONF
     sed -i '/OPENSTACK_DISTRO=/c OPENSTACK_DISTRO='$OPENSTACK_DISTRO'' $TEMPEST_DIR/tools/with_venv.sh
 
