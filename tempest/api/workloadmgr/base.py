@@ -813,23 +813,48 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_reassign(self, new_tenant_id, workload_ids, user_id):
         try:
             payload = [{"workload_ids": [workload_ids],
-                        "migrate_cloud": False,
                         "old_tenant_ids": [],
-                        "user_id": user_id,
                         "new_tenant_id": new_tenant_id,
-                        "source_btt": [tvaultconf.default_btt_id], 
-                        "source_btt_all": False}]
+                        "user_id": user_id,
+                        "migrate_cloud": False,
+                        "source_btt": [tvaultconf.default_btt_id],
+                        "source_btt_all": False,
+                        "target_btt": None,
+                        "upgrade": True}]
             resp, body = self.wlm_client.client.post(
-                "/workloads/reasign_workloads", json=payload)
-            reassignstatus = body['workloads']['reassigned_workloads'][0]['status']
+                "/workloads/import_reassign_workloads", json=payload)
             LOG.debug("Response:" + str(resp.content))
             if (resp.status_code != 200):
                 resp.raise_for_status()
-            else:
-                if reassignstatus == "available":
-                    return (0)
+            for jobid in body['workloads']['jobid_list']:
+                if not self.wait_for_job_status(jobid):
+                    return None
+            return (0)
         except Exception as e:
             LOG.error("Exception in workload_reassign: " + str(e))
+
+    '''
+    Method to poll a DMS job (as shown by "workloadmgr job-detail-show")
+    until it reaches a terminal state
+    '''
+
+    def wait_for_job_status(self, jobid, timeout=1800):
+        start_time = int(time.time())
+        while True:
+            resp, body = self.wlm_client.client.post(
+                "/workloads/job_details", json={"jobid": jobid})
+            status = body.get('status')
+            LOG.debug(f"Job {jobid} status: {status}")
+            if str(status).lower() == "completed":
+                break
+            if str(status).lower() in ("error", "failed"):
+                LOG.error(f"Job {jobid} ended with status: {status}")
+                return False
+            if time.time() - start_time > timeout:
+                LOG.error(f"Timeout waiting for job {jobid} to complete")
+                return False
+            time.sleep(10)
+        return True
 
     '''
     Method to wait until the workload is available

@@ -43,9 +43,9 @@ restore_type = "restore"
 global_job_scheduler=False
 
 #job-id used for dms-mount, incremented after every mount_s3_backup_target_dms call
-dms_mount_job_id = 10016
+dms_mount_job_id = 10101
 
-tvault_ip = []
+tvault_ip = ["172.26.2.250"]
 tvault_version = "6.2.1.9"
 tvault_username = "root"
 tvault_dbname = "workloadmgr"
@@ -176,14 +176,9 @@ migration_filename = "/opt/migration.json"
 migration_name = "tempest_migration"
 
 discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
-default_btt_id = "dcfaba25-2da5-4545-a312-00e0b699e34a"
+default_btt_id = "None"
 hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
 
 hourly_scheduler_update = {"snapshot_type": "incremental", "retention": 3, "interval": 2}
 manual_retention = {"retention": 3}
 
-command_prefix = "ssh root@192.168.6.17 'ssh compute0 'docker exec -t triliovault_datamover <command>''"
-command_prefix_wlm = ""
-command_prefix_rbac = ""
-rabbitmq_url = "rabbit://openstack:sample-password@192.168.6.17:5672//"
-db_url = "mysql+pymysql://workloadmgr:sample-password@192.168.6.17:3306/workloadmgr"

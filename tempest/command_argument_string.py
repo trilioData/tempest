@@ -22,7 +22,8 @@ workload_setting_show = "workloadmgr setting-show "
 workload_setting_delete = " workloadmgr setting-delete "
 workload_setting_update = "workloadmgr setting-update "
 workload_setting_list = "workloadmgr setting-list "
-workload_get_orphaned_workloads_list = "workloadmgr workload-get-orphaned-workloads-list --generate_yaml True"
+workload_get_orphaned_workloads_list = "workloadmgr workload-get-import-reassign-list --orphaned "
+job_detail_show = "workloadmgr job-detail-show "
 
 #Trust commands
 workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "

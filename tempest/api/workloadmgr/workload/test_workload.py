@@ -849,7 +849,9 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
             os.environ['OS_USERNAME'] = CONF.identity.username
             os.environ['OS_PASSWORD'] = CONF.identity.password
 
-            # List available workloads using CLI command
+            # List available (orphaned) workloads using CLI command.
+            # This command is job-based: it returns a JOB-ID, and the actual
+            # workload list is fetched via "job-detail-show <jobid>".
             rc = cli_parser.cli_returncode(
                 command_argument_string.workload_get_orphaned_workloads_list)
             if rc != 0:
@@ -863,16 +865,33 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
             out = cli_parser.cli_output(command_argument_string.workload_get_orphaned_workloads_list)
             LOG.debug(f"CLI response: {out}")
-            if (self.wid in str(out)):
+            jobid = cli_parser.get_job_id_from_output(out)
+            if not jobid:
                 reporting.add_test_step(
-                    "Verification with workload id", tvaultconf.PASS)
+                    "Execute job-detail-show command", tvaultconf.FAIL)
+                raise Exception(
+                    "Could not find a job id in workload_get_orphaned_workloads_list "
+                    "output: " + str(out))
+
+            job_detail_out = cli_parser.cli_output(
+                command_argument_string.job_detail_show + str(jobid))
+            LOG.debug(f"job-detail-show {jobid} response: {job_detail_out}")
+            reporting.add_test_step(
+                f"Execute job-detail-show command for job {jobid}", tvaultconf.PASS)
+
+            if (self.wid in str(job_detail_out)):
+                reporting.add_test_step(
+                    f"Verification of workload {self.wid} in job-detail-show "
+                    f"{jobid} output", tvaultconf.PASS)
                 LOG.debug(
-                    "workload_get_orphaned_workloads_list command listed available workloads correctly")
+                    f"workload {self.wid} found in job-detail-show {jobid} output")
             else:
                 reporting.add_test_step(
-                    "Verification with workload id", tvaultconf.FAIL)
+                    f"Verification of workload {self.wid} in job-detail-show "
+                    f"{jobid} output", tvaultconf.FAIL)
                 raise Exception(
-                    "workload_get_orphaned_workloads_list command did not list available workloads correctly from cmd: " + str(out))
+                    f"Workload {self.wid} not found in job-detail-show {jobid} "
+                    f"output: " + str(job_detail_out))
 
             # Cleanup
             # Delete workload
@@ -885,3 +904,4 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
 
         finally:
             reporting.test_case_to_write()
+
