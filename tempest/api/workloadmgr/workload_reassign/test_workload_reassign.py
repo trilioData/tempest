@@ -93,15 +93,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Workload reassign from tenant 1 to 2", tvaultconf.FAIL)
 
 
-            #check if actually tenant id is changed for the workload or not. 
-            workload_instance_info = self.get_workload_details(workload_id)
-            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={tenant_id_1}")
-            if tenant_id_1 == workload_instance_info['project_id']:
-                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+            #check workload_id and status from the reassign job details.
+            if self.verify_workload_reassign(workload_id):
+                LOG.debug("Workload reassign job completed successfully for "
+                          f"workload {workload_id}. TEST CASE PASSED")
                 reporting.add_test_step(
                     "tenant_id_1 workload reassign", tvaultconf.PASS)
             else:
-                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                LOG.error(f"Workload {workload_id} reassign job did not "
+                          "complete successfully. TEST CASE FAILED")
                 raise Exception("tenant_id_1 workload reassign")
 
 
@@ -115,15 +115,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 reporting.add_test_step(
                     "Workload reassign from tenant 2 to 1", tvaultconf.FAIL)
 
-            #check if actually tenant id is changed for the workload or not. 
-            workload_instance_info = self.get_workload_details(workload_id)
-            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={tenant_id}")
-            if tenant_id == workload_instance_info['project_id']:
-                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+            #check workload_id and status from the reassign job details.
+            if self.verify_workload_reassign(workload_id):
+                LOG.debug("Workload reassign job completed successfully for "
+                          f"workload {workload_id}. TEST CASE PASSED")
                 reporting.add_test_step(
                     "tenant_id workload reassign", tvaultconf.PASS)
             else:
-                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                LOG.error(f"Workload {workload_id} reassign job did not "
+                          "complete successfully. TEST CASE FAILED")
                 raise Exception("tenant_id workload reassign")
 
 
@@ -188,15 +188,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 LOG.error("Workload reassign to same user and same tenant is failed")
                 raise Exception("Workload reassign to same user and same tenant")
 
-            #check if actually tenant id is changed for the workload or not. 
-            workload_instance_info = self.get_workload_details(workload_id)
-            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={CONF.identity.tenant_id}")
-            if CONF.identity.tenant_id == workload_instance_info['project_id']:
-                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+            #check workload_id and status from the reassign job details.
+            if self.verify_workload_reassign(workload_id):
+                LOG.debug("Workload reassign job completed successfully for "
+                          f"workload {workload_id}. TEST CASE PASSED")
                 reporting.add_test_step(
                     "Same tenant workload reassign", tvaultconf.PASS)
             else:
-                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                LOG.error(f"Workload {workload_id} reassign job did not "
+                          "complete successfully. TEST CASE FAILED")
                 raise Exception("Same tenant workload reassign")
 
         except Exception as e:
@@ -263,15 +263,15 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                 raise Exception("Workload reassign to same user and different tenant")
 
 
-            #check if actually tenant id is changed for the workload or not. 
-            workload_instance_info = self.get_workload_details(workload_id)
-            LOG.debug(f"workload_instance teanant id={workload_instance_info['project_id']} and tempest conf tenant id={CONF.identity.tenant_id_1}")
-            if CONF.identity.tenant_id_1 == workload_instance_info['project_id']:
-                LOG.debug("Workload instance having correct tenant id. TEST CASE PASSED")
+            #check workload_id and status from the reassign job details.
+            if self.verify_workload_reassign(workload_id):
+                LOG.debug("Workload reassign job completed successfully for "
+                          f"workload {workload_id}. TEST CASE PASSED")
                 reporting.add_test_step(
                     "Different tenant workload reassign", tvaultconf.PASS)
             else:
-                LOG.error("Workload instance showing different tenant id. TEST CASE FAILED")
+                LOG.error(f"Workload {workload_id} reassign job did not "
+                          "complete successfully. TEST CASE FAILED")
                 raise Exception("Different tenant workload reassign")
 
         except Exception as e:

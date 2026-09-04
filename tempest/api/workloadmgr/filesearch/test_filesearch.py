@@ -83,7 +83,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                if snapshot_wise_filecount.get(snapshot_id, 0) == filecount_in_snapshots[snapshot_id]:
                     filesearch_status = True
                 else:
                     filesearch_status = False
@@ -358,7 +358,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                if snapshot_wise_filecount.get(snapshot_id, 0) == filecount_in_snapshots[snapshot_id]:
                     filesearch_status = True
                 else:
                     filesearch_status = False
@@ -407,7 +407,7 @@ class WorkloadsTest(base.BaseWorkloadmgrTest):
             snapshot_wise_filecount = self.verifyFilepath_Search(
                 filesearch_id, filepath_to_search)
             for snapshot_id in filecount_in_snapshots.keys():
-                if snapshot_wise_filecount[snapshot_id] == filecount_in_snapshots[snapshot_id]:
+                if snapshot_wise_filecount.get(snapshot_id, 0) == filecount_in_snapshots[snapshot_id]:
                     filesearch_status = True
                 else:
                     filesearch_status = False

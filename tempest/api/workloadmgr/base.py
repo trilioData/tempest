@@ -96,6 +96,34 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         super(BaseWorkloadmgrTest, cls).resource_cleanup()
 
     '''
+    Method to set environment variables of the cloud admin user using
+    credentials from etc/tempest.conf
+    '''
+
+    def set_cloudadmin_env(self):
+        os.environ['OS_USERNAME'] = CONF.auth.admin_username
+        os.environ['OS_PASSWORD'] = CONF.auth.admin_password
+        os.environ['OS_PROJECT_DOMAIN_NAME'] = CONF.auth.admin_domain_name
+        os.environ['OS_USER_DOMAIN_NAME'] = CONF.auth.admin_domain_name
+        os.environ['OS_PROJECT_NAME'] = CONF.auth.admin_project_name
+        LOG.debug('Set cloud admin environment variables for user: %s' %
+                  CONF.auth.admin_username)
+
+    '''
+    Method to set environment variables of the test user using
+    credentials from etc/tempest.conf
+    '''
+
+    def set_testuser_env(self):
+        os.environ['OS_USERNAME'] = CONF.identity.username
+        os.environ['OS_PASSWORD'] = CONF.identity.password
+        os.environ['OS_PROJECT_DOMAIN_NAME'] = CONF.identity.domain_name
+        os.environ['OS_USER_DOMAIN_NAME'] = CONF.identity.domain_name
+        os.environ['OS_PROJECT_NAME'] = CONF.identity.project_name
+        LOG.debug('Set test user environment variables for user: %s' %
+                  CONF.identity.username)
+
+    '''
     Method returns the current status of a given workload
     '''
 
@@ -582,7 +610,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def detach_volume(self, server_id, volume_id):
         try:
             body = self.volumes_client.show_volume(volume_id)['volume']
-            self.volumes_client.detach_volume(volume_id)
+            self.servers_client.detach_volume(server_id, volume_id)
             waiters.wait_for_volume_resource_status(self.volumes_client,
                                                     volume_id, 'available')
         except lib_exc.NotFound:
@@ -785,23 +813,83 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def workload_reassign(self, new_tenant_id, workload_ids, user_id):
         try:
             payload = [{"workload_ids": [workload_ids],
-                        "migrate_cloud": False,
                         "old_tenant_ids": [],
-                        "user_id": user_id,
                         "new_tenant_id": new_tenant_id,
-                        "source_btt": [], 
-                        "source_btt_all": False}]
+                        "user_id": user_id,
+                        "migrate_cloud": False,
+                        "source_btt": [tvaultconf.default_btt_id],
+                        "source_btt_all": False,
+                        "target_btt": None,
+                        "upgrade": True}]
             resp, body = self.wlm_client.client.post(
-                "/workloads/reasign_workloads", json=payload)
-            reassignstatus = body['workloads']['reassigned_workloads'][0]['status']
+                "/workloads/import_reassign_workloads", json=payload)
             LOG.debug("Response:" + str(resp.content))
             if (resp.status_code != 200):
                 resp.raise_for_status()
-            else:
-                if reassignstatus == "available":
-                    return (0)
+            self.reassign_jobids = body['workloads']['jobid_list']
+            for jobid in self.reassign_jobids:
+                if not self.wait_for_job_status(jobid):
+                    return None
+            return (0)
         except Exception as e:
             LOG.error("Exception in workload_reassign: " + str(e))
+
+    '''
+    Method to fetch full details (including per-workload status) for a
+    DMS job, as shown by "workloadmgr job-detail-show"
+    '''
+
+    def get_job_details(self, jobid):
+        resp, body = self.wlm_client.client.post(
+            "/workloads/job_details", json={"jobid": jobid})
+        return body
+
+    '''
+    Method to poll a DMS job (as shown by "workloadmgr job-detail-show")
+    until it reaches a terminal state
+    '''
+
+    def wait_for_job_status(self, jobid, timeout=1800):
+        start_time = int(time.time())
+        while True:
+            body = self.get_job_details(jobid)
+            status = body.get('status')
+            LOG.debug(f"Job {jobid} status: {status}")
+            if str(status).lower() == "completed":
+                break
+            if str(status).lower() in ("error", "failed"):
+                LOG.error(f"Job {jobid} ended with status: {status}")
+                return False
+            if time.time() - start_time > timeout:
+                LOG.error(f"Timeout waiting for job {jobid} to complete")
+                return False
+            time.sleep(10)
+        return True
+
+    '''
+    Method to verify, via job-detail-show, that a workload_reassign job
+    actually reassigned the given workload. The job-level status can be
+    "completed" even though the individual workload's reassignment
+    within it failed (e.g. corrupt/missing backend directory), so this
+    checks the per-workload entry's workload_id and status instead of
+    just trusting workload_reassign()'s return value.
+    '''
+
+    def verify_workload_reassign(self, workload_id, jobid=None):
+        if jobid is None:
+            jobid = self.reassign_jobids[-1]
+        job_details = self.get_job_details(jobid)
+        LOG.debug(f"job {jobid} details: {job_details}")
+        for entry in job_details.get('workload_update_list', []):
+            if workload_id in entry.get('workload_to_update', []):
+                status = entry.get('status')
+                LOG.debug(f"workload {workload_id} status in job {jobid}: "
+                          f"{status}, updated_workloads: "
+                          f"{entry.get('updated_workloads')}")
+                return (workload_id in entry.get('updated_workloads', [])
+                        and str(status).lower() == "completed")
+        LOG.error(f"workload {workload_id} not found in job {jobid} details")
+        return False
 
     '''
     Method to wait until the workload is available
@@ -2913,7 +3001,8 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_exist_on_backend(self, mount_path,
             workload_id, snapshot_id):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        self.mount_backup_target_dms()
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
@@ -4090,7 +4179,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_encryption_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4099,17 +4188,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         match_pattern = "_" + disk_name
+        cmd1 = None
         for line in stdout.splitlines():
             if match_pattern in str(line):
                 cmd1 = line.decode('utf-8')
                 break
+        if cmd1 is None:
+            raise Exception(f"Could not find disk {disk_name} under "
+                             f"{mount_path}/workload_{workload_id}/"
+                             f"snapshot_{snapshot_id}/vm_id_{instance_id}")
         cmd += "/" + cmd1
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         cmd2 = stdout.decode('utf-8')
 
-        final_cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info " + \
+        final_cmd = (tvaultconf.command_prefix_wlm).replace("<command>","qemu-img info " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4439,13 +4533,14 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def check_workload_exist_on_backend(self, mount_path, workload_id):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() +\
+        self.mount_backup_target_dms()
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() +\
                 "/workload_" + str(workload_id).strip())
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         LOG.debug(f"stdout: {stdout}; stderr: {stderr}")
-        if str(stdout).find('No such file or directory') != -1:
+        if (str(stderr).find('No such file or directory') != -1) or (str(stdout).find('No such file or directory') != -1):
             return False
         else:
             return True
@@ -4512,7 +4607,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def check_snapshot_size_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name="vda"):
         snapshot_size = 0
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4523,10 +4618,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         match_pattern = "_" + disk_name
+        cmd1 = None
         for line in stdout.splitlines():
             if match_pattern in str(line):
                 cmd1 = line.decode('utf-8')
                 break
+        if cmd1 is None:
+            LOG.error(f"Could not find disk {disk_name} under "
+                      f"{mount_path}/workload_{workload_id}/"
+                      f"snapshot_{snapshot_id}/vm_id_{instance_id}")
+            return snapshot_size
         cmd += "/" + cmd1
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
@@ -4534,7 +4635,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cmd2 = stdout.decode('utf-8')
 
         # block size calculation is done for MB: 1 MB = 1048576 bytes
-        final_cmd = (tvaultconf.command_prefix).replace("<command>","ls -s --block-size=1048576 " + \
+        final_cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls -s --block-size=1048576 " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4555,7 +4656,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def get_backing_chain(self, mount_path, workload_id, snapshot_id, vm_id):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
               str(vm_id).strip())
@@ -4566,13 +4667,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
         vm_res_ids = stdout.decode('UTF-8').split("\r\n")
         LOG.debug(f"vm_res_id list : {vm_res_ids}")
+        vm_res_id_vda = None
         for vm_res_id in vm_res_ids:
             if "_vda" in vm_res_id:
                 vm_res_id_vda = vm_res_id
                 break
         LOG.debug(f"vm_res_id_vda: {vm_res_id_vda}")
+        if vm_res_id_vda is None:
+            raise Exception(f"Could not find vda resource under "
+                             f"{mount_path}/workload_{workload_id}/"
+                             f"snapshot_{snapshot_id}/vm_id_{vm_id}")
 
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
               str(vm_id).strip() + "/" + str(vm_res_id_vda))
@@ -4584,7 +4690,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ids = stdout.decode('UTF-8').split("\r\n")
         LOG.debug(f"id list : {ids}")
 
-        cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info"+\
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","qemu-img info"+\
                 " --output=json --backing-chain " + str(mount_path).strip() +\
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + str(vm_id).strip() +\
@@ -4639,14 +4745,26 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
     Generate OpenStack token
     '''
-    def get_os_token(self):
+    def get_os_token(self, admin=False):
         try:
+            if admin:
+                username = CONF.auth.admin_username
+                user_domain_name = CONF.auth.admin_domain_name
+                password = CONF.auth.admin_password
+                project_name = CONF.auth.admin_project_name
+                project_domain_name = CONF.auth.admin_domain_name
+            else:
+                username = CONF.identity.username
+                user_domain_name = CONF.identity.domain_name
+                password = CONF.identity.password
+                project_name = CONF.identity.project_name
+                project_domain_name = CONF.identity.domain_name
             token_id, body = self.token_v3_client.get_token(
-                    username=CONF.identity.username,
-                    user_domain_name=CONF.identity.domain_name,
-                    password=CONF.identity.password,
-                    project_name=CONF.identity.project_name,
-                    project_domain_name=CONF.identity.domain_name,
+                    username=username,
+                    user_domain_name=user_domain_name,
+                    password=password,
+                    project_name=project_name,
+                    project_domain_name=project_domain_name,
                     auth_data=True)
             return token_id
         except Exception as e:
@@ -5029,7 +5147,99 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 mount_path = bt['filesystem_export_mount_path']
         LOG.debug(f"mount_path: {mount_path}")
         return mount_path
-    
+
+    '''
+    Method to fetch the backend mountpath and secret ref for a given
+    backup target id via the /backup_targets WLM API, needed to
+    dms-mount an S3 backup target
+    '''
+
+    def get_backup_target_dms_details(self, target_id):
+        bts = self.listBackupTargets()
+        mountpath = None
+        secret_ref = None
+        filesystem_export = None
+        target_type = None
+        for bt in bts:
+            if bt['id'] == target_id:
+                mountpath = bt.get('filesystem_export_mount_path')
+                secret_ref = bt.get('secret_ref')
+                filesystem_export = bt.get('filesystem_export')
+                target_type = bt.get('type')
+                break
+        LOG.debug(f"backup target dms details for {target_id} -> "
+                  f"mountpath: {mountpath}, secret_ref: {secret_ref}, "
+                  f"filesystem_export: {filesystem_export}, "
+                  f"target_type: {target_type}")
+        return {
+            'target_id': target_id,
+            'mountpath': mountpath,
+            'secret_ref': secret_ref,
+            'filesystem_export': filesystem_export,
+            'target_type': target_type,
+        }
+
+    '''
+    Method to persist the incremented dms_mount_job_id back into
+    tvaultconf.py so subsequent calls/runs use a fresh job-id
+    '''
+
+    def increment_dms_mount_job_id(self):
+        tvaultconf.dms_mount_job_id += 5
+        tvaultconf_file = tvaultconf.__file__
+        with open(tvaultconf_file, 'r') as f:
+            lines = f.readlines()
+        with open(tvaultconf_file, 'w') as f:
+            for line in lines:
+                if line.startswith('dms_mount_job_id'):
+                    f.write(f"dms_mount_job_id = {tvaultconf.dms_mount_job_id}\n")
+                else:
+                    f.write(line)
+
+    '''
+    Method to mount a backup target (s3 or nfs) via DMS
+    '''
+
+    def mount_backup_target_dms(
+            self, backup_target_type=tvaultconf.default_btt_id):
+        job_id = tvaultconf.dms_mount_job_id
+        target_id = self.getBackupTargetFromType(backup_target_type)
+        if not target_id:
+            raise Exception("Could not determine target_id for backup "
+                             f"target type {backup_target_type}")
+        details = self.get_backup_target_dms_details(target_id)
+        target_type = details['target_type']
+        if target_type == 's3':
+            if not (details['mountpath'] and details['secret_ref']):
+                raise Exception(
+                        f"Could not determine backup target details: {details}")
+            extra_arg = "--secret-ref {0}".format(details['secret_ref'])
+        elif target_type == 'nfs':
+            if not (details['mountpath'] and details['filesystem_export']):
+                raise Exception(
+                        f"Could not determine backup target details: {details}")
+            extra_arg = "--filesystem-export {0}".format(
+                    details['filesystem_export'])
+        else:
+            raise Exception(f"Unsupported target_type: {target_type}")
+        token = self.get_os_token(admin=True)
+        if not token:
+            raise Exception("Could not fetch a keystone token for dms-mount")
+        cmd = (command_argument_string.dms_mount +
+                   "--job-id {0} --target-id {1} --target-type {2} "
+                   "--token {3} --mount-path {4} {5}").format(
+                job_id, target_id, target_type, token, details['mountpath'],
+                extra_arg)
+        LOG.debug(f"cmd: {cmd}")
+        self.set_cloudadmin_env()
+        LOG.debug(f"Environment variables before dms-mount: {os.environ}")
+        output = cli_parser.cli_output(cmd)
+        LOG.debug(f"dms-mount output: {output}")
+        self.set_testuser_env()
+        LOG.debug(f"Environment variables after dms-mount: {os.environ}")
+        self.increment_dms_mount_job_id()
+        return output
+
     '''
     Add file recovery manager tag to the instance
     '''

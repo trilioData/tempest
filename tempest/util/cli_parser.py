@@ -40,6 +40,12 @@ def cli_response_parser(cli_resp, key_attr):
             if(arrL[1] == key_attr):
                 return arrL[2]
 
+def get_job_id_from_output(cli_resp):
+    for line in cli_resp.splitlines():
+        value = line.strip().strip('|').strip()
+        if value.isdigit():
+            return value
+
 def cli_expect(argument_string, expected_list, param_list):
     try:
         child = pexpect.spawn(argument_string)

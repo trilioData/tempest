@@ -22,7 +22,8 @@ workload_setting_show = "workloadmgr setting-show "
 workload_setting_delete = " workloadmgr setting-delete "
 workload_setting_update = "workloadmgr setting-update "
 workload_setting_list = "workloadmgr setting-list "
-workload_get_orphaned_workloads_list = "workloadmgr workload-get-orphaned-workloads-list --generate_yaml True"
+workload_get_orphaned_workloads_list = "workloadmgr workload-get-import-reassign-list --orphaned "
+job_detail_show = "workloadmgr job-detail-show "
 
 #Trust commands
 workload_scheduler_trust_check = "workloadmgr scheduler-trust-validate "
@@ -99,14 +100,16 @@ quota_list = "workloadmgr project-allowed-quota-list -f json "
 quota_show = "workloadmgr project-allowed-quota-show -f value "
 quota_delete = "workloadmgr project-allowed-quota-delete "
 
-#RBAC commands
+#Backup target commands
+dms_mount = "workloadmgr dms-mount --rabbitmq-url " + \
+        tvaultconf.rabbitmq_url + " --db-url " + tvaultconf.db_url + " "
+
+#OpenStack commands
 rbac_create_secgroup = "openstack network rbac create --target-project "
+os_server_list = "openstack server list"
 
 #OpenStack WLM CLI Commands
 os_workload_list = "openstack workloadmgr workload list"
-
-#OpenStack CLI Commands
-os_server_list = "openstack server list"
 
 #VM Migration commands
 migration_plan_create = "workloadmgr migration-plan-create --display-name " + \

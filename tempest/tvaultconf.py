@@ -12,7 +12,7 @@ pre_req = True
 PASS = "PASS"
 FAIL = "FAIL"
 
-enabled_tests = ["Attached_Volume_Ceph"]
+enabled_tests = ["Attached_Volume_lvm","Boot_from_Volume_lvm"]
 
 #Resources to use from file
 #Please add your resources one on each line in files: tempest/tempest/vms_file, volumes_file, workloads_file
@@ -42,8 +42,11 @@ workload_modify_description = "test2-new-description"
 restore_type = "restore"
 global_job_scheduler=False
 
-tvault_ip = []
-tvault_version = "4.1.124"
+#job-id used for dms-mount, incremented after every mount_s3_backup_target_dms call
+dms_mount_job_id = 10101
+
+tvault_ip = ["172.26.2.250"]
+tvault_version = "6.2.1.9"
 tvault_username = "root"
 tvault_dbname = "workloadmgr"
 tvault_password = "sample-password"
@@ -52,7 +55,7 @@ wlm_dbpasswd = "sample-password"
 wlm_dbhost = "192.168.6.17"
 smtp_password = "sample-password"
 smtp_password_pwdless = "sample-password"
-trustee_role = "_member_"
+trustee_role = ["creator","member"]
 test_role = "backup"
 
 # Scheduler parameter
@@ -77,7 +80,7 @@ fullbackup_interval_update = "7"
 
 # test parameters
 key_pair_name  = "tempest_test_key_pair"
-instance_username = "ubuntu"
+instance_username = "cirros"
 snapshot_restore_name = "Tempest Test Restore"
 restored_instance_flavor = 2
 security_group_id = "baaae013-75d5-4821-806c-2cb259c95fb4"
@@ -86,8 +89,8 @@ flavor_name = "test_flavor"
 bootfromvol_vol_size = 4
 volumes_parts = ["/dev/vdb", "/dev/vdc"]
 mount_points = ["mount_data_b", "mount_data_c"]
-user_frm_data = "/home/nchavan/tempest/tempest/frm_userdata.sh"
-user_data_vm = "/home/nchavan/tempest/tempest/vm_userdata.sh"
+user_frm_data = "/root/savitha/claude/tempest-1/tempest/frm_userdata.sh"
+user_data_vm = "/root/savitha/claude/tempest-1/tempest/vm_userdata.sh"
 curl_to_get_userdata = "http://169.254.169.254/2009-04-04/user-data"
 
 #Email settings data
@@ -173,7 +176,7 @@ migration_filename = "/opt/migration.json"
 migration_name = "tempest_migration"
 
 discover_success_str = "DiscoverVMs has been successfully scheduled for migration plan: "
-default_btt_id = None
+default_btt_id = "None"
 hourly_scheduler = {"snapshot_type": "incremental", "retention": 2, "interval": 1}
 
 hourly_scheduler_update = {"snapshot_type": "incremental", "retention": 3, "interval": 2}
