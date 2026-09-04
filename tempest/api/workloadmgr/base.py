@@ -610,7 +610,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def detach_volume(self, server_id, volume_id):
         try:
             body = self.volumes_client.show_volume(volume_id)['volume']
-            self.volumes_client.detach_volume(volume_id)
+            self.servers_client.detach_volume(server_id, volume_id)
             waiters.wait_for_volume_resource_status(self.volumes_client,
                                                     volume_id, 'available')
         except lib_exc.NotFound:
@@ -4179,7 +4179,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
 
     def check_snapshot_encryption_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4188,17 +4188,22 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         match_pattern = "_" + disk_name
+        cmd1 = None
         for line in stdout.splitlines():
             if match_pattern in str(line):
                 cmd1 = line.decode('utf-8')
                 break
+        if cmd1 is None:
+            raise Exception(f"Could not find disk {disk_name} under "
+                             f"{mount_path}/workload_{workload_id}/"
+                             f"snapshot_{snapshot_id}/vm_id_{instance_id}")
         cmd += "/" + cmd1
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         cmd2 = stdout.decode('utf-8')
 
-        final_cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info " + \
+        final_cmd = (tvaultconf.command_prefix_wlm).replace("<command>","qemu-img info " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4602,7 +4607,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     def check_snapshot_size_on_backend(self, mount_path, workload_id,
             snapshot_id, instance_id, disk_name="vda"):
         snapshot_size = 0
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4613,10 +4618,16 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
                 stderr=subprocess.PIPE)
         stdout, stderr = p.communicate()
         match_pattern = "_" + disk_name
+        cmd1 = None
         for line in stdout.splitlines():
             if match_pattern in str(line):
                 cmd1 = line.decode('utf-8')
                 break
+        if cmd1 is None:
+            LOG.error(f"Could not find disk {disk_name} under "
+                      f"{mount_path}/workload_{workload_id}/"
+                      f"snapshot_{snapshot_id}/vm_id_{instance_id}")
+            return snapshot_size
         cmd += "/" + cmd1
         p = subprocess.Popen(shlex.split(cmd), stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE)
@@ -4624,7 +4635,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         cmd2 = stdout.decode('utf-8')
 
         # block size calculation is done for MB: 1 MB = 1048576 bytes
-        final_cmd = (tvaultconf.command_prefix).replace("<command>","ls -s --block-size=1048576 " + \
+        final_cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls -s --block-size=1048576 " + \
                 str(mount_path).strip() + "/workload_" + \
                 str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + \
@@ -4645,7 +4656,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
     '''
 
     def get_backing_chain(self, mount_path, workload_id, snapshot_id, vm_id):
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
               str(vm_id).strip())
@@ -4656,13 +4667,18 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         LOG.debug(f"stdout : {stdout}; stderr: {stderr}")
         vm_res_ids = stdout.decode('UTF-8').split("\r\n")
         LOG.debug(f"vm_res_id list : {vm_res_ids}")
+        vm_res_id_vda = None
         for vm_res_id in vm_res_ids:
             if "_vda" in vm_res_id:
                 vm_res_id_vda = vm_res_id
                 break
         LOG.debug(f"vm_res_id_vda: {vm_res_id_vda}")
+        if vm_res_id_vda is None:
+            raise Exception(f"Could not find vda resource under "
+                             f"{mount_path}/workload_{workload_id}/"
+                             f"snapshot_{snapshot_id}/vm_id_{vm_id}")
 
-        cmd = (tvaultconf.command_prefix).replace("<command>","ls " + str(mount_path).strip() + \
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","ls " + str(mount_path).strip() + \
               "/workload_" + str(workload_id).strip() + "/snapshot_" + \
               str(snapshot_id).strip() + "/vm_id_" + \
               str(vm_id).strip() + "/" + str(vm_res_id_vda))
@@ -4674,7 +4690,7 @@ class BaseWorkloadmgrTest(tempest.test.BaseTestCase):
         ids = stdout.decode('UTF-8').split("\r\n")
         LOG.debug(f"id list : {ids}")
 
-        cmd = (tvaultconf.command_prefix).replace("<command>","qemu-img info"+\
+        cmd = (tvaultconf.command_prefix_wlm).replace("<command>","qemu-img info"+\
                 " --output=json --backing-chain " + str(mount_path).strip() +\
                 "/workload_" + str(workload_id).strip() + "/snapshot_" + \
                 str(snapshot_id).strip() + "/vm_id_" + str(vm_id).strip() +\

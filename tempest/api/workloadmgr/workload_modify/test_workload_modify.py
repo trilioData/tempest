@@ -300,9 +300,19 @@ class WorkloadTest(base.BaseWorkloadmgrTest):
                     "Global job scheduler disable", tvaultconf.FAIL)
                 raise Exception("Global job scheduler not disabled")
 
-            # Modify workload scheduler to enable
+            # Modify workload scheduler to enable and set the start date and
+            # start time (required by the API alongside enabled=True)
+            now = datetime.datetime.utcnow()
+            now_date = datetime.datetime.strftime(now, "%m/%d/%Y")
+            now_time_plus_15 = now + datetime.timedelta(minutes=15)
+            now_time_plus_15 = datetime.datetime.strftime(
+                now_time_plus_15, "%I:%M %p")
             workload_modify_command = command_argument_string.workload_modify + \
-                str(self.wid) + " --jobschedule enabled=True"
+                str(self.wid) + " --jobschedule enabled=True" + \
+                " --jobschedule start_date=" + str(now_date) + \
+                " --jobschedule start_time=" + "'" + \
+                str(now_time_plus_15).strip() + "'" + \
+                " --jobschedule timezone=UTC"
             rc = cli_parser.cli_returncode(workload_modify_command)
             if rc == 0:
                 reporting.add_test_step(
